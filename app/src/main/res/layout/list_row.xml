@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/list_row_selector"
@@ -10,8 +11,8 @@
         android:id="@+id/thumbnail"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:layout_alignParentLeft="true"
-        android:layout_marginRight="8dp" />
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="8dp" />
 
     <!-- Movie Title -->
     <TextView
@@ -19,30 +20,36 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/thumbnail"
-        android:layout_toRightOf="@+id/thumbnail"
+        android:layout_toEndOf="@+id/thumbnail"
         android:textSize="@dimen/title"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        tools:ignore="SpUsage" />
 
-    <!-- Rating -->
+    <!-- text -->
+    <TextView
+        android:id="@+id/listtext"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/thumbnail"
+        android:textColor="@color/genre"
+        android:textSize="@dimen/genre"
+        tools:ignore="SpUsage" />
+
+    <!-- comments -->
     <TextView
         android:id="@+id/rating"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title"
+        android:layout_below="@id/listtext"
         android:layout_marginTop="1dip"
-        android:layout_toRightOf="@+id/thumbnail"
-        android:textSize="@dimen/rating" />
+        android:layout_toEndOf="@+id/thumbnail"
+        android:textSize="@dimen/genre"
+        android:textStyle="bold"
+        tools:ignore="SpUsage" />
     
-    <!-- Genre -->
-    <TextView
-        android:id="@+id/genre"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/rating"
-        android:layout_marginTop="5dp"
-        android:layout_toRightOf="@+id/thumbnail"
-        android:textColor="@color/genre"
-        android:textSize="@dimen/genre" />
+
 
     <!-- Release Year -->
     <TextView
@@ -50,8 +57,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:textColor="@color/year"
-        android:textSize="@dimen/year" />
+        android:textSize="@dimen/year"
+        tools:ignore="SpUsage" />
 
 </RelativeLayout>

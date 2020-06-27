@@ -1,18 +1,14 @@
 package com.dimonvideo.client.model;
 
-import java.util.ArrayList;
-
 public class Movie {
-	private String title, thumbnailUrl;
-	private String year;
-	private double rating;
-	private ArrayList<String> genre;
+	private String title, thumbnailUrl, text, year, rating;
 
 	public Movie() {
 	}
 
-	public Movie(String name, String thumbnailUrl, String year, double rating) {
+	public Movie(String name, String thumbnailUrl, String year, String rating, String text) {
 		this.title = name;
+		this.text = text;
 		this.thumbnailUrl = thumbnailUrl;
 		this.year = year;
 		this.rating = rating;
@@ -24,6 +20,14 @@ public class Movie {
 
 	public void setTitle(String name) {
 		this.title = name;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
 	}
 
 	public String getThumbnailUrl() {
@@ -42,11 +46,11 @@ public class Movie {
 		this.year = year;
 	}
 
-	public double getRating() {
+	public String getRating() {
 		return rating;
 	}
 
-	public void setRating(double rating) {
+	public void setRating(String rating) {
 		this.rating = rating;
 	}
 

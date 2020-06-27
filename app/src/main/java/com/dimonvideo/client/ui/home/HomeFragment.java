@@ -10,9 +10,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.android.volley.Response;
@@ -34,12 +32,11 @@ import java.util.List;
 
 public class HomeFragment extends Fragment {
 
-    private HomeViewModel homeViewModel;
     // Log tag
     private static final String TAG = MainActivity.class.getSimpleName();
 
     // Movies json url
-    private static final String url = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=uploader";
+    private static final String url = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=comments&min=0";
     private ProgressDialog pDialog;
     private List<Movie> movieList = new ArrayList<Movie>();
     private ListView listView;
@@ -47,10 +44,8 @@ public class HomeFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel =
-                ViewModelProviders.of(this).get(HomeViewModel.class);
+
         View root = inflater.inflate(R.layout.fragment_home, container, false);
-        final TextView textView = root.findViewById(R.id.text_home);
 
         listView = root.findViewById(R.id.list);
         adapter = new CustomListAdapter(getActivity(), movieList);
@@ -60,9 +55,6 @@ public class HomeFragment extends Fragment {
         // Showing progress dialog before making http request
         pDialog.setMessage("Loading...");
         pDialog.show();
-
-        // changing action bar color
-
 
         // Creating volley request obj
         JsonArrayRequest movieReq = new JsonArrayRequest(url,
@@ -79,10 +71,14 @@ public class HomeFragment extends Fragment {
                                 JSONObject obj = response.getJSONObject(i);
                                 Movie movie = new Movie();
                                 movie.setTitle(obj.getString("title"));
-                                movie.setThumbnailUrl(obj.getString("image"));
-                                movie.setRating(((Number) obj.get("rating"))
-                                        .doubleValue());
+                                String image = obj.getString("image");
+                                if (!image.startsWith("http")) {
+                                    image = "https://dimonvideo.ru" + image;
+                                }
+                                movie.setThumbnailUrl(image);
+                                movie.setRating(obj.getString("rating"));
                                 movie.setYear(obj.getString("date"));
+                                movie.setText(obj.getString("text"));
 
                                 // adding movie to movies array
                                 movieList.add(movie);
@@ -109,13 +105,6 @@ public class HomeFragment extends Fragment {
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(movieReq);
 
-
-        homeViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
         return root;
     }
     @Override
@@ -129,4 +118,5 @@ public class HomeFragment extends Fragment {
             pDialog = null;
         }
     }
+
 }

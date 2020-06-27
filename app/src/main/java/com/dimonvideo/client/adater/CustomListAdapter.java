@@ -48,8 +48,10 @@ public class CustomListAdapter extends BaseAdapter {
 		if (inflater == null)
 			inflater = (LayoutInflater) activity
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		if (convertView == null)
+		if (convertView == null) {
+			assert inflater != null;
 			convertView = inflater.inflate(R.layout.list_row, null);
+		}
 
 		if (imageLoader == null)
 			imageLoader = AppController.getInstance().getImageLoader();
@@ -57,7 +59,7 @@ public class CustomListAdapter extends BaseAdapter {
 				.findViewById(R.id.thumbnail);
 		TextView title = (TextView) convertView.findViewById(R.id.title);
 		TextView rating = (TextView) convertView.findViewById(R.id.rating);
-		TextView genre = (TextView) convertView.findViewById(R.id.genre);
+		TextView text = (TextView) convertView.findViewById(R.id.listtext);
 		TextView year = (TextView) convertView.findViewById(R.id.releaseYear);
 
 		// getting movie data for the row
@@ -68,12 +70,12 @@ public class CustomListAdapter extends BaseAdapter {
 		
 		// title
 		title.setText(m.getTitle());
-		
-		// rating
-		rating.setText("Rating: " + String.valueOf(m.getRating()));
-		
-		// genre
 
+		// text
+		text.setText(m.getText());
+
+		// rating
+		rating.setText(activity.getString(R.string.Comments) + " " + m.getRating());
 		
 		// release year
 		year.setText(String.valueOf(m.getYear()));
