@@ -118,6 +118,7 @@ public class vUploaderFragment extends Fragment implements RecyclerView.OnScroll
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        progressBar.setVisibility(View.GONE);
                         Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     }
                 });

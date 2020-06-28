@@ -89,7 +89,7 @@
             app:dialogTitle="@string/category_title"
             app:entries="@array/books_entries"
             app:entryValues="@array/books_values"
-            app:key="dvc_vuploader_cat"
+            app:key="dvc_books_cat"
             app:summary="@string/books"
             app:title="@string/category_title" />
     </PreferenceCategory>

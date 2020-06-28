@@ -38,12 +38,12 @@
     <fragment
         android:id="@+id/nav_muzon"
         android:name="com.dimonvideo.client.ui.muzon.MuzonFragment"
-        android:label="@string/menu_news"
+        android:label="@string/muzon"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/nav_books"
         android:name="com.dimonvideo.client.ui.books.BooksFragment"
-        android:label="@string/menu_news"
+        android:label="@string/books"
         tools:layout="@layout/fragment_home" />
 </navigation>

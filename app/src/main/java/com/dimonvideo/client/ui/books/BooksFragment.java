@@ -3,22 +3,18 @@ package com.dimonvideo.client.ui.books;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,8 +32,6 @@ import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.getMainData;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,7 +96,6 @@ public class BooksFragment extends Fragment implements RecyclerView.OnScrollChan
         if (selections != null) {
             String[] selected = selections.toArray(new String[]{});
             category = TextUtils.join(",", selected);
-            //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
         }
         return new JsonArrayRequest(Config.BOOKS_URL + requestCount + "&c=placeholder," + category,
                 new Response.Listener<JSONArray>() {
@@ -115,6 +108,7 @@ public class BooksFragment extends Fragment implements RecyclerView.OnScrollChan
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        progressBar.setVisibility(View.GONE);
                         Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     }
                 });
