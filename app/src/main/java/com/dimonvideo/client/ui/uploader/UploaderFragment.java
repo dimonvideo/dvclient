@@ -1,16 +1,19 @@
-package com.dimonvideo.client.ui.home;
+package com.dimonvideo.client.ui.uploader;
 
-import android.app.MediaRouteButton;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class HomeFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class UploaderFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<Feed> listFeed;
 
@@ -83,7 +86,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
 
         //JsonArrayRequest of volley
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.COMMENTS_URL + requestCount,
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.UPLOADER_URL + requestCount,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
@@ -151,8 +154,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(HomeFragment.this)
-                .attach(HomeFragment.this)
+                .detach(com.dimonvideo.client.ui.uploader.UploaderFragment.this)
+                .attach(com.dimonvideo.client.ui.uploader.UploaderFragment.this)
                 .commit();
     }
 

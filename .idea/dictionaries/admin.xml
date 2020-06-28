@@ -3,7 +3,11 @@
     <words>
       <w>dimonvideo</w>
       <w>dimonvideoruclient</w>
+      <w>imageloader</w>
       <w>listtext</w>
+      <w>razdel</w>
+      <w>requestcount</w>
+      <w>swip</w>
     </words>
   </dictionary>
 </component>

@@ -14,7 +14,7 @@
         android:layout_alignParentStart="true"
         android:layout_marginEnd="8dp" />
 
-    <!-- Movie Title -->
+    <!-- Title -->
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
@@ -39,21 +39,31 @@
 
     <!-- comments -->
     <TextView
-        android:id="@+id/rating"
-        android:layout_width="fill_parent"
+        android:id="@+id/ratingtext"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/listtext"
         android:layout_marginTop="1dip"
+        android:layout_marginRight="3dip"
+        android:text="@string/Comments"
         android:layout_toEndOf="@+id/thumbnail"
         android:textSize="@dimen/genre"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
-    
-
-
-    <!-- Release Year -->
     <TextView
-        android:id="@+id/releaseYear"
+        android:id="@+id/rating"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dip"
+        android:layout_below="@id/listtext"
+        android:layout_toEndOf="@+id/ratingtext"
+        android:textSize="@dimen/genre"
+        android:textStyle="bold"
+        tools:ignore="SpUsage" />
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
