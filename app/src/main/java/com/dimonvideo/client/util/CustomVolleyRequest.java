@@ -1,4 +1,4 @@
-package com.dimonvideo.client;
+package com.dimonvideo.client.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;

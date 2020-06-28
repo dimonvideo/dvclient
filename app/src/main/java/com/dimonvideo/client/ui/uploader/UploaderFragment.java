@@ -1,7 +1,9 @@
 package com.dimonvideo.client.ui.uploader;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,8 +40,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class UploaderFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
@@ -93,7 +99,15 @@ public class UploaderFragment extends Fragment implements RecyclerView.OnScrollC
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        return new JsonArrayRequest(Config.UPLOADER_URL + requestCount,
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        Set<String> selections = sharedPrefs.getStringSet("dvc_uploader_cat", null);
+        assert selections != null;
+        String[] selected = selections.toArray(new String[] {});
+        String category = TextUtils.join(",", selected);
+    //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
+
+        return new JsonArrayRequest(Config.UPLOADER_URL + requestCount + "&c=placeholder," + category,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {

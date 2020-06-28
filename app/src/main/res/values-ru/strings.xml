@@ -14,4 +14,22 @@
     <string name="Comments">Комментарии:</string>
     <string name="no_more">Файлов больше нет</string>
     <string name="menu_news">Новости</string>
+    <string name="refresh">Refresh</string>
+    <string name="action_others">Другие приложения</string>
+    <string name="action_feedback">Обратная связь</string>
+    <string name="app_mail">admin@dimonvideo.ru</string>
+
+    <string name="messages_header">Основное</string>
+    <string name="signature_title">Логин на сайте</string>
+    <string name="password_title">Пароль на сайте</string>
+    <string name="pm_title">Личные сообщения</string>
+
+    <string name="content_header">Разделы</string>
+    <string name="uploader">Обменник</string>
+    <string name="category_title">Выбор категорий</string>
+    <string name="vuploader">Видео</string>
+    <string name="muzon">Музыка</string>
+    <string name="books">Библиотека</string>
+
+
 </resources>

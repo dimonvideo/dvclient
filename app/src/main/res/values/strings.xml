@@ -13,4 +13,26 @@
     <string name="Comments">Comments:</string>
     <string name="no_more">No more item</string>
     <string name="menu_news">News</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Main</string>
+    <string name="content_header">Content</string>
+
+    <!-- Main Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="pm_title">Private messages</string>
+    <string name="password_title">Password</string>
+
+    <!-- Content Preferences -->
+    <string name="uploader">Uploader</string>
+
+
+    <string name="refresh">Refresh</string>
+    <string name="action_others">Others apps</string>
+    <string name="action_feedback">Send feedback</string>
+    <string name="app_mail">admin@dimonvideo.ru</string>
+    <string name="category_title">Categories</string>
+    <string name="vuploader">Vuploader</string>
+    <string name="muzon">Music</string>
+    <string name="books">Books</string>
 </resources>

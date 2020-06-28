@@ -1,0 +1,115 @@
+<resources>
+    <!-- PM Preference -->
+    <string-array name="pm_entries">
+        <item>Off</item>
+        <item>On</item>
+    </string-array>
+
+    <string-array name="pm_values">
+        <item>off</item>
+        <item>on</item>
+    </string-array>
+
+    <string-array name="default_values"><item>all</item></string-array>
+
+    <!-- Uploader Preference -->
+    <string-array name="uploader_entries">
+        <item>All</item>
+        <item>Android</item>
+        <item>PC</item>
+        <item>Symbian</item>
+        <item>Books</item>
+    </string-array>
+
+    <string-array name="uploader_values">
+        <item>all</item>
+        <item>android</item>
+        <item>pc</item>
+        <item>symbian</item>
+        <item>books</item>
+    </string-array>
+
+    <!-- vUploader Preference -->
+    <string-array name="vuploader_entries">
+        <item>All</item>
+        <item>Movies</item>
+        <item>Serials</item>
+        <item>Clips</item>
+        <item>Humor</item>
+    </string-array>
+
+    <string-array name="vuploader_values">
+        <item>all</item>
+        <item>movies</item>
+        <item>serials</item>
+        <item>clips</item>
+        <item>humor</item>
+    </string-array>
+
+    <!-- Muzon Preference -->
+    <string-array name="muzon_entries">
+        <item>All</item>
+        <item>Albums</item>
+        <item>Tracks</item>
+        <item>Ringtone</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="muzon_values">
+        <item>all</item>
+        <item>albums</item>
+        <item>tracks</item>
+        <item>ringtone</item>
+        <item>others</item>
+    </string-array>
+
+    <!-- Books Preference -->
+    <string-array name="books_entries">
+        <item>All</item>
+        <item>Audio</item>
+        <item>Fantastic</item>
+        <item>Fantasy</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="books_values">
+        <item>all</item>
+        <item>audio</item>
+        <item>fantastic</item>
+        <item>fantasy</item>
+        <item>others</item>
+    </string-array>
+
+    <!-- News Preference -->
+    <string-array name="news_entries">
+        <item>All</item>
+        <item>Hardware</item>
+        <item>Apple</item>
+        <item>Games</item>
+        <item>Software</item>
+    </string-array>
+
+    <string-array name="news_values">
+        <item>all</item>
+        <item>hardware</item>
+        <item>apple</item>
+        <item>games</item>
+        <item>software</item>
+    </string-array>
+
+    <!-- Gallery Preference -->
+    <string-array name="gallery_entries">
+        <item>All</item>
+        <item>Humor</item>
+        <item>Wallpapers</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="gallery_values">
+        <item>all</item>
+        <item>humor</item>
+        <item>wallpaper</item>
+        <item>others</item>
+    </string-array>
+
+</resources>

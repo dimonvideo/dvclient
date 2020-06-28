@@ -14,6 +14,16 @@
             android:id="@+id/nav_uploader"
             android:title="@string/menu_slideshow" />
         <item
+            android:id="@+id/nav_vuploader"
+            android:title="@string/vuploader" />
+        <item
+            android:id="@+id/nav_books"
+            android:title="@string/books" />
+        <item
+            android:id="@+id/nav_muzon"
+            android:title="@string/muzon" />
+
+        <item
             android:id="@+id/nav_gallery"
             android:title="@string/menu_gallery" />
 

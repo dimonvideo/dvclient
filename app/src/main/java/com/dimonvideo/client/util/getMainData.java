@@ -1,6 +1,5 @@
 package com.dimonvideo.client.util;
 
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dimonvideo.client.Config;
@@ -12,7 +11,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-public class getMainData extends Fragment {
+public class getMainData {
 
     // разбор полученных данных
     public static void parseData(JSONArray array, List<Feed> listFeed, RecyclerView.Adapter adapter) {

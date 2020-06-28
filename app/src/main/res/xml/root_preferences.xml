@@ -1,0 +1,133 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/messages_header">
+
+        <EditTextPreference
+            app:key="dvc_login"
+            app:title="@string/signature_title"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="dvc_password"
+            app:title="@string/password_title"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:dependency="dvc_password"
+            app:defaultValue="off"
+            app:entries="@array/pm_entries"
+            app:entryValues="@array/pm_values"
+            app:key="dvc_pm"
+            app:title="@string/pm_title"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/uploader">
+
+        <!-- Uploader Preference -->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_uploader"
+            app:title="@string/uploader" />
+        <MultiSelectListPreference
+            android:dependency="dvc_uploader"
+            app:defaultValue="@array/default_values"
+            app:dialogTitle="@string/category_title"
+            app:entries="@array/uploader_entries"
+            app:entryValues="@array/uploader_values"
+            app:key="dvc_uploader_cat"
+            app:summary="@string/uploader"
+            app:title="@string/category_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/muzon">
+
+        <!-- Muzon Preference -->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_muzon"
+            app:title="@string/muzon" />
+        <MultiSelectListPreference
+            android:dependency="dvc_muzon"
+            app:defaultValue="@array/default_values"
+            app:dialogTitle="@string/category_title"
+            app:entries="@array/muzon_entries"
+            app:entryValues="@array/muzon_values"
+            app:key="dvc_muzon_cat"
+            app:summary="@string/muzon"
+            app:title="@string/category_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/vuploader">
+
+    <!-- Uploader Preference -->
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="dvc_vuploader"
+        app:title="@string/vuploader" />
+    <MultiSelectListPreference
+        android:dependency="dvc_vuploader"
+        app:defaultValue="@array/default_values"
+        app:dialogTitle="@string/category_title"
+        app:entries="@array/vuploader_entries"
+        app:entryValues="@array/vuploader_values"
+        app:key="dvc_vuploader_cat"
+        app:summary="@string/vuploader"
+        app:title="@string/category_title" />
+</PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/books">
+
+        <!-- Books Preference -->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_books"
+            app:title="@string/books" />
+        <MultiSelectListPreference
+            android:dependency="dvc_books"
+            app:defaultValue="@array/default_values"
+            app:dialogTitle="@string/category_title"
+            app:entries="@array/books_entries"
+            app:entryValues="@array/books_values"
+            app:key="dvc_vuploader_cat"
+            app:summary="@string/books"
+            app:title="@string/category_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/menu_news">
+
+        <!-- News Preference -->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_news"
+            app:title="@string/menu_news" />
+        <MultiSelectListPreference
+            android:dependency="dvc_news"
+            app:defaultValue="@array/default_values"
+            app:dialogTitle="@string/category_title"
+            app:entries="@array/news_entries"
+            app:entryValues="@array/news_values"
+            app:key="dvc_news_cat"
+            app:summary="@string/menu_news"
+            app:title="@string/category_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/menu_gallery">
+
+        <!-- Gallery Preference -->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_gallery"
+            app:title="@string/menu_gallery" />
+        <MultiSelectListPreference
+            android:dependency="dvc_gallery"
+            app:defaultValue="@array/default_values"
+            app:dialogTitle="@string/category_title"
+            app:entries="@array/gallery_entries"
+            app:entryValues="@array/gallery_values"
+            app:key="dvc_gallery_cat"
+            app:summary="@string/menu_gallery"
+            app:title="@string/category_title" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

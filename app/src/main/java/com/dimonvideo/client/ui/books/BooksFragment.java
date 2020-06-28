@@ -1,4 +1,4 @@
-package com.dimonvideo.client.ui.news;
+package com.dimonvideo.client.ui.books;
 
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -8,12 +8,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -41,7 +45,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class NewsFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class BooksFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<Feed> listFeed;
 
@@ -92,15 +96,15 @@ public class NewsFragment extends Fragment implements RecyclerView.OnScrollChang
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
-
+        String category = "all";
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
-        assert selections != null;
-        String[] selected = selections.toArray(new String[] {});
-        String category = TextUtils.join(",", selected);
-        //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
-
-        return new JsonArrayRequest(Config.NEWS_URL + requestCount + "&c=placeholder," + category,
+        Set<String> selections = sharedPrefs.getStringSet("dvc_books_cat", null);
+        if (selections != null) {
+            String[] selected = selections.toArray(new String[]{});
+            category = TextUtils.join(",", selected);
+            //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
+        }
+        return new JsonArrayRequest(Config.BOOKS_URL + requestCount + "&c=placeholder," + category,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
@@ -145,8 +149,8 @@ public class NewsFragment extends Fragment implements RecyclerView.OnScrollChang
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(NewsFragment.this)
-                .attach(NewsFragment.this)
+                .detach(com.dimonvideo.client.ui.books.BooksFragment.this)
+                .attach(com.dimonvideo.client.ui.books.BooksFragment.this)
                 .commit();
     }
 
