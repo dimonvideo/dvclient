@@ -11,4 +11,6 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Uploader</string>
     <string name="Comments">Comments:</string>
+    <string name="no_more">No more item</string>
+    <string name="menu_news">News</string>
 </resources>

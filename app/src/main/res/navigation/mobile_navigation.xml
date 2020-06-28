@@ -15,11 +15,17 @@
         android:id="@+id/nav_gallery"
         android:name="com.dimonvideo.client.ui.gallery.GalleryFragment"
         android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/nav_slideshow"
+        android:id="@+id/nav_uploader"
         android:name="com.dimonvideo.client.ui.uploader.UploaderFragment"
         android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_news"
+        android:name="com.dimonvideo.client.ui.news.NewsFragment"
+        android:label="@string/menu_slideshow"
+        tools:layout="@layout/fragment_home" />
 </navigation>

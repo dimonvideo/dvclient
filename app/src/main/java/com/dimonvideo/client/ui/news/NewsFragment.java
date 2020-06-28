@@ -1,4 +1,4 @@
-package com.dimonvideo.client.ui.gallery;
+package com.dimonvideo.client.ui.news;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -6,16 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,7 +37,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class GalleryFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class NewsFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<Feed> listFeed;
 
@@ -93,7 +89,7 @@ public class GalleryFragment extends Fragment implements RecyclerView.OnScrollCh
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        return new JsonArrayRequest(Config.GALLERY_URL + requestCount,
+        return new JsonArrayRequest(Config.NEWS_URL + requestCount,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
@@ -138,8 +134,8 @@ public class GalleryFragment extends Fragment implements RecyclerView.OnScrollCh
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(com.dimonvideo.client.ui.gallery.GalleryFragment.this)
-                .attach(com.dimonvideo.client.ui.gallery.GalleryFragment.this)
+                .detach(NewsFragment.this)
+                .attach(NewsFragment.this)
                 .commit();
     }
 

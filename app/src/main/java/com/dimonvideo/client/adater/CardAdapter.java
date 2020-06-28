@@ -58,6 +58,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Feed.getText());
         holder.textViewDate.setText(Feed.getDate());
+        holder.textViewCategory.setText(Feed.getCategory());
         holder.textViewComments.setText(String.valueOf(Feed.getComments()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +77,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public NetworkImageView imageView;
-        public TextView textViewTitle, textViewText, textViewDate, textViewComments;
+        public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -86,6 +87,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
             textViewText = (TextView) itemView.findViewById(R.id.listtext);
             textViewDate = (TextView) itemView.findViewById(R.id.date);
             textViewComments = (TextView) itemView.findViewById(R.id.rating);
+            textViewCategory = (TextView) itemView.findViewById(R.id.category);
 
         }
 

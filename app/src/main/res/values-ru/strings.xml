@@ -9,7 +9,9 @@
     <string name="action_settings">Настройки</string>
 
     <string name="menu_home">Главное</string>
-    <string name="menu_gallery">Новости</string>
+    <string name="menu_gallery">Картинки</string>
     <string name="menu_slideshow">Обменник</string>
     <string name="Comments">Комментарии:</string>
+    <string name="no_more">Файлов больше нет</string>
+    <string name="menu_news">Новости</string>
 </resources>
