@@ -102,10 +102,11 @@ public class vUploaderFragment extends Fragment implements RecyclerView.OnScroll
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         Set<String> selections = sharedPrefs.getStringSet("dvc_vuploader_cat", null);
-        assert selections != null;
-        String[] selected = selections.toArray(new String[] {});
-        String category = TextUtils.join(",", selected);
-    //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
+        String category = "all";
+        if (selections != null) {
+            String[] selected = selections.toArray(new String[]{});
+            category = TextUtils.join(",", selected);
+        }
 
         return new JsonArrayRequest(Config.VUPLOADER_URL + requestCount + "&c=placeholder," + category,
                 new Response.Listener<JSONArray>() {

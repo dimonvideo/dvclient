@@ -2,7 +2,7 @@ package com.dimonvideo.client.model;
 
 public class Feed {
 	//Data Variables
-	private String imageUrl, title, text, date, razdel, category, headers;
+	private String imageUrl, title, text, date, razdel, category, headers, user, size;
 	private int id, comments;
 
 	//Getters and Setters
@@ -79,5 +79,21 @@ public class Feed {
 
 	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
+	}
+
+	public String getSize() {
+		return size;
+	}
+
+	public void setSize(String size) {
+		this.size = size;
 	}
 }

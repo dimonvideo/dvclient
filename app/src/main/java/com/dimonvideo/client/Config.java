@@ -11,6 +11,8 @@ public class Config {
     public static final String MUZON_URL = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=muzon&min=";
     public static final String BOOKS_URL = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=books&min=";
 
+    public static final String TEXT_URL = "https://dimonvideo.ru/apps/dvclient.php?op=2&razdel=";
+
     //JSON TAGS
     public static final String TAG_IMAGE_URL = "image";
     public static final String TAG_TITLE = "title";
@@ -21,6 +23,8 @@ public class Config {
     public static final String TAG_RAZDEL = "razdel";
     public static final String TAG_CATEGORY = "category";
     public static final String TAG_HEADERS = "headers";
+    public static final String TAG_USER = "user";
+    public static final String TAG_SIZE = "size";
 
 }
 

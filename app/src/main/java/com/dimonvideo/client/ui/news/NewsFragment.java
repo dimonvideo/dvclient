@@ -95,9 +95,11 @@ public class NewsFragment extends Fragment implements RecyclerView.OnScrollChang
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
-        assert selections != null;
-        String[] selected = selections.toArray(new String[] {});
-        String category = TextUtils.join(",", selected);
+        String category = "all";
+        if (selections != null) {
+            String[] selected = selections.toArray(new String[]{});
+            category = TextUtils.join(",", selected);
+        }
         //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
 
         return new JsonArrayRequest(Config.NEWS_URL + requestCount + "&c=placeholder," + category,

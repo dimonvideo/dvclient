@@ -50,7 +50,7 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/headers_title"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="left"
+                        android:layout_gravity="center"
                         android:gravity="bottom|left"
                         android:text="@string/uploader"
                         android:ellipsize="end"
@@ -58,9 +58,14 @@
                         android:textColor="@android:color/white"
                         android:textSize="@dimen/title" />
                     <TextView
+                        android:id="@+id/sub_headers_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
+                        android:layout_gravity="center"
+                        android:text="@string/uploader"
+                        android:gravity="bottom|left"
+                        android:ellipsize="end"
+                        android:singleLine="true"
                         android:layout_marginTop="4dp"
                         android:textColor="@android:color/white" />
                 </LinearLayout>
@@ -76,17 +81,16 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.cardview.widget.CardView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_margin="8dp"
             app:cardElevation="8dp"
+            android:fillViewport="false"
             app:contentPadding="16dp">
-            <TextView
+            <WebView
+                android:id="@+id/read_full_content"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:lineSpacingExtra="8dp"
-                android:text="@string/large_text"
-                android:textSize="18sp" />
+                android:layout_height="wrap_content"/>
         </androidx.cardview.widget.CardView>
     </androidx.core.widget.NestedScrollView>
     <androidx.appcompat.widget.Toolbar

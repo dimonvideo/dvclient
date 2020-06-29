@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.AllContent;
+import com.dimonvideo.client.Config;
 import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
@@ -55,7 +56,6 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
         imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
 
-        //Showing data on the views
         holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Feed.getText());
@@ -66,17 +66,16 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, AllContent.class);
-
-                //Any getter of your class you want
-                intent.putExtra("title", Feed.getTitle());
-                intent.putExtra("id", Feed.getId());
-                intent.putExtra("timeline",Feed.getDate());
-                intent.putExtra("headers",Feed.getHeaders());
-                intent.putExtra("images", Feed.getImageUrl());
-                intent.putExtra("category", Feed.getCategory());
-                intent.putExtra("razdel", Feed.getRazdel());
+                intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+                intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+                intent.putExtra(Config.TAG_DATE,Feed.getDate());
+                intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
+                intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
+                intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
+                intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+                intent.putExtra(Config.TAG_USER, Feed.getUser());
+                intent.putExtra(Config.TAG_SIZE, Feed.getSize());
                 context.startActivity(intent);
-                Toast.makeText(v.getContext(), Feed.getId() + " " + Feed.getRazdel(), Toast.LENGTH_SHORT).show();
             }
         });
 

@@ -30,6 +30,7 @@
     <string name="vuploader">Видео</string>
     <string name="muzon">Музыка</string>
     <string name="books">Библиотека</string>
+    <string name="by"> прислал: </string>
 
 
 </resources>

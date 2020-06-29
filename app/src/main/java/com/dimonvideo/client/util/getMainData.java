@@ -28,6 +28,8 @@ public class getMainData {
                 jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
                 jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
                 jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                jsonFeed.setUser(json.getString(Config.TAG_USER));
+                jsonFeed.setSize(json.getString(Config.TAG_SIZE));
                 jsonFeed.setId(json.getInt(Config.TAG_ID));
             } catch (JSONException e) {
                 e.printStackTrace();

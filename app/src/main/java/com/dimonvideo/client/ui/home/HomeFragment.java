@@ -37,8 +37,8 @@ import java.util.Objects;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class HomeFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
-    private List<Feed> listFeed;
 
+    private List<Feed> listFeed;
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
@@ -47,6 +47,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
     private int requestCount = 1;
     private ProgressBar progressBar;
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -81,11 +82,14 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
         recyclerView.setAdapter(adapter);
 
+
+
         return root;
     }
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
+
 
         return new JsonArrayRequest(Config.COMMENTS_URL + requestCount,
                 new Response.Listener<JSONArray>() {
@@ -137,5 +141,6 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                 .attach(HomeFragment.this)
                 .commit();
     }
+
 
 }
