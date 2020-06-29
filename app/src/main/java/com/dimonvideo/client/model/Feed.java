@@ -2,7 +2,7 @@ package com.dimonvideo.client.model;
 
 public class Feed {
 	//Data Variables
-	private String imageUrl, title, text, date, razdel, category;
+	private String imageUrl, title, text, date, razdel, category, headers;
 	private int id, comments;
 
 	//Getters and Setters
@@ -25,6 +25,14 @@ public class Feed {
 		this.title = title;
 	}
 
+	public void setHeaders(String headers) {
+		this.headers = headers;
+	}
+
+	public String getHeaders() {
+		return headers;
+	}
+
 	public String getDate() {
 		return date;
 	}
@@ -32,6 +40,7 @@ public class Feed {
 	public void setDate(String date) {
 		this.date = date;
 	}
+
 	public String getText() {
 		return text;
 	}

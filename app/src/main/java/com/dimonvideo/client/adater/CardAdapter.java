@@ -1,6 +1,7 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
@@ -63,7 +65,17 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(context, AllContent.class);
 
+                //Any getter of your class you want
+                intent.putExtra("title", Feed.getTitle());
+                intent.putExtra("id", Feed.getId());
+                intent.putExtra("timeline",Feed.getDate());
+                intent.putExtra("headers",Feed.getHeaders());
+                intent.putExtra("images", Feed.getImageUrl());
+                intent.putExtra("category", Feed.getCategory());
+                intent.putExtra("razdel", Feed.getRazdel());
+                context.startActivity(intent);
                 Toast.makeText(v.getContext(), Feed.getId() + " " + Feed.getRazdel(), Toast.LENGTH_SHORT).show();
             }
         });

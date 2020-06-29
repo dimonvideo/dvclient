@@ -27,6 +27,7 @@ public class getMainData {
                 jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
                 jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
                 jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
                 jsonFeed.setId(json.getInt(Config.TAG_ID));
             } catch (JSONException e) {
                 e.printStackTrace();

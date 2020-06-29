@@ -20,5 +20,7 @@ public class Config {
     public static final String TAG_ID = "lid";
     public static final String TAG_RAZDEL = "razdel";
     public static final String TAG_CATEGORY = "category";
+    public static final String TAG_HEADERS = "headers";
 
 }
+
