@@ -69,6 +69,8 @@ public class MainActivity extends AppCompatActivity  {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+
+
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);
         if (!is_news) navigationView.getMenu().removeItem(R.id.nav_news);
