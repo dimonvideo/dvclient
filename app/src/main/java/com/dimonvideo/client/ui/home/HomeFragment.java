@@ -53,7 +53,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
     private RequestQueue requestQueue;
 
     private int requestCount = 1;
-    private ProgressBar progressBar;
+    private ProgressBar progressBar, ProgressBarBottom;
     int razdel = 0;
     String url = Config.COMMENTS_URL;
 
@@ -85,7 +85,8 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
-
+        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
 
@@ -122,6 +123,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                     @Override
                     public void onResponse(JSONArray response) {
                         progressBar.setVisibility(View.GONE);
+                        ProgressBarBottom.setVisibility(View.GONE);
                         getMainData.parseData(response, listFeed, adapter); // парсинг данных
 
                     }
@@ -130,6 +132,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
+                        ProgressBarBottom.setVisibility(View.GONE);
                         tvEmptyView.setVisibility(View.VISIBLE);
                         Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     }
@@ -138,6 +141,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        ProgressBarBottom.setVisibility(View.VISIBLE);
         requestQueue.add(getDataFromServer(requestCount));
         requestCount++;
     }

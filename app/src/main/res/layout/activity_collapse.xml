@@ -87,6 +87,13 @@
             app:cardElevation="8dp"
             android:fillViewport="false"
             app:contentPadding="16dp">
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="15dp"
+                android:layout_marginTop="7dp"
+                android:indeterminate="true" />
             <WebView
                 android:id="@+id/read_full_content"
                 android:layout_width="match_parent"

@@ -1,17 +1,23 @@
 package com.dimonvideo.client;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 
@@ -19,6 +25,7 @@ import java.util.Objects;
 
 public class AllContent extends AppCompatActivity {
     WebView webView;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +57,6 @@ public class AllContent extends AppCompatActivity {
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
         Glide.with(this).load(image).into(imageView);
 
-        webView=(WebView)findViewById(R.id.read_full_content);
-        webView.getSettings().setAppCacheEnabled(true);
-        webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
-        webView.getSettings().setAppCacheEnabled(true);
-        webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-        webView.setBackgroundColor(0);
-        webView.loadUrl(Config.TEXT_URL + razdel + "&min=" + id);
-
-
-
-        Log.w("myApp", Config.TEXT_URL + razdel + "&min=" + id);
-
         /*
 
 
@@ -75,6 +69,54 @@ public class AllContent extends AppCompatActivity {
         });
 
          */
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        LoadWeb(razdel, id);
+
+        progressBar.setMax(100);
+        progressBar.setProgress(1);
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+
+
+                progressBar.setProgress(progress);
+            }
+        });
+
+        webView.setWebViewClient(new WebViewClient() {
+
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
+
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+
+                webView.loadUrl("file:///android_asset/error.html");
+            }
+
+            public void onPageFinished(WebView view, String url) {
+                progressBar.setVisibility(View.GONE);
+            }
+
+        });
+
+
+    }
+
+    public void LoadWeb(String razdel, String id) {
+
+        webView=(WebView)findViewById(R.id.read_full_content);
+        webView.getSettings().setAppCacheEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
+        webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
+        webView.getSettings().setAppCacheEnabled(true);
+        webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        webView.setBackgroundColor(0);
+        webView.loadUrl(Config.TEXT_URL + razdel + "&min=" + id);
     }
 
     @Override
