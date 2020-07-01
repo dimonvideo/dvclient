@@ -3,6 +3,7 @@ package com.dimonvideo.client;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -76,6 +77,12 @@ public class AllContent extends AppCompatActivity {
          */
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    
     // toolbar home arrow
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {

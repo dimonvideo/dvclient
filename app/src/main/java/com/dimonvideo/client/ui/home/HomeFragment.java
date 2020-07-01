@@ -1,15 +1,15 @@
 package com.dimonvideo.client.ui.home;
 
-import android.content.Intent;
+import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -48,6 +48,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
+    private TextView tvEmptyView;
 
     private RequestQueue requestQueue;
 
@@ -101,8 +102,7 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
         swipLayout.setOnRefreshListener(this);
 
         recyclerView.setAdapter(adapter);
-
-
+        tvEmptyView = (TextView) root.findViewById(R.id.empty_view);
 
         return root;
     }
@@ -123,12 +123,14 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                     public void onResponse(JSONArray response) {
                         progressBar.setVisibility(View.GONE);
                         getMainData.parseData(response, listFeed, adapter); // парсинг данных
+
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
+                        tvEmptyView.setVisibility(View.VISIBLE);
                         Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -168,5 +170,17 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                 .commit();
     }
 
+public ProgressDialog ProgressDialogShow() {
+        ProgressDialog progressDialog;
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setTitle("Write Title here");
+        progressDialog.setMessage("Loading...");
+
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.setIndeterminate(true);
+        return progressDialog;
+    }
 
 }
