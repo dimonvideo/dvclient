@@ -80,6 +80,22 @@
         <item>others</item>
     </string-array>
 
+    <!-- Articles Preference -->
+    <string-array name="articles_entries">
+        <item>All</item>
+        <item>Apple</item>
+        <item>Reviews</item>
+        <item>PC</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="articles_values">
+        <item>all</item>
+        <item>apple</item>
+        <item>reviews</item>
+        <item>pc</item>
+        <item>others</item>
+    </string-array>
     <!-- News Preference -->
     <string-array name="news_entries">
         <item>All</item>

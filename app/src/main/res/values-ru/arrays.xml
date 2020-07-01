@@ -95,6 +95,23 @@
         <item>others</item>
     </string-array>
 
+    <!-- Articles Preference -->
+    <string-array name="articles_entries">
+        <item>Все</item>
+        <item>Apple</item>
+        <item>Обзоры устройств</item>
+        <item>PC</item>
+        <item>Другое</item>
+    </string-array>
+
+    <string-array name="articles_values">
+        <item>all</item>
+        <item>apple</item>
+        <item>reviews</item>
+        <item>pc</item>
+        <item>others</item>
+    </string-array>
+
     <!-- Books Preference -->
     <string-array name="books_entries">
         <item>Все</item>

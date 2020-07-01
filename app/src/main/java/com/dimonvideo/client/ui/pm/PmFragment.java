@@ -1,4 +1,4 @@
-package com.dimonvideo.client.ui.vuploader;
+package com.dimonvideo.client.ui.pm;
 
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -8,16 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -36,18 +32,14 @@ import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.getMainData;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class vUploaderFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<Feed> listFeed;
 
@@ -99,16 +91,16 @@ public class vUploaderFragment extends Fragment implements RecyclerView.OnScroll
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_vuploader_cat", null);
+        Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
         String category = "all";
         if (selections != null) {
             String[] selected = selections.toArray(new String[]{});
             category = TextUtils.join(",", selected);
         }
+        //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
 
-        return new JsonArrayRequest(Config.VUPLOADER_URL + requestCount + "&c=placeholder," + category,
+        return new JsonArrayRequest(Config.NEWS_URL + requestCount + "&c=placeholder," + category,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
@@ -154,8 +146,8 @@ public class vUploaderFragment extends Fragment implements RecyclerView.OnScroll
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(com.dimonvideo.client.ui.vuploader.vUploaderFragment.this)
-                .attach(com.dimonvideo.client.ui.vuploader.vUploaderFragment.this)
+                .detach(PmFragment.this)
+                .attach(PmFragment.this)
                 .commit();
     }
 

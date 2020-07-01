@@ -1,7 +1,11 @@
 package com.dimonvideo.client.ui.home;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,6 +38,7 @@ import org.json.JSONArray;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class HomeFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
@@ -47,12 +53,26 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
     private int requestCount = 1;
     private ProgressBar progressBar;
-
+    int razdel = 0;
+    String url = Config.COMMENTS_URL;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+
+        if (this.getArguments() != null) {
+            razdel = getArguments().getInt("Category");
+
+            if (razdel == 1) url = Config.GALLERY_URL;
+            if (razdel == 2) url = Config.UPLOADER_URL;
+            if (razdel == 3) url = Config.VUPLOADER_URL;
+            if (razdel == 4) url = Config.NEWS_URL;
+            if (razdel == 5) url = Config.MUZON_URL;
+            if (razdel == 6) url = Config.BOOKS_URL;
+            if (razdel == 7) url = Config.ARTICLES_URL;
+
+        }
 
         recyclerView = root.findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
@@ -90,8 +110,14 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-
-        return new JsonArrayRequest(Config.COMMENTS_URL + requestCount,
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
+        String category = "all";
+        if (selections != null) {
+            String[] selected = selections.toArray(new String[]{});
+            category = TextUtils.join(",", selected);
+        }
+        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {

@@ -36,5 +36,6 @@
     <string name="muzon">Music</string>
     <string name="books">Books</string>
     <string name="by"> by: </string>
+    <string name="articles">Articles</string>
 
 </resources>

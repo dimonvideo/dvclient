@@ -22,7 +22,9 @@
         <item
             android:id="@+id/nav_muzon"
             android:title="@string/muzon" />
-
+        <item
+            android:id="@+id/nav_articles"
+            android:title="@string/articles" />
         <item
             android:id="@+id/nav_gallery"
             android:title="@string/menu_gallery" />

@@ -1,4 +1,4 @@
-package com.dimonvideo.client.ui.books;
+package com.dimonvideo.client.ui.forum;
 
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class BooksFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class ForumFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<Feed> listFeed;
 
@@ -143,8 +143,8 @@ public class BooksFragment extends Fragment implements RecyclerView.OnScrollChan
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(com.dimonvideo.client.ui.books.BooksFragment.this)
-                .attach(com.dimonvideo.client.ui.books.BooksFragment.this)
+                .detach(com.dimonvideo.client.ui.forum.ForumFragment.this)
+                .attach(com.dimonvideo.client.ui.forum.ForumFragment.this)
                 .commit();
     }
 

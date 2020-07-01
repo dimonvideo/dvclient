@@ -10,6 +10,7 @@ public class Config {
     public static final String GALLERY_URL = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=gallery&min=";
     public static final String MUZON_URL = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=muzon&min=";
     public static final String BOOKS_URL = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=books&min=";
+    public static final String ARTICLES_URL = "https://dimonvideo.ru/apps/dvclient.php?op=1&razdel=articles&min=";
 
     public static final String TEXT_URL = "https://dimonvideo.ru/apps/dvclient.php?op=2&razdel=";
 
