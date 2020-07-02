@@ -14,7 +14,7 @@
     <string name="Comments">Комментарии:</string>
     <string name="no_more">Файлов больше нет</string>
     <string name="menu_news">Новости</string>
-    <string name="refresh">Refresh</string>
+    <string name="refresh">Обновить</string>
     <string name="action_others">Другие приложения</string>
     <string name="action_feedback">Обратная связь</string>
     <string name="app_mail">admin@dimonvideo.ru</string>
@@ -36,7 +36,7 @@
     <string name="action_open">Открыть в браузере</string>
     <string name="view_header">Внешний вид</string>
     <string name="theme_black">Темная тема</string>
-    <string name="no_records">No Records</string>
+    <string name="no_records">Файлов не найдено</string>
 
 
 </resources>

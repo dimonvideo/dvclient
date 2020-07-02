@@ -2,6 +2,7 @@ package com.dimonvideo.client;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
@@ -110,6 +112,7 @@ public class AllContent extends AppCompatActivity {
 
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
+                injectCSS();
 
             }
 
@@ -130,7 +133,6 @@ public class AllContent extends AppCompatActivity {
         webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         webView.setBackgroundColor(0);
         webView.loadUrl(Config.TEXT_URL + razdel + "&min=" + id);
-        webView.evaluateJavascript("document.body.style.backgroundColor=\"black\";document.body.style.color=\"white\";", null);
 
     }
 
@@ -226,5 +228,14 @@ public class AllContent extends AppCompatActivity {
             return true;
         }
         return super.onKeyLongPress(keycode, event);
+    }
+
+    private void injectCSS() {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+
+        if (is_dark) webView.loadUrl(
+                "javascript:document.body.style.setProperty(\"color\", \"white\");"
+        );
     }
 }

@@ -176,5 +176,4 @@ public class MainActivity extends AppCompatActivity  {
         return super.onKeyLongPress(keycode, event);
     }
 
-
 }
