@@ -3,6 +3,7 @@
     <words>
       <w>dimonvideo</w>
       <w>dimonvideoruclient</w>
+      <w>dvclient</w>
       <w>framelayout</w>
       <w>imageloader</w>
       <w>imageview</w>
@@ -14,6 +15,7 @@
       <w>requestcount</w>
       <w>swip</w>
       <w>symbian</w>
+      <w>usernews</w>
       <w>vuploader</w>
     </words>
   </dictionary>

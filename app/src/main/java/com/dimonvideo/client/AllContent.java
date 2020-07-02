@@ -1,6 +1,8 @@
 package com.dimonvideo.client;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,22 +28,27 @@ import java.util.Objects;
 public class AllContent extends AppCompatActivity {
     WebView webView;
     ProgressBar progressBar;
+    String title, url, headers, category, razdel, image, date, user, size, id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collapse);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        Toolbar toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
-        String title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
-        String headers = (String) getIntent().getSerializableExtra(Config.TAG_HEADERS);
-        String category = (String) getIntent().getSerializableExtra(Config.TAG_CATEGORY);
-        String razdel = (String) getIntent().getSerializableExtra(Config.TAG_RAZDEL);
-        String image = (String) getIntent().getStringExtra(Config.TAG_IMAGE_URL);
-        String date = (String) getIntent().getStringExtra(Config.TAG_DATE);
-        String user = (String) getIntent().getStringExtra(Config.TAG_USER);
-        String size = (String) getIntent().getStringExtra(Config.TAG_SIZE);
-        String id = (String) getIntent().getStringExtra(Config.TAG_ID);
+        title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
+        headers = (String) getIntent().getSerializableExtra(Config.TAG_HEADERS);
+        category = (String) getIntent().getSerializableExtra(Config.TAG_CATEGORY);
+        razdel = (String) getIntent().getSerializableExtra(Config.TAG_RAZDEL);
+        image = getIntent().getStringExtra(Config.TAG_IMAGE_URL);
+        date = getIntent().getStringExtra(Config.TAG_DATE);
+        user = getIntent().getStringExtra(Config.TAG_USER);
+        size = getIntent().getStringExtra(Config.TAG_SIZE);
+        id = getIntent().getStringExtra(Config.TAG_ID);
+
+        url = Config.BASE_URL + "/" + razdel + "/" + id;
+        if (razdel.equals("comments")) url = Config.BASE_URL + "/news_" + id + ".html";
+
         Objects.requireNonNull(getSupportActionBar()).setTitle(title);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -109,7 +116,7 @@ public class AllContent extends AppCompatActivity {
 
     public void LoadWeb(String razdel, String id) {
 
-        webView=(WebView)findViewById(R.id.read_full_content);
+        webView = findViewById(R.id.read_full_content);
         webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
@@ -121,17 +128,73 @@ public class AllContent extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.menu_all_content, menu);
         return true;
     }
     
     // toolbar home arrow
     @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem) {
-        if (menuItem.getItemId() == android.R.id.home) {
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        // home arrow
+        if (id == android.R.id.home) {
             onBackPressed();
         }
-        return super.onOptionsItemSelected(menuItem);
+        // settings
+        if (id == R.id.action_settings) {
+            Intent i = new Intent(AllContent.this, SettingsActivity.class);
+            startActivityForResult(i, 1);
+            return true;
+        }
+        // refresh
+        if (id == R.id.action_refresh) {
+            recreate();
+        }
+
+        // refresh
+        if (id == R.id.menu_share) {
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, url);
+            sendIntent.setType("text/plain");
+
+            Intent shareIntent = Intent.createChooser(sendIntent, title);
+            try {
+                startActivity(shareIntent);
+            } catch (Throwable ignored) {
+            }
+        }
+        // other apps
+        if (id == R.id.action_others) {
+
+            String url = "https://play.google.com/store/apps/dev?id=6091758746633814135";
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                    url));
+
+
+
+            try {
+                startActivity(browserIntent);
+            } catch (Throwable ignored) {
+            }
+        }
+        // feedback
+        if (id == R.id.action_feedback) {
+
+            Intent intent = new Intent(Intent.ACTION_SENDTO);
+            intent.setData(Uri.fromParts("mailto", getString(R.string.app_mail), null));
+            intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            try {
+                startActivity(intent);
+            } catch (Throwable ignored) {
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

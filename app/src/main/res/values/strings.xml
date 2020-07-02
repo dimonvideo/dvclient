@@ -37,5 +37,6 @@
     <string name="books">Books</string>
     <string name="by"> by: </string>
     <string name="articles">Articles</string>
+    <string name="menu_share_title">Share</string>
 
 </resources>

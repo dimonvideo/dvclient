@@ -1,5 +1,7 @@
 package com.dimonvideo.client.model;
 
+import com.dimonvideo.client.Config;
+
 public class Feed {
 	//Data Variables
 	private String imageUrl, title, text, date, razdel, category, headers, user, size;
@@ -12,7 +14,7 @@ public class Feed {
 
 	public void setImageUrl(String imageUrl) {
 		if (!imageUrl.startsWith("http")) {
-			imageUrl = "https://dimonvideo.ru" + imageUrl;
+			imageUrl = Config.BASE_URL + imageUrl;
 		}
 		this.imageUrl = imageUrl;
 	}

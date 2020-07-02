@@ -32,6 +32,7 @@
     <string name="books">Библиотека</string>
     <string name="by"> прислал: </string>
     <string name="articles">Articles</string>
+    <string name="menu_share_title">Share</string>
 
 
 </resources>
