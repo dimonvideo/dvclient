@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
@@ -42,6 +43,8 @@ public class MainActivity extends AppCompatActivity  {
         final boolean is_books = sharedPrefs.getBoolean("dvc_books",true);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles",true);
 
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity  {
         ).setOpenableLayout(drawer).build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);

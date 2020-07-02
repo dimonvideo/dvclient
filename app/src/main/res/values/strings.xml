@@ -38,5 +38,9 @@
     <string name="by"> by: </string>
     <string name="articles">Articles</string>
     <string name="menu_share_title">Share</string>
+    <string name="action_open">Open page</string>
+    <string name="view_header">View</string>
+    <string name="theme_black">Dark theme</string>
+    <string name="no_records">No Records</string>
 
 </resources>

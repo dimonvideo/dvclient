@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/list_row_selector"
     android:padding="8dp" >
 
     <!-- Thumbnail Image -->
@@ -33,7 +32,7 @@
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
         android:layout_toEndOf="@+id/thumbnail"
-        android:textColor="@color/genre"
+        android:textColor="@color/category"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 
@@ -45,7 +44,7 @@
         android:layout_below="@id/category"
         android:layout_marginTop="5dp"
         android:layout_toEndOf="@+id/thumbnail"
-        android:textColor="@color/genre"
+        android:textColor="@color/category"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
 

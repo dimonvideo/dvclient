@@ -18,9 +18,9 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_others"
+        android:id="@+id/action_open"
         android:orderInCategory="9"
-        android:title="@string/action_others"
+        android:title="@string/action_open"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_feedback"

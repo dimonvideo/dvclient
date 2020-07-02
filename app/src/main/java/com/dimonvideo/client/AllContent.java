@@ -1,8 +1,10 @@
 package com.dimonvideo.client;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -17,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -47,7 +50,7 @@ public class AllContent extends AppCompatActivity {
         id = getIntent().getStringExtra(Config.TAG_ID);
 
         url = Config.BASE_URL + "/" + razdel + "/" + id;
-        if (razdel.equals("comments")) url = Config.BASE_URL + "/news_" + id + ".html";
+        if (razdel.equals("comments")) url = Config.BASE_URL + "/" + id + "-news.html";
 
         Objects.requireNonNull(getSupportActionBar()).setTitle(title);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
@@ -107,6 +110,7 @@ public class AllContent extends AppCompatActivity {
 
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
+
             }
 
         });
@@ -114,16 +118,20 @@ public class AllContent extends AppCompatActivity {
 
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     public void LoadWeb(String razdel, String id) {
 
         webView = findViewById(R.id.read_full_content);
         webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
+        webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
         webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         webView.setBackgroundColor(0);
         webView.loadUrl(Config.TEXT_URL + razdel + "&min=" + id);
+        webView.evaluateJavascript("document.body.style.backgroundColor=\"black\";document.body.style.color=\"white\";", null);
+
     }
 
     @Override
@@ -167,15 +175,9 @@ public class AllContent extends AppCompatActivity {
             }
         }
         // other apps
-        if (id == R.id.action_others) {
+        if (id == R.id.action_open) {
 
-            String url = "https://play.google.com/store/apps/dev?id=6091758746633814135";
-
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
-                    url));
-
-
-
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             try {
                 startActivity(browserIntent);
             } catch (Throwable ignored) {

@@ -31,8 +31,12 @@
     <string name="muzon">Музыка</string>
     <string name="books">Библиотека</string>
     <string name="by"> прислал: </string>
-    <string name="articles">Articles</string>
-    <string name="menu_share_title">Share</string>
+    <string name="articles">Статьи</string>
+    <string name="menu_share_title">Поделится</string>
+    <string name="action_open">Открыть в браузере</string>
+    <string name="view_header">Внешний вид</string>
+    <string name="theme_black">Темная тема</string>
+    <string name="no_records">No Records</string>
 
 
 </resources>

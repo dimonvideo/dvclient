@@ -8,6 +8,7 @@
             app:title="@string/signature_title"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
+            android:dependency="dvc_login"
             app:key="dvc_password"
             app:title="@string/password_title"
             app:useSimpleSummaryProvider="true" />
@@ -19,6 +20,15 @@
             app:key="dvc_pm"
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/view_header">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_theme"
+            app:title="@string/theme_black" />
 
     </PreferenceCategory>
 
