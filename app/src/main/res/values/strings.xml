@@ -42,5 +42,6 @@
     <string name="view_header">View</string>
     <string name="theme_black">Dark theme</string>
     <string name="no_records">No Records</string>
+    <string name="action_screen">View screen</string>
 
 </resources>

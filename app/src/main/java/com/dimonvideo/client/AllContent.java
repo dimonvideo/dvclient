@@ -1,26 +1,35 @@
 package com.dimonvideo.client;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
@@ -28,12 +37,19 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Objects;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class AllContent extends AppCompatActivity {
     WebView webView;
     ProgressBar progressBar;
-    String title, url, headers, category, razdel, image, date, user, size, id;
+    String title, url, headers, category, razdel, image_url, date, user, size, id;
+    private ImageView ImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +61,7 @@ public class AllContent extends AppCompatActivity {
         headers = (String) getIntent().getSerializableExtra(Config.TAG_HEADERS);
         category = (String) getIntent().getSerializableExtra(Config.TAG_CATEGORY);
         razdel = (String) getIntent().getSerializableExtra(Config.TAG_RAZDEL);
-        image = getIntent().getStringExtra(Config.TAG_IMAGE_URL);
+        image_url = getIntent().getStringExtra(Config.TAG_IMAGE_URL);
         date = getIntent().getStringExtra(Config.TAG_DATE);
         user = getIntent().getStringExtra(Config.TAG_USER);
         size = getIntent().getStringExtra(Config.TAG_SIZE);
@@ -67,7 +83,7 @@ public class AllContent extends AppCompatActivity {
         if (!razdel.equals("comments")) titleHeaders.append(" - " + category);
 
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
-        Glide.with(this).load(image).into(imageView);
+        Glide.with(this).load(image_url).into(imageView);
 
         /*
 
@@ -186,17 +202,10 @@ public class AllContent extends AppCompatActivity {
             }
         }
         // feedback
-        if (id == R.id.action_feedback) {
+        if (id == R.id.action_screen) {
 
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.fromParts("mailto", getString(R.string.app_mail), null));
-            intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                loadScreen();
 
-            try {
-                startActivity(intent);
-            } catch (Throwable ignored) {
-            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -237,5 +246,15 @@ public class AllContent extends AppCompatActivity {
         if (is_dark) webView.loadUrl(
                 "javascript:document.body.style.setProperty(\"color\", \"white\");"
         );
+    }
+    private void loadScreen() {
+
+        final Dialog dialog = new Dialog(AllContent.this);
+        dialog.setContentView(R.layout.screen);
+        ImageView image = dialog.findViewById(R.id.screenshot);
+        Glide.with(AllContent.this).load(image_url).into(image);
+
+        dialog.show();
+
     }
 }
