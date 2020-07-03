@@ -54,8 +54,8 @@
         android:id="@+id/views_logo"
         android:layout_width="@dimen/title"
         android:layout_height="@dimen/title"
-        android:layout_marginEnd="5dip"
-        android:layout_marginTop="2dip"
+        android:layout_marginEnd="3dip"
+        android:layout_marginTop="4dip"
         android:layout_below="@id/listtext"
         android:tint="@color/colorAccent"
         android:layout_toEndOf="@+id/thumbnail"
@@ -67,10 +67,10 @@
         android:id="@+id/views_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="1dip"
+        android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/views_logo"
         android:layout_below="@id/listtext"
-        android:textSize="@dimen/text"
+        android:textSize="@dimen/date"
         android:textColor="@color/colorAccent"
         tools:ignore="SpUsage" />
 
@@ -79,8 +79,8 @@
         android:id="@+id/rating_logo"
         android:layout_width="@dimen/text"
         android:layout_height="@dimen/text"
-        android:layout_marginEnd="5dip"
-        android:layout_marginTop="4dip"
+        android:layout_marginEnd="3dip"
+        android:layout_marginTop="6dip"
         android:layout_marginStart="15dip"
         android:layout_below="@id/listtext"
         android:tint="@color/colorAccent"
@@ -95,9 +95,10 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/listtext"
         android:textColor="@color/colorAccent"
-        android:layout_marginTop="1dip"
+        android:textStyle="bold"
+        android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/rating_logo"
-        android:textSize="@dimen/text"
+        android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 
     <!-- Date -->
