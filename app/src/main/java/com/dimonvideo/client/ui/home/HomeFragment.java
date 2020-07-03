@@ -174,17 +174,4 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                 .commit();
     }
 
-public ProgressDialog ProgressDialogShow() {
-        ProgressDialog progressDialog;
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setTitle("Write Title here");
-        progressDialog.setMessage("Loading...");
-
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setCancelable(false);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setIndeterminate(true);
-        return progressDialog;
-    }
-
 }
