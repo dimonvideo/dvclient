@@ -39,6 +39,8 @@
     <string name="no_records">Файлов не найдено</string>
     <string name="action_screen">Открыть скрин</string>
     <string name="close">Закрыть</string>
+    <string name="download">Скачать</string>
+    <string name="download_mod">Скачать мод</string>
 
 
 </resources>

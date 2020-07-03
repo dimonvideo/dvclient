@@ -95,11 +95,40 @@
                 android:layout_marginTop="7dp"
                 android:layout_marginBottom="7dp"
                 android:indeterminate="true" />
+            <LinearLayout
+                android:layout_height="match_parent"
+                android:layout_width="fill_parent"
+                android:orientation="vertical">
             <WebView
                 android:id="@+id/read_full_content"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                tools:ignore="InefficientWeight" />
+
+            <Button
+                android:id="@+id/btn_close"
+                android:layout_margin="10dp"
+                android:background="@color/colorPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/download"
+                android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_mod"
+                    android:layout_margin="10dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/download_mod"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </androidx.cardview.widget.CardView>
+
+
     </androidx.core.widget.NestedScrollView>
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/main_toolbar"

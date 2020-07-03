@@ -44,5 +44,7 @@
     <string name="no_records">No Records</string>
     <string name="action_screen">View screen</string>
     <string name="close">No</string>
+    <string name="download">Download</string>
+    <string name="download_mod">Download MOD</string>
 
 </resources>
