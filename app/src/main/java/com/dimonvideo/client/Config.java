@@ -28,6 +28,7 @@ public class Config {
     public static final String TAG_HEADERS = "headers";
     public static final String TAG_USER = "user";
     public static final String TAG_SIZE = "size";
+    public static final String TAG_HITS = "views";
 
 }
 

@@ -25,6 +25,7 @@ public class getMainData {
                 jsonFeed.setText(json.getString(Config.TAG_TEXT));
                 jsonFeed.setDate(json.getString(Config.TAG_DATE));
                 jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                jsonFeed.setHits(json.getInt(Config.TAG_HITS));
                 jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
                 jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
                 jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));

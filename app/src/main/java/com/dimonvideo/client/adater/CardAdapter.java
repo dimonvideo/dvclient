@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +63,13 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewCategory.setText(Feed.getCategory());
         holder.textViewComments.setText(String.valueOf(Feed.getComments()));
+        holder.textViewComments.setVisibility(View.VISIBLE);
+        holder.rating_logo.setVisibility(View.VISIBLE);
+        if (Feed.getComments() == 0) {
+            holder.textViewComments.setVisibility(View.INVISIBLE);
+            holder.rating_logo.setVisibility(View.INVISIBLE);
+        }
+        holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,17 +97,20 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public NetworkImageView imageView;
-        public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory;
+        public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits;
+        public ImageView rating_logo;
 
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
             imageView = (NetworkImageView) itemView.findViewById(R.id.thumbnail);
+            rating_logo = (ImageView) itemView.findViewById(R.id.rating_logo);
             textViewTitle = (TextView) itemView.findViewById(R.id.title);
             textViewText = (TextView) itemView.findViewById(R.id.listtext);
             textViewDate = (TextView) itemView.findViewById(R.id.date);
             textViewComments = (TextView) itemView.findViewById(R.id.rating);
             textViewCategory = (TextView) itemView.findViewById(R.id.category);
+            textViewHits = (TextView) itemView.findViewById(R.id.views_count);
 
         }
 
