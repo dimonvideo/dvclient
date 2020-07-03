@@ -101,19 +101,28 @@
                 android:orientation="vertical">
             <WebView
                 android:id="@+id/read_full_content"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                tools:ignore="InefficientWeight" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/btn_comment"
+                    android:layout_margin="10dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/Comments"
+                    android:textStyle="bold" />
 
             <Button
-                android:id="@+id/btn_close"
+                android:id="@+id/btn_download"
                 android:layout_margin="10dp"
                 android:background="@color/colorPrimary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:text="@string/download"
+                android:visibility="gone"
                 android:textStyle="bold" />
 
                 <Button
@@ -122,6 +131,7 @@
                     android:background="@color/colorPrimary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     android:layout_gravity="center_horizontal"
                     android:text="@string/download_mod"
                     android:textStyle="bold" />

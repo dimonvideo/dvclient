@@ -4,7 +4,7 @@ import com.dimonvideo.client.Config;
 
 public class Feed {
 	//Data Variables
-	private String imageUrl, title, text, date, razdel, category, headers, user, size;
+	private String imageUrl, title, text, date, razdel, category, headers, user, size, link, mod;
 	private int id, comments, hits;
 
 	//Getters and Setters
@@ -105,5 +105,21 @@ public class Feed {
 
 	public void setSize(String size) {
 		this.size = size;
+	}
+
+	public String getLink() {
+		return link;
+	}
+
+	public void setLink(String link) {
+		this.link = link;
+	}
+
+	public String getMod() {
+		return mod;
+	}
+
+	public void setMod(String mod) {
+		this.mod = mod;
 	}
 }

@@ -83,6 +83,10 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
                 intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
                 intent.putExtra(Config.TAG_USER, Feed.getUser());
                 intent.putExtra(Config.TAG_SIZE, Feed.getSize());
+                intent.putExtra(Config.TAG_LINK, Feed.getLink());
+                intent.putExtra(Config.TAG_MOD, Feed.getMod());
+                intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
+                intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
                 context.startActivity(intent);
             }
         });

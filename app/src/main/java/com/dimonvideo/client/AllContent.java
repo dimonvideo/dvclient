@@ -2,6 +2,8 @@ package com.dimonvideo.client;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -37,6 +40,7 @@ import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
+import com.dimonvideo.client.util.DownloadFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,15 +53,19 @@ import javax.net.ssl.HttpsURLConnection;
 public class AllContent extends AppCompatActivity {
     WebView webView;
     ProgressBar progressBar;
-    String title, url, headers, category, razdel, image_url, date, user, size, id;
-    private ImageView ImageView;
+    String title, url, headers, category, razdel, image_url, date, user, size, id, link, mod;
+    Toolbar toolbar;
+    Button downloadBtn, modBtn, btnComments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collapse);
-        Toolbar toolbar = findViewById(R.id.main_toolbar);
+        toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
+        downloadBtn = findViewById(R.id.btn_download);
+        modBtn = findViewById(R.id.btn_mod);
+        btnComments = findViewById(R.id.btn_comment);
         title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
         headers = (String) getIntent().getSerializableExtra(Config.TAG_HEADERS);
         category = (String) getIntent().getSerializableExtra(Config.TAG_CATEGORY);
@@ -66,10 +74,46 @@ public class AllContent extends AppCompatActivity {
         date = getIntent().getStringExtra(Config.TAG_DATE);
         user = getIntent().getStringExtra(Config.TAG_USER);
         size = getIntent().getStringExtra(Config.TAG_SIZE);
+        link = getIntent().getStringExtra(Config.TAG_LINK);
+        mod = getIntent().getStringExtra(Config.TAG_MOD);
         id = getIntent().getStringExtra(Config.TAG_ID);
 
+        downloadBtn.setVisibility(View.VISIBLE);
+        modBtn.setVisibility(View.VISIBLE);
         url = Config.BASE_URL + "/" + razdel + "/" + id;
-        if (razdel.equals("comments")) url = Config.BASE_URL + "/" + id + "-news.html";
+
+        if (razdel.equals("comments")) {
+            url = Config.BASE_URL + "/" + id + "-news.html";
+        }
+
+        // если нет размера файла
+        if (size.startsWith("0")) {
+            downloadBtn.setVisibility(View.GONE);
+            modBtn.setVisibility(View.GONE);
+        }
+
+        // если нет mod
+        if (mod.startsWith("null")) {
+            modBtn.setVisibility(View.GONE);
+        }
+
+        downloadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DownloadFile.download(getApplicationContext(), link);
+
+            }
+        });
+
+        modBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DownloadFile.download(getApplicationContext(), link);
+
+            }
+        });
 
         Objects.requireNonNull(getSupportActionBar()).setTitle(title);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);

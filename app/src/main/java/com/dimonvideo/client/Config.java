@@ -29,6 +29,8 @@ public class Config {
     public static final String TAG_USER = "user";
     public static final String TAG_SIZE = "size";
     public static final String TAG_HITS = "views";
+    public static final String TAG_LINK = "file_link";
+    public static final String TAG_MOD = "mod";
 
 }
 
