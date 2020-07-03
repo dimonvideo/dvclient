@@ -32,7 +32,7 @@
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
         android:layout_toEndOf="@+id/thumbnail"
-        android:textColor="@color/category"
+        android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 
@@ -79,7 +79,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:textColor="@color/year"
+        android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 

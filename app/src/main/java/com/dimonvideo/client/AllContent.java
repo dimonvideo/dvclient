@@ -23,6 +23,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -84,7 +85,12 @@ public class AllContent extends AppCompatActivity {
 
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
         Glide.with(this).load(image_url).into(imageView);
-
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadScreen();
+            }
+        });
         /*
 
 
@@ -250,11 +256,22 @@ public class AllContent extends AppCompatActivity {
     private void loadScreen() {
 
         final Dialog dialog = new Dialog(AllContent.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.screen);
         ImageView image = dialog.findViewById(R.id.screenshot);
+        image.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
         Glide.with(AllContent.this).load(image_url).into(image);
 
         dialog.show();
+
+        Button bt_close = (Button)dialog.findViewById(R.id.btn_close);
+
+        bt_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
 
     }
 }

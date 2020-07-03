@@ -43,5 +43,6 @@
     <string name="theme_black">Dark theme</string>
     <string name="no_records">No Records</string>
     <string name="action_screen">View screen</string>
+    <string name="close">No</string>
 
 </resources>

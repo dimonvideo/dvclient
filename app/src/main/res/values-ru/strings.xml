@@ -38,6 +38,7 @@
     <string name="theme_black">Темная тема</string>
     <string name="no_records">Файлов не найдено</string>
     <string name="action_screen">Открыть скрин</string>
+    <string name="close">Закрыть</string>
 
 
 </resources>
