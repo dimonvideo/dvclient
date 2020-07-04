@@ -184,14 +184,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
                                 }
                                 listFeed.add(jsonFeed);
                             }
-
-                        //listFeed.clear();
-
                         adapter.notifyDataSetChanged();
-
-
-
-                   //     getMainData.parseData(response, listFeed, adapter); // парсинг данных
 
                     }
                 },

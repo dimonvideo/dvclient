@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -126,6 +127,7 @@ public class AllContent extends AppCompatActivity {
         titleHeaders.setText(headers);
         titleSubHeaders.setText(date);
         titleSubHeaders.append(" " + getString(R.string.by) + " " + user);
+
         assert razdel != null;
         if (!razdel.equals("comments")) titleHeaders.append(" - " + category);
 
@@ -149,20 +151,24 @@ public class AllContent extends AppCompatActivity {
         });
 
          */
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar = findViewById(R.id.progressBar);
         LoadWeb(razdel, id);
 
         progressBar.setMax(100);
         progressBar.setProgress(1);
+    }
 
-        webView.setWebChromeClient(new WebChromeClient() {
-            public void onProgressChanged(WebView view, int progress) {
+    @SuppressLint("SetJavaScriptEnabled")
+    public void LoadWeb(String razdel, String id) {
 
-
-                progressBar.setProgress(progress);
-            }
-        });
-
+        webView = findViewById(R.id.read_full_content);
+        webView.getSettings().setAppCacheEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
+        webView.getSettings().setAppCacheEnabled(true);
+        webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        webView.setBackgroundColor(0);
         webView.setWebViewClient(new WebViewClient() {
 
 
@@ -172,6 +178,12 @@ public class AllContent extends AppCompatActivity {
                 progressBar.setVisibility(View.VISIBLE);
             }
 
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
+                view.getContext().startActivity(intent);
+                return true;
+            }
 
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
 
@@ -186,20 +198,14 @@ public class AllContent extends AppCompatActivity {
 
         });
 
+        webView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
 
-    }
 
-    @SuppressLint("SetJavaScriptEnabled")
-    public void LoadWeb(String razdel, String id) {
+                progressBar.setProgress(progress);
+            }
+        });
 
-        webView = findViewById(R.id.read_full_content);
-        webView.getSettings().setAppCacheEnabled(true);
-        webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
-        webView.getSettings().setAppCacheEnabled(true);
-        webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-        webView.setBackgroundColor(0);
         webView.loadUrl(Config.TEXT_URL + razdel + "&min=" + id);
 
     }
