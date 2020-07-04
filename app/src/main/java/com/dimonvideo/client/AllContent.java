@@ -40,6 +40,7 @@ import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.dimonvideo.client.util.DownloadFile;
 
 import java.io.IOException;
@@ -53,7 +54,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class AllContent extends AppCompatActivity {
     WebView webView;
     ProgressBar progressBar;
-    String title, url, headers, category, razdel, image_url, date, user, size, id, link, mod;
+    String title, url, headers, category, razdel, image_url, date, user, size, id, link, mod, comments;
     Toolbar toolbar;
     Button downloadBtn, modBtn, btnComments;
 
@@ -77,6 +78,7 @@ public class AllContent extends AppCompatActivity {
         link = getIntent().getStringExtra(Config.TAG_LINK);
         mod = getIntent().getStringExtra(Config.TAG_MOD);
         id = getIntent().getStringExtra(Config.TAG_ID);
+        comments = getIntent().getStringExtra(Config.TAG_COMMENTS);
 
         downloadBtn.setVisibility(View.VISIBLE);
         modBtn.setVisibility(View.VISIBLE);
@@ -110,7 +112,7 @@ public class AllContent extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                DownloadFile.download(getApplicationContext(), link);
+                DownloadFile.download(getApplicationContext(), mod);
 
             }
         });
@@ -128,7 +130,7 @@ public class AllContent extends AppCompatActivity {
         if (!razdel.equals("comments")) titleHeaders.append(" - " + category);
 
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
-        Glide.with(this).load(image_url).into(imageView);
+        Glide.with(this).load(image_url).diskCacheStrategy(DiskCacheStrategy.ALL).into(imageView);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -208,13 +210,13 @@ public class AllContent extends AppCompatActivity {
         return true;
     }
     
-    // toolbar home arrow
+    // toolbar main arrow
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         int id = item.getItemId();
 
-        // home arrow
+        // main arrow
         if (id == android.R.id.home) {
             onBackPressed();
         }

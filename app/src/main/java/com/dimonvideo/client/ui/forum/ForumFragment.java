@@ -29,9 +29,10 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.CardAdapter;
 import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.util.getMainData;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,8 +103,31 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
                     @Override
                     public void onResponse(JSONArray response) {
                         progressBar.setVisibility(View.GONE);
-                        getMainData.parseData(response, listFeed, adapter); // парсинг данных
-                    }
+                        for (int i = 0; i < response.length(); i++) {
+                            Feed jsonFeed = new Feed();
+                            JSONObject json;
+                            try {
+                                json = response.getJSONObject(i);
+                                jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                                jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                                jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                                jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                                jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                                jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                                jsonFeed.setLink(json.getString(Config.TAG_LINK));
+                                jsonFeed.setMod(json.getString(Config.TAG_MOD));
+                                jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                                jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                                jsonFeed.setUser(json.getString(Config.TAG_USER));
+                                jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                                jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            listFeed.add(jsonFeed);
+                        }
+                        adapter.notifyDataSetChanged();                    }
                 },
                 new Response.ErrorListener() {
                     @Override

@@ -7,8 +7,9 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_home"
+        android:tag="comments"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
@@ -18,8 +19,9 @@
 
     <fragment
         android:id="@+id/nav_gallery"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_gallery"
+        android:tag="gallery"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
@@ -28,8 +30,9 @@
     </fragment>
     <fragment
         android:id="@+id/nav_uploader"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_slideshow"
+        android:tag="uploader"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
@@ -38,8 +41,9 @@
     </fragment>
     <fragment
         android:id="@+id/nav_vuploader"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/vuploader"
+        android:tag="vuploader"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
@@ -48,8 +52,9 @@
     </fragment>
     <fragment
         android:id="@+id/nav_news"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_news"
+        android:tag="usernews"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
@@ -58,9 +63,10 @@
     </fragment>
     <fragment
         android:id="@+id/nav_muzon"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/muzon"
-        tools:layout="@layout/fragment_home">
+        android:tag="muzon"
+       tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
             android:defaultValue="5"
@@ -68,8 +74,9 @@
     </fragment>
     <fragment
         android:id="@+id/nav_books"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/books"
+        android:tag="books"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"
@@ -78,8 +85,9 @@
     </fragment>
     <fragment
         android:id="@+id/nav_articles"
-        android:name="com.dimonvideo.client.ui.home.HomeFragment"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/articles"
+        android:tag="articles"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="Category"

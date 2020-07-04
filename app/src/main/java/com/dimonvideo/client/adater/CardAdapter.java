@@ -24,8 +24,6 @@ import java.util.List;
 
 public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
-    //Imageloader to load image
-    private ImageLoader imageLoader;
     private Context context;
 
     //List to store all
@@ -42,8 +40,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.list_row, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
         return new ViewHolder(v);
     }
 
@@ -54,9 +51,9 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         final Feed Feed =  jsonFeed.get(position);
 
         //Loading image from url
-        imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
+        //Imageloader to load image
+        ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
         imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
-
         holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Feed.getText());

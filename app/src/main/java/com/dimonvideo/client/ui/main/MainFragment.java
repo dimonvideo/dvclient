@@ -1,6 +1,6 @@
-package com.dimonvideo.client.ui.home;
+package com.dimonvideo.client.ui.main;
 
-import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,9 +31,11 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.CardAdapter;
 import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.util.getMainData;
+import com.dimonvideo.client.util.FragmentToActivity;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,12 +43,13 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class HomeFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
+    private FragmentToActivity mCallback;
 
     private List<Feed> listFeed;
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
+    public RecyclerView recyclerView;
+    public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
     private TextView tvEmptyView;
 
@@ -56,6 +59,9 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
     private ProgressBar progressBar, ProgressBarBottom;
     int razdel = 0;
     String url = Config.COMMENTS_URL;
+    String search_url = Config.COMMENTS_SEARCH_URL;
+    String story = null;
+    String s_url = "";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -63,22 +69,51 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         if (this.getArguments() != null) {
-            razdel = getArguments().getInt("Category");
+            razdel = getArguments().getInt(Config.TAG_RAZDEL_ID);
+            story = (String) getArguments().getSerializable(Config.TAG_STORY);
 
-            if (razdel == 1) url = Config.GALLERY_URL;
-            if (razdel == 2) url = Config.UPLOADER_URL;
-            if (razdel == 3) url = Config.VUPLOADER_URL;
-            if (razdel == 4) url = Config.NEWS_URL;
-            if (razdel == 5) url = Config.MUZON_URL;
-            if (razdel == 6) url = Config.BOOKS_URL;
-            if (razdel == 7) url = Config.ARTICLES_URL;
+            if (razdel == 1) {
+                url = Config.GALLERY_URL;
+                search_url = Config.GALLERY_SEARCH_URL;
+            }
+            if (razdel == 2) {
+                url = Config.UPLOADER_URL;
+                search_url = Config.UPLOADER_SEARCH_URL;
+            }
+            if (razdel == 3) {
+                url = Config.VUPLOADER_URL;
+                search_url = Config.VUPLOADER_SEARCH_URL;
+            }
+            if (razdel == 4) {
+                url = Config.NEWS_URL;
+                search_url = Config.NEWS_SEARCH_URL;
+            }
+            if (razdel == 5) {
+                url = Config.MUZON_URL;
+                search_url = Config.MUZON_SEARCH_URL;
+            }
+            if (razdel == 6) {
+                url = Config.BOOKS_URL;
+                search_url = Config.BOOKS_SEARCH_URL;
+            }
+            if (razdel == 7) {
+                url = Config.ARTICLES_URL;
+                search_url = Config.ARTICLES_SEARCH_URL;
+            }
 
+            if (!TextUtils.isEmpty(story)) {
+                url = search_url;
+            }
         }
 
+        sendData(String.valueOf(razdel));
+
         recyclerView = root.findViewById(R.id.recycler_view);
-        recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setOnScrollChangeListener(this);
+
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
@@ -89,21 +124,17 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-
-        recyclerView.setOnScrollChangeListener(this);
         adapter = new CardAdapter(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
+        recyclerView.setAdapter(adapter);
 
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
-
-        recyclerView.setAdapter(adapter);
-        tvEmptyView = (TextView) root.findViewById(R.id.empty_view);
 
         return root;
     }
@@ -113,18 +144,54 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
-        String category = "all";
+        String category_string = "all";
         if (selections != null) {
             String[] selected = selections.toArray(new String[]{});
-            category = TextUtils.join(",", selected);
+            category_string = TextUtils.join(",", selected);
         }
-        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category,
+
+        if (!TextUtils.isEmpty(story)) {
+            s_url = "&story=" + story;
+        }
+
+        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
                         progressBar.setVisibility(View.GONE);
                         ProgressBarBottom.setVisibility(View.GONE);
-                        getMainData.parseData(response, listFeed, adapter); // парсинг данных
+                        for (int i = 0; i < response.length(); i++) {
+                                Feed jsonFeed = new Feed();
+                                JSONObject json;
+                                try {
+                                    json = response.getJSONObject(i);
+                                    jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                                    jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                                    jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                                    jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                                    jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                                    jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                                    jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                                    jsonFeed.setLink(json.getString(Config.TAG_LINK));
+                                    jsonFeed.setMod(json.getString(Config.TAG_MOD));
+                                    jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                                    jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                                    jsonFeed.setUser(json.getString(Config.TAG_USER));
+                                    jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                                    jsonFeed.setId(json.getInt(Config.TAG_ID));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                listFeed.add(jsonFeed);
+                            }
+
+                        //listFeed.clear();
+
+                        adapter.notifyDataSetChanged();
+
+
+
+                   //     getMainData.parseData(response, listFeed, adapter); // парсинг данных
 
                     }
                 },
@@ -133,7 +200,6 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
                         ProgressBarBottom.setVisibility(View.GONE);
-                        tvEmptyView.setVisibility(View.VISIBLE);
                         Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -169,9 +235,36 @@ public class HomeFragment extends Fragment implements RecyclerView.OnScrollChang
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(HomeFragment.this)
-                .attach(HomeFragment.this)
+                .detach(MainFragment.this)
+                .attach(MainFragment.this)
                 .commit();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentToActivity) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement FragmentToActivity");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        mCallback = null;
+        super.onDetach();
+    }
+
+    private void sendData(String comm)
+    {
+        mCallback.communicate(comm);
+
+    }
+
+    public void clear() {
+
     }
 
 }

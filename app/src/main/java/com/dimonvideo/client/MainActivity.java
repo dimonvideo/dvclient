@@ -1,31 +1,44 @@
 package com.dimonvideo.client;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
+import com.dimonvideo.client.ui.main.MainFragment;
+import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity implements FragmentToActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
+    String fPos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,11 +108,48 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+
+        // search
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        final EditText searchEditText = searchView.findViewById(R.id.search_src_text);
+
+        searchEditText.setHint(getString(R.string.search));
+
+        searchEditText.setHintTextColor(getResources().getColor(R.color.list_row_end_color));
+        assert searchManager != null;
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setMaxWidth(500);
+
+        searchEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    //run query to the server
+                    FragmentManager fragmentManager = getSupportFragmentManager();
+
+                    MainFragment homeFrag = new MainFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
+                    bundle.putInt(Config.TAG_RAZDEL_ID, Integer.parseInt(fPos));
+                    homeFrag.setArguments(bundle);
+
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.nav_host_fragment, homeFrag)
+                            .addToBackStack(null)
+                            .commit();
+                }
+                return false;
+            }
+        });
+
         return true;
     }
 
 
     // menu
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -113,7 +163,18 @@ public class MainActivity extends AppCompatActivity  {
         }
         // refresh
         if (id == R.id.action_refresh) {
-            recreate();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+
+            MainFragment homeFrag = new MainFragment();
+            Bundle bundle = new Bundle();
+            bundle.putInt(Config.TAG_RAZDEL_ID, Integer.parseInt(fPos));
+            homeFrag.setArguments(bundle);
+
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+
         }
 
         // other apps
@@ -123,8 +184,6 @@ public class MainActivity extends AppCompatActivity  {
 
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                     url));
-
-
 
             try {
                 startActivity(browserIntent);
@@ -144,6 +203,9 @@ public class MainActivity extends AppCompatActivity  {
             } catch (Throwable ignored) {
             }
         }
+
+
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -175,5 +237,12 @@ public class MainActivity extends AppCompatActivity  {
         }
         return super.onKeyLongPress(keycode, event);
     }
+
+    // receive razdel
+    @Override
+    public void communicate(String s) {
+       fPos = s;
+    }
+
 
 }

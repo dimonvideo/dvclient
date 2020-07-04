@@ -46,5 +46,6 @@
     <string name="close">No</string>
     <string name="download">Download</string>
     <string name="download_mod">Download MOD</string>
+    <string name="search">Search</string>
 
 </resources>

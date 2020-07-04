@@ -17,6 +17,7 @@ public class DownloadFile {
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
+            assert downloadManager != null;
             downloadManager.enqueue(request);
         } catch (Throwable ignored) {
         }
