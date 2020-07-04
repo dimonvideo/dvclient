@@ -1,9 +1,11 @@
 package com.dimonvideo.client.ui.main;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +15,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.AsyncListUtil;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
@@ -47,6 +51,7 @@ import java.util.Set;
 public class MainFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private FragmentToActivity mCallback;
+    private Parcelable listState;
 
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
@@ -62,6 +67,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     String search_url = Config.COMMENTS_SEARCH_URL;
     String story = null;
     String s_url = "";
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -113,7 +119,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
-
+        recyclerView.getLayoutManager().onRestoreInstanceState(listState);
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
@@ -132,7 +138,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-
+        if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
@@ -256,5 +262,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         mCallback.communicate(comm);
 
     }
+
+
 
 }
