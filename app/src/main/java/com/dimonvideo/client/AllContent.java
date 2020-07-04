@@ -2,24 +2,16 @@ package com.dimonvideo.client;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.app.DownloadManager;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -28,34 +20,40 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.dimonvideo.client.ui.main.CommentFragment;
+import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.DownloadFile;
+import com.dimonvideo.client.util.FragmentToActivity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Objects;
 
-import javax.net.ssl.HttpsURLConnection;
-
-public class AllContent extends AppCompatActivity {
+public class AllContent extends AppCompatActivity  {
     WebView webView;
     ProgressBar progressBar;
-    String title, url, headers, category, razdel, image_url, date, user, size, id, link, mod, comments;
+    String title;
+    String url;
+    String headers;
+    String category;
+    String razdel;
+    String image_url;
+    String date;
+    String user;
+    String size;
+    String id;
+    String link;
+    String mod;
+    int comments;
     Toolbar toolbar;
     Button downloadBtn, modBtn, btnComments;
 
@@ -68,18 +66,21 @@ public class AllContent extends AppCompatActivity {
         downloadBtn = findViewById(R.id.btn_download);
         modBtn = findViewById(R.id.btn_mod);
         btnComments = findViewById(R.id.btn_comment);
-        title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
-        headers = (String) getIntent().getSerializableExtra(Config.TAG_HEADERS);
-        category = (String) getIntent().getSerializableExtra(Config.TAG_CATEGORY);
-        razdel = (String) getIntent().getSerializableExtra(Config.TAG_RAZDEL);
-        image_url = getIntent().getStringExtra(Config.TAG_IMAGE_URL);
-        date = getIntent().getStringExtra(Config.TAG_DATE);
-        user = getIntent().getStringExtra(Config.TAG_USER);
-        size = getIntent().getStringExtra(Config.TAG_SIZE);
-        link = getIntent().getStringExtra(Config.TAG_LINK);
-        mod = getIntent().getStringExtra(Config.TAG_MOD);
-        id = getIntent().getStringExtra(Config.TAG_ID);
-        comments = getIntent().getStringExtra(Config.TAG_COMMENTS);
+
+        if (getIntent()!=null) {
+            title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
+            headers = (String) getIntent().getSerializableExtra(Config.TAG_HEADERS);
+            category = (String) getIntent().getSerializableExtra(Config.TAG_CATEGORY);
+            razdel = (String) getIntent().getSerializableExtra(Config.TAG_RAZDEL);
+            image_url = getIntent().getStringExtra(Config.TAG_IMAGE_URL);
+            date = getIntent().getStringExtra(Config.TAG_DATE);
+            user = getIntent().getStringExtra(Config.TAG_USER);
+            size = getIntent().getStringExtra(Config.TAG_SIZE);
+            link = getIntent().getStringExtra(Config.TAG_LINK);
+            mod = getIntent().getStringExtra(Config.TAG_MOD);
+            id = getIntent().getStringExtra(Config.TAG_ID);
+            comments = Integer.parseInt(Objects.requireNonNull(getIntent().getStringExtra(Config.TAG_COMMENTS)));
+        }
 
         downloadBtn.setVisibility(View.VISIBLE);
         modBtn.setVisibility(View.VISIBLE);
@@ -118,12 +119,25 @@ public class AllContent extends AppCompatActivity {
             }
         });
 
+        if (comments > 0) {
+            String comText = getResources().getString(R.string.Comments) + ": " + comments;
+            btnComments.setText(comText);
+        }
+
+        btnComments.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + id;
+                loadComments(comm_url);
+            }
+        });
+
         Objects.requireNonNull(getSupportActionBar()).setTitle(title);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        TextView titleHeaders = (TextView) findViewById(R.id.headers_title);
-        TextView titleSubHeaders = (TextView) findViewById(R.id.sub_headers_title);
+        TextView titleHeaders = findViewById(R.id.headers_title);
+        TextView titleSubHeaders = findViewById(R.id.sub_headers_title);
         titleHeaders.setText(headers);
         titleSubHeaders.setText(date);
         titleSubHeaders.append(" " + getString(R.string.by) + " " + user);
@@ -152,14 +166,15 @@ public class AllContent extends AppCompatActivity {
 
          */
         progressBar = findViewById(R.id.progressBar);
-        LoadWeb(razdel, id);
+        String full_url = Config.TEXT_URL + razdel + "&min=" + id;
+        LoadWeb(full_url);
 
         progressBar.setMax(100);
         progressBar.setProgress(1);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    public void LoadWeb(String razdel, String id) {
+    public void LoadWeb(String full_url) {
 
         webView = findViewById(R.id.read_full_content);
         webView.getSettings().setAppCacheEnabled(true);
@@ -206,7 +221,7 @@ public class AllContent extends AppCompatActivity {
             }
         });
 
-        webView.loadUrl(Config.TEXT_URL + razdel + "&min=" + id);
+        webView.loadUrl(full_url);
 
     }
 
@@ -316,7 +331,7 @@ public class AllContent extends AppCompatActivity {
 
         dialog.show();
 
-        Button bt_close = (Button)dialog.findViewById(R.id.btn_close);
+        Button bt_close = dialog.findViewById(R.id.btn_close);
 
         bt_close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -326,4 +341,25 @@ public class AllContent extends AppCompatActivity {
         });
 
     }
+
+    private void loadComments(String comm_url) {
+
+        final Dialog dialog = new Dialog(AllContent.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.comments_list);
+        LoadWeb(comm_url);
+
+        dialog.show();
+
+        Button bt_close = dialog.findViewById(R.id.btn_close);
+
+        bt_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+    }
+
 }

@@ -51,7 +51,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
-    private TextView tvEmptyView;
 
     private RequestQueue requestQueue;
 
@@ -253,10 +252,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     private void sendData(String comm)
     {
         mCallback.communicate(comm);
-
-    }
-
-    public void clear() {
 
     }
 
