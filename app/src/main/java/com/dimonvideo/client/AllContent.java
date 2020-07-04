@@ -2,12 +2,14 @@ package com.dimonvideo.client;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,18 +25,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.dimonvideo.client.ui.main.CommentFragment;
-import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.DownloadFile;
-import com.dimonvideo.client.util.FragmentToActivity;
 
 import java.util.Objects;
 
@@ -128,6 +125,7 @@ public class AllContent extends AppCompatActivity  {
             @Override
             public void onClick(View view) {
                 String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + id;
+                Log.d("tag", comm_url);
                 loadComments(comm_url);
             }
         });
@@ -167,16 +165,16 @@ public class AllContent extends AppCompatActivity  {
          */
         progressBar = findViewById(R.id.progressBar);
         String full_url = Config.TEXT_URL + razdel + "&min=" + id;
-        LoadWeb(full_url);
+        webView = findViewById(R.id.read_full_content);
+        LoadWeb(webView, full_url);
 
         progressBar.setMax(100);
         progressBar.setProgress(1);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    public void LoadWeb(String full_url) {
+    public void LoadWeb(final WebView webView, String full_url) {
 
-        webView = findViewById(R.id.read_full_content);
         webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.getSettings().setJavaScriptEnabled(true);
@@ -347,12 +345,17 @@ public class AllContent extends AppCompatActivity  {
         final Dialog dialog = new Dialog(AllContent.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.comments_list);
-        LoadWeb(comm_url);
+        webView = (WebView)dialog.findViewById(R.id.read_full_content);
 
-        dialog.show();
+        LoadWeb(webView, comm_url);
 
+        DisplayMetrics dm = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        int height = dm.heightPixels-100;
+        int width = dm.widthPixels-20;
         Button bt_close = dialog.findViewById(R.id.btn_close);
-
+        dialog.getWindow().setLayout(width, height);
+        dialog.show();
         bt_close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
