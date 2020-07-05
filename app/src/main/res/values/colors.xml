@@ -5,6 +5,7 @@
     <color name="colorAccent">#66AEEC</color>
 
     <color name="colorList">#FFFFFF</color>
+    <color name="colorListHorizontal">#FFFFFF</color>
 
     <color name="category">#666666</color>
     <color name="year">#888888</color>

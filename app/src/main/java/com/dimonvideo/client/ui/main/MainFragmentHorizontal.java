@@ -1,10 +1,8 @@
 package com.dimonvideo.client.ui.main;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,13 +13,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -32,7 +28,6 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.CardAdapter;
 import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.util.FragmentToActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,79 +41,62 @@ import java.util.Set;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnScrollChangeListener  {
 
-    private FragmentToActivity mCallback;
-    private Parcelable listState;
-
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
-    SwipeRefreshLayout swipLayout;
 
     private RequestQueue requestQueue;
 
     private int requestCount = 1;
-    private ProgressBar progressBar, ProgressBarBottom;
-    int razdel = 0;
+    String razdel = "comments";
     String url = Config.COMMENTS_URL;
-    String search_url = Config.COMMENTS_SEARCH_URL;
-    String story = null;
-    String s_url = "";
     String key = "comments";
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_home_horizontal, container, false);
 
         if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_RAZDEL_ID);
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
+            razdel = getArguments().getString(Config.TAG_RAZDEL);
 
-            if (razdel == 1) {
+            assert razdel != null;
+            if (razdel.equals(Config.GALLERY_RAZDEL)) {
                 url = Config.GALLERY_URL;
-                search_url = Config.GALLERY_SEARCH_URL;
                 key = Config.GALLERY_RAZDEL;
             }
-            if (razdel == 2) {
+            if (razdel.equals(Config.UPLOADER_RAZDEL)) {
                 url = Config.UPLOADER_URL;
-                search_url = Config.UPLOADER_SEARCH_URL;
                 key = Config.UPLOADER_RAZDEL;
 
             }
-            if (razdel == 3) {
+            if (razdel.equals(Config.VUPLOADER_RAZDEL)) {
                 url = Config.VUPLOADER_URL;
-                search_url = Config.VUPLOADER_SEARCH_URL;
                 key = Config.VUPLOADER_RAZDEL;
 
             }
-            if (razdel == 4) {
+            if (razdel.equals(Config.NEWS_RAZDEL)) {
                 url = Config.NEWS_URL;
-                search_url = Config.NEWS_SEARCH_URL;
                 key = Config.NEWS_RAZDEL;
 
             }
-            if (razdel == 5) {
+            if (razdel.equals(Config.MUZON_RAZDEL)) {
                 url = Config.MUZON_URL;
-                search_url = Config.MUZON_SEARCH_URL;
                 key = Config.MUZON_RAZDEL;
 
             }
-            if (razdel == 6) {
+            if (razdel.equals(Config.BOOKS_RAZDEL)) {
                 url = Config.BOOKS_URL;
-                search_url = Config.BOOKS_SEARCH_URL;
                 key = Config.BOOKS_RAZDEL;
 
             }
-            if (razdel == 7) {
+            if (razdel.equals(Config.ARTICLES_RAZDEL)) {
                 url = Config.ARTICLES_URL;
-                search_url = Config.ARTICLES_SEARCH_URL;
                 key = Config.ARTICLES_RAZDEL;
 
             }
 
-            if (!TextUtils.isEmpty(story)) {
-                url = search_url;
-            }
         }
 
         recyclerView = root.findViewById(R.id.recycler_view);
@@ -127,15 +105,13 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
-        Objects.requireNonNull(recyclerView.getLayoutManager()).onRestoreInstanceState(listState);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
+                layoutManager.getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
 
-        progressBar = root.findViewById(R.id.progressbar);
-        progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
-        ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
         adapter = new CardAdapter(listFeed, getContext());
@@ -158,17 +134,10 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             category_string = TextUtils.join(",", selected);
         }
 
-        if (!TextUtils.isEmpty(story)) {
-            s_url = "&story=" + story;
-        }
-
-        Log.d("tag", url + requestCount + "&c=placeholder," + category_string + s_url);
-        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
+        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
-                        progressBar.setVisibility(View.GONE);
-                        ProgressBarBottom.setVisibility(View.GONE);
                         for (int i = 0; i < response.length(); i++) {
                                 Feed jsonFeed = new Feed();
                                 JSONObject json;
@@ -201,8 +170,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
-                        ProgressBarBottom.setVisibility(View.GONE);
                         Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -210,7 +177,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        ProgressBarBottom.setVisibility(View.VISIBLE);
         requestQueue.add(getDataFromServer(requestCount));
         requestCount++;
     }
@@ -228,7 +194,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-          //  getData();
+            getData();
         }
     }
 

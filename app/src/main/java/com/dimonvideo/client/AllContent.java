@@ -2,7 +2,6 @@ package com.dimonvideo.client;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -16,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -28,15 +28,16 @@ import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.DownloadFile;
+import com.potyvideo.library.AndExoPlayerView;
 
 import java.util.Objects;
 
@@ -57,17 +58,21 @@ public class AllContent extends AppCompatActivity  {
     String mod;
     int comments;
     Toolbar toolbar;
-    Button downloadBtn, modBtn, btnComments;
+    Button downloadBtn, modBtn, commentsBtn, mp4Btn;
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        dialog = new Dialog(AllContent.this,android.R.style.Theme_Translucent_NoTitleBar);
+
         setContentView(R.layout.activity_collapse);
         toolbar = findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
         downloadBtn = findViewById(R.id.btn_download);
         modBtn = findViewById(R.id.btn_mod);
-        btnComments = findViewById(R.id.btn_comment);
+        commentsBtn = findViewById(R.id.btn_comment);
+        mp4Btn = findViewById(R.id.btn_mp4);
 
         if (getIntent()!=null) {
             title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
@@ -88,10 +93,19 @@ public class AllContent extends AppCompatActivity  {
         modBtn.setVisibility(View.VISIBLE);
         url = Config.BASE_URL + "/" + razdel + "/" + id;
 
-        if (razdel.equals("comments")) {
+        if (razdel.equals(Config.COMMENTS_RAZDEL)) {
             url = Config.BASE_URL + "/" + id + "-news.html";
         }
+        if (razdel.equals(Config.VUPLOADER_RAZDEL)) {
+            mp4Btn.setVisibility(View.VISIBLE);
+            mp4Btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    PlayVideo(link);
+                }
+            });
 
+        }
         // если нет размера файла
         if (size.startsWith("0")) {
             downloadBtn.setVisibility(View.GONE);
@@ -123,10 +137,10 @@ public class AllContent extends AppCompatActivity  {
 
         if (comments > 0) {
             String comText = getResources().getString(R.string.Comments) + ": " + comments;
-            btnComments.setText(comText);
+            commentsBtn.setText(comText);
         }
 
-        btnComments.setOnClickListener(new View.OnClickListener() {
+        commentsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + id;
@@ -177,6 +191,17 @@ public class AllContent extends AppCompatActivity  {
         progressBar.setProgress(1);
     }
 
+    private void PlayVideo(String link) {
+        link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
+        Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.video);
+        AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
+        andExoPlayerView.setSource(link);
+        dialog.show();
+
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     public void LoadWeb(final WebView webView, String full_url) {
 
@@ -217,7 +242,7 @@ public class AllContent extends AppCompatActivity  {
 
                 MainFragmentHorizontal homeFrag = new MainFragmentHorizontal();
                 Bundle bundle = new Bundle();
-                bundle.putString(Config.TAG_RAZDEL_ID, razdel);
+                bundle.putString(Config.TAG_RAZDEL, razdel);
                 homeFrag.setArguments(bundle);
 
                 fragmentManager.beginTransaction()
@@ -302,6 +327,7 @@ public class AllContent extends AppCompatActivity  {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        dialog.dismiss();
     }
 
     @Override
@@ -312,11 +338,17 @@ public class AllContent extends AppCompatActivity  {
     @Override
     public void onPause() {
         super.onPause();
+        dialog.dismiss();
     }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if(getFragmentManager().getBackStackEntryCount() > 0) {
+            getFragmentManager().popBackStackImmediate();
+        } else {
+            super.onBackPressed();
+            finish();
+        }
     }
 
     @Override
@@ -363,7 +395,7 @@ public class AllContent extends AppCompatActivity  {
         final Dialog dialog = new Dialog(AllContent.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.comments_list);
-        webView = (WebView)dialog.findViewById(R.id.read_full_content);
+        webView = dialog.findViewById(R.id.read_full_content);
 
         LoadWeb(webView, comm_url);
 
@@ -372,7 +404,7 @@ public class AllContent extends AppCompatActivity  {
         int height = dm.heightPixels-100;
         int width = dm.widthPixels-20;
         Button bt_close = dialog.findViewById(R.id.btn_close);
-        dialog.getWindow().setLayout(width, height);
+        Objects.requireNonNull(dialog.getWindow()).setLayout(width, height);
         dialog.show();
         bt_close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -382,5 +414,6 @@ public class AllContent extends AppCompatActivity  {
         });
 
     }
+
 
 }

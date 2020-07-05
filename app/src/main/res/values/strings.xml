@@ -47,5 +47,7 @@
     <string name="download">Download</string>
     <string name="download_mod">Download MOD</string>
     <string name="search">Search</string>
+    <string name="new_files">New files</string>
+    <string name="download_mp4">View video</string>
 
 </resources>

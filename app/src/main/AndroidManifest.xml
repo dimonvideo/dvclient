@@ -16,16 +16,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:replace="android:allowBackup">
+        android:usesCleartextTraffic="true"
+        tools:replace="android:allowBackup"
+        tools:targetApi="m">
         <activity
             android:name=".AllContent"
             android:label="@string/uploader"
-            android:forceDarkAllowed="true"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
             android:name=".SettingsActivity"
-            android:forceDarkAllowed="true"
             android:label="@string/action_settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -34,7 +35,6 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:forceDarkAllowed="true"
             android:configChanges="screenSize|orientation"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

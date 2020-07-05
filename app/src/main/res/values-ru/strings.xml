@@ -42,6 +42,8 @@
     <string name="download">Скачать</string>
     <string name="download_mod">Скачать мод</string>
     <string name="search">Поиск</string>
+    <string name="new_files">Новинки в разделе</string>
+    <string name="download_mp4">Смотреть онлайн</string>
 
 
 </resources>
