@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,7 +68,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     String search_url = Config.COMMENTS_SEARCH_URL;
     String story = null;
     String s_url = "";
-
+    String key = "comments";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -81,30 +82,43 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
             if (razdel == 1) {
                 url = Config.GALLERY_URL;
                 search_url = Config.GALLERY_SEARCH_URL;
+                key = Config.GALLERY_RAZDEL;
             }
             if (razdel == 2) {
                 url = Config.UPLOADER_URL;
                 search_url = Config.UPLOADER_SEARCH_URL;
+                key = Config.UPLOADER_RAZDEL;
+
             }
             if (razdel == 3) {
                 url = Config.VUPLOADER_URL;
                 search_url = Config.VUPLOADER_SEARCH_URL;
+                key = Config.VUPLOADER_RAZDEL;
+
             }
             if (razdel == 4) {
                 url = Config.NEWS_URL;
                 search_url = Config.NEWS_SEARCH_URL;
+                key = Config.NEWS_RAZDEL;
+
             }
             if (razdel == 5) {
                 url = Config.MUZON_URL;
                 search_url = Config.MUZON_SEARCH_URL;
+                key = Config.MUZON_RAZDEL;
+
             }
             if (razdel == 6) {
                 url = Config.BOOKS_URL;
                 search_url = Config.BOOKS_SEARCH_URL;
+                key = Config.BOOKS_RAZDEL;
+
             }
             if (razdel == 7) {
                 url = Config.ARTICLES_URL;
                 search_url = Config.ARTICLES_SEARCH_URL;
+                key = Config.ARTICLES_RAZDEL;
+
             }
 
             if (!TextUtils.isEmpty(story)) {
@@ -116,10 +130,11 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
-        recyclerView.getLayoutManager().onRestoreInstanceState(listState);
+        Objects.requireNonNull(recyclerView.getLayoutManager()).onRestoreInstanceState(listState);
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
@@ -150,7 +165,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
+        Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
         if (selections != null) {
             String[] selected = selections.toArray(new String[]{});
@@ -161,6 +176,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
             s_url = "&story=" + story;
         }
 
+        Log.d("tag", url + requestCount + "&c=placeholder," + category_string + s_url);
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 new Response.Listener<JSONArray>() {
                     @Override

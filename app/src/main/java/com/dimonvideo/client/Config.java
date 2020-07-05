@@ -3,26 +3,36 @@ package com.dimonvideo.client;
 public class Config {
 
     public static final String BASE_URL = "https://dimonvideo.ru";
+    // RAZDEL NAMES
+    public static final String COMMENTS_RAZDEL = "comments";
+    public static final String UPLOADER_RAZDEL = "uploader";
+    public static final String VUPLOADER_RAZDEL = "vuploader";
+    public static final String NEWS_RAZDEL = "usernews";
+    public static final String GALLERY_RAZDEL = "gallery";
+    public static final String MUZON_RAZDEL = "muzon";
+    public static final String BOOKS_RAZDEL = "books";
+    public static final String ARTICLES_RAZDEL = "articles";
+    public static final String GAMES_RAZDEL = "online";
 
     //Data URL
-    public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=comments&min=";
-    public static final String COMMENTS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=comments&min=";
-    public static final String UPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=uploader&min=";
-    public static final String UPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=uploader&min=";
-    public static final String VUPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=vuploader&min=";
-    public static final String VUPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=vuploader&min=";
-    public static final String NEWS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=usernews&min=";
-    public static final String NEWS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=usernews&min=";
-    public static final String GALLERY_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=gallery&min=";
-    public static final String GALLERY_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=gallery&min=";
-    public static final String MUZON_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=muzon&min=";
-    public static final String MUZON_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=muzon&min=";
-    public static final String BOOKS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=books&min=";
-    public static final String BOOKS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=books&min=";
-    public static final String ARTICLES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=articles&min=";
-    public static final String ARTICLES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=articles&min=";
-    public static final String GAMES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel=online&min=";
-    public static final String GAMES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel=online&min=";
+    public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+COMMENTS_RAZDEL+"&min=";
+    public static final String COMMENTS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+COMMENTS_RAZDEL+"&min=";
+    public static final String UPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+UPLOADER_RAZDEL+"&min=";
+    public static final String UPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+UPLOADER_RAZDEL+"&min=";
+    public static final String VUPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+VUPLOADER_RAZDEL+"&min=";
+    public static final String VUPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+VUPLOADER_RAZDEL+"&min=";
+    public static final String NEWS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+NEWS_RAZDEL+"&min=";
+    public static final String NEWS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+NEWS_RAZDEL+"&min=";
+    public static final String GALLERY_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+GALLERY_RAZDEL+"&min=";
+    public static final String GALLERY_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+GALLERY_RAZDEL+"&min=";
+    public static final String MUZON_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+MUZON_RAZDEL+"&min=";
+    public static final String MUZON_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+MUZON_RAZDEL+"&min=";
+    public static final String BOOKS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+BOOKS_RAZDEL+"&min=";
+    public static final String BOOKS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+BOOKS_RAZDEL+"&min=";
+    public static final String ARTICLES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+ARTICLES_RAZDEL+"&min=";
+    public static final String ARTICLES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+ARTICLES_RAZDEL+"&min=";
+    public static final String GAMES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+GAMES_RAZDEL+"&min=";
+    public static final String GAMES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+GAMES_RAZDEL+"&min=";
 
     public static final String TEXT_URL = BASE_URL + "/apps/dvclient.php?op=2&razdel=";
     public static final String COMMENTS_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&razdel=";
@@ -44,6 +54,8 @@ public class Config {
     public static final String TAG_MOD = "mod";
     public static final String TAG_RAZDEL_ID = "Category";
     public static final String TAG_STORY = "story";
+
+
 
 }
 
