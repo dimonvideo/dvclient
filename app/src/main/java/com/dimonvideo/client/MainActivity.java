@@ -59,13 +59,8 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show());
 
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -73,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home,
+                R.id.nav_forum,
                 R.id.nav_news,
                 R.id.nav_gallery,
                 R.id.nav_vuploader,
@@ -132,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
                     MainFragment homeFrag = new MainFragment();
                     Bundle bundle = new Bundle();
                     bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
-                    bundle.putInt(Config.TAG_RAZDEL_ID, Integer.parseInt(fPos));
+                    bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
                     homeFrag.setArguments(bundle);
 
                     fragmentManager.beginTransaction()
@@ -167,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
             MainFragment homeFrag = new MainFragment();
             Bundle bundle = new Bundle();
-            bundle.putInt(Config.TAG_RAZDEL_ID, Integer.parseInt(fPos));
+            bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
             homeFrag.setArguments(bundle);
 
             fragmentManager.beginTransaction()

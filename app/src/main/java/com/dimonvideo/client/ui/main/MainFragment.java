@@ -76,7 +76,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_RAZDEL_ID);
+            razdel = getArguments().getInt(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
 
             if (razdel == 1) {

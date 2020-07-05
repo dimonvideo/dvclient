@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp" >
+
+    <!-- status -->
+    <ImageView
+        android:id="@+id/status"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_marginEnd="5dip"
+        android:layout_marginTop="5dip"
+        android:layout_marginStart="1dip"
+        android:layout_alignParentStart="true"
+        android:contentDescription="@string/Comments"
+        android:src="@drawable/ic_status_green" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/status"
+        android:textSize="@dimen/title"
+        android:textStyle="bold"
+        tools:ignore="SpUsage" />
+
+    <!-- category -->
+    <TextView
+        android:id="@+id/category"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+
+    <!-- text -->
+    <TextView
+        android:id="@+id/listtext"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/category"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/category"
+        android:textSize="@dimen/text"
+        tools:ignore="SpUsage" />
+    <!-- autor -->
+    <TextView
+        android:id="@+id/names"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical|right"
+        android:layout_below="@id/listtext"
+        android:textSize="@dimen/text"
+        android:text="@string/menu_forum"
+        tools:ignore="SpUsage" />
+    <!-- views -->
+    <ImageView
+        android:id="@+id/views_logo"
+        android:layout_width="@dimen/title"
+        android:layout_height="@dimen/title"
+        android:layout_marginEnd="3dip"
+        android:layout_marginTop="3dip"
+        android:layout_below="@id/names"
+        android:tint="@color/colorAccent"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@android:drawable/ic_menu_view"
+        tools:src="@android:drawable/ic_menu_view"
+        tools:srcCompat="@android:drawable/ic_menu_view" />
+    <TextView
+        android:id="@+id/views_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dip"
+        android:layout_toEndOf="@+id/views_logo"
+        android:layout_below="@id/names"
+        android:textSize="@dimen/date"
+        android:textColor="@color/colorAccent"
+        tools:ignore="SpUsage" />
+
+    <!-- comments -->
+    <ImageView
+        android:id="@+id/rating_logo"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_marginEnd="3dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginStart="15dip"
+        android:layout_below="@id/names"
+        android:tint="@color/colorAccent"
+        android:layout_toEndOf="@+id/views_count"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@android:drawable/sym_action_chat"
+        tools:src="@android:drawable/sym_action_chat"
+        tools:srcCompat="@android:drawable/sym_action_chat" />
+    <TextView
+        android:id="@+id/rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/names"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold"
+        android:layout_marginTop="3dip"
+        android:layout_toEndOf="@+id/rating_logo"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+
+</RelativeLayout>

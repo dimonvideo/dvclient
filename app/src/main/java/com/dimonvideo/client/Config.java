@@ -34,16 +34,18 @@ public class Config {
     public static final String GAMES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+GAMES_RAZDEL+"&min=";
     public static final String GAMES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+GAMES_RAZDEL+"&min=";
 
+    public static final String FORUM_FEED_URL = BASE_URL + "/apps/dvclient.php?op=5&min=";
+
     public static final String TEXT_URL = BASE_URL + "/apps/dvclient.php?op=2&razdel=";
     public static final String COMMENTS_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&razdel=";
 
     //JSON TAGS
+    public static final String TAG_ID = "lid";
     public static final String TAG_IMAGE_URL = "image";
     public static final String TAG_TITLE = "title";
     public static final String TAG_TEXT = "text";
     public static final String TAG_COMMENTS = "rating";
     public static final String TAG_DATE = "date";
-    public static final String TAG_ID = "lid";
     public static final String TAG_RAZDEL = "razdel";
     public static final String TAG_CATEGORY = "category";
     public static final String TAG_HEADERS = "headers";
@@ -52,9 +54,11 @@ public class Config {
     public static final String TAG_HITS = "views";
     public static final String TAG_LINK = "file_link";
     public static final String TAG_MOD = "mod";
-    public static final String TAG_RAZDEL_ID = "Category";
     public static final String TAG_STORY = "story";
     public static final String TAG_TIME = "time";
+    public static final String TAG_LAST_POSTER_NAME = "last_poster_name";
+    public static final String TAG_STATE = "state";
+    public static final String TAG_PINNED = "pinned";
 
 
 

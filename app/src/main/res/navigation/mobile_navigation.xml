@@ -12,7 +12,7 @@
         android:tag="comments"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="0"
             />
     </fragment>
@@ -24,7 +24,7 @@
         android:tag="gallery"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="1"
             />
     </fragment>
@@ -35,7 +35,7 @@
         android:tag="uploader"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="2"
             />
     </fragment>
@@ -46,7 +46,7 @@
         android:tag="vuploader"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="3"
             />
     </fragment>
@@ -57,7 +57,7 @@
         android:tag="usernews"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="4"
             />
     </fragment>
@@ -68,7 +68,7 @@
         android:tag="muzon"
        tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="5"
             />
     </fragment>
@@ -79,7 +79,7 @@
         android:tag="books"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="6"
             />
     </fragment>
@@ -90,18 +90,18 @@
         android:tag="articles"
         tools:layout="@layout/fragment_home">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="7"
             />
     </fragment>
     <fragment
-        android:id="@+id/nav_hor"
-        android:name="com.dimonvideo.client.ui.main.MainFragmentHorizontal"
-        android:label="@string/Comments"
+        android:id="@+id/nav_forum"
+        android:name="com.dimonvideo.client.ui.forum.ForumFragment"
+        android:label="@string/menu_forum"
         android:tag="com"
-        tools:layout="@layout/fragment_home_horizontal">
+        tools:layout="@layout/fragment_forum">
         <argument
-            android:name="Category"
+            android:name="category"
             android:defaultValue="8"
             />
     </fragment>
