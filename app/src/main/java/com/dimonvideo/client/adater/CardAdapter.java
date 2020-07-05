@@ -61,10 +61,10 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        holder.textViewDate.setTypeface(holder.textViewDate.getTypeface(), Typeface.NORMAL);
+        holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
-            holder.textViewDate.setTypeface(holder.textViewDate.getTypeface(), Typeface.BOLD);
+            holder.status_logo.setImageResource(R.drawable.ic_status_green);
         }
         //Loading image from url
         //Imageloader to load image
@@ -115,13 +115,14 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
         //Views
         public NetworkImageView imageView;
         public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits;
-        public ImageView rating_logo;
+        public ImageView rating_logo, status_logo;
 
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
             imageView = (NetworkImageView) itemView.findViewById(R.id.thumbnail);
             rating_logo = (ImageView) itemView.findViewById(R.id.rating_logo);
+            status_logo = (ImageView) itemView.findViewById(R.id.status);
             textViewTitle = (TextView) itemView.findViewById(R.id.title);
             textViewText = (TextView) itemView.findViewById(R.id.listtext);
             textViewDate = (TextView) itemView.findViewById(R.id.date);
