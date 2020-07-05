@@ -1,9 +1,11 @@
 package com.dimonvideo.client;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -25,11 +27,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
@@ -60,6 +65,8 @@ public class AllContent extends AppCompatActivity  {
     Toolbar toolbar;
     Button downloadBtn, modBtn, commentsBtn, mp4Btn;
     Dialog dialog;
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
+    private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,40 +105,35 @@ public class AllContent extends AppCompatActivity  {
         }
         if (razdel.equals(Config.VUPLOADER_RAZDEL)) {
             mp4Btn.setVisibility(View.VISIBLE);
-            mp4Btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    PlayVideo(link);
-                }
-            });
+            mp4Btn.setOnClickListener(view -> PlayVideo(link));
 
         }
         // если нет размера файла
         if (size.startsWith("0")) {
             downloadBtn.setVisibility(View.GONE);
             modBtn.setVisibility(View.GONE);
-        }
+        } else downloadBtn.setText(getString(R.string.download) + " " + size);
 
         // если нет mod
         if (mod.startsWith("null")) {
             modBtn.setVisibility(View.GONE);
         }
 
-        downloadBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        downloadBtn.setOnClickListener(view -> {
 
+            if (isPermissionGranted()) {
                 DownloadFile.download(getApplicationContext(), link);
-
+            } else {
+                // иначе запрашиваем разрешение у пользователя
+                requestPermission();
             }
         });
 
-        modBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
+        modBtn.setOnClickListener(view -> {
+            if (isPermissionGranted()) {
                 DownloadFile.download(getApplicationContext(), mod);
-
+                // иначе запрашиваем разрешение у пользователя
+                requestPermission();
             }
         });
 
@@ -140,13 +142,10 @@ public class AllContent extends AppCompatActivity  {
             commentsBtn.setText(comText);
         }
 
-        commentsBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + id;
-                Log.d("tag", comm_url);
-                loadComments(comm_url);
-            }
+        commentsBtn.setOnClickListener(view -> {
+            String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + id;
+            Log.d("tag", comm_url);
+            loadComments(comm_url);
         });
 
         Objects.requireNonNull(getSupportActionBar()).setTitle(title);
@@ -381,12 +380,7 @@ public class AllContent extends AppCompatActivity  {
 
         Button bt_close = dialog.findViewById(R.id.btn_close);
 
-        bt_close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        bt_close.setOnClickListener(v -> dialog.dismiss());
 
     }
 
@@ -406,14 +400,35 @@ public class AllContent extends AppCompatActivity  {
         Button bt_close = dialog.findViewById(R.id.btn_close);
         Objects.requireNonNull(dialog.getWindow()).setLayout(width, height);
         dialog.show();
-        bt_close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+        bt_close.setOnClickListener(v -> dialog.dismiss());
 
     }
 
+    // проверяем разрешение - есть ли оно у приложения
+    private boolean isPermissionGranted() {
+        int permissionCheck = ActivityCompat.checkSelfPermission(getApplicationContext(), AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION);
+        return permissionCheck == PackageManager.PERMISSION_GRANTED;
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                Toast.makeText(AllContent.this, "Разрешения получены", Toast.LENGTH_LONG).show();
+
+
+            } else {
+                Toast.makeText(AllContent.this, "Разрешения не получены", Toast.LENGTH_LONG).show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    private void requestPermission() {
+        // запрашиваем разрешение
+        ActivityCompat.requestPermissions(AllContent.this, new String[]{AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION}, AllContent.REQUEST_WRITE_EXTERNAL_STORAGE);
+    }
 }
