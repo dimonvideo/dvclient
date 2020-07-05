@@ -1,6 +1,5 @@
 package com.dimonvideo.client.ui.main;
 
-import android.content.ClipData;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -12,19 +11,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.AsyncListUtil;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -49,7 +44,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class MainFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private FragmentToActivity mCallback;
     private Parcelable listState;
@@ -252,8 +247,8 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(MainFragment.this)
-                .attach(MainFragment.this)
+                .detach(MainFragmentHorizontal.this)
+                .attach(MainFragmentHorizontal.this)
                 .commit();
     }
 
@@ -262,7 +257,9 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         super.onAttach(context);
         try {
             mCallback = (FragmentToActivity) context;
-        } catch (Throwable ignored) {
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement FragmentToActivity");
         }
     }
 
@@ -274,9 +271,8 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
 
     private void sendData(String comm)
     {
-        try{ mCallback.communicate(comm);
-        } catch (Throwable ignored) {
-        }
+        mCallback.communicate(comm);
+
     }
 
 

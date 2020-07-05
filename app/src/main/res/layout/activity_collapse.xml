@@ -45,7 +45,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UselessParent">
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/headers_title"
@@ -138,9 +139,14 @@
                     android:layout_gravity="center_horizontal"
                     android:text="@string/download_mod"
                     android:textStyle="bold" />
+
+                <include
+                    layout="@layout/fragment_home_horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
 
     </androidx.core.widget.NestedScrollView>
     <androidx.appcompat.widget.Toolbar
