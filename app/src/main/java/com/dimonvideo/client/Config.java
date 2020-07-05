@@ -54,6 +54,7 @@ public class Config {
     public static final String TAG_MOD = "mod";
     public static final String TAG_RAZDEL_ID = "Category";
     public static final String TAG_STORY = "story";
+    public static final String TAG_TIME = "time";
 
 
 

@@ -2,10 +2,14 @@ package com.dimonvideo.client.adater;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +24,7 @@ import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
@@ -41,6 +46,8 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
+
+
         return new ViewHolder(v);
     }
 
@@ -49,7 +56,16 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
 
         //Getting the particular item from the list
         final Feed Feed =  jsonFeed.get(position);
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        holder.textViewDate.setTypeface(holder.textViewDate.getTypeface(), Typeface.NORMAL);
 
+        if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
+            holder.textViewDate.setTypeface(holder.textViewDate.getTypeface(), Typeface.BOLD);
+        }
         //Loading image from url
         //Imageloader to load image
         ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();

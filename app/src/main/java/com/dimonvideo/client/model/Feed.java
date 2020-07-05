@@ -6,7 +6,7 @@ public class Feed {
 	//Data Variables
 	private String imageUrl, title, text, date, razdel, category, headers, user, size, link, mod;
 	private int id, comments, hits;
-
+	private Long time;
 	//Getters and Setters
 	public String getImageUrl() {
 		return imageUrl;
@@ -121,5 +121,13 @@ public class Feed {
 
 	public void setMod(String mod) {
 		this.mod = mod;
+	}
+
+	public Long getTime() {
+		return time;
+	}
+
+	public void setTime(Long time) {
+		this.time = time;
 	}
 }
