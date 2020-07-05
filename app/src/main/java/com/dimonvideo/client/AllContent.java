@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -25,12 +26,16 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.dimonvideo.client.ui.main.MainFragment;
+import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.DownloadFile;
 
 import java.util.Objects;
@@ -203,9 +208,22 @@ public class AllContent extends AppCompatActivity  {
                 webView.loadUrl("file:///android_asset/error.html");
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.M)
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
                 injectCSS();
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+
+                MainFragmentHorizontal homeFrag = new MainFragmentHorizontal();
+                Bundle bundle = new Bundle();
+                bundle.putString(Config.TAG_RAZDEL_ID, razdel);
+                homeFrag.setArguments(bundle);
+
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, homeFrag)
+                        .addToBackStack(null)
+                        .commit();
 
             }
 

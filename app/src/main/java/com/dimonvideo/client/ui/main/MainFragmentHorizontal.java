@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnScrollChangeListener  {
 
     private FragmentToActivity mCallback;
     private Parcelable listState;
@@ -68,7 +68,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        View root = inflater.inflate(R.layout.fragment_home_horizontal, container, false);
 
         if (this.getArguments() != null) {
             razdel = getArguments().getInt(Config.TAG_RAZDEL_ID);
@@ -121,8 +121,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             }
         }
 
-        sendData(String.valueOf(razdel));
-
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -148,10 +146,8 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
-        // pull to refresh
-        swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+
+
 
         return root;
     }
@@ -237,44 +233,9 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+          //  getData();
         }
     }
-
-    // обновление
-    @Override
-    public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(MainFragmentHorizontal.this)
-                .attach(MainFragmentHorizontal.this)
-                .commit();
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentToActivity) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement FragmentToActivity");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        mCallback = null;
-        super.onDetach();
-    }
-
-    private void sendData(String comm)
-    {
-        mCallback.communicate(comm);
-
-    }
-
 
 
 }
