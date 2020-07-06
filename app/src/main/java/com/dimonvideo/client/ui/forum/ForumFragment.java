@@ -9,8 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AnalogClock;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TabHost;
+import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +36,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.SettingsActivity;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.main.MainFragment;
@@ -58,20 +61,16 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
     private RequestQueue requestQueue;
     private FragmentToActivity mCallback;
 
-    //Mandatory Constructor
-    public ForumFragment() {
-    }
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_FEED_URL;
     String story = null;
     String s_url = "";
     int razdel = 8; // forum fragment
+
+    public ForumFragment() {
+        // Required empty public constructor
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -115,32 +114,12 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
         swipLayout.setOnRefreshListener(this);
 
 
-        TabHost tabs=(TabHost)root.findViewById(android.R.id.tabhost);
 
-        tabs.setup();
 
-        TabHost.TabSpec spec=tabs.newTabSpec("tag1");
-
-        spec.setContent(R.id.tab1);//here you define which tab you want to setup
-        spec.setIndicator("So Close");//here you choose the text showed in the tab
-        tabs.addTab(spec);
-
-        spec=tabs.newTabSpec("tag2");
-        spec.setContent(R.id.tab2);
-        spec.setIndicator("Contacts");
-        tabs.addTab(spec);
-
-        tabs.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
-            @Override
-            public void onTabChanged(String s) {
-                AlertDialog alertDialog = new AlertDialog.Builder(requireContext()).create();
-                alertDialog.setMessage("You select tab " + s);
-                alertDialog.show();
-            }
-        });
 
         return root;
     }
+
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
@@ -252,5 +231,7 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
         } catch (Throwable ignored) {
         }
     }
+
+
 
 }
