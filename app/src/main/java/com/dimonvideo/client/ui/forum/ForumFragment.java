@@ -5,21 +5,22 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AnalogClock;
 import android.widget.ProgressBar;
+import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTabHost;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -35,7 +36,6 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.model.PageViewModel;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
 
@@ -58,6 +58,14 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
     private RequestQueue requestQueue;
     private FragmentToActivity mCallback;
 
+    //Mandatory Constructor
+    public ForumFragment() {
+    }
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_FEED_URL;
@@ -65,26 +73,10 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
     String s_url = "";
     int razdel = 8; // forum fragment
 
-    private static final String TAG = "Forum";
-    private PageViewModel pageViewModel;
-    public ForumFragment() {
-        // Required empty public constructor
-    }
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
-        pageViewModel.setIndex(TAG);
-    }
-
-    public static ForumFragment newInstance() {
-        return new ForumFragment();
-    }
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        View root = inflater.inflate(R.layout.fragment_forum, container, false);
 
         if (this.getArguments() != null) {
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
@@ -109,6 +101,8 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
         getData();
         adapter = new ForumAdapter(listFeed, getContext());
 
+
+
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
@@ -119,13 +113,32 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
-        final TextView textView = root.findViewById(R.id.section_label);
-        pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
+
+
+        TabHost tabs=(TabHost)root.findViewById(android.R.id.tabhost);
+
+        tabs.setup();
+
+        TabHost.TabSpec spec=tabs.newTabSpec("tag1");
+
+        spec.setContent(R.id.tab1);//here you define which tab you want to setup
+        spec.setIndicator("So Close");//here you choose the text showed in the tab
+        tabs.addTab(spec);
+
+        spec=tabs.newTabSpec("tag2");
+        spec.setContent(R.id.tab2);
+        spec.setIndicator("Contacts");
+        tabs.addTab(spec);
+
+        tabs.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
+            public void onTabChanged(String s) {
+                AlertDialog alertDialog = new AlertDialog.Builder(requireContext()).create();
+                alertDialog.setMessage("You select tab " + s);
+                alertDialog.show();
             }
         });
+
         return root;
     }
 
