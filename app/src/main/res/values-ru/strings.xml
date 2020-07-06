@@ -45,6 +45,9 @@
     <string name="new_files">Новинки в разделе</string>
     <string name="download_mp4">Смотреть онлайн</string>
     <string name="menu_forum">Форум</string>
+    <string name="tab_text_1">Tab1</string>
+    <string name="tab_text_2">Tab2</string>
+    <string name="tab_text_3">Tab3</string>
 
 
 </resources>

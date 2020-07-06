@@ -20,6 +20,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.AsyncListUtil;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -37,6 +39,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.CardAdapter;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.model.PageViewModel;
 import com.dimonvideo.client.util.FragmentToActivity;
 
 import org.json.JSONArray;
@@ -69,6 +72,21 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     String s_url = "";
     String key = "comments";
 
+    private static final String TAG = "SpeedDial";
+    private PageViewModel pageViewModel;
+    public MainFragment() {
+        // Required empty public constructor
+    }
+
+    public static MainFragment newInstance() {
+        return new MainFragment();
+    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
+        pageViewModel.setIndex(TAG);
+    }
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -154,7 +172,13 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
-
+        final TextView textView = root.findViewById(R.id.section_label);
+        pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable String s) {
+                textView.setText(s);
+            }
+        });
         return root;
     }
 

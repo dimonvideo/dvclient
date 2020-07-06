@@ -29,13 +29,16 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
+import androidx.viewpager.widget.ViewPager;
 
+import com.dimonvideo.client.adater.TabsPagerAdapter;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
 
 public class MainActivity extends AppCompatActivity implements FragmentToActivity {
 
@@ -93,6 +96,12 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         if (!is_muzon) navigationView.getMenu().removeItem(R.id.nav_muzon);
         if (!is_books) navigationView.getMenu().removeItem(R.id.nav_books);
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
+
+        TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(this, getSupportFragmentManager());
+        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager.setAdapter(tabsPagerAdapter);
+        TabLayout tabs = findViewById(R.id.tabs);
+        tabs.setupWithViewPager(viewPager);
 
     }
 
