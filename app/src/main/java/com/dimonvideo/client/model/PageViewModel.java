@@ -8,12 +8,7 @@ import androidx.lifecycle.ViewModel;
 
 public class PageViewModel extends ViewModel {
     private MutableLiveData<String> mTitle = new MutableLiveData<>();
-    private LiveData<String> mText = Transformations.map(mTitle, new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            return "Contact not available in " + input;
-        }
-    });
+    private LiveData<String> mText = Transformations.map(mTitle, input -> "Contact not available in " + input);
     public void setIndex(String index) {
         mTitle.setValue(index);
     }

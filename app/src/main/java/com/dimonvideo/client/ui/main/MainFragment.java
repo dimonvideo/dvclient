@@ -72,7 +72,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     String s_url = "";
     String key = "comments";
 
-    private static final String TAG = "SpeedDial";
+    private static final String TAG = "Main";
     private PageViewModel pageViewModel;
     public MainFragment() {
         // Required empty public constructor
