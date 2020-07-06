@@ -1,30 +1,24 @@
 package com.dimonvideo.client.ui.forum;
 
-import android.content.ClipData;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.AsyncListUtil;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -35,13 +29,10 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.CardAdapter;
 import com.dimonvideo.client.adater.ForumAdapter;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.FragmentToActivity;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -59,13 +50,14 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
     SwipeRefreshLayout swipLayout;
 
     private RequestQueue requestQueue;
+    private FragmentToActivity mCallback;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_FEED_URL;
-    String search_url = Config.COMMENTS_SEARCH_URL;
     String story = null;
     String s_url = "";
+    int razdel = 8; // forum fragment
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -75,6 +67,7 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
         if (this.getArguments() != null) {
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
         }
+        sendData(String.valueOf(razdel));
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -123,8 +116,7 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
             s_url = "&story=" + story;
         }
 
-        Log.d("tag", url + requestCount);
-        return new JsonArrayRequest(url + requestCount,
+        return new JsonArrayRequest(url + requestCount + s_url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -198,6 +190,26 @@ public class ForumFragment extends Fragment implements RecyclerView.OnScrollChan
                 .commit();
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentToActivity) context;
+        } catch (Throwable ignored) {
+        }
+    }
 
+    @Override
+    public void onDetach() {
+        mCallback = null;
+        super.onDetach();
+    }
+
+    private void sendData(String comm)
+    {
+        try{ mCallback.communicate(comm);
+        } catch (Throwable ignored) {
+        }
+    }
 
 }

@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -29,6 +30,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
+import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
     private AppBarConfiguration mAppBarConfiguration;
     String fPos;
+    Fragment homeFrag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +128,10 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
                     //run query to the server
                     FragmentManager fragmentManager = getSupportFragmentManager();
 
-                    MainFragment homeFrag = new MainFragment();
+                    homeFrag = new MainFragment();
+
+                    if (fPos.equals("8")) homeFrag = new ForumFragment(); // forum
+
                     Bundle bundle = new Bundle();
                     bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
                     bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));

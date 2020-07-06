@@ -52,7 +52,6 @@ import java.util.Set;
 public class MainFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private FragmentToActivity mCallback;
-    private Parcelable listState;
 
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
@@ -134,7 +133,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
-        Objects.requireNonNull(recyclerView.getLayoutManager()).onRestoreInstanceState(listState);
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
@@ -153,7 +151,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
