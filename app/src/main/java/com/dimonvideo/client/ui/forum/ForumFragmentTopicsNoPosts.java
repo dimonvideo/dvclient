@@ -21,22 +21,15 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager.widget.ViewPager;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
-import com.dimonvideo.client.adater.ForumTabsAdapter;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.main.MainFragment;
-import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.FragmentToActivity;
-import com.google.android.material.tabs.TabLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,7 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
+public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -58,14 +51,11 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.FORUM_FEED_URL;
-    String story = null;
-    String s_url = "";
-    String id = null;
+    String url = Config.FORUM_FEED_NO_POSTS_URL;
     int razdel = 8; // forum fragment
     SwipeRefreshLayout swipLayout;
 
-    public ForumFragmentTopics() {
+    public ForumFragmentTopicsNoPosts() {
         // Required empty public constructor
     }
 
@@ -73,11 +63,6 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_topics, container, false);
-
-        if (this.getArguments() != null) {
-            id = (String) getArguments().getString(Config.TAG_ID);
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
-        }
 
         sendData(String.valueOf(razdel));
 
@@ -118,22 +103,8 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_forum_cat", null);
-        String category_string = "all";
-        if (selections != null) {
-            String[] selected = selections.toArray(new String[]{});
-            category_string = TextUtils.join(",", selected);
-        }
-
-        if (!TextUtils.isEmpty(story)) {
-            s_url = "&story=" + story;
-        }
-
-        if (!TextUtils.isEmpty(id)) {
-            s_url = "&id=" + id;
-        }
-        return new JsonArrayRequest(url + requestCount + s_url,
+        Log.d("tag", url + requestCount);
+        return new JsonArrayRequest(url + requestCount,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -221,8 +192,8 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(ForumFragmentTopics.this)
-                .attach(ForumFragmentTopics.this)
+                .detach(ForumFragmentTopicsNoPosts.this)
+                .attach(ForumFragmentTopicsNoPosts.this)
                 .commit();
     }
 

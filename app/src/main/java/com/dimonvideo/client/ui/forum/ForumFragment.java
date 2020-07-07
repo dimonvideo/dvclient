@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import com.dimonvideo.client.R;
@@ -31,11 +30,16 @@ public class ForumFragment extends Fragment  {
 
         final TabLayout tabLayout = (TabLayout) root.findViewById(R.id.tabLayout);
         final ViewPager viewPager = (ViewPager) root.findViewById(R.id.view_pager);
+
         ForumTabsAdapter adapt = new ForumTabsAdapter(getChildFragmentManager());
         adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
         adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
+        adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
 
         viewPager.setAdapter(adapt);
+        tabLayout.setupWithViewPager(viewPager);
+        viewPager.setOffscreenPageLimit(2);
+
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
 
         return root;

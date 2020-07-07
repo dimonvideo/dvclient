@@ -35,6 +35,7 @@ public class Config {
     public static final String GAMES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+GAMES_RAZDEL+"&min=";
 
     public static final String FORUM_FEED_URL = BASE_URL + "/apps/dvclient.php?op=5&min=";
+    public static final String FORUM_FEED_NO_POSTS_URL = BASE_URL + "/apps/dvclient.php?op=5&id=-1&min=";
     public static final String FORUM_CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=6&min=";
 
     public static final String TEXT_URL = BASE_URL + "/apps/dvclient.php?op=2&razdel=";

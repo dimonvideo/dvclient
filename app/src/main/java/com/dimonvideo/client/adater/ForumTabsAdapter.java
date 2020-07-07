@@ -16,6 +16,7 @@ public class ForumTabsAdapter extends FragmentStatePagerAdapter {
     public ForumTabsAdapter(@NonNull FragmentManager fm) {
         super(fm);
     }
+
     public void addfrg(Fragment frg,String title){
         frgList.add(frg);
         titleList.add(title);

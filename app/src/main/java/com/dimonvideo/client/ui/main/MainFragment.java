@@ -168,7 +168,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
             s_url = "&story=" + story;
         }
 
-        Log.d("tag", url + requestCount + "&c=placeholder," + category_string + s_url);
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {
                     progressBar.setVisibility(View.GONE);

@@ -98,7 +98,7 @@
         android:id="@+id/nav_forum"
         android:name="com.dimonvideo.client.ui.forum.ForumFragment"
         android:label="@string/menu_forum"
-        android:tag="com"
+        android:tag="forum"
         tools:layout="@layout/fragment_forum">
         <argument
             android:name="category"
@@ -109,7 +109,29 @@
         android:id="@+id/nav_topics"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
         android:label="@string/menu_forum"
-        android:tag="com"
+        android:tag="topics"
+        tools:layout="@layout/fragment_forum">
+        <argument
+            android:name="category"
+            android:defaultValue="8"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_forum_forums"
+        android:name="com.dimonvideo.client.ui.forum.ForumFragmentForums"
+        android:label="@string/menu_forum"
+        android:tag="forums"
+        tools:layout="@layout/fragment_forum">
+        <argument
+            android:name="category"
+            android:defaultValue="8"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_topics_no_posts"
+        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopicsNoPosts"
+        android:label="@string/menu_forum"
+        android:tag="no_posts"
         tools:layout="@layout/fragment_forum">
         <argument
             android:name="category"
