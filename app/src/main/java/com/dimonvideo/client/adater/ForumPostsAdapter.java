@@ -1,7 +1,6 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,17 +17,18 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.dimonvideo.client.AllContent;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
+import com.dimonvideo.client.util.CustomVolleyRequest;
 
 import java.util.Calendar;
 import java.util.List;
 
-public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdapter.ViewHolder> {
+public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.ViewHolder> {
 
     private Context context;
 
@@ -36,7 +36,7 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
     List<FeedForum> jsonFeed;
 
     //Constructor of this class
-    public ForumCategoryAdapter(List<FeedForum> jsonFeed, Context context){
+    public ForumPostsAdapter(List<FeedForum> jsonFeed, Context context){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
@@ -46,7 +46,7 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_topics, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_posts, parent, false);
 
 
         return new ViewHolder(v);
@@ -70,7 +70,9 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
             } catch (Throwable ignored) {
 
         }
-
+        ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
+//        imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
+        holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Feed.getText());
         holder.textViewDate.setText(Feed.getDate());
@@ -84,17 +86,7 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
-        holder.itemView.setOnClickListener(v -> {
 
-            Fragment fragment = new ForumFragmentTopics();
-            Bundle bundle = new Bundle();
-            bundle.putString(Config.TAG_ID, String.valueOf(Feed.getId()));
-            fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.replace(R.id.nav_host_fragment, fragment);
-            ft.commit();
-        });
 
     }
 
@@ -105,21 +97,23 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
+        public NetworkImageView imageView;
         public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo;
 
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
+            imageView = (NetworkImageView) itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
             status_logo = itemView.findViewById(R.id.status);
-            textViewTitle = itemView.findViewById(R.id.title);
-            textViewCategory = itemView.findViewById(R.id.listtext);
+            textViewNames = itemView.findViewById(R.id.title);
+            textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
             textViewComments = itemView.findViewById(R.id.rating);
-            textViewText = itemView.findViewById(R.id.category);
+            textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
-            textViewNames = itemView.findViewById(R.id.names);
+            textViewTitle = itemView.findViewById(R.id.names);
 
         }
 

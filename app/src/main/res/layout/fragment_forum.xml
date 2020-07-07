@@ -10,13 +10,12 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:elevation="6dp"
-        android:minHeight="20dp"
+        android:layout_height="?attr/actionBarSize"
         app:tabMode="fixed"
-        android:layout_marginTop="8dp"
         app:tabIndicatorColor="@color/colorPrimary"
+        android:background="@color/colorPrimaryDark"
         app:tabGravity="center"
+        app:tabMaxWidth="0dp"
         app:tabSelectedTextColor="@color/colorAccent"
         >
     </com.google.android.material.tabs.TabLayout>

@@ -2,6 +2,8 @@ package com.dimonvideo.client.adater;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.ImageLoader;
@@ -18,6 +25,8 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
+import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.util.CustomVolleyRequest;
 
 import java.util.Calendar;
@@ -47,6 +56,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
         return new ViewHolder(v);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -77,18 +87,14 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, AllContent.class);
-            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-            intent.putExtra(Config.TAG_DATE,Feed.getDate());
-            intent.putExtra(Config.TAG_LAST_POSTER_NAME,Feed.getLast_poster_name());
-            intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
-            intent.putExtra(Config.TAG_PINNED, Feed.getPinned());
-            intent.putExtra(Config.TAG_USER, Feed.getUser());
-            intent.putExtra(Config.TAG_STATE, Feed.getState());
-            intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
-            intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
-          //  context.startActivity(intent);
+            Fragment fragment = new ForumFragmentPosts();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_ID, String.valueOf(Feed.getId()));
+            fragment.setArguments(bundle);
+            FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
+            FragmentTransaction ft = fragmentManager.beginTransaction();
+            ft.replace(R.id.nav_host_fragment, fragment);
+            ft.commit();
         });
 
     }

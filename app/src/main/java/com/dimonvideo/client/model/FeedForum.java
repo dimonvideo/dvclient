@@ -1,12 +1,24 @@
 package com.dimonvideo.client.model;
 
+import com.dimonvideo.client.Config;
+
 public class FeedForum {
 	//Data Variables
-	private String last_poster_name, title, text, date, category, state, user, pinned;
+	private String imageUrl, last_poster_name, title, text, date, category, state, user, pinned;
 	private int id, comments, hits;
 	private Long time;
 
 	//Getters and Setters
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		if (!imageUrl.startsWith("http")) {
+			imageUrl = Config.BASE_URL + imageUrl;
+		}
+		this.imageUrl = imageUrl;
+	}
 
 	public String getTitle() {
 		return title;
