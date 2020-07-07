@@ -30,6 +30,7 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
+import com.dimonvideo.client.adater.ForumCategoryAdapter;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.tabs.TabLayout;
@@ -54,9 +55,7 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.FORUM_FEED_URL;
-    String story = null;
-    String s_url = "";
+    String url = Config.FORUM_CATEGORY_URL;
     int razdel = 8; // forum fragment
 
     public ForumFragmentForums() {
@@ -68,9 +67,6 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
 
         View root = inflater.inflate(R.layout.fragment_topics, container, false);
 
-        if (this.getArguments() != null) {
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
-        }
         sendData(String.valueOf(razdel));
 
         recyclerView = root.findViewById(R.id.recycler_view);
@@ -89,7 +85,7 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new ForumAdapter(listFeed, getContext());
+        adapter = new ForumCategoryAdapter(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -107,19 +103,8 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_forum_cat", null);
-        String category_string = "all";
-        if (selections != null) {
-            String[] selected = selections.toArray(new String[]{});
-            category_string = TextUtils.join(",", selected);
-        }
 
-        if (!TextUtils.isEmpty(story)) {
-            s_url = "&story=" + story;
-        }
-
-        return new JsonArrayRequest(url + requestCount + s_url,
+        return new JsonArrayRequest(url + requestCount,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
