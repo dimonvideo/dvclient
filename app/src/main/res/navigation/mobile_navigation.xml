@@ -105,4 +105,15 @@
             android:defaultValue="8"
             />
     </fragment>
+    <fragment
+        android:id="@+id/nav_topics"
+        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
+        android:label="@string/menu_forum"
+        android:tag="com"
+        tools:layout="@layout/fragment_forum">
+        <argument
+            android:name="category"
+            android:defaultValue="8"
+            />
+    </fragment>
 </navigation>

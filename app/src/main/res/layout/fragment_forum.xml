@@ -3,75 +3,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.forum.ForumFragment">
-
-    <TabHost
-        android:id="@+id/tabhost"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" >
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:layout_marginTop="8dp"
+        app:tabIndicatorColor="@color/colorPrimary"
+        app:tabGravity="center"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="@color/colorAccent"
+        >
+    </com.google.android.material.tabs.TabLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical" >
-
-            <TabWidget
-                android:id="@android:id/tabs"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"/>
-
-            <FrameLayout
-                android:id="@android:id/tabcontent"
-                android:layout_width="fill_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
-
-    </TabHost>
-
-
-
-
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_layout"
-        android:paddingTop="?attr/actionBarSize"
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
 
-        <RelativeLayout
-            android:id="@+id/wrapper"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+        >
+
+    </androidx.viewpager.widget.ViewPager>
 
 
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingBottom="50dp"
-                android:background="@color/colorList"
-                android:clipToPadding="false"
-                android:scrollbars="vertical" />
-            <ProgressBar
-                android:id="@+id/progressbar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="visible"
-                android:layout_centerInParent="true" />
-            <ProgressBar
-                android:id="@+id/ProgressBarBottom"
-                android:layout_width="35dp"
-                android:layout_alignParentBottom="true"
-                android:layout_centerInParent="true"
-                android:visibility="gone"
-                android:layout_height="35dp"/>
-        </RelativeLayout>
-
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </RelativeLayout >

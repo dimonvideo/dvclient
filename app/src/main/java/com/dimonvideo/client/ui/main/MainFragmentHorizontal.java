@@ -4,11 +4,9 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,7 +24,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.CardAdapter;
+import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 
 import org.json.JSONArray;
@@ -114,7 +112,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         // получение данных
         getData();
-        adapter = new CardAdapter(listFeed, getContext());
+        adapter = new MainAdapter(listFeed, getContext());
 
         recyclerView.setAdapter(adapter);
 

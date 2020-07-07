@@ -27,7 +27,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.CardAdapter;
+import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 
 import org.json.JSONArray;
@@ -73,7 +73,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         getData();
 
         recyclerView.setOnScrollChangeListener(this);
-        adapter = new CardAdapter(listFeed, getContext());
+        adapter = new MainAdapter(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);

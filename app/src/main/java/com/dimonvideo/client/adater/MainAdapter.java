@@ -2,16 +2,11 @@ package com.dimonvideo.client.adater;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,7 +22,7 @@ import com.dimonvideo.client.model.Feed;
 import java.util.Calendar;
 import java.util.List;
 
-public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
+public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     private Context context;
 
@@ -35,7 +30,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
     List<Feed> jsonFeed;
 
     //Constructor of this class
-    public CardAdapter(List<Feed> jsonFeed, Context context){
+    public MainAdapter(List<Feed> jsonFeed, Context context){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;

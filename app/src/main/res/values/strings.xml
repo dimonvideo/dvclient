@@ -50,8 +50,7 @@
     <string name="new_files">New files</string>
     <string name="download_mp4">View video</string>
     <string name="menu_forum">Forum</string>
-    <string name="tab_text_1">Tab1</string>
-    <string name="tab_text_2">Tab2</string>
-    <string name="tab_text_3">Tab3</string>
+    <string name="tab_topics">Topics</string>
+    <string name="tab_forums">Forums</string>
 
 </resources>

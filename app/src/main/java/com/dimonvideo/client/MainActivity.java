@@ -29,6 +29,7 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
 import com.dimonvideo.client.ui.forum.ForumFragment;
+import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
                     homeFrag = new MainFragment();
 
-                    if (fPos.equals("8")) homeFrag = new ForumFragment(); // forum
+                    if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
 
                     Bundle bundle = new Bundle();
                     bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
