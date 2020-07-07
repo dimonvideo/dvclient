@@ -52,5 +52,6 @@
     <string name="menu_forum">Forum</string>
     <string name="tab_topics">Topics</string>
     <string name="tab_forums">Forums</string>
+    <string name="no_more_forums">No more Forums</string>
 
 </resources>

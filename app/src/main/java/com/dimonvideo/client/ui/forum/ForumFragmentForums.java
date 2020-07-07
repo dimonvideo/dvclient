@@ -138,7 +138,7 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
                         ProgressBarBottom.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.no_more_forums), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -55,8 +55,10 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
         cal.set(Calendar.MILLISECOND, 0);
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
-        if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
-            holder.status_logo.setImageResource(R.drawable.ic_status_green);
+        try {
+            if (Feed.getTime() > cal.getTimeInMillis() / 1000L) holder.status_logo.setImageResource(R.drawable.ic_status_green);
+            } catch (Throwable ignored) {
+
         }
 
         holder.textViewTitle.setText(Feed.getTitle());

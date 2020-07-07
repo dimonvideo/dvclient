@@ -46,7 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScrollChangeListener {
+public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -61,6 +61,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     String story = null;
     String s_url = "";
     int razdel = 8; // forum fragment
+    SwipeRefreshLayout swipLayout;
 
     public ForumFragmentTopics() {
         // Required empty public constructor
@@ -103,7 +104,8 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
 
         recyclerView.setAdapter(adapter);
         if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
-
+        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout.setOnRefreshListener(this);
 
         return root;
     }
@@ -209,6 +211,15 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         }
     }
 
-
+    // обновление
+    @Override
+    public void onRefresh() {
+        requestCount = 1;
+        getParentFragmentManager()
+                .beginTransaction()
+                .detach(ForumFragmentTopics.this)
+                .attach(ForumFragmentTopics.this)
+                .commit();
+    }
 
 }

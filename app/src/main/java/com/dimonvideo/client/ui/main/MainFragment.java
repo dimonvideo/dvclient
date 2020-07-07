@@ -170,39 +170,36 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
 
         Log.d("tag", url + requestCount + "&c=placeholder," + category_string + s_url);
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        progressBar.setVisibility(View.GONE);
-                        ProgressBarBottom.setVisibility(View.GONE);
-                        for (int i = 0; i < response.length(); i++) {
-                                Feed jsonFeed = new Feed();
-                                JSONObject json;
-                                try {
-                                    json = response.getJSONObject(i);
-                                    jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                                    jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                                    jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                                    jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                                    jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                                    jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                                    jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
-                                    jsonFeed.setLink(json.getString(Config.TAG_LINK));
-                                    jsonFeed.setMod(json.getString(Config.TAG_MOD));
-                                    jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
-                                    jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
-                                    jsonFeed.setUser(json.getString(Config.TAG_USER));
-                                    jsonFeed.setSize(json.getString(Config.TAG_SIZE));
-                                    jsonFeed.setTime(json.getLong(Config.TAG_TIME));
-                                    jsonFeed.setId(json.getInt(Config.TAG_ID));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                listFeed.add(jsonFeed);
+                response -> {
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
+                    for (int i = 0; i < response.length(); i++) {
+                            Feed jsonFeed = new Feed();
+                            JSONObject json;
+                            try {
+                                json = response.getJSONObject(i);
+                                jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                                jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                                jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                                jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                                jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                                jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                                jsonFeed.setLink(json.getString(Config.TAG_LINK));
+                                jsonFeed.setMod(json.getString(Config.TAG_MOD));
+                                jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                                jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                                jsonFeed.setUser(json.getString(Config.TAG_USER));
+                                jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                                jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                                jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
-                        adapter.notifyDataSetChanged();
+                            listFeed.add(jsonFeed);
+                        }
+                    adapter.notifyDataSetChanged();
 
-                    }
                 },
                 new Response.ErrorListener() {
                     @Override

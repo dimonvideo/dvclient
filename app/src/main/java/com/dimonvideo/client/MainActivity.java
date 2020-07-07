@@ -166,7 +166,10 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         if (id == R.id.action_refresh) {
             FragmentManager fragmentManager = getSupportFragmentManager();
 
-            MainFragment homeFrag = new MainFragment();
+            homeFrag = new MainFragment();
+
+            if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+
             Bundle bundle = new Bundle();
             bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
             homeFrag.setArguments(bundle);

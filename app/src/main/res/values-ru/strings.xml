@@ -47,6 +47,7 @@
     <string name="menu_forum">Форум</string>
     <string name="tab_topics">Последние темы</string>
     <string name="tab_forums">Форумы</string>
+    <string name="no_more_forums">No more Forums</string>
 
 
 </resources>
