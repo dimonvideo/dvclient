@@ -94,7 +94,7 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
+
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 

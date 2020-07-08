@@ -62,6 +62,7 @@ public class Config {
     public static final String TAG_LAST_POSTER_NAME = "last_poster_name";
     public static final String TAG_STATE = "state";
     public static final String TAG_PINNED = "pinned";
+    public static final String TAG_COUNT = "count";
 
 
 

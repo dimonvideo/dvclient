@@ -64,7 +64,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     String url = Config.FORUM_FEED_URL;
     String story = null;
     String s_url = "";
-    String id = null;
+    int id = 0;
     int razdel = 8; // forum fragment
     SwipeRefreshLayout swipLayout;
 
@@ -78,8 +78,9 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         View root = inflater.inflate(R.layout.fragment_topics, container, false);
 
         if (this.getArguments() != null) {
-            id = (String) getArguments().getString(Config.TAG_ID);
+            id = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
+          //  if (requestCount == 1) requestCount = getArguments().getInt(Config.TAG_COUNT);
         }
 
         sendData(String.valueOf(razdel));
@@ -110,9 +111,10 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
+
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
+
 
         return root;
     }
@@ -133,7 +135,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
             s_url = "&story=" + story;
         }
 
-        if (!TextUtils.isEmpty(id)) {
+        if (id>0) {
             s_url = "&id=" + id;
         }
         return new JsonArrayRequest(url + requestCount + s_url,

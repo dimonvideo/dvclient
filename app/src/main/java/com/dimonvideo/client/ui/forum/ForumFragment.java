@@ -21,6 +21,8 @@ import com.dimonvideo.client.adater.ForumTabsAdapter;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.tabs.TabLayout;
 
+import java.util.Objects;
+
 public class ForumFragment extends Fragment  {
 
     int razdel = 8; // forum fragment
@@ -52,23 +54,19 @@ public class ForumFragment extends Fragment  {
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
         root.setFocusableInTouchMode(true);
         root.requestFocus();
+
         //Back pressed Logic for fragment
         root.setFocusableInTouchMode(true);
         root.requestFocus();
-        root.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        requireActivity().finish();
-                        Intent intent = new Intent(getActivity(), MainActivity.class);
-                        startActivity(intent);
+        root.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
 
-                        return true;
-                    }
+                //    requireActivity().onBackPressed();
+                    return true;
                 }
-                return false;
             }
+            return false;
         });
         return root;
     }

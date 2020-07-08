@@ -109,34 +109,6 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         swipLayout.setOnRefreshListener(this);
 
 
-        //Back pressed Logic for fragment
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-        root.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-
-                        FragmentManager fragmentManager = getParentFragmentManager();
-
-                        Fragment homeFrag = new ForumFragment(); // forum
-
-                        Bundle bundle = new Bundle();
-                        bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt("8"));
-                        homeFrag.setArguments(bundle);
-
-                        fragmentManager.beginTransaction()
-                                .replace(R.id.nav_host_fragment, homeFrag)
-                                .addToBackStack(null)
-                                .commit();
-
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
 
         return root;
     }
