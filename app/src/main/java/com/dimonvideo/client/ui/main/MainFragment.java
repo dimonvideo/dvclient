@@ -1,6 +1,7 @@
 package com.dimonvideo.client.ui.main;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
@@ -151,6 +153,24 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+        //Back pressed Logic for fragment
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        requireActivity().finish();
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        startActivity(intent);
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
         return root;
     }
 

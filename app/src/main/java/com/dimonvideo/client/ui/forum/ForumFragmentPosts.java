@@ -31,6 +31,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.adater.ForumPostsAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.tabs.TabLayout;
 
@@ -108,14 +109,33 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         swipLayout.setOnRefreshListener(this);
 
 
+        //Back pressed Logic for fragment
         root.setFocusableInTouchMode(true);
         root.requestFocus();
-        root.setOnKeyListener((v, keyCode, event) -> {
-            if( keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-                getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                return true;
+        root.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+
+                        FragmentManager fragmentManager = getParentFragmentManager();
+
+                        Fragment homeFrag = new ForumFragment(); // forum
+
+                        Bundle bundle = new Bundle();
+                        bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt("8"));
+                        homeFrag.setArguments(bundle);
+
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.nav_host_fragment, homeFrag)
+                                .addToBackStack(null)
+                                .commit();
+
+                        return true;
+                    }
+                }
+                return false;
             }
-            return false;
         });
 
         return root;

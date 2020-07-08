@@ -1,6 +1,7 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumTabsAdapter;
 import com.dimonvideo.client.util.FragmentToActivity;
@@ -50,7 +52,24 @@ public class ForumFragment extends Fragment  {
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
         root.setFocusableInTouchMode(true);
         root.requestFocus();
+        //Back pressed Logic for fragment
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        requireActivity().finish();
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        startActivity(intent);
 
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
         return root;
     }
 
