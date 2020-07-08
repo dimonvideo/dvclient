@@ -22,6 +22,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
@@ -92,11 +93,10 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
             bundle.putString(Config.TAG_ID, String.valueOf(Feed.getId()));
             bundle.putString(Config.TAG_TITLE, Feed.getTitle());
             fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
+            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.addToBackStack(String.valueOf(R.string.tab_topics));
-            ft.replace(R.id.nav_host_fragment, fragment);
+            ft.addToBackStack(null);
+            ft.add(R.id.nav_host_fragment, fragment);
             ft.commit();
         });
 

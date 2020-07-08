@@ -71,7 +71,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_topics, container, false);
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         if (this.getArguments() != null) {
             id = getArguments().getString(Config.TAG_ID);
@@ -113,7 +113,17 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         if (!TextUtils.isEmpty(t_name)) toolbar.setTitle(t_name);
-
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener((v, keyCode, event) -> {
+            if( keyCode == KeyEvent.KEYCODE_BACK )
+            {
+                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                return true;
+            } else {
+                return false;
+            }
+        });
         return root;
     }
 

@@ -11,11 +11,11 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForumTabsAdapter extends FragmentStatePagerAdapter {
+public class TabsAdapter extends FragmentStatePagerAdapter {
     private final List<Fragment> frgList = new ArrayList<>();
     private final List<String> titleList = new ArrayList<>();
 
-    public ForumTabsAdapter(@NonNull FragmentManager fm, int behavior, Context mContext) {
+    public TabsAdapter(@NonNull FragmentManager fm, int behavior, Context mContext) {
         super(fm, behavior);
     }
 

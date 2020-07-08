@@ -13,7 +13,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
-            android:defaultValue="0"
+            android:defaultValue="10"
             />
     </fragment>
 
@@ -27,6 +27,9 @@
             android:name="category"
             android:defaultValue="1"
             />
+        <action
+            android:id="@+id/action_nav_gallery_to_nav_news"
+            app:destination="@id/nav_news" />
     </fragment>
     <fragment
         android:id="@+id/nav_uploader"
@@ -38,6 +41,9 @@
             android:name="category"
             android:defaultValue="2"
             />
+        <action
+            android:id="@+id/action_nav_uploader_to_nav_articles"
+            app:destination="@id/nav_articles" />
     </fragment>
     <fragment
         android:id="@+id/nav_vuploader"
@@ -49,6 +55,9 @@
             android:name="category"
             android:defaultValue="3"
             />
+        <action
+            android:id="@+id/action_nav_vuploader_to_nav_gallery"
+            app:destination="@id/nav_gallery" />
     </fragment>
     <fragment
         android:id="@+id/nav_news"
@@ -60,6 +69,9 @@
             android:name="category"
             android:defaultValue="4"
             />
+        <action
+            android:id="@+id/action_nav_news_to_nav_books"
+            app:destination="@id/nav_books" />
     </fragment>
     <fragment
         android:id="@+id/nav_muzon"
@@ -71,6 +83,9 @@
             android:name="category"
             android:defaultValue="5"
             />
+        <action
+            android:id="@+id/action_nav_muzon_to_nav_vuploader"
+            app:destination="@id/nav_vuploader" />
     </fragment>
     <fragment
         android:id="@+id/nav_books"
@@ -82,6 +97,9 @@
             android:name="category"
             android:defaultValue="6"
             />
+        <action
+            android:id="@+id/action_nav_books_to_nav_home"
+            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_articles"
@@ -93,60 +111,37 @@
             android:name="category"
             android:defaultValue="7"
             />
+        <action
+            android:id="@+id/action_nav_articles_to_nav_muzon"
+            app:destination="@id/nav_muzon" />
     </fragment>
     <fragment
-        android:id="@+id/nav_forum"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragment"
-        android:label="@string/menu_forum"
-        android:tag="forum"
-        tools:layout="@layout/fragment_forum">
-        <argument
-            android:name="category"
-            android:defaultValue="8"
-            />
+    android:id="@+id/nav_forum"
+    android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
+    android:label="@string/menu_forum"
+    android:tag="topics"
+    tools:layout="@layout/fragment_home">
+    <argument
+        android:name="category"
+        android:defaultValue="8"
+        />
+        <action
+            android:id="@+id/action_nav_forum_to_nav_posts"
+            app:destination="@id/nav_posts" />
+
     </fragment>
     <fragment
-        android:id="@+id/nav_topics"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
-        android:label="@string/menu_forum"
-        android:tag="topics"
-        tools:layout="@layout/fragment_forum">
-        <argument
-            android:name="category"
-            android:defaultValue="8"
-            />
-    </fragment>
-    <fragment
-        android:id="@+id/nav_forum_forums"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentForums"
-        android:label="@string/menu_forum"
-        android:tag="forums"
-        tools:layout="@layout/fragment_forum">
-        <argument
-            android:name="category"
-            android:defaultValue="8"
-            />
-    </fragment>
-    <fragment
-        android:id="@+id/nav_topics_no_posts"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopicsNoPosts"
-        android:label="@string/menu_forum"
-        android:tag="no_posts"
-        tools:layout="@layout/fragment_forum">
-        <argument
-            android:name="category"
-            android:defaultValue="8"
-            />
-    </fragment>
-    <fragment
-        android:id="@+id/nav_topics_posts"
+        android:id="@+id/nav_posts"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentPosts"
-        android:label="@string/menu_forum"
-        android:tag="no_posts"
-        tools:layout="@layout/fragment_forum">
+        android:label="@string/tab_topics_no_posts"
+        android:tag="posts"
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="9"
             />
+        <action
+            android:id="@+id/action_nav_posts_to_nav_forum"
+            app:destination="@id/nav_forum" />
     </fragment>
 </navigation>

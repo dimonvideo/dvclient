@@ -29,6 +29,7 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
 import com.dimonvideo.client.ui.forum.ForumFragment;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader",true);
@@ -165,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
             homeFrag = new MainFragment();
 
-            if (fPos.equals("8")) homeFrag = new ForumFragment(); // forum
+            if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
 
             Bundle bundle = new Bundle();
             bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
@@ -212,8 +215,11 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
     @Override
     public void onBackPressed() {
-
-        super.onBackPressed();
+        if (getFragmentManager().getBackStackEntryCount() > 0) {
+            getFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override

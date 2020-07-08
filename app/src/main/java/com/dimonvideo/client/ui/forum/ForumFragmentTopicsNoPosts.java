@@ -63,7 +63,7 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_topics, container, false);
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         sendData(String.valueOf(razdel));
 

@@ -1,14 +1,12 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -20,14 +18,10 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.ForumTabsAdapter;
-import com.dimonvideo.client.ui.main.MainFragment;
+import com.dimonvideo.client.adater.TabsAdapter;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.tabs.TabLayout;
-
-import java.util.Objects;
 
 public class ForumFragment extends Fragment  {
 
@@ -47,7 +41,7 @@ public class ForumFragment extends Fragment  {
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);
 
-        ForumTabsAdapter adapt = new ForumTabsAdapter(getParentFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
+        TabsAdapter adapt = new TabsAdapter(getParentFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
         adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
         adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
