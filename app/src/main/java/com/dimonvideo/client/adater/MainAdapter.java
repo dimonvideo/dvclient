@@ -78,25 +78,22 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, AllContent.class);
-                intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-                intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-                intent.putExtra(Config.TAG_DATE,Feed.getDate());
-                intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
-                intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
-                intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
-                intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
-                intent.putExtra(Config.TAG_USER, Feed.getUser());
-                intent.putExtra(Config.TAG_SIZE, Feed.getSize());
-                intent.putExtra(Config.TAG_LINK, Feed.getLink());
-                intent.putExtra(Config.TAG_MOD, Feed.getMod());
-                intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
-                intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
-                context.startActivity(intent);
-            }
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AllContent.class);
+            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_DATE,Feed.getDate());
+            intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
+            intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
+            intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
+            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+            intent.putExtra(Config.TAG_USER, Feed.getUser());
+            intent.putExtra(Config.TAG_SIZE, Feed.getSize());
+            intent.putExtra(Config.TAG_LINK, Feed.getLink());
+            intent.putExtra(Config.TAG_MOD, Feed.getMod());
+            intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
+            intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
+            context.startActivity(intent);
         });
 
     }
@@ -115,15 +112,15 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = (NetworkImageView) itemView.findViewById(R.id.thumbnail);
-            rating_logo = (ImageView) itemView.findViewById(R.id.rating_logo);
-            status_logo = (ImageView) itemView.findViewById(R.id.status);
-            textViewTitle = (TextView) itemView.findViewById(R.id.title);
-            textViewText = (TextView) itemView.findViewById(R.id.listtext);
-            textViewDate = (TextView) itemView.findViewById(R.id.date);
-            textViewComments = (TextView) itemView.findViewById(R.id.rating);
-            textViewCategory = (TextView) itemView.findViewById(R.id.category);
-            textViewHits = (TextView) itemView.findViewById(R.id.views_count);
+            imageView = itemView.findViewById(R.id.thumbnail);
+            rating_logo = itemView.findViewById(R.id.rating_logo);
+            status_logo = itemView.findViewById(R.id.status);
+            textViewTitle = itemView.findViewById(R.id.title);
+            textViewText = itemView.findViewById(R.id.listtext);
+            textViewDate = itemView.findViewById(R.id.date);
+            textViewComments = itemView.findViewById(R.id.rating);
+            textViewCategory = itemView.findViewById(R.id.category);
+            textViewHits = itemView.findViewById(R.id.views_count);
 
         }
 

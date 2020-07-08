@@ -212,17 +212,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
     @Override
     public void onBackPressed() {
-        FragmentManager fm = getSupportFragmentManager();
-        fm.getFragments();
-        for (Fragment frag : fm.getFragments()) {
-            if (frag.isVisible()) {
-                FragmentManager childFrag = frag.getParentFragmentManager();
-                if (childFrag.getBackStackEntryCount() > 0) {
-                    childFrag.popBackStack();
-                    return;
-                }
-            }
-        }
+
         super.onBackPressed();
     }
 

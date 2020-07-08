@@ -94,6 +94,8 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
             fragment.setArguments(bundle);
             FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
+            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            ft.addToBackStack(String.valueOf(R.string.tab_topics));
             ft.replace(R.id.nav_host_fragment, fragment);
             ft.commit();
         });

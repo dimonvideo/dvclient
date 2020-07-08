@@ -16,11 +16,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
+import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumTabsAdapter;
+import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.tabs.TabLayout;
 
@@ -69,6 +72,19 @@ public class ForumFragment extends Fragment  {
 
                     }else {
                         viewPager.post(() -> viewPager.setCurrentItem(0));
+                        FragmentManager fragmentManager = getParentFragmentManager();
+
+                        Fragment homeFrag = new ForumFragment(); // forum
+
+                        Bundle bundle = new Bundle();
+                        bundle.putInt(Config.TAG_CATEGORY, 8);
+                        homeFrag.setArguments(bundle);
+
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.nav_host_fragment, homeFrag)
+                                .addToBackStack(String.valueOf(R.string.menu_forum))
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                                .commit();
                     }
                     return true;
                 }
