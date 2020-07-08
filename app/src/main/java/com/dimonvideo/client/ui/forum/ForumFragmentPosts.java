@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,6 +32,7 @@ import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.adater.ForumPostsAdapter;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.FragmentToActivity;
+import com.google.android.material.tabs.TabLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -104,6 +107,17 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener((v, keyCode, event) -> {
+            if( keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                getParentFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                return true;
+            }
+            return false;
+        });
+
         return root;
     }
 
@@ -123,6 +137,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
                         JSONObject json;
                         try {
                             json = response.getJSONObject(i);
+                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
                             jsonFeed.setUser(json.getString(Config.TAG_USER));

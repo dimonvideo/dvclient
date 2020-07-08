@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -149,7 +151,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-
         return root;
     }
 
@@ -167,6 +168,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
+        Log.d("tag", url + requestCount + "&c=placeholder," + category_string + s_url);
 
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {

@@ -1,7 +1,9 @@
 package com.dimonvideo.client.ui.forum;
 
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,14 +11,18 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumTabsAdapter;
+import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.tabs.TabLayout;
 
 public class ForumFragment extends Fragment  {
 
+    int razdel = 8; // forum fragment
+    private FragmentToActivity mCallback;
 
     public ForumFragment() {
         // Required empty public constructor
@@ -39,12 +45,36 @@ public class ForumFragment extends Fragment  {
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setOffscreenPageLimit(2);
+        sendData(String.valueOf(razdel));
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
 
         return root;
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            mCallback = (FragmentToActivity) context;
+        } catch (Throwable ignored) {
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        mCallback = null;
+        super.onDetach();
+    }
+
+    private void sendData(String comm)
+    {
+        try{ mCallback.communicate(comm);
+        } catch (Throwable ignored) {
+        }
+    }
 
 
 }

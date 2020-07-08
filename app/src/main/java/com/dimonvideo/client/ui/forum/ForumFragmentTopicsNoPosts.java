@@ -103,7 +103,6 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        Log.d("tag", url + requestCount);
         return new JsonArrayRequest(url + requestCount,
                 response -> {
                     progressBar.setVisibility(View.GONE);

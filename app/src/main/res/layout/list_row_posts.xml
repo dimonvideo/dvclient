@@ -7,14 +7,21 @@
     android:layout_height="wrap_content"
     android:padding="8dp" >
 
+    <androidx.cardview.widget.CardView
+        android:id="@+id/container"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        app:cardCornerRadius="40dp"
+        android:layout_marginEnd="10dp"
+        app:cardElevation="0dp" >
     <!-- Thumbnail Image -->
     <com.android.volley.toolbox.NetworkImageView
         android:id="@+id/thumbnail"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_alignParentStart="true"
-        android:layout_marginEnd="8dp" />
-
+         />
+    </androidx.cardview.widget.CardView>
     <!-- status -->
     <ImageView
         android:id="@+id/status"
@@ -23,7 +30,9 @@
         android:layout_marginEnd="5dip"
         android:layout_marginTop="5dip"
         android:layout_marginStart="1dip"
-        android:layout_alignParentStart="true"
+        android:layout_alignTop="@+id/container"
+        android:layout_below="@id/listtext"
+        android:layout_toEndOf="@+id/container"
         android:contentDescription="@string/Comments"
         android:src="@drawable/ic_status_green" />
 
@@ -33,6 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/status"
+        android:layout_alignTop="@+id/container"
         android:textSize="@dimen/title"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
@@ -44,18 +54,20 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/container"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 
     <!-- text -->
-    <TextView
+    <org.sufficientlysecure.htmltextview.HtmlTextView
         android:id="@+id/listtext"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textAppearance="@android:style/TextAppearance.Small"
         android:layout_below="@id/category"
+        android:layout_toEndOf="@+id/container"
         android:layout_marginTop="5dp"
-        android:textColor="@color/category"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
     <!-- autor -->
@@ -77,6 +89,7 @@
         android:layout_marginEnd="3dip"
         android:layout_marginTop="3dip"
         android:layout_below="@id/names"
+        android:layout_toEndOf="@+id/container"
         android:tint="@color/colorAccent"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/ic_menu_view"

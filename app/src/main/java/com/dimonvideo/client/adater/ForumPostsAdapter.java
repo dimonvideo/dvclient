@@ -3,6 +3,7 @@ package com.dimonvideo.client.adater;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,11 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.util.CustomVolleyRequest;
+
+import org.sufficientlysecure.htmltextview.HtmlAssetsImageGetter;
+import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
+import org.sufficientlysecure.htmltextview.HtmlResImageGetter;
+import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.Calendar;
 import java.util.List;
@@ -71,10 +77,16 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         }
         ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
-//        imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
+        imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
         holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
         holder.textViewTitle.setText(Feed.getTitle());
-        holder.textViewText.setText(Feed.getText());
+
+
+        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+
+
+    //    holder.textViewText.setText(Feed.getText());
+
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
         holder.textViewCategory.setText(Feed.getCategory());
@@ -98,8 +110,9 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public NetworkImageView imageView;
-        public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
+        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo;
+        public HtmlTextView textViewText;
 
         //Initializing Views
         public ViewHolder(View itemView) {
