@@ -1,5 +1,7 @@
 package com.dimonvideo.client.adater;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -13,8 +15,8 @@ public class ForumTabsAdapter extends FragmentStatePagerAdapter {
     private final List<Fragment> frgList = new ArrayList<>();
     private final List<String> titleList = new ArrayList<>();
 
-    public ForumTabsAdapter(@NonNull FragmentManager fm) {
-        super(fm);
+    public ForumTabsAdapter(@NonNull FragmentManager fm, int behavior, Context mContext) {
+        super(fm, behavior);
     }
 
     public void addfrg(Fragment frg,String title){

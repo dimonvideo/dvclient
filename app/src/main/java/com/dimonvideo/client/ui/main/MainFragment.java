@@ -153,24 +153,6 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-        //Back pressed Logic for fragment
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-        root.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        requireActivity().finish();
-                        Intent intent = new Intent(getActivity(), MainActivity.class);
-                        startActivity(intent);
-
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
         return root;
     }
 
@@ -222,13 +204,10 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
                     adapter.notifyDataSetChanged();
 
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
-                        ProgressBarBottom.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
-                    }
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                 });
     }
 

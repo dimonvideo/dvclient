@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
                 || super.onSupportNavigateUp();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -119,30 +120,26 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(500);
 
-        searchEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    //run query to the server
-                    FragmentManager fragmentManager = getSupportFragmentManager();
+        searchEditText.setOnEditorActionListener((view, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                //run query to the server
+                FragmentManager fragmentManager = getSupportFragmentManager();
 
-                    homeFrag = new MainFragment();
+                homeFrag = new MainFragment();
 
-                    if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+                if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
 
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
-                    bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
-                    homeFrag.setArguments(bundle);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
+                bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
+                homeFrag.setArguments(bundle);
 
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.nav_host_fragment, homeFrag)
-                            .addToBackStack(null)
-                            .commit();
-                }
-                return false;
+                fragmentManager.beginTransaction()
+                        .add(R.id.nav_host_fragment, homeFrag)
+                        .addToBackStack(null)
+                        .commit();
             }
+            return false;
         });
 
         return true;
@@ -214,6 +211,22 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
     }
 
     @Override
+    public void onBackPressed() {
+        FragmentManager fm = getSupportFragmentManager();
+        fm.getFragments();
+        for (Fragment frag : fm.getFragments()) {
+            if (frag.isVisible()) {
+                FragmentManager childFrag = frag.getParentFragmentManager();
+                if (childFrag.getBackStackEntryCount() > 0) {
+                    childFrag.popBackStack();
+                    return;
+                }
+            }
+        }
+        super.onBackPressed();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
     }
@@ -226,20 +239,6 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
     @Override
     public void onPause() {
         super.onPause();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
-
-    @Override
-    public boolean onKeyLongPress(int keycode, KeyEvent event) {
-        if (keycode == KeyEvent.KEYCODE_BACK) {
-            onBackPressed();
-            return true;
-        }
-        return super.onKeyLongPress(keycode, event);
     }
 
     // receive razdel

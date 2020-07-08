@@ -146,7 +146,7 @@
         tools:layout="@layout/fragment_forum">
         <argument
             android:name="category"
-            android:defaultValue="8"
+            android:defaultValue="9"
             />
     </fragment>
 </navigation>

@@ -59,7 +59,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
     String story = null;
     String s_url = "";
     String id = null;
-    int razdel = 8; // forum fragment
+    int razdel = 9; // forum fragment posts
     SwipeRefreshLayout swipLayout;
 
     public ForumFragmentPosts() {
@@ -72,7 +72,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         View root = inflater.inflate(R.layout.fragment_topics, container, false);
 
         if (this.getArguments() != null) {
-            id = (String) getArguments().getString(Config.TAG_ID);
+            id = getArguments().getString(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
         }
 
@@ -107,7 +107,6 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
-
 
 
         return root;

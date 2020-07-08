@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -115,6 +116,8 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+        Toolbar toolbar = (Toolbar) requireActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.tab_topics));
 
         return root;
     }
