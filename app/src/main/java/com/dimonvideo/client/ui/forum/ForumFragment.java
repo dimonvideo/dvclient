@@ -66,19 +66,7 @@ public class ForumFragment extends Fragment  {
 
                     }else {
                         viewPager.post(() -> viewPager.setCurrentItem(0));
-                        FragmentManager fragmentManager = getParentFragmentManager();
 
-                        Fragment homeFrag = new ForumFragment(); // forum
-
-                        Bundle bundle = new Bundle();
-                        bundle.putInt(Config.TAG_CATEGORY, 8);
-                        homeFrag.setArguments(bundle);
-
-                        fragmentManager.beginTransaction()
-                                .replace(R.id.nav_host_fragment, homeFrag)
-                                .addToBackStack(String.valueOf(R.string.menu_forum))
-                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                                .commit();
                     }
                     return true;
                 }
@@ -109,7 +97,6 @@ public class ForumFragment extends Fragment  {
 
             }
         });
-
 
         return root;
     }

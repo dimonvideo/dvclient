@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,7 +110,19 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         if (!TextUtils.isEmpty(f_name)) toolbar.setTitle(f_name);
-
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener((v, keyCode, event) -> {
+            if( keyCode == KeyEvent.KEYCODE_BACK )
+            {
+                try { getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                } catch (Throwable ignored) {
+                }
+                return true;
+            } else {
+                return false;
+            }
+        });
         return root;
     }
 

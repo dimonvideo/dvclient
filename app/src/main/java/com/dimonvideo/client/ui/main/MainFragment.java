@@ -132,7 +132,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
-
+        recyclerView.setY(0);
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
 

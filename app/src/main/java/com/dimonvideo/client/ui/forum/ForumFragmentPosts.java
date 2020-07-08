@@ -118,7 +118,9 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         root.setOnKeyListener((v, keyCode, event) -> {
             if( keyCode == KeyEvent.KEYCODE_BACK )
             {
-                getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                try { getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                } catch (Throwable ignored) {
+                }
                 return true;
             } else {
                 return false;

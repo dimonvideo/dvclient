@@ -117,10 +117,10 @@
     </fragment>
     <fragment
     android:id="@+id/nav_forum"
-    android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
+    android:name="com.dimonvideo.client.ui.forum.ForumFragment"
     android:label="@string/menu_forum"
     android:tag="topics"
-    tools:layout="@layout/fragment_home">
+    tools:layout="@layout/fragment_forum">
     <argument
         android:name="category"
         android:defaultValue="8"
@@ -128,6 +128,9 @@
         <action
             android:id="@+id/action_nav_forum_to_nav_posts"
             app:destination="@id/nav_posts" />
+        <action
+            android:id="@+id/action_nav_forum_to_nav_home"
+            app:destination="@id/nav_home" />
 
     </fragment>
     <fragment
