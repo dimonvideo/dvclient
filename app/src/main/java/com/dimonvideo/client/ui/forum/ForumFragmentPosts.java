@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -59,6 +60,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
     String story = null;
     String s_url = "";
     String id = null;
+    String t_name;
     int razdel = 9; // forum fragment posts
     SwipeRefreshLayout swipLayout;
 
@@ -74,6 +76,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         if (this.getArguments() != null) {
             id = getArguments().getString(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
+            t_name = (String) getArguments().getSerializable(Config.TAG_TITLE);
         }
 
         sendData(String.valueOf(razdel));
@@ -108,6 +111,8 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        if (!TextUtils.isEmpty(t_name)) toolbar.setTitle(t_name);
 
         return root;
     }

@@ -90,6 +90,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
             Fragment fragment = new ForumFragmentPosts();
             Bundle bundle = new Bundle();
             bundle.putString(Config.TAG_ID, String.valueOf(Feed.getId()));
+            bundle.putString(Config.TAG_TITLE, Feed.getTitle());
             fragment.setArguments(bundle);
             FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
