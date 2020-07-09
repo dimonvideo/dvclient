@@ -7,6 +7,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -51,29 +52,6 @@ public class ForumFragment extends Fragment  {
         viewPager.setOffscreenPageLimit(2);
         sendData(String.valueOf(razdel));
 
-
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-
-        root.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    //If first tab is open, then quit
-                    if (viewPager.getCurrentItem() == 0) {
-
-                        requireActivity().onBackPressed();
-
-
-                    }else {
-                        viewPager.post(() -> viewPager.setCurrentItem(0));
-
-                    }
-                    return true;
-                }
-            }
-            return false;
-        });
-
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
@@ -97,7 +75,16 @@ public class ForumFragment extends Fragment  {
 
             }
         });
-
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener((v, keyCode, event) -> {
+            if( keyCode == KeyEvent.KEYCODE_BACK )
+            {
+                return false;
+            } else {
+                return false;
+            }
+        });
         return root;
     }
 
