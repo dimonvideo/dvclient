@@ -64,7 +64,8 @@ public class ForumFragment extends Fragment  {
                 int pos = tab.getPosition();
                 if (pos == 0) toolbar.setTitle(getString(R.string.tab_topics));
                 if (pos == 1) toolbar.setTitle(getString(R.string.tab_forums));
-                if (pos == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));            }
+                if (pos == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
+            }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
 
@@ -80,6 +81,10 @@ public class ForumFragment extends Fragment  {
         root.setOnKeyListener((v, keyCode, event) -> {
             if( keyCode == KeyEvent.KEYCODE_BACK )
             {
+                if (viewPager.getCurrentItem() == 0) toolbar.setTitle(getString(R.string.tab_topics));
+                if (viewPager.getCurrentItem() == 1) toolbar.setTitle(getString(R.string.tab_forums));
+                if (viewPager.getCurrentItem() == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
+
                 return false;
             } else {
                 return false;

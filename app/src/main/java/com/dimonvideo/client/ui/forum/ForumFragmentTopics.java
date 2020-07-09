@@ -115,9 +115,9 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         root.setOnKeyListener((v, keyCode, event) -> {
             if( keyCode == KeyEvent.KEYCODE_BACK )
             {
+                toolbar.setTitle(getString(R.string.tab_topics));
                 try { getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 } catch (Throwable ignored) {
-                    Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                     getActivity().onBackPressed();
                 }
                 return true;
