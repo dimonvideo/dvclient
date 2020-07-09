@@ -3,6 +3,7 @@ package com.dimonvideo.client.ui.main;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,10 +46,11 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
     private RequestQueue requestQueue;
 
-    private int requestCount = 1;
+    int requestCount = 1;
     String razdel = "comments";
     String url = Config.COMMENTS_URL;
     String key = "comments";
+    int position = 0;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -58,7 +60,9 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         if (this.getArguments() != null) {
             razdel = getArguments().getString(Config.TAG_RAZDEL);
-
+            position = getArguments().getInt(Config.TAG_POSITION);
+            if (position>10) position = position % 10;
+            requestCount = getArguments().getInt(Config.TAG_MIN);
             assert razdel != null;
             if (razdel.equals(Config.GALLERY_RAZDEL)) {
                 url = Config.GALLERY_URL;
@@ -96,6 +100,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             }
 
         }
+        Toast.makeText(getContext(), position +" - "+ requestCount, Toast.LENGTH_SHORT).show();
 
         recyclerView = root.findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager
@@ -112,7 +117,9 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         // получение данных
         getData();
+
         adapter = new MainAdapter(listFeed, getContext());
+        new Handler().postDelayed(() -> recyclerView.scrollToPosition(position), 500);
 
         recyclerView.setAdapter(adapter);
 
@@ -133,50 +140,42 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         }
 
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        for (int i = 0; i < response.length(); i++) {
-                                Feed jsonFeed = new Feed();
-                                JSONObject json;
-                                try {
-                                    json = response.getJSONObject(i);
-                                    jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                                    jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                                    jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                                    jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                                    jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                                    jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                                    jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
-                                    jsonFeed.setLink(json.getString(Config.TAG_LINK));
-                                    jsonFeed.setMod(json.getString(Config.TAG_MOD));
-                                    jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
-                                    jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
-                                    jsonFeed.setUser(json.getString(Config.TAG_USER));
-                                    jsonFeed.setSize(json.getString(Config.TAG_SIZE));
-                                    jsonFeed.setTime(json.getLong(Config.TAG_TIME));
-                                    jsonFeed.setId(json.getInt(Config.TAG_ID));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                listFeed.add(jsonFeed);
+                response -> {
+                    for (int i = 0; i < response.length(); i++) {
+                            Feed jsonFeed = new Feed();
+                            JSONObject json;
+                            try {
+                                json = response.getJSONObject(i);
+                                jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                                jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                                jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                                jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                                jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                                jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                                jsonFeed.setLink(json.getString(Config.TAG_LINK));
+                                jsonFeed.setMod(json.getString(Config.TAG_MOD));
+                                jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                                jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                                jsonFeed.setUser(json.getString(Config.TAG_USER));
+                                jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                                jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                                jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
-                        adapter.notifyDataSetChanged();
+                            listFeed.add(jsonFeed);
+                        }
+                    adapter.notifyDataSetChanged();
 
-                    }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                error -> Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show());
     }
 
     // получение данных и увеличение номера страницы
     private void getData() {
         requestQueue.add(getDataFromServer(requestCount));
-        requestCount++;
+     //   requestCount++;
     }
 
     // опредление последнего элемента

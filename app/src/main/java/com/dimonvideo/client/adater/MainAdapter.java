@@ -2,6 +2,8 @@ package com.dimonvideo.client.adater;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,12 +11,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
+import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
@@ -46,11 +56,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         return new ViewHolder(v);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
         //Getting the particular item from the list
         final Feed Feed =  jsonFeed.get(position);
+        int min = Feed.getMin();
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -79,6 +91,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(v -> {
+
+
+            /*
             Intent intent = new Intent(context, AllContent.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
@@ -93,7 +108,21 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             intent.putExtra(Config.TAG_MOD, Feed.getMod());
             intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
             intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
-            context.startActivity(intent);
+           // context.startActivity(intent);
+           */
+            Fragment fragment = new MainFragmentHorizontal();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_RAZDEL, Feed.getRazdel());
+            bundle.putInt(Config.TAG_POSITION, position);
+            bundle.putInt(Config.TAG_MIN, min);
+            fragment.setArguments(bundle);
+            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
+            FragmentTransaction ft = fragmentManager.beginTransaction();
+            ft.addToBackStack(null);
+            ft.add(R.id.nav_host_fragment, fragment);
+            ft.commit();
+
+
         });
 
     }

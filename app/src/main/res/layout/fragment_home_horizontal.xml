@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="@dimen/title"
-        android:layout_margin="@dimen/title"
         android:gravity="center_horizontal"
+        android:background="@color/colorList"
         android:text="@string/new_files"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
@@ -29,8 +29,8 @@
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/title"
                 android:layout_below="@id/line"
+                android:background="@color/colorList"
                 android:orientation="horizontal"
                 android:clipToPadding="false"
                 android:scrollbars="horizontal" />

@@ -196,6 +196,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
                                 jsonFeed.setSize(json.getString(Config.TAG_SIZE));
                                 jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                                 jsonFeed.setId(json.getInt(Config.TAG_ID));
+                                jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
