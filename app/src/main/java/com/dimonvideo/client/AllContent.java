@@ -3,6 +3,7 @@ package com.dimonvideo.client;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -11,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,6 +41,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
@@ -47,6 +61,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 import com.potyvideo.library.AndExoPlayerView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Objects;
 
@@ -65,7 +82,7 @@ public class AllContent extends AppCompatActivity  {
     String id;
     String link;
     String mod;
-    int comments;
+    int comments, plus;
     Toolbar toolbar;
     Button downloadBtn, modBtn, commentsBtn, mp4Btn;
     LikeButton likeButton, starButton;
@@ -106,6 +123,7 @@ public class AllContent extends AppCompatActivity  {
             mod = getIntent().getStringExtra(Config.TAG_MOD);
             id = getIntent().getStringExtra(Config.TAG_ID);
             comments = Integer.parseInt(Objects.requireNonNull(getIntent().getStringExtra(Config.TAG_COMMENTS)));
+            plus = Integer.parseInt(Objects.requireNonNull(getIntent().getStringExtra(Config.TAG_PLUS)));
         }
 
         downloadBtn.setVisibility(View.VISIBLE);
@@ -174,12 +192,7 @@ public class AllContent extends AppCompatActivity  {
 
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
         Glide.with(this).load(image_url).diskCacheStrategy(DiskCacheStrategy.ALL).into(imageView);
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadScreen();
-            }
-        });
+        imageView.setOnClickListener(v -> loadScreen());
         /*
 
 
@@ -205,14 +218,14 @@ public class AllContent extends AppCompatActivity  {
         likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton likeButton) {
-                Snackbar.make(view, getString(R.string.like), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(view, getString(R.string.like), Snackbar.LENGTH_LONG).show();
+                like_file(getApplicationContext(), razdel, Integer.parseInt(id), 1);
             }
 
             @Override
             public void unLiked(LikeButton likeButton) {
-                Snackbar.make(view, getString(R.string.unlike), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(view, getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
+                like_file(getApplicationContext(), razdel, Integer.parseInt(id), 2);
             }
         });
 
@@ -220,14 +233,12 @@ public class AllContent extends AppCompatActivity  {
         starButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton starButton) {
-                Snackbar.make(view, getString(R.string.favorites_btn), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(view, getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
             }
 
             @Override
             public void unLiked(LikeButton starButton) {
-                Snackbar.make(view, getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(view, getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
             }
         });
 
@@ -475,5 +486,28 @@ public class AllContent extends AppCompatActivity  {
     private void requestPermission() {
         // запрашиваем разрешение
         ActivityCompat.requestPermissions(AllContent.this, new String[]{AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION}, AllContent.REQUEST_WRITE_EXTERNAL_STORAGE);
+    }
+
+    private void like_file(Context mContext, String razdel,  int id, int type){
+        @SuppressLint("HardwareIds") final String android_id = Settings.Secure.getString(this.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        RequestQueue queue = Volley.newRequestQueue(mContext);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + android_id + "&t=" + type,
+                response -> {
+
+                }, error -> {
+                    if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+                        Toast.makeText(mContext, getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
+                    } else if (error instanceof AuthFailureError) {
+                        Toast.makeText(mContext, getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
+                    } else if (error instanceof ServerError) {
+                        Toast.makeText(mContext, getString(R.string.error_server), Toast.LENGTH_LONG).show();
+                    } else if (error instanceof NetworkError) {
+                        Toast.makeText(mContext, getString(R.string.error_network), Toast.LENGTH_LONG).show();
+                    } else if (error instanceof ParseError) {
+                        Toast.makeText(mContext, getString(R.string.error_server), Toast.LENGTH_LONG).show();
+                    }
+                });
+        queue.add(stringRequest);
     }
 }

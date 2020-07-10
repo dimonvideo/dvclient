@@ -95,6 +95,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             Intent intent = new Intent(context, AllContent.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_PLUS, String.valueOf(Feed.getPlus()));
             intent.putExtra(Config.TAG_DATE,Feed.getDate());
             intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
             intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());

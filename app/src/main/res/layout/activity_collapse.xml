@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -24,11 +23,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:background="@color/colorPrimaryDark"
+                android:contentDescription="@string/menu_home"
                 android:scaleType="centerCrop"
                 android:tint="#11000000"
                 app:layout_collapseMode="parallax"
-                app:layout_collapseParallaxMultiplier="0.9"
-                android:contentDescription="@string/menu_home" />
+                app:layout_collapseParallaxMultiplier="0.9" />
 
             <FrameLayout
                 android:id="@+id/main.framelayout.title"
@@ -47,28 +46,30 @@
                     android:layout_gravity="center"
                     android:orientation="vertical"
                     tools:ignore="UselessParent">
+
                     <TextView
-                        android:layout_width="wrap_content"
                         android:id="@+id/headers_title"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:gravity="bottom|left"
                         android:layout_marginTop="3dp"
-                        android:text="@string/uploader"
                         android:ellipsize="end"
+                        android:gravity="bottom|left"
                         android:singleLine="true"
+                        android:text="@string/uploader"
                         android:textColor="@android:color/white"
                         android:textSize="@dimen/title" />
+
                     <TextView
                         android:id="@+id/sub_headers_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="@string/uploader"
-                        android:gravity="bottom|left"
-                        android:ellipsize="end"
-                        android:singleLine="true"
                         android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:gravity="bottom|left"
+                        android:singleLine="true"
+                        android:text="@string/uploader"
                         android:textColor="@android:color/white" />
                 </LinearLayout>
             </FrameLayout>
@@ -86,9 +87,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
-            app:cardElevation="8dp"
             android:fillViewport="false"
+            app:cardElevation="8dp"
             app:contentPadding="16dp">
+
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyleHorizontal"
@@ -97,88 +99,93 @@
                 android:layout_marginTop="7dp"
                 android:layout_marginBottom="7dp"
                 android:indeterminate="true" />
+
             <LinearLayout
-                android:layout_height="match_parent"
                 android:layout_width="fill_parent"
+                android:layout_height="match_parent"
                 android:orientation="vertical">
-            <WebView
-                android:id="@+id/read_full_content"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+
+                <WebView
+                    android:id="@+id/read_full_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+
                 <LinearLayout
+
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:orientation="vertical"
-                    android:gravity="bottom" >
+                    android:orientation="horizontal"
+                    tools:ignore="ExtraText">
 
-
-                    <RelativeLayout
-                        android:id="@+id/relativeLayout1"
-                        android:layout_width="fill_parent"
+                    <com.like.LikeButton
+                        android:id="@+id/star_button"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:ignore="UselessParent">
-                <com.like.LikeButton
-                    app:icon_type="star"
-                    app:icon_size="20dp"
-                    android:id="@+id/star_button"
-                    android:layout_alignParentLeft="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-                <com.like.LikeButton
-                    app:icon_type="thumb"
-                    app:icon_size="20dp"
-                    android:layout_alignParentRight="true"
-                    android:id="@+id/thumb_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:ignore="RelativeOverlap" />
-                </RelativeLayout>
-            </LinearLayout>
+                        app:icon_size="20dp"
+                        app:icon_type="star" />
+
+                    <com.like.LikeButton
+                        android:id="@+id/thumb_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:icon_size="20dp"
+                        app:icon_type="thumb" />
+
+                    <TextView
+                        android:id="@+id/txt_plus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:gravity="left" />
+                </LinearLayout>
+
                 <Button
                     android:id="@+id/btn_comment"
-                    android:layout_marginTop="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:layout_marginStart="10dp"
+                    android:layout_marginTop="20dp"
                     android:layout_marginEnd="10dp"
                     android:layout_marginBottom="10dp"
                     android:background="@drawable/btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
                     android:text="@string/Comments"
                     android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btn_download"
-                android:layout_margin="10dp"
-                android:background="@drawable/btn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="@string/download"
-                android:visibility="gone"
-                android:textStyle="bold" />
+                <Button
+                    android:id="@+id/btn_download"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/btn"
+                    android:text="@string/download"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/btn_mod"
-                    android:layout_margin="10dp"
-                    android:background="@drawable/btn"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/btn"
                     android:text="@string/download_mod"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/btn_mp4"
-                    android:layout_margin="10dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/btn"
-                    android:visibility="gone"
                     android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/btn"
                     android:text="@string/download_mp4"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
                 <include
                     layout="@layout/fragment_home_horizontal"
                     android:layout_width="match_parent"
@@ -188,15 +195,14 @@
         </androidx.cardview.widget.CardView>
 
     </androidx.core.widget.NestedScrollView>
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/main_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
         app:layout_anchor="@id/main.framelayout.title"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark">
-    </androidx.appcompat.widget.Toolbar>
-
+        app:theme="@style/ThemeOverlay.AppCompat.Dark"></androidx.appcompat.widget.Toolbar>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

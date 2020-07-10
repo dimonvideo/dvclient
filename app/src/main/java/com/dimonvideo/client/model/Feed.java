@@ -5,7 +5,7 @@ import com.dimonvideo.client.Config;
 public class Feed {
 	//Data Variables
 	private String imageUrl, title, text, date, razdel, category, headers, user, size, link, mod;
-	private int id, comments, hits, min;
+	private int id, comments, hits, min, plus;
 	private Long time;
 	//Getters and Setters
 	public String getImageUrl() {
@@ -137,5 +137,13 @@ public class Feed {
 
 	public void setMin(int min) {
 		this.min = min;
+	}
+
+	public int getPlus() {
+		return plus;
+	}
+
+	public void setPlus(int plus) {
+		this.plus = plus;
 	}
 }
