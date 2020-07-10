@@ -7,7 +7,7 @@
     <color name="colorList">#000000</color>
     <color name="colorListHorizontal">#F0222222</color>
 
-    <color name="category">#666666</color>
+    <color name="category">#EFEFEF</color>
     <color name="year">#888888</color>
     <color name="list_row_start_color">#ffffff</color>
     <color name="list_row_end_color">#ffffff</color>

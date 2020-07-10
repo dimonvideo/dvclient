@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -67,10 +68,18 @@ public class AllContent extends AppCompatActivity  {
     Dialog dialog;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    SharedPreferences sharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
+
         super.onCreate(savedInstanceState);
+
         dialog = new Dialog(AllContent.this,android.R.style.Theme_Translucent_NoTitleBar);
 
         setContentView(R.layout.activity_collapse);
@@ -157,7 +166,6 @@ public class AllContent extends AppCompatActivity  {
         titleHeaders.setText(headers);
         titleSubHeaders.setText(date);
         titleSubHeaders.append(" " + getString(R.string.by) + " " + user);
-
         assert razdel != null;
         if (!razdel.equals("comments")) titleHeaders.append(" - " + category);
 
@@ -243,11 +251,11 @@ public class AllContent extends AppCompatActivity  {
                 Bundle bundle = new Bundle();
                 bundle.putString(Config.TAG_RAZDEL, razdel);
                 homeFrag.setArguments(bundle);
-
-                fragmentManager.beginTransaction()
-                        .replace(R.id.container, homeFrag)
+                Handler handler = new Handler();
+                handler.postDelayed(() -> fragmentManager.beginTransaction()
+                        .add(R.id.container, homeFrag)
                         .addToBackStack(null)
-                        .commit();
+                        .commit(), 500);
 
             }
 

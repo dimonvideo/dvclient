@@ -179,7 +179,6 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                 });
     }
 

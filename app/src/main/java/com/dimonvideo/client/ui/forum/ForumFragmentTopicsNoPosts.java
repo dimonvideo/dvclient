@@ -137,7 +137,6 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                 });
     }
 

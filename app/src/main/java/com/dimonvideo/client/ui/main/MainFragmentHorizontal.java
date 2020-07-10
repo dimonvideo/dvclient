@@ -50,7 +50,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     String razdel = "comments";
     String url = Config.COMMENTS_URL;
     String key = "comments";
-    int position = 0;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -60,9 +59,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         if (this.getArguments() != null) {
             razdel = getArguments().getString(Config.TAG_RAZDEL);
-            position = getArguments().getInt(Config.TAG_POSITION);
-            if (position>10) position = position % 10;
-            requestCount = getArguments().getInt(Config.TAG_MIN);
             assert razdel != null;
             if (razdel.equals(Config.GALLERY_RAZDEL)) {
                 url = Config.GALLERY_URL;
@@ -100,7 +96,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             }
 
         }
-        Toast.makeText(getContext(), position +" - "+ requestCount, Toast.LENGTH_SHORT).show();
 
         recyclerView = root.findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager
@@ -119,7 +114,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         getData();
 
         adapter = new MainAdapter(listFeed, getContext());
-        new Handler().postDelayed(() -> recyclerView.scrollToPosition(position), 500);
 
         recyclerView.setAdapter(adapter);
 
@@ -169,13 +163,13 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
                     adapter.notifyDataSetChanged();
 
                 },
-                error -> Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show());
+                error -> {});
     }
 
     // получение данных и увеличение номера страницы
     private void getData() {
         requestQueue.add(getDataFromServer(requestCount));
-     //   requestCount++;
+        requestCount++;
     }
 
     // опредление последнего элемента

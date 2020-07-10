@@ -67,6 +67,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     String story = null;
     String s_url = "";
     String key = "comments";
+    SharedPreferences sharedPrefs;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -159,7 +160,7 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
         if (selections != null) {
@@ -177,38 +178,38 @@ public class MainFragment extends Fragment implements RecyclerView.OnScrollChang
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {
-                            Feed jsonFeed = new Feed();
-                            JSONObject json;
-                            try {
-                                json = response.getJSONObject(i);
-                                jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                                jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                                jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                                jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                                jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                                jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
-                                jsonFeed.setLink(json.getString(Config.TAG_LINK));
-                                jsonFeed.setMod(json.getString(Config.TAG_MOD));
-                                jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
-                                jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
-                                jsonFeed.setUser(json.getString(Config.TAG_USER));
-                                jsonFeed.setSize(json.getString(Config.TAG_SIZE));
-                                jsonFeed.setTime(json.getLong(Config.TAG_TIME));
-                                jsonFeed.setId(json.getInt(Config.TAG_ID));
-                                jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            listFeed.add(jsonFeed);
+                        Feed jsonFeed = new Feed();
+                        JSONObject json;
+                        try {
+                            json = response.getJSONObject(i);
+                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                            jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                            jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                            jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                            jsonFeed.setLink(json.getString(Config.TAG_LINK));
+                            jsonFeed.setMod(json.getString(Config.TAG_MOD));
+                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                            jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                            jsonFeed.setUser(json.getString(Config.TAG_USER));
+                            jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                            jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            jsonFeed.setMin(json.getInt(Config.TAG_MIN));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
+                        listFeed.add(jsonFeed);
+                    }
                     adapter.notifyDataSetChanged();
 
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                 });
     }
 

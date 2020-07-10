@@ -18,8 +18,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:replace="android:allowBackup"
-        tools:targetApi="m">
+        tools:targetApi="n">
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
         <activity
             android:name=".AllContent"
             android:label="@string/uploader"
@@ -28,6 +30,7 @@
         </activity>
         <activity
             android:name=".SettingsActivity"
+            android:theme="@style/AppTheme"
             android:label="@string/action_settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

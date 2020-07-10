@@ -92,8 +92,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(v -> {
 
-
-            /*
             Intent intent = new Intent(context, AllContent.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
@@ -108,19 +106,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             intent.putExtra(Config.TAG_MOD, Feed.getMod());
             intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
             intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
-           // context.startActivity(intent);
-           */
-            Fragment fragment = new MainFragmentHorizontal();
-            Bundle bundle = new Bundle();
-            bundle.putString(Config.TAG_RAZDEL, Feed.getRazdel());
-            bundle.putInt(Config.TAG_POSITION, position);
-            bundle.putInt(Config.TAG_MIN, min);
-            fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.addToBackStack(null);
-            ft.add(R.id.nav_host_fragment, fragment);
-            ft.commit();
+            context.startActivity(intent);
+
 
 
         });
