@@ -87,6 +87,8 @@ public class AllContent extends AppCompatActivity  {
     Button downloadBtn, modBtn, commentsBtn, mp4Btn;
     LikeButton likeButton, starButton;
     Dialog dialog;
+    TextView txt_plus;
+
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     SharedPreferences sharedPrefs;
@@ -213,6 +215,9 @@ public class AllContent extends AppCompatActivity  {
         progressBar.setMax(100);
         progressBar.setProgress(1);
 
+        txt_plus = findViewById(R.id.txt_plus);
+        txt_plus.setText(String.valueOf(plus));
+
         View view = findViewById(android.R.id.content);
         likeButton = findViewById(R.id.thumb_button);
         likeButton.setOnLikeListener(new OnLikeListener() {
@@ -220,12 +225,15 @@ public class AllContent extends AppCompatActivity  {
             public void liked(LikeButton likeButton) {
                 Snackbar.make(view, getString(R.string.like), Snackbar.LENGTH_LONG).show();
                 like_file(getApplicationContext(), razdel, Integer.parseInt(id), 1);
+                txt_plus.setText(String.valueOf(plus+1));
+
             }
 
             @Override
             public void unLiked(LikeButton likeButton) {
                 Snackbar.make(view, getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
                 like_file(getApplicationContext(), razdel, Integer.parseInt(id), 2);
+                txt_plus.setText(String.valueOf(plus-1));
             }
         });
 
@@ -488,6 +496,7 @@ public class AllContent extends AppCompatActivity  {
         ActivityCompat.requestPermissions(AllContent.this, new String[]{AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION}, AllContent.REQUEST_WRITE_EXTERNAL_STORAGE);
     }
 
+    // оценка плюс или отмена плюса
     private void like_file(Context mContext, String razdel,  int id, int type){
         @SuppressLint("HardwareIds") final String android_id = Settings.Secure.getString(this.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
