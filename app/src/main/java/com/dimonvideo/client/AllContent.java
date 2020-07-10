@@ -43,6 +43,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.DownloadFile;
+import com.google.android.material.snackbar.Snackbar;
+import com.like.LikeButton;
+import com.like.OnLikeListener;
 import com.potyvideo.library.AndExoPlayerView;
 
 import java.util.Objects;
@@ -65,6 +68,7 @@ public class AllContent extends AppCompatActivity  {
     int comments;
     Toolbar toolbar;
     Button downloadBtn, modBtn, commentsBtn, mp4Btn;
+    LikeButton likeButton, starButton;
     Dialog dialog;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -195,6 +199,40 @@ public class AllContent extends AppCompatActivity  {
 
         progressBar.setMax(100);
         progressBar.setProgress(1);
+
+        View view = findViewById(android.R.id.content);
+        likeButton = findViewById(R.id.thumb_button);
+        likeButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton likeButton) {
+                Snackbar.make(view, getString(R.string.like), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                Snackbar.make(view, getString(R.string.unlike), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+        starButton = findViewById(R.id.star_button);
+        starButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton starButton) {
+                Snackbar.make(view, getString(R.string.favorites_btn), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+
+            @Override
+            public void unLiked(LikeButton starButton) {
+                Snackbar.make(view, getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+     //   starButton.setLiked(true);
+
     }
 
     private void PlayVideo(String link) {

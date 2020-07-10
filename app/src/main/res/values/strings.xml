@@ -54,5 +54,9 @@
     <string name="tab_forums">Forums</string>
     <string name="no_more_forums">No more Forums</string>
     <string name="tab_topics_no_posts">Topics no posts</string>
+    <string name="like">Like</string>
+    <string name="unlike">UnLike</string>
+    <string name="favorites_btn">Added to favorites</string>
+    <string name="unfavorites_btn">Removed from favrites</string>
 
 </resources>
