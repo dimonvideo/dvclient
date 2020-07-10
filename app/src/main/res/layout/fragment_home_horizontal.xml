@@ -13,6 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="@dimen/title"
+        android:layout_margin="10dp"
         android:gravity="center_horizontal"
         android:text="@string/new_files"
         android:textStyle="bold"
@@ -27,8 +28,10 @@
     <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
+                android:layout_marginTop="10dp"
                 android:layout_height="match_parent"
-                android:layout_below="@id/line"
+        android:background="@null"
+        android:layout_below="@id/line"
                 android:orientation="horizontal"
                 android:clipToPadding="false"
                 android:scrollbars="horizontal" />

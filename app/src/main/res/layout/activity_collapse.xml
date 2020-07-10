@@ -53,6 +53,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:gravity="bottom|left"
+                        android:layout_marginTop="3dp"
                         android:text="@string/uploader"
                         android:ellipsize="end"
                         android:singleLine="true"

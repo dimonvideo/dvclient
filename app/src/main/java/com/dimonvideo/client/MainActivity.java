@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon",true);
         final boolean is_books = sharedPrefs.getBoolean("dvc_books",true);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles",true);
-
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 

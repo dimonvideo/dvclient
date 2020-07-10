@@ -77,7 +77,6 @@ public class AllContent extends AppCompatActivity  {
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
-
         super.onCreate(savedInstanceState);
 
         dialog = new Dialog(AllContent.this,android.R.style.Theme_Translucent_NoTitleBar);
