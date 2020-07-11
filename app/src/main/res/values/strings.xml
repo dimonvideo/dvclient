@@ -62,4 +62,8 @@
     <string name="error_network_timeout">Error timeout, try again later</string>
     <string name="error_server">Server error, try again later!</string>
     <string name="error_network">Network error, try again later!</string>
+    <string name="tab_last">Main</string>
+    <string name="tab_details">Detailed view</string>
+    <string name="tab_categories">Categories</string>
+    <string name="tab_favorites">Favorites</string>
 </resources>

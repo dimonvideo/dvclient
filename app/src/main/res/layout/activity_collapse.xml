@@ -116,27 +116,28 @@
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
                     android:orientation="horizontal"
+                    android:layout_marginTop="10dp"
                     tools:ignore="ExtraText">
 
                     <com.like.LikeButton
                         android:id="@+id/star_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:icon_size="20dp"
                         app:icon_type="star" />
 
                     <com.like.LikeButton
                         android:id="@+id/thumb_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:icon_size="20dp"
+                        android:layout_marginLeft="20dp"
                         app:icon_type="thumb" />
 
                     <TextView
                         android:id="@+id/txt_plus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginLeft="10dp"
                         android:gravity="left" />
                 </LinearLayout>
 

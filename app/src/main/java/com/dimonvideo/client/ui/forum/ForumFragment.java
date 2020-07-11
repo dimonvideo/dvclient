@@ -7,18 +7,14 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
-import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
 import com.dimonvideo.client.util.FragmentToActivity;
@@ -37,7 +33,7 @@ public class ForumFragment extends Fragment  {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_forum, container, false);
+        View root = inflater.inflate(R.layout.fragment_tabs, container, false);
 
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);

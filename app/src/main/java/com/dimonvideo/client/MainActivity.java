@@ -8,12 +8,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.view.KeyEvent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,10 +28,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
-import com.dimonvideo.client.ui.forum.ForumFragment;
-import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
-import com.dimonvideo.client.ui.main.MainFragment;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -43,9 +40,9 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity implements FragmentToActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
-    String fPos;
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
+    String fPos = "0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,19 +126,19 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         assert searchManager != null;
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(500);
+        Log.d("tag5", String.valueOf(fPos));
 
         searchEditText.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 //run query to the server
                 FragmentManager fragmentManager = getSupportFragmentManager();
 
-                homeFrag = new MainFragment();
+                homeFrag = new MainFragmentContent();
 
                 if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
 
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
-                bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
                 homeFrag.setArguments(bundle);
 
                 fragmentManager.beginTransaction()
@@ -173,13 +170,9 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         if (id == R.id.action_refresh) {
             FragmentManager fragmentManager = getSupportFragmentManager();
 
-            homeFrag = new MainFragment();
+            homeFrag = new MainFragmentContent();
 
             if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-
-            Bundle bundle = new Bundle();
-            bundle.putInt(Config.TAG_CATEGORY, Integer.parseInt(fPos));
-            homeFrag.setArguments(bundle);
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
@@ -245,8 +238,6 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
     // receive razdel
     @Override
     public void communicate(String s) {
-       fPos = s;
+        fPos = s;
     }
-
-
 }

@@ -300,19 +300,6 @@ public class AllContent extends AppCompatActivity  {
             public void onPageFinished(WebView view, String url) {
                 progressBar.setVisibility(View.GONE);
                 injectCSS();
-
-                FragmentManager fragmentManager = getSupportFragmentManager();
-
-                MainFragmentHorizontal homeFrag = new MainFragmentHorizontal();
-                Bundle bundle = new Bundle();
-                bundle.putString(Config.TAG_RAZDEL, razdel);
-                homeFrag.setArguments(bundle);
-                Handler handler = new Handler();
-                handler.postDelayed(() -> fragmentManager.beginTransaction()
-                        .add(R.id.container, homeFrag)
-                        .addToBackStack(null)
-                        .commit(), 500);
-
             }
 
         });

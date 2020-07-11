@@ -57,5 +57,9 @@
     <string name="error_network_timeout">Таймаут сети, попробуйте позже</string>
     <string name="error_server">Ошибка на сервере, попробуйте позже</string>
     <string name="error_network">Ошибка сети, попробуйте позже</string>
+    <string name="tab_last">Лента</string>
+    <string name="tab_details">Подробно</string>
+    <string name="tab_categories">Категории</string>
+    <string name="tab_favorites">Избранное</string>
 
 </resources>

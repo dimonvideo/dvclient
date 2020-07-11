@@ -10,7 +10,7 @@
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_home"
         android:tag="comments"
-        tools:layout="@layout/fragment_home">
+        tools:layout="@layout/fragment_tabs">
         <argument
             android:name="category"
             android:defaultValue="10"
@@ -120,7 +120,7 @@
     android:name="com.dimonvideo.client.ui.forum.ForumFragment"
     android:label="@string/menu_forum"
     android:tag="topics"
-    tools:layout="@layout/fragment_forum">
+    tools:layout="@layout/fragment_tabs">
     <argument
         android:name="category"
         android:defaultValue="8"
