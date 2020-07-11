@@ -31,7 +31,11 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.FragmentToActivity;
+import com.dimonvideo.client.util.MessageEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,7 +52,6 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     public RecyclerView.Adapter adapter;
 
     private RequestQueue requestQueue;
-    private FragmentToActivity mCallback;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -66,17 +69,16 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         if (this.getArguments() != null) {
             id = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_CATEGORY);
-            //  if (requestCount == 1) requestCount = getArguments().getInt(Config.TAG_COUNT);
         }
-
-        sendData(String.valueOf(razdel));
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -128,6 +130,11 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         return root;
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        story = event.story;
+    }
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
@@ -206,28 +213,6 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         }
     }
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentToActivity) context;
-        } catch (Throwable ignored) {
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        mCallback = null;
-        super.onDetach();
-    }
-
-    private void sendData(String comm)
-    {
-        try{ mCallback.communicate(comm);
-        } catch (Throwable ignored) {
-        }
-    }
-
     // обновление
     @Override
     public void onRefresh() {
@@ -238,5 +223,9 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
                 .attach(ForumFragmentTopics.this)
                 .commit();
     }
-
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+    }
 }

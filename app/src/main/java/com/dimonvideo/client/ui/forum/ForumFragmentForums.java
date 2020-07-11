@@ -54,7 +54,6 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
     public RecyclerView.Adapter adapter;
 
     private RequestQueue requestQueue;
-    private FragmentToActivity mCallback;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -70,8 +69,6 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_home, container, false);
-
-        sendData(String.valueOf(razdel));
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -168,28 +165,6 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
             getData();
-        }
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentToActivity) context;
-        } catch (Throwable ignored) {
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        mCallback = null;
-        super.onDetach();
-    }
-
-    private void sendData(String comm)
-    {
-        try{ mCallback.communicate(comm);
-        } catch (Throwable ignored) {
         }
     }
 

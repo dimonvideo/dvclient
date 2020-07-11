@@ -46,8 +46,6 @@ import java.util.Set;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class MainFragmentContent extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
-    private FragmentToActivity mCallback;
-
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
@@ -57,15 +55,17 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 0;
-    static String url = Config.COMMENTS_URL;
-    static String search_url = Config.COMMENTS_SEARCH_URL;
+    static int razdel = 10;
+    String url = Config.COMMENTS_URL;
+    String search_url = Config.COMMENTS_SEARCH_URL;
     static String story = null;
-    static String s_url = "";
-    static String key = "comments";
+    String s_url = "";
+    String key = "comments";
     SharedPreferences sharedPrefs;
 
-
+    public MainFragmentContent() {
+        // Required empty public constructor
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -74,18 +74,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-        if (this.getArguments() != null) {
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            razdel = getArguments().getInt(Config.TAG_CATEGORY);
-        }
-
-            if (!TextUtils.isEmpty(story)) {
-                url = search_url;
-            }
-
-
-        //sendData(String.valueOf(razdel));
-
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -119,6 +107,11 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
+        story = event.story;
+    }
+
+    // запрос к серверу апи
+    private JsonArrayRequest getDataFromServer(int requestCount) {
         if (razdel == 1) {
             url = Config.GALLERY_URL;
             search_url = Config.GALLERY_SEARCH_URL;
@@ -160,13 +153,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             key = Config.ARTICLES_RAZDEL;
 
         }
-        sendData(String.valueOf(razdel));
-
-    }
-
-    // запрос к серверу апи
-    private JsonArrayRequest getDataFromServer(int requestCount) {
-
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
@@ -174,11 +160,13 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             String[] selected = selections.toArray(new String[]{});
             category_string = TextUtils.join(",", selected);
         }
-
+        if (!TextUtils.isEmpty(story)) {
+            url = search_url;
+        }
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
-        Log.d("tag", url + requestCount + "&c=placeholder," + category_string + s_url);
+        Log.d("tagURL", url + requestCount + "&c=placeholder," + category_string + s_url);
 
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {
@@ -260,26 +248,5 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
-    }
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentToActivity) context;
-        } catch (Throwable ignored) {
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        mCallback = null;
-        super.onDetach();
-    }
-
-    private void sendData(String comm)
-    {
-        try{ mCallback.communicate(comm);
-        } catch (Throwable ignored) {
-        }
     }
 }

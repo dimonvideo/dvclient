@@ -29,24 +29,32 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
+import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.FragmentToActivity;
+import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements FragmentToActivity {
+public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
-    String fPos = "0";
+    static int razdel = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader",true);
         final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader",true);
@@ -101,7 +109,10 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
 
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        razdel = event.razdel;
+    }
 
     @Override
     public boolean onSupportNavigateUp() {
@@ -126,19 +137,20 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         assert searchManager != null;
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(500);
-        Log.d("tag5", String.valueOf(fPos));
+        Log.d("tagActivity", String.valueOf(razdel));
 
         searchEditText.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 //run query to the server
                 FragmentManager fragmentManager = getSupportFragmentManager();
 
-                homeFrag = new MainFragmentContent();
+                homeFrag = new MainFragment();
 
-                if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+                if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
 
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
+                bundle.putInt(Config.TAG_CATEGORY, razdel);
                 homeFrag.setArguments(bundle);
 
                 fragmentManager.beginTransaction()
@@ -172,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
             homeFrag = new MainFragmentContent();
 
-            if (fPos.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+            if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
@@ -222,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
 
     @Override
     public void onDestroy() {
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
@@ -235,9 +248,4 @@ public class MainActivity extends AppCompatActivity implements FragmentToActivit
         super.onPause();
     }
 
-    // receive razdel
-    @Override
-    public void communicate(String s) {
-        fPos = s;
-    }
 }

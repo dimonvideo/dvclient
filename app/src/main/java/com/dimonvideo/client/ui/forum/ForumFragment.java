@@ -18,12 +18,14 @@ import androidx.viewpager.widget.ViewPager;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
 import com.dimonvideo.client.util.FragmentToActivity;
+import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
+
+import org.greenrobot.eventbus.EventBus;
 
 public class ForumFragment extends Fragment  {
 
     int razdel = 8; // forum fragment
-    private FragmentToActivity mCallback;
 
     public ForumFragment() {
         // Required empty public constructor
@@ -46,7 +48,6 @@ public class ForumFragment extends Fragment  {
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setOffscreenPageLimit(2);
-        sendData(String.valueOf(razdel));
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
@@ -86,29 +87,8 @@ public class ForumFragment extends Fragment  {
                 return false;
             }
         });
+        EventBus.getDefault().post(new MessageEvent(razdel, null));
         return root;
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        try {
-            mCallback = (FragmentToActivity) context;
-        } catch (Throwable ignored) {
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        mCallback = null;
-        super.onDetach();
-    }
-
-    private void sendData(String comm)
-    {
-        try{ mCallback.communicate(comm);
-        } catch (Throwable ignored) {
-        }
     }
 
 

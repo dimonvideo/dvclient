@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,8 +27,13 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.adater.MainAdapterFull;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.util.MessageEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,56 +52,23 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
     private RequestQueue requestQueue;
 
-    int requestCount = 1;
-    String razdel = "comments";
+    private int requestCount = 1;
+    private ProgressBar progressBar, ProgressBarBottom;
+    static int razdel = 10;
     String url = Config.COMMENTS_URL;
+    String search_url = Config.COMMENTS_SEARCH_URL;
+    static String story = null;
+    String s_url = "";
     String key = "comments";
+    SharedPreferences sharedPrefs;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-        View root = inflater.inflate(R.layout.fragment_home_horizontal, container, false);
-
-        if (this.getArguments() != null) {
-            razdel = getArguments().getString(Config.TAG_RAZDEL);
-            assert razdel != null;
-            if (razdel.equals(Config.GALLERY_RAZDEL)) {
-                url = Config.GALLERY_URL;
-                key = Config.GALLERY_RAZDEL;
-            }
-            if (razdel.equals(Config.UPLOADER_RAZDEL)) {
-                url = Config.UPLOADER_URL;
-                key = Config.UPLOADER_RAZDEL;
-
-            }
-            if (razdel.equals(Config.VUPLOADER_RAZDEL)) {
-                url = Config.VUPLOADER_URL;
-                key = Config.VUPLOADER_RAZDEL;
-
-            }
-            if (razdel.equals(Config.NEWS_RAZDEL)) {
-                url = Config.NEWS_URL;
-                key = Config.NEWS_RAZDEL;
-
-            }
-            if (razdel.equals(Config.MUZON_RAZDEL)) {
-                url = Config.MUZON_URL;
-                key = Config.MUZON_RAZDEL;
-
-            }
-            if (razdel.equals(Config.BOOKS_RAZDEL)) {
-                url = Config.BOOKS_URL;
-                key = Config.BOOKS_RAZDEL;
-
-            }
-            if (razdel.equals(Config.ARTICLES_RAZDEL)) {
-                url = Config.ARTICLES_URL;
-                key = Config.ARTICLES_RAZDEL;
-
-            }
-
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
         }
+        View root = inflater.inflate(R.layout.fragment_home_horizontal, container, false);
 
         recyclerView = root.findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager
@@ -113,7 +86,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         // получение данных
         getData();
 
-        adapter = new MainAdapter(listFeed, getContext());
+        adapter = new MainAdapterFull(listFeed, getContext());
 
         recyclerView.setAdapter(adapter);
 
@@ -121,10 +94,54 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         return root;
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        story = event.story;
+    }
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
+        if (razdel == 1) {
+            url = Config.GALLERY_URL;
+            search_url = Config.GALLERY_SEARCH_URL;
+            key = Config.GALLERY_RAZDEL;
+        }
+        if (razdel == 2) {
+            url = Config.UPLOADER_URL;
+            search_url = Config.UPLOADER_SEARCH_URL;
+            key = Config.UPLOADER_RAZDEL;
 
+        }
+        if (razdel == 3) {
+            url = Config.VUPLOADER_URL;
+            search_url = Config.VUPLOADER_SEARCH_URL;
+            key = Config.VUPLOADER_RAZDEL;
+
+        }
+        if (razdel == 4) {
+            url = Config.NEWS_URL;
+            search_url = Config.NEWS_SEARCH_URL;
+            key = Config.NEWS_RAZDEL;
+
+        }
+        if (razdel == 5) {
+            url = Config.MUZON_URL;
+            search_url = Config.MUZON_SEARCH_URL;
+            key = Config.MUZON_RAZDEL;
+
+        }
+        if (razdel == 6) {
+            url = Config.BOOKS_URL;
+            search_url = Config.BOOKS_SEARCH_URL;
+            key = Config.BOOKS_RAZDEL;
+
+        }
+        if (razdel == 7) {
+            url = Config.ARTICLES_URL;
+            search_url = Config.ARTICLES_SEARCH_URL;
+            key = Config.ARTICLES_RAZDEL;
+
+        }
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
@@ -142,7 +159,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
                                 json = response.getJSONObject(i);
                                 jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
                                 jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                                jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                                jsonFeed.setText(json.getString(Config.TAG_FULL_TEXT));
                                 jsonFeed.setDate(json.getString(Config.TAG_DATE));
                                 jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
                                 jsonFeed.setHits(json.getInt(Config.TAG_HITS));
@@ -190,4 +207,9 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     }
 
 
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+    }
 }

@@ -1,40 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/container"
     tools:context=".ui.main.MainFragmentHorizontal">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/title"
-        android:layout_margin="10dp"
-        android:gravity="center_horizontal"
-        android:text="@string/new_files"
-        android:textStyle="bold"
-        tools:ignore="SpUsage" />
-    <View
-        android:layout_width="match_parent"
-        android:id="@+id/line"
-        android:layout_below="@id/title"
-        android:layout_height="2dp"
-        android:background="@android:color/darker_gray"/>
-
     <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_marginTop="10dp"
-                android:layout_height="match_parent"
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/container"
+        android:layout_marginTop="10dp"
         android:background="@null"
-        android:layout_below="@id/line"
-                android:orientation="horizontal"
-                android:clipToPadding="false"
-                android:scrollbars="horizontal" />
+        android:clipToPadding="false"
+        android:orientation="horizontal"
+        android:scrollbars="horizontal"
+        tools:ignore="NotSibling" />
 
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -58,6 +41,5 @@
         android:layout_marginEnd="5dp"
         android:padding="10dp"
         android:visibility="visible"
-        app:srcCompat="@drawable/ic_chevron_right_black_24dp"
-        />
-</RelativeLayout >
+        app:srcCompat="@drawable/ic_chevron_right_black_24dp" />
+</RelativeLayout>

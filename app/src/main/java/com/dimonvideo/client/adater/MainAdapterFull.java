@@ -3,7 +3,6 @@ package com.dimonvideo.client.adater;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,22 +11,15 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
-import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
-import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
-import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.util.CustomVolleyRequest;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
@@ -35,7 +27,7 @@ import org.sufficientlysecure.htmltextview.HtmlTextView;
 import java.util.Calendar;
 import java.util.List;
 
-public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
+public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHolder> {
 
     private Context context;
 
@@ -43,7 +35,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     List<Feed> jsonFeed;
 
     //Constructor of this class
-    public MainAdapter(List<Feed> jsonFeed, Context context){
+    public MainAdapterFull(List<Feed> jsonFeed, Context context){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
@@ -53,7 +45,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_full, parent, false);
 
 
         return new ViewHolder(v);
@@ -93,28 +85,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
-        holder.itemView.setOnClickListener(v -> {
-
-            Intent intent = new Intent(context, AllContent.class);
-            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-            intent.putExtra(Config.TAG_PLUS, String.valueOf(Feed.getPlus()));
-            intent.putExtra(Config.TAG_DATE,Feed.getDate());
-            intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
-            intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
-            intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
-            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
-            intent.putExtra(Config.TAG_USER, Feed.getUser());
-            intent.putExtra(Config.TAG_SIZE, Feed.getSize());
-            intent.putExtra(Config.TAG_LINK, Feed.getLink());
-            intent.putExtra(Config.TAG_MOD, Feed.getMod());
-            intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
-            intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
-            context.startActivity(intent);
-
-
-
-        });
 
     }
 
