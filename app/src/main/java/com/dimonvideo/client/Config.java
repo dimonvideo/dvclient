@@ -41,6 +41,7 @@ public class Config {
 
     public static final String TEXT_URL = BASE_URL + "/apps/dvclient.php?op=2&razdel=";
     public static final String COMMENTS_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&razdel=";
+    public static final String CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=9&razdel=";
 
     public static final String LIKE_URL = BASE_URL + "/apps/dvclient.php?op=8&razdel=";
 
@@ -62,11 +63,10 @@ public class Config {
     public static final String TAG_MOD = "mod";
     public static final String TAG_STORY = "story";
     public static final String TAG_TIME = "time";
+    public static final String TAG_COUNT = "count";
     public static final String TAG_LAST_POSTER_NAME = "last_poster_name";
     public static final String TAG_STATE = "state";
     public static final String TAG_PINNED = "pinned";
-    public static final String TAG_COUNT = "count";
-    public static final String TAG_POSITION = "position";
     public static final String TAG_MIN = "min";
     public static final String TAG_PLUS = "plus";
 

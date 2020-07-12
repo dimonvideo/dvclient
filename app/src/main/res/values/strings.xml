@@ -66,4 +66,5 @@
     <string name="tab_details">Detailed view</string>
     <string name="tab_categories">Categories</string>
     <string name="tab_favorites">Favorites</string>
+    <string name="cats_text">Items:</string>
 </resources>

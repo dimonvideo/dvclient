@@ -56,6 +56,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
+    int cid = 0;
     String url = Config.COMMENTS_URL;
     String search_url = Config.COMMENTS_SEARCH_URL;
     static String story = null;
@@ -74,6 +75,11 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
+        if (this.getArguments() != null) {
+            cid = getArguments().getInt(Config.TAG_ID);
+        }
+
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -101,6 +107,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+
         return root;
     }
 
@@ -108,6 +115,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
         story = event.story;
+        if (TextUtils.isEmpty(story)) story = null;
     }
 
     // запрос к серверу апи
@@ -160,13 +168,17 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             String[] selected = selections.toArray(new String[]{});
             category_string = TextUtils.join(",", selected);
         }
+
+        if (cid > 0) s_url = "&where=" + cid;
+
         if (!TextUtils.isEmpty(story)) {
             url = search_url;
         }
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
-        Log.d("tagURL", url + requestCount + "&c=placeholder," + category_string + s_url);
+
+        Log.d("tagURLc", url + requestCount + "&c=placeholder," + category_string + s_url);
 
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {

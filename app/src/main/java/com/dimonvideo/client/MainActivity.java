@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -149,12 +150,14 @@ public class MainActivity extends AppCompatActivity {
                 if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
 
                 Bundle bundle = new Bundle();
-                bundle.putSerializable(Config.TAG_STORY, searchEditText.getText().toString().trim());
+                String story = searchEditText.getText().toString().trim();
+                if (TextUtils.isEmpty(story)) story = null;
+                bundle.putSerializable(Config.TAG_STORY, story);
                 bundle.putInt(Config.TAG_CATEGORY, razdel);
                 homeFrag.setArguments(bundle);
 
                 fragmentManager.beginTransaction()
-                        .add(R.id.nav_host_fragment, homeFrag)
+                        .replace(R.id.nav_host_fragment, homeFrag)
                         .addToBackStack(null)
                         .commit();
             }
