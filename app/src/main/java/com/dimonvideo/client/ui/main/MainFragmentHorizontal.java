@@ -30,6 +30,7 @@ import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.adater.MainAdapterFull;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -89,7 +90,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         adapter = new MainAdapterFull(listFeed, getContext());
 
         recyclerView.setAdapter(adapter);
-
 
 
         return root;
@@ -172,6 +172,8 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
                                 jsonFeed.setSize(json.getString(Config.TAG_SIZE));
                                 jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                                 jsonFeed.setId(json.getInt(Config.TAG_ID));
+                                jsonFeed.setMin(json.getInt(Config.TAG_MIN));
+                                jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }

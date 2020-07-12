@@ -11,7 +11,9 @@
             android:dependency="dvc_login"
             app:key="dvc_password"
             app:title="@string/password_title"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="false"
+            android:inputType="textPassword" />
+
         <ListPreference
             android:dependency="dvc_password"
             app:defaultValue="off"

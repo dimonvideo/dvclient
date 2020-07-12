@@ -10,20 +10,23 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        app:tabMode="fixed"
+        android:layout_height="30dp"
+        app:tabMode="scrollable"
         app:tabIndicatorColor="@color/colorPrimary"
         android:background="@color/colorPrimaryDark"
+        android:elevation="8dp"
+        android:gravity="center_horizontal"
         app:tabGravity="center"
-        app:tabMaxWidth="0dp"
+        app:layout_scrollFlags="scroll|enterAlways"
         app:tabSelectedTextColor="@color/colorAccent"
         >
     </com.google.android.material.tabs.TabLayout>
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/view_pager"
-        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_marginTop="30dp"
         android:layout_width="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_height="match_parent"
         >
 

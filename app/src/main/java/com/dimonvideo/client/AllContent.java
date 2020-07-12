@@ -56,6 +56,7 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
+import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
@@ -137,7 +138,7 @@ public class AllContent extends AppCompatActivity  {
         }
         if (razdel.equals(Config.VUPLOADER_RAZDEL)) {
             mp4Btn.setVisibility(View.VISIBLE);
-            mp4Btn.setOnClickListener(view -> PlayVideo(link));
+            mp4Btn.setOnClickListener(view -> ButtonsActions.PlayVideo(this, link));
 
         }
         // если нет размера файла
@@ -194,7 +195,7 @@ public class AllContent extends AppCompatActivity  {
 
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
         Glide.with(this).load(image_url).diskCacheStrategy(DiskCacheStrategy.ALL).into(imageView);
-        imageView.setOnClickListener(v -> loadScreen());
+        imageView.setOnClickListener(v -> ButtonsActions.loadScreen(this, image_url));
         /*
 
 
@@ -224,7 +225,7 @@ public class AllContent extends AppCompatActivity  {
             @Override
             public void liked(LikeButton likeButton) {
                 Snackbar.make(view, getString(R.string.like), Snackbar.LENGTH_LONG).show();
-                like_file(getApplicationContext(), razdel, Integer.parseInt(id), 1);
+                ButtonsActions.like_file(getApplicationContext(), razdel, Integer.parseInt(id), 1);
                 txt_plus.setText(String.valueOf(plus+1));
 
             }
@@ -232,7 +233,7 @@ public class AllContent extends AppCompatActivity  {
             @Override
             public void unLiked(LikeButton likeButton) {
                 Snackbar.make(view, getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
-                like_file(getApplicationContext(), razdel, Integer.parseInt(id), 2);
+                ButtonsActions.like_file(getApplicationContext(), razdel, Integer.parseInt(id), 2);
                 txt_plus.setText(String.valueOf(plus-1));
             }
         });
@@ -254,16 +255,7 @@ public class AllContent extends AppCompatActivity  {
 
     }
 
-    private void PlayVideo(String link) {
-        link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
-        Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.video);
-        AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
-        andExoPlayerView.setSource(link);
-        dialog.show();
 
-    }
 
     @SuppressLint("SetJavaScriptEnabled")
     public void LoadWeb(final WebView webView, String full_url) {
@@ -368,7 +360,7 @@ public class AllContent extends AppCompatActivity  {
         // feedback
         if (id == R.id.action_screen) {
 
-                loadScreen();
+            ButtonsActions.loadScreen(this, image_url);
 
         }
         return super.onOptionsItemSelected(item);
@@ -418,22 +410,6 @@ public class AllContent extends AppCompatActivity  {
                 "javascript:document.body.style.setProperty(\"color\", \"white\");"
         );
     }
-    private void loadScreen() {
-
-        final Dialog dialog = new Dialog(AllContent.this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.screen);
-        ImageView image = dialog.findViewById(R.id.screenshot);
-        image.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
-        Glide.with(AllContent.this).load(image_url).into(image);
-
-        dialog.show();
-
-        Button bt_close = dialog.findViewById(R.id.btn_close);
-
-        bt_close.setOnClickListener(v -> dialog.dismiss());
-
-    }
 
     private void loadComments(String comm_url) {
 
@@ -456,7 +432,7 @@ public class AllContent extends AppCompatActivity  {
     }
 
     // проверяем разрешение - есть ли оно у приложения
-    private boolean isPermissionGranted() {
+    public boolean isPermissionGranted() {
         int permissionCheck = ActivityCompat.checkSelfPermission(getApplicationContext(), AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION);
         return permissionCheck == PackageManager.PERMISSION_GRANTED;
     }
@@ -478,32 +454,8 @@ public class AllContent extends AppCompatActivity  {
         }
     }
 
-    private void requestPermission() {
+    public void requestPermission() {
         // запрашиваем разрешение
         ActivityCompat.requestPermissions(AllContent.this, new String[]{AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION}, AllContent.REQUEST_WRITE_EXTERNAL_STORAGE);
-    }
-
-    // оценка плюс или отмена плюса
-    private void like_file(Context mContext, String razdel,  int id, int type){
-        @SuppressLint("HardwareIds") final String android_id = Settings.Secure.getString(this.getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        RequestQueue queue = Volley.newRequestQueue(mContext);
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + android_id + "&t=" + type,
-                response -> {
-
-                }, error -> {
-                    if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                        Toast.makeText(mContext, getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof AuthFailureError) {
-                        Toast.makeText(mContext, getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ServerError) {
-                        Toast.makeText(mContext, getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof NetworkError) {
-                        Toast.makeText(mContext, getString(R.string.error_network), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ParseError) {
-                        Toast.makeText(mContext, getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    }
-                });
-        queue.add(stringRequest);
     }
 }

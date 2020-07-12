@@ -3,12 +3,19 @@ package com.dimonvideo.client;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.FragmentActivity;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -32,25 +39,29 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
-        private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            Preference preferenceMap = findPreference("dvc_theme");
-
-
-            assert preferenceMap != null;
-            preferenceMap.setOnPreferenceClickListener(
+            Preference dvc_theme = findPreference("dvc_theme");
+            Preference dvc_pm = findPreference("dvc_pm");
+            assert dvc_theme != null;
+            dvc_theme.setOnPreferenceClickListener(
                     arg0 -> {
                         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
                         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
                         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                         return true;
                     });
-
+            dvc_pm.setOnPreferenceChangeListener((preference, newValue) -> {
+                String listValue = (String) newValue;
+                Log.d("tag", listValue);
+                return true;
+            });
         }
+
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

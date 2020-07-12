@@ -4,12 +4,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -50,7 +52,7 @@ public class MainFragment extends Fragment  {
         adapt.addfrg(new MainFragmentContent(),getString(R.string.tab_last));
         adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
         adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
-        adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_favorites));
+    //    adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_favorites));
 
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);
@@ -60,22 +62,6 @@ public class MainFragment extends Fragment  {
 
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
-
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
 
         return root;
     }

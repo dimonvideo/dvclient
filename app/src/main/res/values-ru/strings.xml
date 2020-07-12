@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DVClient</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
+    <string name="nav_header_title">Войдите или зарегистрируйтесь</string>
+    <string name="nav_header_subtitle">dimonvideo.ru</string>
     <string name="action_settings">Настройки</string>
 
     <string name="menu_home">Главное</string>
@@ -19,7 +16,7 @@
     <string name="action_feedback">Обратная связь</string>
     <string name="app_mail">admin@dimonvideo.ru</string>
 
-    <string name="messages_header">Основное</string>
+    <string name="messages_header">Основная информация</string>
     <string name="signature_title">Логин на сайте</string>
     <string name="password_title">Пароль на сайте</string>
     <string name="pm_title">Личные сообщения</string>

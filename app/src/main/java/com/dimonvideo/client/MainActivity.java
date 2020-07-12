@@ -12,8 +12,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +34,6 @@ import androidx.preference.PreferenceManager;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.util.FragmentToActivity;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -65,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_books = sharedPrefs.getBoolean("dvc_books",true);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles",true);
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+        final String is_pm = sharedPrefs.getString("dvc_pm","off");
+        final String login_name = sharedPrefs.getString("dvc_login",getString(R.string.nav_header_title));
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
@@ -78,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         FloatingActionButton fab = findViewById(R.id.fab);
+        if (is_pm.equals("off")) fab.setVisibility(View.GONE);
         fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show());
 
@@ -99,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+        TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
+        Login_Name.setText(login_name);
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);

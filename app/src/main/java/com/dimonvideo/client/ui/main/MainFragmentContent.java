@@ -31,6 +31,7 @@ import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.FragmentToActivity;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -217,7 +218,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
-                    //Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
                 });
     }
 
