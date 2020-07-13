@@ -59,5 +59,6 @@
     <string name="tab_categories">Категории</string>
     <string name="tab_favorites">Избранное</string>
     <string name="cats_text">Файлов:</string>
+    <string name="menu_android">Android</string>
 
 </resources>

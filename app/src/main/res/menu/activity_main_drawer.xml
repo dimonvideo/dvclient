@@ -17,6 +17,9 @@
             android:id="@+id/nav_uploader"
             android:title="@string/menu_slideshow" />
         <item
+            android:id="@+id/nav_android"
+            android:title="@string/menu_android" />
+        <item
             android:id="@+id/nav_vuploader"
             android:title="@string/vuploader" />
         <item

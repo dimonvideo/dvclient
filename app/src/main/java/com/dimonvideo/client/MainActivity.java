@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_muzon,
                 R.id.nav_books,
                 R.id.nav_uploader,
+                R.id.nav_android,
                 R.id.nav_articles
         ).setOpenableLayout(drawer).build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);

@@ -1,49 +1,34 @@
 package com.dimonvideo.client.adater;
 
-import android.Manifest;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.ButtonsActions;
-import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.util.DownloadFile;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
-import com.potyvideo.library.AndExoPlayerView;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
 
-import java.util.Calendar;
 import java.util.List;
-import java.util.Objects;
 
 public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHolder> {
 
@@ -124,8 +109,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         holder.commentsBtn.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
-            Log.d("tag", comm_url);
-           // loadComments(comm_url);
+            ButtonsActions.loadComments(context, comm_url);
         });
 
         holder.likeButton.setOnLikeListener(new OnLikeListener() {

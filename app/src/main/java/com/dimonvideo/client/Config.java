@@ -12,7 +12,7 @@ public class Config {
     public static final String MUZON_RAZDEL = "muzon";
     public static final String BOOKS_RAZDEL = "books";
     public static final String ARTICLES_RAZDEL = "articles";
-    public static final String GAMES_RAZDEL = "online";
+    public static final String ANDROID_RAZDEL = "android";
 
     //Data URL
     public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+COMMENTS_RAZDEL+"&min=";
@@ -31,8 +31,8 @@ public class Config {
     public static final String BOOKS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+BOOKS_RAZDEL+"&min=";
     public static final String ARTICLES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+ARTICLES_RAZDEL+"&min=";
     public static final String ARTICLES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+ARTICLES_RAZDEL+"&min=";
-    public static final String GAMES_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+GAMES_RAZDEL+"&min=";
-    public static final String GAMES_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+GAMES_RAZDEL+"&min=";
+    public static final String ANDROID_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+ANDROID_RAZDEL+"&min=";
+    public static final String ANDROID_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+ANDROID_RAZDEL+"&min=";
 
     public static final String FORUM_FEED_URL = BASE_URL + "/apps/dvclient.php?op=5&min=";
     public static final String FORUM_FEED_NO_POSTS_URL = BASE_URL + "/apps/dvclient.php?op=5&id=-1&min=";

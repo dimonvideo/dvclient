@@ -160,7 +160,11 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             url = Config.ARTICLES_URL;
             search_url = Config.ARTICLES_SEARCH_URL;
             key = Config.ARTICLES_RAZDEL;
-
+        }
+        if (razdel == 11) {
+            url = Config.ANDROID_URL;
+            search_url = Config.ANDROID_SEARCH_URL;
+            key = Config.ANDROID_RAZDEL;
         }
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);

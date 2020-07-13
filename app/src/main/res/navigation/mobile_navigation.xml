@@ -45,10 +45,27 @@
             android:defaultValue="2"
             />
         <action
-            android:id="@+id/action_nav_uploader_to_nav_articles"
+            android:id="@+id/action_nav_uploader_to_nav_android"
             app:destination="@id/nav_articles" />
         <action
             android:id="@+id/action_nav_uploader_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_android"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
+        android:label="@string/menu_android"
+        android:tag="android"
+        tools:layout="@layout/fragment_tabs">
+        <argument
+            android:name="category"
+            android:defaultValue="11"
+            />
+        <action
+            android:id="@+id/action_nav_android_to_nav_articles"
+            app:destination="@id/nav_articles" />
+        <action
+            android:id="@+id/action_nav_android_to_nav_home"
             app:destination="@id/nav_home" />
     </fragment>
     <fragment

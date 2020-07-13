@@ -86,10 +86,11 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/colorList"
             android:layout_margin="8dp"
             android:fillViewport="false"
             app:cardElevation="8dp"
-            app:contentPadding="16dp">
+            app:contentPadding="10dp">
 
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -109,31 +110,34 @@
 
                 <LinearLayout
 
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="5dp"
+                    android:layout_gravity="center_horizontal|center"
                     tools:ignore="ExtraText">
 
                     <com.like.LikeButton
                         android:id="@+id/star_button"
+                        app:icon_size="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:icon_type="star" />
 
                     <com.like.LikeButton
                         android:id="@+id/thumb_button"
+                        android:layout_marginLeft="10dp"
+                        app:icon_size="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="20dp"
                         app:icon_type="thumb" />
 
                     <TextView
                         android:id="@+id/txt_plus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginLeft="3dp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginTop="10dp"
                         android:gravity="left" />
                 </LinearLayout>
 

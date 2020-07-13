@@ -59,7 +59,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     String url = Config.COMMENTS_URL;
     String search_url = Config.COMMENTS_SEARCH_URL;
     static String story = null;
-    String s_url = "";
     String key = "comments";
     SharedPreferences sharedPrefs;
 
@@ -140,9 +139,13 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             url = Config.ARTICLES_URL;
             search_url = Config.ARTICLES_SEARCH_URL;
             key = Config.ARTICLES_RAZDEL;
-
         }
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        if (razdel == 11) {
+            url = Config.ANDROID_URL;
+            search_url = Config.ANDROID_SEARCH_URL;
+            key = Config.ANDROID_RAZDEL;
+        }
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
         if (selections != null) {
