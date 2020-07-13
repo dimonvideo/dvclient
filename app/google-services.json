@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "771109015774",
+    "firebase_url": "https://dv-offline.firebaseio.com",
+    "project_id": "dv-offline",
+    "storage_bucket": "dv-offline.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771109015774:android:dfe7f6831106e74781324f",
+        "android_client_info": {
+          "package_name": "com.dimonvideo.client"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "771109015774-94nieuuuknv2ajt21ckg15369dhev3l4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUphGCIRbNQ7SxM8fnw1RyP488gfmLgjo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "771109015774-94nieuuuknv2ajt21ckg15369dhev3l4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

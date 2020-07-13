@@ -2,18 +2,31 @@ package com.dimonvideo.client.util;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.app.DownloadManager;
 import android.content.Context;
-import android.net.Uri;
-import android.os.Environment;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
+import android.view.Display;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.URLUtil;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
@@ -26,15 +39,16 @@ import com.android.volley.TimeoutError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
-import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.potyvideo.library.AndExoPlayerView;
+import com.potyvideo.library.globalEnums.EnumAspectRatio;
 
 import java.util.Objects;
 
 public class ButtonsActions {
 
+    // загрузить скриншот в окне
     public static void loadScreen(Context mContext, String image_url) {
 
         final Dialog dialog = new Dialog(mContext);
@@ -54,10 +68,13 @@ public class ButtonsActions {
 
     // оценка плюс или отмена плюса
     public static void like_file(Context mContext, String razdel, int id, int type){
-        @SuppressLint("HardwareIds") final String android_id = Settings.Secure.getString(mContext.getContentResolver(),
+        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(mContext.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        android_id = "DVClient_" + android_id;
+        final String is_name = sharedPrefs.getString("dvc_login",android_id);
         RequestQueue queue = Volley.newRequestQueue(mContext);
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + android_id + "&t=" + type,
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
                 }, error -> {
@@ -77,21 +94,101 @@ public class ButtonsActions {
 
     }
 
+    // проиграть видео в окне диалога
     public static void PlayVideo(Context mContext, String link) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        final boolean is_aspect = sharedPrefs.getBoolean("dvc_vuploader_aspect",false);
         link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
         final Dialog dialog = new Dialog(mContext);
-        Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.video);
         AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
+        if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9); else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
         andExoPlayerView.setSource(link);
         dialog.show();
 
     }
 
-    public static void loadComments(Context mContext, String comm_url) {
+    // загрузить комментарии к файлу
+    public static void loadComments(Context mContext, String comm_url, ProgressBar progressBar) {
+
+        final Dialog dialog = new Dialog(mContext);
+        dialog.setContentView(R.layout.comments_list);
+        WebView webView = dialog.findViewById(R.id.read_full_content);
+
+        LoadWeb(mContext, webView, comm_url, progressBar);
+
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int height = size.y-100;
+        int width = size.x-20;
+        Button bt_close = dialog.findViewById(R.id.btn_close);
+        Objects.requireNonNull(dialog.getWindow()).setLayout(width, height);
+        dialog.show();
+        bt_close.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    // загрузить что нить в webview
+    @SuppressLint("SetJavaScriptEnabled")
+    public static void LoadWeb(Context mContext, final WebView webView, String full_url, ProgressBar progressBar) {
+
+        webView.getSettings().setAppCacheEnabled(true);
+        webView.getSettings().setDomStorageEnabled(true);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setAppCachePath(mContext.getFilesDir().getPath() + mContext.getPackageName() + "/cache");
+        webView.getSettings().setAppCacheEnabled(true);
+        webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        webView.setBackgroundColor(0);
+        webView.setWebViewClient(new WebViewClient() {
 
 
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                progressBar.setVisibility(View.VISIBLE);
+            }
 
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
+                view.getContext().startActivity(intent);
+                return true;
+            }
+
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+
+                webView.loadUrl("file:///android_asset/error.html");
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            public void onPageFinished(WebView view, String url) {
+                progressBar.setVisibility(View.GONE);
+                injectCSS(mContext, webView);
+            }
+
+        });
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+                progressBar.setProgress(progress);
+            }
+        });
+
+        webView.loadUrl(full_url);
+
+    }
+
+    // применить темную тему к webview
+    private static void injectCSS(Context mContext, WebView webView) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+
+        if (is_dark) webView.loadUrl(
+                "javascript:document.body.style.setProperty(\"color\", \"white\");"
+        );
     }
 }

@@ -65,4 +65,15 @@
     <string name="tab_favorites">Favorites</string>
     <string name="cats_text">Items:</string>
     <string name="menu_android">Android</string>
+    <string name="uploader_pref_tab">Uploader settings</string>
+    <string name="android_pref_tab">Android settings</string>
+    <string name="muzon_pref_tab">Muzon settings</string>
+    <string name="vuploader_pref_tab">Vuploader settings</string>
+    <string name="books_pref_tab">Books settings</string>
+    <string name="news_pref_tab">News settings</string>
+    <string name="articles_pref_tab">Articles settings</string>
+    <string name="gallery_pref_tab">Gallery settings</string>
+    <string name="vuploader_play_behavior">Play video on screen tap</string>
+    <string name="vuploader_video_behavior">Change Aspect Ratio</string>
+    <string name="action_like">Like</string>
 </resources>

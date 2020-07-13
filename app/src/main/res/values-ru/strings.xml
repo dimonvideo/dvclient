@@ -60,5 +60,16 @@
     <string name="tab_favorites">Избранное</string>
     <string name="cats_text">Файлов:</string>
     <string name="menu_android">Android</string>
+    <string name="uploader_pref_tab">Настройки Обменника</string>
+    <string name="android_pref_tab">Настройки раздела Андроид</string>
+    <string name="muzon_pref_tab">Настройки раздела Музыка</string>
+    <string name="vuploader_pref_tab">Настройки раздела Видео</string>
+    <string name="books_pref_tab">Настройки Библиотеки</string>
+    <string name="news_pref_tab">Настройки Новостей</string>
+    <string name="articles_pref_tab">Настройки Статей</string>
+    <string name="gallery_pref_tab">Настройки раздела Картинки</string>
+    <string name="vuploader_play_behavior">Показывать видео при нажатии на скрин</string>
+    <string name="vuploader_video_behavior">Изменить соотношение сторон при воспроизведении</string>
+    <string name="action_like">Поставить лайк</string>
 
 </resources>

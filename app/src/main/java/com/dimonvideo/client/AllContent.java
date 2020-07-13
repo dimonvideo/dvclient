@@ -99,6 +99,7 @@ public class AllContent extends AppCompatActivity  {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+        final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
@@ -178,7 +179,7 @@ public class AllContent extends AppCompatActivity  {
         commentsBtn.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + id;
             Log.d("tag", comm_url);
-            loadComments(comm_url);
+            ButtonsActions.loadComments(this, comm_url, progressBar);
         });
 
         Objects.requireNonNull(getSupportActionBar()).setTitle(title);
@@ -191,11 +192,12 @@ public class AllContent extends AppCompatActivity  {
         titleSubHeaders.setText(date);
         titleSubHeaders.append(" " + getString(R.string.by) + " " + user);
         assert razdel != null;
-        if (!razdel.equals("comments")) titleHeaders.append(" - " + category);
+        if (!razdel.equals(Config.COMMENTS_RAZDEL)) titleHeaders.append(" - " + category);
 
         ImageView imageView = findViewById(R.id.main_imageview_placeholder);
         Glide.with(this).load(image_url).diskCacheStrategy(DiskCacheStrategy.ALL).into(imageView);
-        imageView.setOnClickListener(v -> ButtonsActions.loadScreen(this, image_url));
+        if (razdel.equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play) imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(this, link)); else imageView.setOnClickListener(v -> ButtonsActions.loadScreen(this, image_url));
+
         /*
 
 
@@ -211,7 +213,8 @@ public class AllContent extends AppCompatActivity  {
         progressBar = findViewById(R.id.progressBar);
         String full_url = Config.TEXT_URL + razdel + "&min=" + id;
         webView = findViewById(R.id.read_full_content);
-        LoadWeb(webView, full_url);
+
+        ButtonsActions.LoadWeb(this, webView, full_url, progressBar);
 
         progressBar.setMax(100);
         progressBar.setProgress(1);
@@ -255,59 +258,6 @@ public class AllContent extends AppCompatActivity  {
 
     }
 
-
-
-    @SuppressLint("SetJavaScriptEnabled")
-    public void LoadWeb(final WebView webView, String full_url) {
-
-        webView.getSettings().setAppCacheEnabled(true);
-        webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setAppCachePath(this.getFilesDir().getPath() + getPackageName() + "/cache");
-        webView.getSettings().setAppCacheEnabled(true);
-        webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-        webView.setBackgroundColor(0);
-        webView.setWebViewClient(new WebViewClient() {
-
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, request.getUrl());
-                view.getContext().startActivity(intent);
-                return true;
-            }
-
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-
-                webView.loadUrl("file:///android_asset/error.html");
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            public void onPageFinished(WebView view, String url) {
-                progressBar.setVisibility(View.GONE);
-                injectCSS();
-            }
-
-        });
-
-        webView.setWebChromeClient(new WebChromeClient() {
-            public void onProgressChanged(WebView view, int progress) {
-
-
-                progressBar.setProgress(progress);
-            }
-        });
-
-        webView.loadUrl(full_url);
-
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_all_content, menu);
@@ -335,7 +285,7 @@ public class AllContent extends AppCompatActivity  {
             recreate();
         }
 
-        // refresh
+        // share
         if (id == R.id.menu_share) {
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
@@ -348,7 +298,7 @@ public class AllContent extends AppCompatActivity  {
             } catch (Throwable ignored) {
             }
         }
-        // other apps
+        // open page
         if (id == R.id.action_open) {
 
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -402,34 +352,6 @@ public class AllContent extends AppCompatActivity  {
         return super.onKeyLongPress(keycode, event);
     }
 
-    private void injectCSS() {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
-
-        if (is_dark) webView.loadUrl(
-                "javascript:document.body.style.setProperty(\"color\", \"white\");"
-        );
-    }
-
-    private void loadComments(String comm_url) {
-
-        final Dialog dialog = new Dialog(AllContent.this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.comments_list);
-        webView = dialog.findViewById(R.id.read_full_content);
-
-        LoadWeb(webView, comm_url);
-
-        DisplayMetrics dm = new DisplayMetrics();
-        this.getWindowManager().getDefaultDisplay().getMetrics(dm);
-        int height = dm.heightPixels-100;
-        int width = dm.widthPixels-20;
-        Button bt_close = dialog.findViewById(R.id.btn_close);
-        Objects.requireNonNull(dialog.getWindow()).setLayout(width, height);
-        dialog.show();
-        bt_close.setOnClickListener(v -> dialog.dismiss());
-
-    }
 
     // проверяем разрешение - есть ли оно у приложения
     public boolean isPermissionGranted() {

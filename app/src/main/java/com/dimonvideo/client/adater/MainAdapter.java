@@ -1,7 +1,9 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -25,9 +28,11 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
+import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.util.DownloadFile;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
@@ -94,7 +99,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(v -> {
-
             Intent intent = new Intent(context, AllContent.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
@@ -111,11 +115,54 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
             intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
             context.startActivity(intent);
-
-
-
         });
+        holder.textViewText.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AllContent.class);
+            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_PLUS, String.valueOf(Feed.getPlus()));
+            intent.putExtra(Config.TAG_DATE,Feed.getDate());
+            intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
+            intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
+            intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
+            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+            intent.putExtra(Config.TAG_USER, Feed.getUser());
+            intent.putExtra(Config.TAG_SIZE, Feed.getSize());
+            intent.putExtra(Config.TAG_LINK, Feed.getLink());
+            intent.putExtra(Config.TAG_MOD, Feed.getMod());
+            intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
+            intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
+            context.startActivity(intent);
+        });
+        holder.itemView.setOnLongClickListener(view -> {
+            final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
 
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            holder.url = Config.BASE_URL + "/" + Feed.getRazdel() + "/" + Feed.getId();
+            if (Feed.getRazdel().equals(Config.COMMENTS_RAZDEL)) holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
+
+            builder.setTitle(Feed.getTitle());
+            builder.setItems(items, (dialog, item) -> {
+                if (item == 0) { // browser
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (item == 1) { // like
+                    ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                }
+                if (item == 2) { // screen
+                    ButtonsActions.loadScreen(context, Feed.getImageUrl());
+                }
+                if (item == 3) { // download
+                    DownloadFile.download(context, Feed.getLink());
+                }
+            });
+            builder.show();
+            return true;
+        });
     }
 
     @Override
@@ -129,6 +176,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits;
         public ImageView rating_logo, status_logo;
         public HtmlTextView textViewText;
+        public String url;
 
         //Initializing Views
         public ViewHolder(View itemView) {

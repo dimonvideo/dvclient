@@ -1,6 +1,7 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,10 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -60,11 +63,13 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         //Getting the particular item from the list
         final Feed Feed =  jsonFeed.get(position);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
 
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
-        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)) holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play) holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
 
         holder.headersTitle.setText(Feed.getTitle());
         holder.subHeadersTitle.setText(Feed.getDate());
@@ -109,7 +114,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         holder.commentsBtn.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
-            ButtonsActions.loadComments(context, comm_url);
+            ButtonsActions.loadComments(context, comm_url, holder.progressBar);
         });
 
         holder.likeButton.setOnLikeListener(new OnLikeListener() {
@@ -154,6 +159,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         public HtmlTextView textViewText;
         public Button downloadBtn, modBtn, commentsBtn, mp4Btn;
         public LikeButton likeButton, starButton;
+        public ProgressBar progressBar;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -169,6 +175,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             likeButton = itemView.findViewById(R.id.thumb_button);
             starButton = itemView.findViewById(R.id.star_button);
             txt_plus = itemView.findViewById(R.id.txt_plus);
+            progressBar = itemView.findViewById(R.id.progressBar);
 
         }
 
