@@ -71,5 +71,6 @@
     <string name="vuploader_play_behavior">Показывать видео при нажатии на скрин</string>
     <string name="vuploader_video_behavior">Изменить соотношение сторон при воспроизведении</string>
     <string name="action_like">Поставить лайк</string>
+    <string name="password_invalid">Password is invalid</string>
 
 </resources>

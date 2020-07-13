@@ -76,4 +76,5 @@
     <string name="vuploader_play_behavior">Play video on screen tap</string>
     <string name="vuploader_video_behavior">Change Aspect Ratio</string>
     <string name="action_like">Like</string>
+    <string name="password_invalid">Password is invalid</string>
 </resources>

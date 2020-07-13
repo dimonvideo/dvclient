@@ -43,6 +43,8 @@ public class Config {
     public static final String COMMENTS_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&razdel=";
     public static final String CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=9&razdel=";
 
+    public static final String CHECK_AUTH_URL = BASE_URL + "/apps/dvclient.php?op=10";
+
     public static final String LIKE_URL = BASE_URL + "/apps/dvclient.php?op=8&razdel=";
 
     //JSON TAGS
