@@ -2,7 +2,6 @@ package com.dimonvideo.client.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -31,9 +30,9 @@ import java.net.URLEncoder;
 public class CheckAuth {
 
 
-    public static void checkPassword(Context context, View view, String password){
+    public static void checkPassword(Context context, View view, String password) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final String login = sharedPrefs.getString("dvc_login","null");
+        String login = sharedPrefs.getString("dvc_login", "null");
         if (password == null || password.length() < 5 || password.length() > 71) {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
@@ -42,23 +41,27 @@ public class CheckAuth {
             String pass = password;
             try {
                 pass = URLEncoder.encode(password, "utf-8");
+                login = URLEncoder.encode(login, "utf-8");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
+
             String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass;
-            Log.d("tag", url);
             StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                     response -> {
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             int state = jsonObject.getInt(Config.TAG_STATE);
-                            if (state > 0) Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show(); else
+                            if (state > 0) {
+                                Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                            } else
                                 Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
 
                             SharedPreferences.Editor editor;
                             editor = sharedPrefs.edit();
                             editor.putInt("auth_state", state);
                             editor.apply();
+                            GetToken.getToken(context);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -82,25 +85,25 @@ public class CheckAuth {
 
     }
 
-    public static void checkLogin(Context context, View view, String login){
+    public static void checkLogin(Context context, View view, String login) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final String password = sharedPrefs.getString("dvc_password","null");
+        final String password = sharedPrefs.getString("dvc_password", "null");
         if (login == null || login.length() < 2 || login.length() > 71) {
             Snackbar.make(view, context.getString(R.string.login_invalid), Snackbar.LENGTH_LONG).show();
         } else {
             if (password.length() > 5) {
 
-
                 RequestQueue queue = Volley.newRequestQueue(context);
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
+                    login = URLEncoder.encode(login, "utf-8");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
+
                 String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass;
-                Log.d("tag", url);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
                             try {
@@ -115,6 +118,7 @@ public class CheckAuth {
                                 editor = sharedPrefs.edit();
                                 editor.putInt("auth_state", state);
                                 editor.apply();
+                                GetToken.getToken(context);
 
 
                             } catch (JSONException e) {

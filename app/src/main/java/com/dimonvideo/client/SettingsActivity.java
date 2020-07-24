@@ -38,6 +38,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.dimonvideo.client.util.CheckAuth;
+import com.dimonvideo.client.util.GetToken;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
@@ -191,6 +192,9 @@ public class SettingsActivity extends AppCompatActivity {
                                 editor.putString("dvc_password", userPassword.getText().toString());
                                 editor.putString("dvc_login", userName.getText().toString());
                                 editor.apply();
+
+                                GetToken.getToken(mContext);
+
                                 Toast.makeText(mContext, mContext.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
                                 getActivity().onBackPressed();
                                 dialog.dismiss();

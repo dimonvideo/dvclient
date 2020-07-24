@@ -115,7 +115,18 @@ public class MainActivity extends AppCompatActivity {
         final String password = sharedPrefs.getString("dvc_password","null");
         final int auth_state = sharedPrefs.getInt("auth_state",0);
         View view = getWindow().getDecorView().getRootView();
-        CheckAuth.checkPassword(this, view, password);
+
+        long lastCheckedMillis = sharedPrefs.getLong("dvc_once_day", 0);
+        SharedPreferences.Editor editor;
+        editor = sharedPrefs.edit();
+        long now = System.currentTimeMillis();
+        long diffMillis = now - lastCheckedMillis;
+        if (diffMillis >= (3600000 * 24)) {
+            editor.putLong("dvc_once_day", now);
+            editor.apply();
+            CheckAuth.checkPassword(this, view, password);
+        }
+
         if (auth_state > 0) {
             status.setImageResource(R.drawable.ic_status_green);
             Login_Name.setText(getString(R.string.sign_as));
