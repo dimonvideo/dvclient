@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,12 +29,21 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.util.MessageEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,107 +52,127 @@ import java.util.Set;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
-    private List<Feed> listFeed;
-
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
+    private List<FeedPm> listFeed;
+    public RecyclerView recyclerView;
+    public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
 
     private RequestQueue requestQueue;
 
     private int requestCount = 1;
-    private ProgressBar progressBar;
+    private ProgressBar progressBar, ProgressBarBottom;
+    static int razdel = 10;
+    int cid = 0;
+    String url = Config.PM_URL;
+    String search_url = Config.COMMENTS_SEARCH_URL;
+    static String story = null;
+    String s_url = "";
+    String key = "comments";
+    SharedPreferences sharedPrefs;
+
+    public PmFragment() {
+        // Required empty public constructor
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+        requestCount = 1;
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
 
-        recyclerView = (RecyclerView) root.findViewById(R.id.recycler_view);
-        recyclerView.setHasFixedSize(true);
+        if (this.getArguments() != null) {
+            cid = getArguments().getInt(Config.TAG_ID);
+        }
+
+        recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(layoutManager);
 
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
 
-        progressBar = (ProgressBar) root.findViewById(R.id.progressbar);
+        progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
-
+        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-
-        recyclerView.setOnScrollChangeListener(this);
-        adapter = new MainAdapter(listFeed, getContext());
+        adapter = new PmAdapter(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
 
+        recyclerView.setAdapter(adapter);
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-        recyclerView.setAdapter(adapter);
 
         return root;
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        story = event.story;
+        if (TextUtils.isEmpty(story)) story = null;
+    }
+
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
-
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_news_cat", null);
-        String category = "all";
-        if (selections != null) {
-            String[] selected = selections.toArray(new String[]{});
-            category = TextUtils.join(",", selected);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
+        String login = sharedPrefs.getString("dvc_login","null");
+        String pass = sharedPrefs.getString("dvc_password","null");
+        try {
+            pass = URLEncoder.encode(pass, "utf-8");
+            login = URLEncoder.encode(login, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
-        //    Toast.makeText(getContext(), category, Toast.LENGTH_SHORT).show();
+        String finalPass = pass;
+        String finalLogin = login;
 
-        return new JsonArrayRequest(Config.NEWS_URL + requestCount + "&c=placeholder," + category,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        progressBar.setVisibility(View.GONE);
-                        for (int i = 0; i < response.length(); i++) {
-                            Feed jsonFeed = new Feed();
-                            JSONObject json;
-                            try {
-                                json = response.getJSONObject(i);
-                                jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                                jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                                jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                                jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                                jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                                jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
-                                jsonFeed.setLink(json.getString(Config.TAG_LINK));
-                                jsonFeed.setMod(json.getString(Config.TAG_MOD));
-                                jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
-                                jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
-                                jsonFeed.setUser(json.getString(Config.TAG_USER));
-                                jsonFeed.setSize(json.getString(Config.TAG_SIZE));
-                                jsonFeed.setId(json.getInt(Config.TAG_ID));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            listFeed.add(jsonFeed);
+        return new JsonArrayRequest(url + requestCount + "&login_name=" + finalLogin + "&login_password=" + finalPass,
+                response -> {
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
+                    for (int i = 0; i < response.length(); i++) {
+                        FeedPm jsonFeed = new FeedPm();
+                        JSONObject json;
+                        try {
+                            json = response.getJSONObject(i);
+                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                            jsonFeed.setImageUrl(json.getString(Config.TAG_CATEGORY));
+                            jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
+                            jsonFeed.setText(json.getString(Config.TAG_TEXT));
+
+                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                        adapter.notifyDataSetChanged();                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(getContext(), getString(R.string.no_more), Toast.LENGTH_SHORT).show();
+                        listFeed.add(jsonFeed);
                     }
+                    adapter.notifyDataSetChanged();
+
+                },
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
                 });
     }
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        ProgressBarBottom.setVisibility(View.VISIBLE);
         requestQueue.add(getDataFromServer(requestCount));
         requestCount++;
     }
@@ -173,6 +203,12 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
                 .detach(PmFragment.this)
                 .attach(PmFragment.this)
                 .commit();
+    }
+
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
     }
 
 }

@@ -91,4 +91,6 @@
     <string name="login">Login</string>
     <string name="login_btn">SignUp</string>
     <string name="control">2+6=</string>
+    <string name="tab_inbox">Inbox</string>
+    <string name="tab_pm">Messages</string>
 </resources>

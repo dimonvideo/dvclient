@@ -86,5 +86,7 @@
     <string name="login">Логин</string>
     <string name="login_btn">Зарегистрироваться</string>
     <string name="control">2+6=(прописью)</string>
+    <string name="tab_inbox">Inbox</string>
+    <string name="tab_pm">Messages</string>
 
 </resources>

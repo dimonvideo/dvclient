@@ -35,6 +35,8 @@ import androidx.preference.PreferenceManager;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.ui.pm.MainPmFragment;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.CheckAuth;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -84,8 +86,21 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = findViewById(R.id.fab);
         if (is_pm.equals("off")) fab.setVisibility(View.GONE);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show());
+        fab.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View view) {
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+
+                homeFrag = new MainPmFragment();
+
+                fragmentManager.beginTransaction()
+                        .replace(R.id.nav_host_fragment, homeFrag)
+                        .addToBackStack(null)
+                        .commit();
+            }
+            });
 
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
