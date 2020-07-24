@@ -23,6 +23,15 @@
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            android:key="dvc_main_razdel"
+            android:title="@string/select_razdel"
+            android:summary="%s"
+            android:entries="@array/razdel_list"
+            android:entryValues="@array/razdel_list_values"
+            android:defaultValue="10" />
+
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/view_header">

@@ -100,6 +100,11 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     }
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
+        if (razdel == 10) {
+            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
+        }
         if (razdel == 1) {
             url = Config.GALLERY_URL;
             search_url = Config.GALLERY_SEARCH_URL;
@@ -145,7 +150,6 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             search_url = Config.ANDROID_SEARCH_URL;
             key = Config.ANDROID_RAZDEL;
         }
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
         if (selections != null) {

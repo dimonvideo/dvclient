@@ -49,6 +49,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
+    SharedPreferences sharedPrefs;
 
     private RequestQueue requestQueue;
 
@@ -102,6 +103,12 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer() {
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
+        if (razdel == 10) {
+            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
+        }
+
         if (razdel == 1) key = Config.GALLERY_RAZDEL;
         if (razdel == 2) key = Config.UPLOADER_RAZDEL;
         if (razdel == 3) key = Config.VUPLOADER_RAZDEL;

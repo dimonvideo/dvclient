@@ -1,10 +1,12 @@
 package com.dimonvideo.client;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
@@ -26,6 +28,8 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.dimonvideo.client.util.CheckAuth;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,6 +62,8 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             Preference dvc_theme = findPreference("dvc_theme");
             Preference dvc_password = findPreference("dvc_password");
+            Preference dvc_login = findPreference("dvc_login");
+            Preference dvc_pm = findPreference("dvc_pm");
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceClickListener(
                     arg0 -> {
@@ -67,53 +73,30 @@ public class SettingsActivity extends AppCompatActivity {
                         return true;
                     });
 
+            assert dvc_password != null;
             dvc_password.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
-                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-                final String login = sharedPrefs.getString("dvc_login","null");
-                if (listValue == null || listValue.length() < 5 || listValue.length() > 71) {
-                    Toast.makeText(getContext(), getActivity().getString(R.string.password_invalid), Toast.LENGTH_LONG).show();
-                } else {
-
-                    RequestQueue queue = Volley.newRequestQueue(getContext());
-                    String pass = listValue;
-                    try {
-                        pass = URLEncoder.encode(listValue, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass;
-                    Log.d("tag", url);
-                    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                            response -> {
-                                try {
-                                    JSONObject jsonObject = new JSONObject(response);
-                                    int state = jsonObject.getInt(Config.TAG_STATE);
-                                    if (state > 0) Toast.makeText(getContext(), "state", Toast.LENGTH_LONG).show();
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }, error -> {
-                                if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                                    Toast.makeText(getContext(), getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                                } else if (error instanceof AuthFailureError) {
-                                    Toast.makeText(getContext(), getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                                } else if (error instanceof ServerError) {
-                                    Toast.makeText(getContext(), getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                                } else if (error instanceof NetworkError) {
-                                    Toast.makeText(getContext(), getString(R.string.error_network), Toast.LENGTH_LONG).show();
-                                } else if (error instanceof ParseError) {
-                                    Toast.makeText(getContext(), getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                                }
-                            });
-                    queue.add(stringRequest);
-
-                }
-
+                View view = getView();
+                CheckAuth.checkPassword(getContext(), view, listValue);
                 return true;
             });
+            assert dvc_login != null;
+            dvc_login.setOnPreferenceChangeListener((preference, newValue) -> {
+                String listValue = (String) newValue;
+                View view = getView();
+                CheckAuth.checkLogin(getContext(), view, listValue);
+                return true;
+            });
+            assert dvc_pm != null;
 
+            dvc_pm.setOnPreferenceChangeListener((preference, newValue) -> {
+                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+                final String password = sharedPrefs.getString("dvc_password","null");
+                String listValue = (String) password;
+                View view = getView();
+                CheckAuth.checkPassword(getContext(), view, listValue);
+                return true;
+            });
         }
 
         @Override

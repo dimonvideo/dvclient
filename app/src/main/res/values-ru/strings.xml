@@ -71,6 +71,10 @@
     <string name="vuploader_play_behavior">Показывать видео при нажатии на скрин</string>
     <string name="vuploader_video_behavior">Изменить соотношение сторон при воспроизведении</string>
     <string name="action_like">Поставить лайк</string>
-    <string name="password_invalid">Password is invalid</string>
+    <string name="password_invalid">Пароль или логин неверны</string>
+    <string name="select_razdel">Главный раздел</string>
+    <string name="success_auth">Авторизация успешна!</string>
+    <string name="unsuccess_auth">Ошибка авторизации!</string>
+    <string name="login_invalid">Логин некорректен!</string>
 
 </resources>

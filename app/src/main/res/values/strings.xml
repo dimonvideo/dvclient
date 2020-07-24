@@ -77,4 +77,8 @@
     <string name="vuploader_video_behavior">Change Aspect Ratio</string>
     <string name="action_like">Like</string>
     <string name="password_invalid">Password is invalid</string>
+    <string name="select_razdel">Select razdel for Main</string>
+    <string name="success_auth">Auth success</string>
+    <string name="unsuccess_auth">Auth failed</string>
+    <string name="login_invalid">Login invalid</string>
 </resources>
