@@ -76,5 +76,11 @@
     <string name="success_auth">Авторизация успешна!</string>
     <string name="unsuccess_auth">Ошибка авторизации!</string>
     <string name="login_invalid">Логин некорректен!</string>
+    <string name="sign_as">"Логин: "</string>
+    <string name="clear_login">Выйти с сайта</string>
+    <string name="clear_alert_title">Выйти с сайта?</string>
+    <string name="clear_alert_message">Выход с сайта, Вам придется заново вводить логин и пароль в настройках.</string>
+    <string name="ok">Да</string>
+    <string name="no">Нет</string>
 
 </resources>

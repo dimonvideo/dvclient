@@ -23,6 +23,11 @@
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
 
+        <Preference
+            android:dependency="dvc_password"
+            android:key="dvc_clear_login"
+            android:title="@string/clear_login"/>
+
         <ListPreference
             android:key="dvc_main_razdel"
             android:title="@string/select_razdel"

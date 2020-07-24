@@ -106,17 +106,26 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
-        Login_Name.setText(login_name);
+
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
+        TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
 
         final String password = sharedPrefs.getString("dvc_password","null");
         final int auth_state = sharedPrefs.getInt("auth_state",0);
         View view = getWindow().getDecorView().getRootView();
         CheckAuth.checkPassword(this, view, password);
-        if (auth_state > 0) status.setImageResource(R.drawable.ic_status_green);
+        if (auth_state > 0) {
+            status.setImageResource(R.drawable.ic_status_green);
+            Login_Name.setText(getString(R.string.sign_as));
+            Login_Name.append(login_name);
+        } else {
+            Login_Name.setOnClickListener(v -> {
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
+            });
+        }
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);

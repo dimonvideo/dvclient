@@ -1,6 +1,7 @@
 package com.dimonvideo.client;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.Preference;
@@ -64,6 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_password = findPreference("dvc_password");
             Preference dvc_login = findPreference("dvc_login");
             Preference dvc_pm = findPreference("dvc_pm");
+            Preference dvc_clear_login = findPreference("dvc_clear_login");
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceClickListener(
                     arg0 -> {
@@ -96,13 +99,44 @@ public class SettingsActivity extends AppCompatActivity {
                 CheckAuth.checkPassword(getContext(), view, password);
                 return true;
             });
+
+            dvc_clear_login.setOnPreferenceClickListener(preference -> {
+                alertForClearData();
+
+                return true;
+            });
+
         }
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
         }
+
+        private void alertForClearData(){
+
+            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+
+            alert.setTitle(getString(R.string.clear_alert_title));
+            alert.setMessage(getString(R.string.clear_alert_message));
+
+            alert.setCancelable(false);
+            alert.setPositiveButton(R.string.ok, (dialog, which) -> {
+                SharedPreferences.Editor editor;
+                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+                editor = sharedPrefs.edit();
+                editor.putInt("auth_state", 0);
+                editor.remove("dvc_password");
+                editor.remove("dvc_login");
+                editor.remove("dvc_pm");
+                editor.apply();
+                getActivity().onBackPressed();
+            });
+            alert.setNegativeButton(R.string.no, (dialog, which) -> dialog.dismiss());
+            alert.show();
+        }
     }
+
 
     @Override
     public void onDestroy() {

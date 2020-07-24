@@ -81,4 +81,10 @@
     <string name="success_auth">Auth success</string>
     <string name="unsuccess_auth">Auth failed</string>
     <string name="login_invalid">Login invalid</string>
+    <string name="sign_as">"Sign as: "</string>
+    <string name="clear_login">Clear login detail</string>
+    <string name="clear_alert_title">Really exit?</string>
+    <string name="clear_alert_message">Logout from site</string>
+    <string name="ok">Ok</string>
+    <string name="no">No</string>
 </resources>
