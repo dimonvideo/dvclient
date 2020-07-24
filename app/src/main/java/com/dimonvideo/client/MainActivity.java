@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         final String is_pm = sharedPrefs.getString("dvc_pm","off");
         final String login_name = sharedPrefs.getString("dvc_login",getString(R.string.nav_header_title));
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final int auth_state = sharedPrefs.getInt("auth_state",0);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        if (is_pm.equals("off")) fab.setVisibility(View.GONE);
+        if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
@@ -128,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
         TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
 
         final String password = sharedPrefs.getString("dvc_password","null");
-        final int auth_state = sharedPrefs.getInt("auth_state",0);
         View view = getWindow().getDecorView().getRootView();
 
         long lastCheckedMillis = sharedPrefs.getLong("dvc_once_day", 0);
