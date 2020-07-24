@@ -30,8 +30,8 @@ import java.net.URLEncoder;
 
 public class CheckAuth {
 
-    public static void checkPassword(Context context, View view, String password){
 
+    public static void checkPassword(Context context, View view, String password){
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String login = sharedPrefs.getString("dvc_login","null");
         if (password == null || password.length() < 5 || password.length() > 71) {
@@ -54,6 +54,11 @@ public class CheckAuth {
                             int state = jsonObject.getInt(Config.TAG_STATE);
                             if (state > 0) Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show(); else
                                 Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
+
+                            SharedPreferences.Editor editor;
+                            editor = sharedPrefs.edit();
+                            editor.putInt("auth_state", state);
+                            editor.apply();
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -105,6 +110,12 @@ public class CheckAuth {
                                     Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                                 else
                                     Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
+
+                                SharedPreferences.Editor editor;
+                                editor = sharedPrefs.edit();
+                                editor.putInt("auth_state", state);
+                                editor.apply();
+
 
                             } catch (JSONException e) {
                                 e.printStackTrace();

@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
@@ -34,6 +35,7 @@ import androidx.preference.PreferenceManager;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.util.CheckAuth;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -106,6 +108,15 @@ public class MainActivity extends AppCompatActivity {
 
         TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
         Login_Name.setText(login_name);
+
+        ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
+        status.setImageResource(R.drawable.ic_status_gray);
+
+        final String password = sharedPrefs.getString("dvc_password","null");
+        final int auth_state = sharedPrefs.getInt("auth_state",0);
+        View view = getWindow().getDecorView().getRootView();
+        CheckAuth.checkPassword(this, view, password);
+        if (auth_state > 0) status.setImageResource(R.drawable.ic_status_green);
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);

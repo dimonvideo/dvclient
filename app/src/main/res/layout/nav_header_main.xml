@@ -20,6 +20,21 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         app:srcCompat="@mipmap/ic_launcher_round" />
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    <!-- status -->
+        <ImageView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|center_horizontal"
+            android:layout_marginStart="1dip"
+            android:layout_marginEnd="5dip"
+            android:layout_marginTop="5dp"
+            android:contentDescription="@string/Comments"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_status_green" />
     <TextView
         android:id="@+id/login_string"
         android:layout_width="match_parent"
@@ -27,7 +42,7 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:text="@string/nav_header_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
-
+</LinearLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

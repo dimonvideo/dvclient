@@ -92,9 +92,8 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_pm.setOnPreferenceChangeListener((preference, newValue) -> {
                 SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
                 final String password = sharedPrefs.getString("dvc_password","null");
-                String listValue = (String) password;
                 View view = getView();
-                CheckAuth.checkPassword(getContext(), view, listValue);
+                CheckAuth.checkPassword(getContext(), view, password);
                 return true;
             });
         }
