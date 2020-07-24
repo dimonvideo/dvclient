@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
                 homeFrag = new MainFragment();
 
                 if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
+                if (razdel == 13) homeFrag = new PmFragment(); // pm
 
                 Bundle bundle = new Bundle();
                 String story = searchEditText.getText().toString().trim();
@@ -241,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
             homeFrag = new MainFragmentContent();
 
             if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
+            if (razdel == 13) homeFrag = new PmFragment(); // pm
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)

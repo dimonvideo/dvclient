@@ -77,21 +77,16 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewDate.setText(Feed.getDate());
+        holder.textViewNames.setText(Feed.getLast_poster_name());
 
-        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
 
         if (Feed.getHits() > 0) holder.status_logo.setImageResource(R.drawable.ic_status_green);
 
         holder.itemView.setOnClickListener(v -> {
-            Fragment fragment = new ForumFragmentPosts();
-            Bundle bundle = new Bundle();
-            bundle.putString(Config.TAG_TITLE, Feed.getTitle());
-            fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.addToBackStack(null);
-            ft.add(R.id.nav_host_fragment, fragment);
-            ft.commit();
+
+            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+
         });
 
     }
@@ -117,8 +112,8 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
             textViewComments = itemView.findViewById(R.id.rating);
-            textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
+            textViewNames = itemView.findViewById(R.id.name);
 
         }
 

@@ -3,13 +3,11 @@ package com.dimonvideo.client.ui.pm;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -22,23 +20,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.adater.PmAdapter;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedPm;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -47,10 +39,9 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
@@ -64,7 +55,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     static int razdel = 13;
     String url = Config.PM_URL;
 
-    public PmFragment() {
+    public PmArhivFragment() {
         // Required empty public constructor
     }
 
@@ -126,7 +117,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         String finalPass = pass;
         String finalLogin = login;
 
-        return new JsonArrayRequest(url + requestCount + "&login_name=" + finalLogin + "&login_password=" + finalPass,
+        return new JsonArrayRequest(url + requestCount + "&pm=2&login_name=" + finalLogin + "&login_password=" + finalPass,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -187,8 +178,8 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(PmFragment.this)
-                .attach(PmFragment.this)
+                .detach(PmArhivFragment.this)
+                .attach(PmArhivFragment.this)
                 .commit();
     }
 

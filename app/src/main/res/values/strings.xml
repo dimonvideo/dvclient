@@ -93,4 +93,8 @@
     <string name="control">2+6=</string>
     <string name="tab_inbox">Inbox</string>
     <string name="tab_pm">Messages</string>
+    <string name="tab_trash">Trash</string>
+    <string name="tab_arhiv">Arhiv</string>
+    <string name="tab_outbox">Outbox</string>
+    <string name="tab_ish">Send</string>
 </resources>

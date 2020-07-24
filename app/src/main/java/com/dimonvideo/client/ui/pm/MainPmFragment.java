@@ -26,7 +26,7 @@ import org.greenrobot.eventbus.EventBus;
 
 public class MainPmFragment extends Fragment  {
 
-    int razdel = 10;
+    int razdel = 13;
     String story = null;
 
     public MainPmFragment() {
@@ -39,18 +39,19 @@ public class MainPmFragment extends Fragment  {
 
         View root = inflater.inflate(R.layout.fragment_tabs, container, false);
         if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            EventBus.getDefault().post(new MessageEvent(razdel, story));
         }
+        EventBus.getDefault().post(new MessageEvent(razdel, story));
 
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);
 
         TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new PmFragment(),getString(R.string.tab_inbox));
-        adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
-        adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
+        adapt.addfrg(new PmArhivFragment(),getString(R.string.tab_arhiv));
+        adapt.addfrg(new PmIshFragment(),getString(R.string.tab_ish));
+        adapt.addfrg(new PmOutboxFragment(),getString(R.string.tab_outbox));
+        adapt.addfrg(new PmTrashFragment(),getString(R.string.tab_trash));
 
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);

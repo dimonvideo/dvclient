@@ -3,9 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
+    android:clickable="true"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp" >
+    android:padding="8dp"
+    android:focusable="true">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/container"
@@ -49,12 +51,23 @@
 
     <!-- category -->
     <TextView
-        android:id="@+id/category"
+        android:id="@+id/name"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
         android:layout_toEndOf="@+id/container"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_toEndOf="@+id/container"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/name"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
@@ -65,20 +78,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textAppearance="@android:style/TextAppearance.Small"
-        android:layout_below="@id/category"
-        android:layout_toEndOf="@+id/container"
+        android:layout_below="@id/date"
         android:layout_marginTop="5dp"
+        android:layout_marginStart="5dp"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
 
-    <!-- Date -->
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/listtext"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
 
 </RelativeLayout>
