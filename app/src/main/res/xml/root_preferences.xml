@@ -22,7 +22,9 @@
             app:key="dvc_pm"
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
-
+        <Preference
+            android:key="dvc_register"
+            android:title="@string/register"/>
         <Preference
             android:dependency="dvc_password"
             android:key="dvc_clear_login"

@@ -1,5 +1,6 @@
 package com.dimonvideo.client;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,6 +9,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
@@ -30,6 +36,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
 import com.dimonvideo.client.util.CheckAuth;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -39,6 +46,8 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -67,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_login = findPreference("dvc_login");
             Preference dvc_pm = findPreference("dvc_pm");
             Preference dvc_clear_login = findPreference("dvc_clear_login");
+            Preference dvc_register = findPreference("dvc_register");
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceClickListener(
                     arg0 -> {
@@ -106,6 +116,12 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
+            dvc_register.setOnPreferenceClickListener(preference -> {
+                loadReg(getContext());
+
+                return true;
+            });
+
         }
 
         @Override
@@ -134,6 +150,72 @@ public class SettingsActivity extends AppCompatActivity {
             });
             alert.setNegativeButton(R.string.no, (dialog, which) -> dialog.dismiss());
             alert.show();
+        }
+
+        // загрузить форму реги в окне
+        public void loadReg(Context mContext) {
+
+            final Dialog dialog = new Dialog(mContext);
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.registration);
+            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+
+            dialog.show();
+
+            Button btnLogin = dialog.findViewById(R.id.btnLogin);
+
+            btnLogin.setOnClickListener(view -> {
+
+                EditText userName = (EditText) dialog.findViewById(R.id.txtName);
+                EditText userEmail = (EditText) dialog.findViewById(R.id.txtEmail);
+                EditText userPassword = (EditText) dialog.findViewById(R.id.txtPwd);
+                EditText userControl = (EditText) dialog.findViewById(R.id.control);
+
+                String url = Config.REGISTRATION_URL;
+
+                if (userControl.getText().toString().trim().equalsIgnoreCase(Config.REGISTRATION_CONTROL)) {
+                    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
+
+                        Log.e("Volley Result", "" + response);
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            String state = jsonObject.getString("state");
+                            Log.e("tag", state);
+
+                            if (state.equals("2")) {
+
+                                SharedPreferences.Editor editor;
+                                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+                                editor = sharedPrefs.edit();
+                                editor.putInt("auth_state", 1);
+                                editor.putString("dvc_password", userPassword.getText().toString());
+                                editor.putString("dvc_login", userName.getText().toString());
+                                editor.apply();
+                                Toast.makeText(mContext, mContext.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
+                                getActivity().onBackPressed();
+                                dialog.dismiss();
+
+                            } else Toast.makeText(mContext, mContext.getString(R.string.unsuccess_auth), Toast.LENGTH_LONG).show();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }, error -> error.printStackTrace()) {
+
+                        @Override
+                        protected Map<String, String> getParams() {
+                            Map<String, String> postMap = new HashMap<>();
+                            postMap.put("userName", userName.getText().toString());
+                            postMap.put("userEmail", userEmail.getText().toString());
+                            postMap.put("userPassword", userPassword.getText().toString());
+                            return postMap;
+                        }
+                    };
+
+                    Volley.newRequestQueue(mContext).add(stringRequest);
+                }
+            });
+
         }
     }
 

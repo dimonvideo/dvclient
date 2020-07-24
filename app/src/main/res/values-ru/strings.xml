@@ -82,5 +82,9 @@
     <string name="clear_alert_message">Выход с сайта, Вам придется заново вводить логин и пароль в настройках.</string>
     <string name="ok">Да</string>
     <string name="no">Нет</string>
+    <string name="register">Регистрация на сайте</string>
+    <string name="login">Логин</string>
+    <string name="login_btn">Зарегистрироваться</string>
+    <string name="control">2+6=(прописью)</string>
 
 </resources>

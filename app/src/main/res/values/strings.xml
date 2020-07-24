@@ -87,4 +87,8 @@
     <string name="clear_alert_message">Logout from site</string>
     <string name="ok">Ok</string>
     <string name="no">No</string>
+    <string name="register">Registration</string>
+    <string name="login">Login</string>
+    <string name="login_btn">SignUp</string>
+    <string name="control">2+6=</string>
 </resources>
