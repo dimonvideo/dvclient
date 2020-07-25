@@ -136,7 +136,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
                 snackbar.show();
             }
         });
-        adapter.notifyDataSetChanged();
         itemTouchhelper.attachToRecyclerView(recyclerView);
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_pm));

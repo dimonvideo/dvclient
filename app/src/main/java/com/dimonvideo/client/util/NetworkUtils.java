@@ -56,6 +56,7 @@ public class NetworkUtils {
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             int state = jsonObject.getInt(Config.TAG_STATE);
+                            String image = jsonObject.getString(Config.TAG_IMAGE_URL);
                             if (state > 0) {
                                 Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                             } else
@@ -64,6 +65,7 @@ public class NetworkUtils {
                             SharedPreferences.Editor editor;
                             editor = sharedPrefs.edit();
                             editor.putInt("auth_state", state);
+                            editor.putString("auth_foto", image);
                             editor.apply();
                             GetToken.getToken(context);
 

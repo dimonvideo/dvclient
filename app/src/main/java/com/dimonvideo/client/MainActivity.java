@@ -32,6 +32,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
@@ -70,8 +72,9 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         final String is_pm = sharedPrefs.getString("dvc_pm","off");
         final String login_name = sharedPrefs.getString("dvc_login",getString(R.string.nav_header_title));
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final String image_url = sharedPrefs.getString("auth_foto",Config.BASE_URL+"/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state",0);
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -101,25 +104,30 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-
-
-        ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
-        status.setImageResource(R.drawable.ic_status_gray);
-        TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
-
+        // check is logged
+        long lastCheckedMillis = sharedPrefs.getLong("dvc_once_day", 0);
         final String password = sharedPrefs.getString("dvc_password","null");
         View view = getWindow().getDecorView().getRootView();
-
-        long lastCheckedMillis = sharedPrefs.getLong("dvc_once_day", 0);
         SharedPreferences.Editor editor;
         editor = sharedPrefs.edit();
         long now = System.currentTimeMillis();
         long diffMillis = now - lastCheckedMillis;
-        if (diffMillis >= (3600000 * 24)) {
+        if (diffMillis >= (3600000 * 6)) {
             editor.putLong("dvc_once_day", now);
             editor.apply();
             NetworkUtils.checkPassword(this, view, password);
         }
+
+        ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
+        status.setImageResource(R.drawable.ic_status_gray);
+        TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
+        ImageView avatar = navigationView.getHeaderView(0).findViewById(R.id.avatar);
+
+        Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
+
+
+
+
 
         if (auth_state > 0) {
             status.setImageResource(R.drawable.ic_status_green);

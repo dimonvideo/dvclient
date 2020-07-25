@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
@@ -76,9 +78,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             } catch (Throwable ignored) {
 
         }
-        ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
-        imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
-        holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
+        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
 
 
@@ -109,15 +109,14 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public NetworkImageView imageView;
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
-        public ImageView rating_logo, status_logo;
+        public ImageView rating_logo, status_logo, imageView;
         public HtmlTextView textViewText;
 
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = (NetworkImageView) itemView.findViewById(R.id.thumbnail);
+            imageView = itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
             status_logo = itemView.findViewById(R.id.status);
             textViewNames = itemView.findViewById(R.id.title);

@@ -130,6 +130,7 @@ public class SettingsActivity extends AppCompatActivity {
                 editor.remove("dvc_password");
                 editor.remove("dvc_login");
                 editor.remove("dvc_pm");
+                editor.remove("auth_foto");
                 editor.apply();
                 getActivity().onBackPressed();
             });

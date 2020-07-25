@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
@@ -74,9 +76,9 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(position);
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-        ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
-        imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
-        holder.imageView.setImageUrl(Feed.getImageUrl(), imageLoader);
+
+        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
@@ -138,8 +140,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewNames;
-        public ImageView status_logo;
-        public NetworkImageView imageView;
+        public ImageView status_logo, imageView;
         public HtmlTextView textViewText;
         public LinearLayout btns;
         public Button send;
@@ -148,7 +149,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = (NetworkImageView) itemView.findViewById(R.id.thumbnail);
+            imageView = (ImageView) itemView.findViewById(R.id.thumbnail);
             status_logo = itemView.findViewById(R.id.status);
             textViewTitle = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);
