@@ -35,13 +35,11 @@ import androidx.preference.PreferenceManager;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.ui.pm.MainPmFragment;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.CheckAuth;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -152,10 +150,10 @@ public class MainActivity extends AppCompatActivity {
 
                 FragmentManager fragmentManager = getSupportFragmentManager();
 
-                Fragment MainPmFragment = new MainPmFragment();
+                Fragment PmFragment = new PmFragment();
 
                 fragmentManager.beginTransaction()
-                        .add(R.id.nav_host_fragment, MainPmFragment)
+                        .add(R.id.nav_host_fragment, PmFragment)
                         .addToBackStack(null)
                         .commit();
             }
@@ -241,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
             homeFrag = new MainFragmentContent();
 
             if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
-            if (razdel == 13) homeFrag = new MainPmFragment(); // pm
+            if (razdel == 13) homeFrag = new PmFragment(); // pm
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)

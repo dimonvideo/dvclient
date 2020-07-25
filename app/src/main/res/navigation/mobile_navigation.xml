@@ -192,17 +192,6 @@
             app:destination="@id/nav_home" />
     </fragment>
     <fragment
-        android:id="@+id/nav_pm"
-        android:name="com.dimonvideo.client.ui.pm.MainPmFragment"
-        android:label="@string/tab_pm"
-        android:tag="pm"
-        tools:layout="@layout/fragment_home">
-        <argument
-            android:name="category"
-            android:defaultValue="13"
-            />
-    </fragment>
-    <fragment
         android:id="@+id/nav_pminbox"
         android:name="com.dimonvideo.client.ui.pm.PmFragment"
         android:label="@string/tab_inbox"

@@ -31,6 +31,7 @@ import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -49,6 +50,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         //Getting all feed
         this.jsonFeed = jsonFeed;
         this.context = context;
+
     }
 
     @NonNull
@@ -96,10 +98,19 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         return jsonFeed.size();
     }
 
+    public void removeItem(int position) {
+        jsonFeed.remove(position);
+        notifyItemRemoved(position);
+        notifyDataSetChanged();
+    }
+
+    public List<FeedPm> getData() {
+        return jsonFeed;
+    }
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
-        public ImageView rating_logo, status_logo;
+        public TextView textViewTitle, textViewDate, textViewNames;
+        public ImageView status_logo;
         public NetworkImageView imageView;
         public HtmlTextView textViewText;
 
@@ -111,8 +122,6 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             textViewTitle = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
-            textViewComments = itemView.findViewById(R.id.rating);
-            textViewHits = itemView.findViewById(R.id.views_count);
             textViewNames = itemView.findViewById(R.id.name);
 
         }
