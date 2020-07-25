@@ -84,25 +84,6 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View view) {
-
-                FragmentManager fragmentManager = getSupportFragmentManager();
-
-                homeFrag = new MainPmFragment();
-
-                fragmentManager.beginTransaction()
-                        .replace(R.id.nav_host_fragment, homeFrag)
-                        .addToBackStack(null)
-                        .commit();
-            }
-            });
-
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -161,6 +142,24 @@ public class MainActivity extends AppCompatActivity {
         if (!is_muzon) navigationView.getMenu().removeItem(R.id.nav_muzon);
         if (!is_books) navigationView.getMenu().removeItem(R.id.nav_books);
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View view) {
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+
+                Fragment MainPmFragment = new MainPmFragment();
+
+                fragmentManager.beginTransaction()
+                        .add(R.id.nav_host_fragment, MainPmFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
 
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -242,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
             homeFrag = new MainFragmentContent();
 
             if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
-            if (razdel == 13) homeFrag = new PmFragment(); // pm
+            if (razdel == 13) homeFrag = new MainPmFragment(); // pm
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)

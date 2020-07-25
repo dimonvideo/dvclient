@@ -2,6 +2,7 @@ package com.dimonvideo.client.ui.pm;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,7 +64,8 @@ public class MainPmFragment extends Fragment  {
 
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
-
+        EventBus.getDefault().post(new MessageEvent(razdel, null));
+        Log.e("tag", String.valueOf(razdel));
         return root;
     }
 }

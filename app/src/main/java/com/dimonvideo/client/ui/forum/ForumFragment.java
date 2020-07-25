@@ -1,8 +1,8 @@
 package com.dimonvideo.client.ui.forum;
 
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +17,6 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
-import com.dimonvideo.client.util.FragmentToActivity;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
 
@@ -40,7 +39,7 @@ public class ForumFragment extends Fragment  {
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);
 
-        TabsAdapter adapt = new TabsAdapter(getParentFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
+        TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
         adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
         adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
@@ -88,6 +87,7 @@ public class ForumFragment extends Fragment  {
             }
         });
         EventBus.getDefault().post(new MessageEvent(razdel, null));
+        Log.e("tag", String.valueOf(razdel));
         return root;
     }
 
