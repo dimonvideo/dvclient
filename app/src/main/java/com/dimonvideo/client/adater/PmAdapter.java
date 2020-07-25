@@ -6,7 +6,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,10 +24,12 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.CustomVolleyRequest;
+import com.dimonvideo.client.util.NetworkUtils;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
@@ -68,11 +73,6 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
         //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(position);
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
         ImageLoader imageLoader = CustomVolleyRequest.getInstance(context).getImageLoader();
         imageLoader.get(Feed.getImageUrl(), ImageLoader.getImageListener(holder.imageView, R.drawable.ic_menu_gallery, android.R.drawable.ic_dialog_alert));
@@ -83,14 +83,39 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
         holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
 
-        if (Feed.getHits() > 0) holder.status_logo.setImageResource(R.drawable.ic_status_green);
+        if (Feed.getIs_new() > 0) holder.status_logo.setImageResource(R.drawable.ic_status_green);
 
         holder.itemView.setOnClickListener(v -> {
 
             holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.btns.setVisibility(View.VISIBLE);
+            NetworkUtils.readPm(context, Feed.getId());
+            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         });
+        holder.textViewText.setOnClickListener(v -> {
 
+            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.btns.setVisibility(View.VISIBLE);
+            NetworkUtils.readPm(context, Feed.getId());
+            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+
+        });
+        holder.send.setOnClickListener(v -> {
+
+            holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.btns.setVisibility(View.GONE);
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 0);
+
+        });
+        holder.send.setOnLongClickListener(v -> {
+
+            holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.btns.setVisibility(View.GONE);
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1);
+
+            return true;
+        });
     }
 
     @Override
@@ -98,10 +123,13 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         return jsonFeed.size();
     }
 
+    // swipe to delete
     public void removeItem(int position) {
+        final FeedPm Feed =  jsonFeed.get(position);
         jsonFeed.remove(position);
         notifyItemRemoved(position);
-        notifyDataSetChanged();
+        NetworkUtils.deletePm(context, Feed.getId());
+
     }
 
     public List<FeedPm> getData() {
@@ -113,6 +141,9 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         public ImageView status_logo;
         public NetworkImageView imageView;
         public HtmlTextView textViewText;
+        public LinearLayout btns;
+        public Button send;
+        public EditText textInput;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -123,6 +154,9 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
             textViewNames = itemView.findViewById(R.id.name);
+            btns = itemView.findViewById(R.id.linearLayout1);
+            send = itemView.findViewById(R.id.btnSend);
+            textInput = itemView.findViewById(R.id.textInput);
 
         }
 

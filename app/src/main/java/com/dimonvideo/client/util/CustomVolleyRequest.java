@@ -27,7 +27,7 @@ public class CustomVolleyRequest {
         imageLoader = new ImageLoader(requestQueue,
                 new ImageLoader.ImageCache() {
                     private final LruCache<String, Bitmap>
-                            cache = new LruCache<String, Bitmap>(20);
+                            cache = new LruCache<String, Bitmap>(200);
 
                     @Override
                     public Bitmap getBitmap(String url) {
@@ -50,7 +50,7 @@ public class CustomVolleyRequest {
 
     public RequestQueue getRequestQueue() {
         if (requestQueue == null) {
-            Cache cache = new DiskBasedCache(context.getCacheDir(), 10 * 1024 * 1024);
+            Cache cache = new DiskBasedCache(context.getCacheDir(), 50 * 1024 * 1024);
             Network network = new BasicNetwork(new HurlStack());
             requestQueue = new RequestQueue(cache, network);
             requestQueue.start();

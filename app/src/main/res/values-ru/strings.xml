@@ -92,5 +92,7 @@
     <string name="tab_arhiv">Архив</string>
     <string name="tab_outbox">Отправленные</string>
     <string name="tab_ish">Исходящие</string>
+    <string name="msg_removed">Сообщение удалено!</string>
+    <string name="pm_send">Отправить</string>
 
 </resources>

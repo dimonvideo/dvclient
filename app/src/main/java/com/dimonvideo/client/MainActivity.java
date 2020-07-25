@@ -36,7 +36,7 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
-import com.dimonvideo.client.util.CheckAuth;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (diffMillis >= (3600000 * 24)) {
             editor.putLong("dvc_once_day", now);
             editor.apply();
-            CheckAuth.checkPassword(this, view, password);
+            NetworkUtils.checkPassword(this, view, password);
         }
 
         if (auth_state > 0) {

@@ -5,7 +5,7 @@ import com.dimonvideo.client.Config;
 public class FeedPm {
     //Data Variables
     private String imageUrl, title, full_text, date, last_poster_name, text;
-    private int hits;
+    private int id, Is_new;
 
     //Getters and Setters
 
@@ -28,10 +28,16 @@ public class FeedPm {
         this.title = title;
     }
 
-    public int getHits() {
-        return hits;
+    public int getId() {
+        return id;
+    }
+    public void setIs_new(int Is_new) {
+        this.Is_new = Is_new;
     }
 
+    public int getIs_new() {
+        return Is_new;
+    }
     public String getDate() {
         return date;
     }
@@ -40,8 +46,8 @@ public class FeedPm {
         this.date = date;
     }
 
-    public void setHits(int hits) {
-        this.hits = hits;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getLast_poster_name() {

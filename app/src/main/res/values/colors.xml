@@ -3,6 +3,8 @@
     <color name="colorPrimary">#3394e6</color>
     <color name="colorPrimaryDark">#2A73B1</color>
     <color name="colorAccent">#66AEEC</color>
+    <color name="colorPm">#337ab7</color>
+    <color name="colorPmSend">#419641 </color>
 
     <color name="colorList">#FFFFFF</color>
 

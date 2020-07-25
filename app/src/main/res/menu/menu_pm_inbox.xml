@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_inbox"
+        android:orderInCategory="100"
+        android:title="@string/tab_pm"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_outbox"
+        android:orderInCategory="100"
+        android:title="@string/tab_outbox"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_ish"
+        android:orderInCategory="100"
+        android:title="@string/tab_ish"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_arh"
+        android:orderInCategory="100"
+        android:title="@string/tab_arhiv"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_trash"
+        android:orderInCategory="100"
+        android:title="@string/tab_trash"
+        app:showAsAction="never" />
+</menu>

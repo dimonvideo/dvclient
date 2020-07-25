@@ -49,9 +49,9 @@ public class ForumFragment extends Fragment  {
         viewPager.setOffscreenPageLimit(2);
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         // set default title
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_topics));
         // add here
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {

@@ -5,14 +5,21 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -27,6 +34,8 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.SwipeToDeleteCallback;
 import com.google.android.material.snackbar.Snackbar;
@@ -101,23 +110,26 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+        // swipe to delete
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(new SwipeToDeleteCallback(getContext()) {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
 
                 PmAdapter adapter = new PmAdapter(listFeed, getContext());
-
                 final int position = viewHolder.getAdapterPosition();
-
                 adapter.removeItem(position);
+                recyclerView.setAdapter(adapter);
+                Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_removed), Snackbar.LENGTH_LONG);
+                snackbar.setAction(getString(R.string.tab_trash), view -> {
 
-                Snackbar snackbar = Snackbar.make(recyclerView, "Item was removed from the list.", Snackbar.LENGTH_LONG);
-                snackbar.setAction("UNDO", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
+                    FragmentManager fragmentManager = getParentFragmentManager();
 
+                    Fragment homeFrag = new PmTrashFragment();
 
-                    }
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.nav_host_fragment, homeFrag)
+                            .addToBackStack(null)
+                            .commit();
                 });
 
                 snackbar.setActionTextColor(Color.YELLOW);
@@ -126,10 +138,63 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         });
         adapter.notifyDataSetChanged();
         itemTouchhelper.attachToRecyclerView(recyclerView);
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.tab_pm));
+        setHasOptionsMenu(true);
         return root;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_pm_inbox, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        FragmentManager fragmentManager = getParentFragmentManager();
+        if (item.getItemId() == R.id.action_inbox) {
+            Fragment homeFrag = new PmFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_outbox) {
+            Fragment homeFrag = new PmOutboxFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_ish) {
+            Fragment homeFrag = new PmIshFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_arh) {
+            Fragment homeFrag = new PmArhivFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_trash) {
+            Fragment homeFrag = new PmTrashFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
@@ -161,7 +226,8 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
                             json = response.getJSONObject(i);
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setImageUrl(json.getString(Config.TAG_CATEGORY));
-                            jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                            jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            jsonFeed.setIs_new(json.getInt(Config.TAG_HITS));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
                             jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));

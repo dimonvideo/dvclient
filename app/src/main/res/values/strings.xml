@@ -97,4 +97,6 @@
     <string name="tab_arhiv">Arhiv</string>
     <string name="tab_outbox">Outbox</string>
     <string name="tab_ish">Send</string>
+    <string name="msg_removed">Message removed</string>
+    <string name="pm_send">Send</string>
 </resources>
