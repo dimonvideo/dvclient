@@ -1,8 +1,10 @@
 package com.dimonvideo.client;
 
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
@@ -26,6 +28,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -38,8 +41,8 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
-import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
@@ -56,25 +59,27 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPrefs;
     static int razdel = 10;
 
-    @Override
+
+        @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader",true);
-        final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader",true);
-        final boolean is_news = sharedPrefs.getBoolean("dvc_news",true);
-        final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery",true);
-        final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon",true);
-        final boolean is_books = sharedPrefs.getBoolean("dvc_books",true);
-        final boolean is_articles = sharedPrefs.getBoolean("dvc_articles",true);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
-        final String is_pm = sharedPrefs.getString("dvc_pm","off");
-        final String login_name = sharedPrefs.getString("dvc_login",getString(R.string.nav_header_title));
-        final String image_url = sharedPrefs.getString("auth_foto",Config.BASE_URL+"/images/noavatar.png");
-        final int auth_state = sharedPrefs.getInt("auth_state",0);
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
+        final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader", true);
+        final boolean is_news = sharedPrefs.getBoolean("dvc_news", true);
+        final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery", true);
+        final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon", true);
+        final boolean is_books = sharedPrefs.getBoolean("dvc_books", true);
+        final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme", false);
+        final String is_pm = sharedPrefs.getString("dvc_pm", "off");
+        final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -106,17 +111,9 @@ public class MainActivity extends AppCompatActivity {
 
         // check is logged
         long lastCheckedMillis = sharedPrefs.getLong("dvc_once_day", 0);
-        final String password = sharedPrefs.getString("dvc_password","null");
+        final String password = sharedPrefs.getString("dvc_password", "null");
         View view = getWindow().getDecorView().getRootView();
-        SharedPreferences.Editor editor;
-        editor = sharedPrefs.edit();
-        long now = System.currentTimeMillis();
-        long diffMillis = now - lastCheckedMillis;
-        if (diffMillis >= (3600000 * 6)) {
-            editor.putLong("dvc_once_day", now);
-            editor.apply();
-            NetworkUtils.checkPassword(this, view, password);
-        }
+
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
@@ -124,9 +121,6 @@ public class MainActivity extends AppCompatActivity {
         ImageView avatar = navigationView.getHeaderView(0).findViewById(R.id.avatar);
 
         Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
-
-
-
 
 
         if (auth_state > 0) {
@@ -150,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
 
         FloatingActionButton fab = findViewById(R.id.fab);
+        TextView fab_badge = findViewById(R.id.fab_badge);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -167,7 +162,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        SharedPreferences.Editor editor;
+        editor = sharedPrefs.edit();
+        long now = System.currentTimeMillis();
+        long diffMillis = now - lastCheckedMillis;
+        if (diffMillis >= (360000)) {
+            editor.putLong("dvc_once_day", now);
+            editor.apply();
+            NetworkUtils.checkPassword(this, view, password);
+        }
+
     }
+
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         razdel = event.razdel;
@@ -282,7 +289,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable ignored) {
             }
         }
-
 
 
         return super.onOptionsItemSelected(item);

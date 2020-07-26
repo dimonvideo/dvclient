@@ -74,6 +74,7 @@ public class Config {
     public static final String TAG_PINNED = "pinned";
     public static final String TAG_MIN = "min";
     public static final String TAG_PLUS = "plus";
+    public static final String TAG_PM_UNREAD = "pm_unread";
 
 }
 
