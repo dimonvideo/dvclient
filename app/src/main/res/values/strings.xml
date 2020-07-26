@@ -99,4 +99,5 @@
     <string name="tab_ish">Send</string>
     <string name="msg_removed">Message removed</string>
     <string name="pm_send">Send</string>
+    <string name="msg_restored">Restored</string>
 </resources>

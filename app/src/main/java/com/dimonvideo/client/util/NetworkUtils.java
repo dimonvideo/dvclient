@@ -150,7 +150,7 @@ public class NetworkUtils {
 
     }
 
-    public static void deletePm(Context context, int pm_id) {
+    public static void deletePm(Context context, int pm_id, int delete) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
@@ -169,7 +169,7 @@ public class NetworkUtils {
                     e.printStackTrace();
                 }
 
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10";
+                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete="+ delete;
                 Log.e("net", url);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
