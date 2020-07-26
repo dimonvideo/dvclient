@@ -1,9 +1,17 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,7 +23,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -34,10 +41,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
-import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.MessageEvent;
-import com.dimonvideo.client.util.SwipeToDeleteCallback;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
@@ -65,7 +69,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 13;
-    String url = Config.PM_URL;
 
     public PmFragment() {
         // Required empty public constructor
@@ -97,28 +100,67 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         // получение данных
         getData();
         adapter = new PmAdapter(listFeed, getContext());
-
+        // pull to refresh
+        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout.setOnRefreshListener(this);
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
-        adapter.notifyDataSetChanged();
-
-
-        recyclerView.setAdapter(adapter);
-        // pull to refresh
-        swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
-
         // swipe to delete
-        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(new SwipeToDeleteCallback(getContext()) {
+        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
+            private Drawable deleteIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_delete);
+            private final ColorDrawable background = new ColorDrawable(Color.RED);
             @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
 
-                PmAdapter adapter = new PmAdapter(listFeed, getContext());
-                final int position = viewHolder.getAdapterPosition();
-                adapter.removeItem(position);
-                recyclerView.setAdapter(adapter);
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    swipLayout.setEnabled(false);
+                } else {
+                    swipLayout.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive);
+
+                View itemView = viewHolder.itemView;
+
+                int iconMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
+                int iconTop = itemView.getTop() + (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
+                int iconBottom = iconTop + deleteIcon.getIntrinsicHeight();
+
+                if (dX > 0) {
+                    int iconLeft = itemView.getLeft() + iconMargin + deleteIcon.getIntrinsicWidth();
+                    int iconRight = itemView.getLeft() + iconMargin;
+
+                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                    background.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + ((int) dX), itemView.getBottom());
+                } else if (dX < 0) {
+                    int iconLeft = itemView.getRight() - iconMargin - deleteIcon.getIntrinsicWidth();
+                    int iconRight = itemView.getRight() - iconMargin;
+
+                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                    background.setBounds(itemView.getRight() + ((int) dX), itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                } else {
+                    background.setBounds(0, 0, 0, 0);
+                }
+
+                background.draw(c);
+                deleteIcon.draw(c);
+            }
+
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                ((PmAdapter) adapter).removeItem(position);
                 Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_removed), Snackbar.LENGTH_LONG);
                 snackbar.setAction(getString(R.string.tab_trash), view -> {
 
@@ -135,13 +177,18 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
                 snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();
             }
-        });
-        itemTouchhelper.attachToRecyclerView(recyclerView);
+        };
+
+        new ItemTouchHelper(itemTouchHelper).attachToRecyclerView(recyclerView);
+
+        recyclerView.setAdapter(adapter);
+
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_pm));
         setHasOptionsMenu(true);
         return root;
     }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -213,8 +260,9 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         }
         String finalPass = pass;
         String finalLogin = login;
-
-        return new JsonArrayRequest(url + requestCount + "&login_name=" + finalLogin + "&login_password=" + finalPass,
+        String url = Config.PM_URL + requestCount + "&login_name=" + finalLogin + "&login_password=" + finalPass;
+        Log.e("pm", url);
+        return new JsonArrayRequest(url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);

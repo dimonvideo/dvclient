@@ -129,7 +129,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
     public void removeItem(int position) {
         final FeedPm Feed =  jsonFeed.get(position);
         jsonFeed.remove(position);
-        notifyItemRemoved(position);
+        notifyDataSetChanged();
         NetworkUtils.deletePm(context, Feed.getId());
 
     }
