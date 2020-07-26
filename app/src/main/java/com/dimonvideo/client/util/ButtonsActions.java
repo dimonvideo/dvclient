@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.Window;
@@ -44,6 +45,8 @@ import com.dimonvideo.client.R;
 import com.potyvideo.library.AndExoPlayerView;
 import com.potyvideo.library.globalEnums.EnumAspectRatio;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Objects;
 
 public class ButtonsActions {
@@ -75,6 +78,41 @@ public class ButtonsActions {
         final String is_name = sharedPrefs.getString("dvc_login",android_id);
         RequestQueue queue = Volley.newRequestQueue(mContext);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
+                response -> {
+
+                }, error -> {
+            if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
+            } else if (error instanceof AuthFailureError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
+            } else if (error instanceof ServerError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
+            } else if (error instanceof NetworkError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_network), Toast.LENGTH_LONG).show();
+            } else if (error instanceof ParseError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
+            }
+        });
+        queue.add(stringRequest);
+
+    }
+
+    // добавление в избранное
+    public static void add_to_fav_file(Context mContext, String razdel, int id, int type){
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String login = sharedPrefs.getString("dvc_login", "null");
+        final String password = sharedPrefs.getString("dvc_password", "null");
+        String pass = password;
+        try {
+            pass = URLEncoder.encode(password, "utf-8");
+            login = URLEncoder.encode(login, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        RequestQueue queue = Volley.newRequestQueue(mContext);
+        String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
+        Log.d("tag", url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
 
                 }, error -> {

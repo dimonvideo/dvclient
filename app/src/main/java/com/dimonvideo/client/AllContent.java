@@ -246,6 +246,8 @@ public class AllContent extends AppCompatActivity  {
             @Override
             public void liked(LikeButton starButton) {
                 Snackbar.make(view, getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(getApplicationContext(), razdel, Integer.parseInt(id), 1);
+
             }
 
             @Override

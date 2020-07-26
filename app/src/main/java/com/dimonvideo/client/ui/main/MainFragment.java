@@ -52,7 +52,7 @@ public class MainFragment extends Fragment  {
         adapt.addfrg(new MainFragmentContent(),getString(R.string.tab_last));
         adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
         adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
-    //    adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_favorites));
+        adapt.addfrg(new MainFragmentFav(),getString(R.string.tab_favorites));
 
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);

@@ -35,6 +35,23 @@
             app:destination="@id/nav_home" />
     </fragment>
     <fragment
+        android:id="@+id/nav_fav"
+        android:name="com.dimonvideo.client.ui.main.MainFragmentFav"
+        android:label="@string/tab_favorites"
+        android:tag="fav"
+        tools:layout="@layout/fragment_tabs">
+        <argument
+            android:name="category"
+            android:defaultValue="20"
+            />
+        <action
+            android:id="@+id/action_nav_fav_to_nav_news"
+            app:destination="@id/nav_news" />
+        <action
+            android:id="@+id/action_nav_fav_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
+    <fragment
         android:id="@+id/nav_uploader"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_slideshow"
