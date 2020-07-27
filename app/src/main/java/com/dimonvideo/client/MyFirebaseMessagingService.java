@@ -1,6 +1,7 @@
 package com.dimonvideo.client;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.dimonvideo.client.util.MessageEvent;
@@ -9,16 +10,11 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
 
 import org.greenrobot.eventbus.EventBus;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
-    private LocalBroadcastManager broadcaster;
-
-    @Override
-    public void onCreate() {
-        broadcaster = LocalBroadcastManager.getInstance(this);
-    }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -26,19 +22,23 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getData().size() > 0) {
             String action = remoteMessage.getData().get("action");
             String count_pm = remoteMessage.getData().get("count_pm");
-            Log.e("pm", action);
 
-            if (action != null && !action.isEmpty() && action.equals("new_pm")) {
-
-                Intent intent = new Intent();
-                intent.putExtra("count_pm", count_pm);
-                intent.setAction("com.dimonvideo.client");
-                sendBroadcast(intent);
+            if (!action.isEmpty() && action.equals("new_pm")) {
+                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor;
+                editor = sharedPrefs.edit();
+                assert count_pm != null;
+                editor.putInt("pm_unread", Integer.parseInt(count_pm));
+                editor.apply();
+                Log.e("pmservice", ""+count_pm);
+                Intent local = new Intent();
+                local.setAction("com.dimonvideo.client.PM");
+                this.sendBroadcast(local);
 
 
             }
 
-            if (action != null && !action.isEmpty() && action.equals("new")) {
+            if (!action.isEmpty() && action.equals("new")) {
 
 
             }

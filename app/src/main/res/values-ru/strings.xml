@@ -96,5 +96,6 @@
     <string name="msg_restored">Сообщение восстановлено</string>
     <string name="msg_removed">Сообщение удалено!</string>
     <string name="pm_send">Отправить</string>
+    <string name="success_send_pm">Сообщение отправлено</string>
 
 </resources>

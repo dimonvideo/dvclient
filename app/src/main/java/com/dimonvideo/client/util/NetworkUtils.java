@@ -1,5 +1,6 @@
 package com.dimonvideo.client.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,6 +22,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -58,6 +60,7 @@ public class NetworkUtils {
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             int state = jsonObject.getInt(Config.TAG_STATE);
+                            int pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
                             String image = jsonObject.getString(Config.TAG_IMAGE_URL);
                             if (state > 0) {
                                 Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
@@ -68,6 +71,7 @@ public class NetworkUtils {
                             editor = sharedPrefs.edit();
                             editor.putInt("auth_state", state);
                             editor.putString("auth_foto", image);
+                            editor.putInt("pm_unread", pm_unread);
                             editor.apply();
                             GetToken.getToken(context);
 
@@ -157,6 +161,7 @@ public class NetworkUtils {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
+        final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
         if (login == null || login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
@@ -176,7 +181,16 @@ public class NetworkUtils {
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
 
-                        }, error -> {
+                        if (delete == 0) {
+                            SharedPreferences.Editor editor;
+                            editor = sharedPrefs.edit();
+                            editor.putInt("pm_unread", pm_unread-1);
+                            editor.apply();
+                            Intent local = new Intent();
+                            local.setAction("com.dimonvideo.client.PM");
+                            context.sendBroadcast(local);
+                        }
+                            }, error -> {
                     if (error instanceof TimeoutError || error instanceof NoConnectionError) {
                         Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
                     } else if (error instanceof AuthFailureError) {
@@ -260,7 +274,7 @@ public class NetworkUtils {
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
 
-                            Toast.makeText(context, context.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
 
                 }, Throwable::printStackTrace) {
 

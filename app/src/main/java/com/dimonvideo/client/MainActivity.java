@@ -2,8 +2,10 @@ package com.dimonvideo.client;
 
 import android.app.Activity;
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
     static int razdel = 10;
-
+    BroadcastReceiver updateUIReciver;
 
         @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,11 +154,36 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected void onPostExecute(String result) {
                     super.onPostExecute(result);
-                    // do something with data here-display it or send to mainactivity
+                    final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
+                    if (pm_unread > 0) {
+                        TextView fab_badge = findViewById(R.id.fab_badge);
+                        fab_badge.setVisibility(View.VISIBLE);
+                        fab_badge.setText(String.valueOf(pm_unread));
+                    }
                 }
             }
             AsyncCountPm task = new AsyncCountPm(this);
             task.execute(login_name);
+
+            IntentFilter filter = new IntentFilter();
+
+            filter.addAction("com.dimonvideo.client.PM");
+
+            updateUIReciver = new BroadcastReceiver() {
+
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                    int pm_unread = sharedPrefs.getInt("pm_unread", 0);
+                    TextView fab_badge = findViewById(R.id.fab_badge);
+                    fab_badge.setText(String.valueOf(pm_unread));
+                    if (pm_unread == 0) fab_badge.setVisibility(View.GONE);
+                    Log.e("pmse", "---"+pm_unread);
+
+                }
+            };
+            registerReceiver(updateUIReciver,filter);
+
         } else {
             Login_Name.setOnClickListener(v -> {
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
@@ -326,6 +353,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
+        unregisterReceiver(updateUIReciver);
         super.onDestroy();
     }
 

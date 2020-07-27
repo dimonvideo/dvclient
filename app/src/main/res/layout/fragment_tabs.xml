@@ -20,6 +20,8 @@
         app:layout_scrollFlags="scroll|enterAlways"
         app:tabSelectedTextColor="@color/colorAccent"
         >
+
+
     </com.google.android.material.tabs.TabLayout>
 
     <androidx.viewpager.widget.ViewPager

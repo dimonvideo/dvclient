@@ -102,4 +102,5 @@
     <string name="msg_restored">Restored</string>
     <string name="menu_fav">Favorites</string>
     <string name="tab_restore">Back</string>
+    <string name="success_send_pm">Message sent</string>
 </resources>

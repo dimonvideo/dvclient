@@ -72,6 +72,8 @@ public class MainFragment extends Fragment  {
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
 
+
+
         return root;
     }
 }
