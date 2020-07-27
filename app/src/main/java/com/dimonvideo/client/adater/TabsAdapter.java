@@ -1,6 +1,7 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

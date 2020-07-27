@@ -97,7 +97,7 @@ public class ButtonsActions {
 
     }
 
-    // добавление в избранное
+    // добавление или удаление файла из избранного
     public static void add_to_fav_file(Context mContext, String razdel, int id, int type){
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String login = sharedPrefs.getString("dvc_login", "null");

@@ -102,7 +102,7 @@ public class PmTrashFragment extends Fragment implements RecyclerView.OnScrollCh
 
         // swipe to restore
         ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
-            private Drawable deleteIcon = ContextCompat.getDrawable(getContext(), android.R.drawable.ic_dialog_email);
+            private Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), android.R.drawable.ic_dialog_email);
             private final ColorDrawable background = new ColorDrawable(Color.GREEN);
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -120,7 +120,7 @@ public class PmTrashFragment extends Fragment implements RecyclerView.OnScrollCh
             }
 
             @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+            public void onChildDraw(Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive);
 
                 View itemView = viewHolder.itemView;

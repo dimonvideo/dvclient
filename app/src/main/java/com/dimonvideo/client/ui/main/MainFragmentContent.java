@@ -192,8 +192,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             s_url = "&story=" + story;
         }
 
-        Log.d("tagURLc", url + requestCount + "&c=placeholder," + category_string + s_url);
-
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {
                     progressBar.setVisibility(View.GONE);

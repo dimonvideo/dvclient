@@ -1,6 +1,10 @@
 package com.dimonvideo.client.ui.main;
 
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,8 +18,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -26,8 +32,11 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -99,12 +108,85 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
 
-        recyclerView.setAdapter(adapter);
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+        // swipe to restore
+        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
+            private Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), android.R.drawable.star_big_off);
+            private final ColorDrawable background = new ColorDrawable(Color.GREEN);
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
 
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                super.onSelectedChanged(viewHolder, actionState);
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    swipLayout.setEnabled(false);
+                } else {
+                    swipLayout.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive);
+
+                View itemView = viewHolder.itemView;
+
+                int iconMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
+                int iconTop = itemView.getTop() + (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
+                int iconBottom = iconTop + deleteIcon.getIntrinsicHeight();
+
+                if (dX > 0) {
+                    int iconLeft = itemView.getLeft() + iconMargin + deleteIcon.getIntrinsicWidth();
+                    int iconRight = itemView.getLeft() + iconMargin;
+
+                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                    background.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + ((int) dX), itemView.getBottom());
+                } else if (dX < 0) {
+                    int iconLeft = itemView.getRight() - iconMargin - deleteIcon.getIntrinsicWidth();
+                    int iconRight = itemView.getRight() - iconMargin;
+
+                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                    background.setBounds(itemView.getRight() + ((int) dX), itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                } else {
+                    background.setBounds(0, 0, 0, 0);
+                }
+
+                background.draw(c);
+                deleteIcon.draw(c);
+            }
+
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                ((MainAdapter) adapter).removeFav(position);
+                Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG);
+                snackbar.setAction(getString(R.string.tab_restore), view -> {
+
+                    FragmentManager fragmentManager = getParentFragmentManager();
+
+                    Fragment homeFrag = new MainFragmentContent();
+
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.nav_host_fragment, homeFrag)
+                            .addToBackStack(null)
+                            .commit();
+                });
+
+                snackbar.setActionTextColor(Color.YELLOW);
+                snackbar.show();
+            }
+        };
+
+        new ItemTouchHelper(itemTouchHelper).attachToRecyclerView(recyclerView);
+
+        recyclerView.setAdapter(adapter);
         return root;
     }
 

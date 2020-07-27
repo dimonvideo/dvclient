@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,6 +15,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.dimonvideo.client.Config;
@@ -24,6 +26,8 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.Objects;
 
 public class MainFragment extends Fragment  {
 
@@ -47,14 +51,17 @@ public class MainFragment extends Fragment  {
 
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);
-
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String login = sharedPrefs.getString("dvc_password", "");
         TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new MainFragmentContent(),getString(R.string.tab_last));
         adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
         adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
-        adapt.addfrg(new MainFragmentFav(),getString(R.string.tab_favorites));
+        if ((login != null) && (login.length() > 2)) adapt.addfrg(new MainFragmentFav(),getString(R.string.tab_favorites));
+        tabLayout.setTabMode(TabLayout.MODE_FIXED);
 
         viewPager.setAdapter(adapt);
+
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setOffscreenPageLimit(2);
         EventBus.getDefault().post(new MessageEvent(razdel, null));

@@ -26,6 +26,7 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
+import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -33,6 +34,7 @@ import com.dimonvideo.client.util.CustomVolleyRequest;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.DownloadFile;
+import com.dimonvideo.client.util.NetworkUtils;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
@@ -98,6 +100,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, AllContent.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
@@ -134,7 +137,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
             context.startActivity(intent);
         });
-        holder.itemView.setOnLongClickListener(view -> {
+        holder.textViewText.setOnLongClickListener(view -> {
             final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -168,6 +171,14 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     @Override
     public int getItemCount() {
         return jsonFeed.size();
+    }
+
+    // swipe to remove favorites
+    public void removeFav(int position) {
+        final Feed Feed =  jsonFeed.get(position);
+        jsonFeed.remove(position);
+        notifyDataSetChanged();
+        ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

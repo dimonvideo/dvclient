@@ -41,6 +41,7 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.util.AsyncCountPm;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -109,12 +110,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // check is logged
-        long lastCheckedMillis = sharedPrefs.getLong("dvc_once_day", 0);
-        final String password = sharedPrefs.getString("dvc_password", "null");
-        View view = getWindow().getDecorView().getRootView();
-
-
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
         TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
@@ -127,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
             status.setImageResource(R.drawable.ic_status_green);
             Login_Name.setText(getString(R.string.sign_as));
             Login_Name.append(login_name);
+            final AsyncCountPm task = new AsyncCountPm(this);
+            task.execute(login_name);
         } else {
             Login_Name.setOnClickListener(v -> {
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
@@ -162,15 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        SharedPreferences.Editor editor;
-        editor = sharedPrefs.edit();
-        long now = System.currentTimeMillis();
-        long diffMillis = now - lastCheckedMillis;
-        if (diffMillis >= (360000)) {
-            editor.putLong("dvc_once_day", now);
-            editor.apply();
-            NetworkUtils.checkPassword(this, view, password);
-        }
+
 
     }
 

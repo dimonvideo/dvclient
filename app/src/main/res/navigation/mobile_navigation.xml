@@ -13,6 +13,7 @@
         tools:layout="@layout/fragment_tabs">
         <argument
             android:name="category"
+            app:destination="@id/nav_forum"
             android:defaultValue="10"
             />
     </fragment>

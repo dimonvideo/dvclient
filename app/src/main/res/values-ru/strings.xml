@@ -95,5 +95,6 @@
     <string name="msg_removed">Сообщение удалено!</string>
     <string name="pm_send">Отправить</string>
     <string name="msg_restored">Сообщение восстановлено</string>
+    <string name="tab_restore">Вернутся в раздел</string>
 
 </resources>
