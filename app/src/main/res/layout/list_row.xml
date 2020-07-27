@@ -43,7 +43,7 @@
     <!-- category -->
     <TextView
         android:id="@+id/category"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
@@ -52,6 +52,21 @@
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 
+    <!-- favorites -->
+    <ImageView
+        android:id="@+id/fav"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/thumbnail"
+        android:visibility="gone"
+        android:layout_alignParentTop="@+id/thumbnail"
+        android:layout_marginTop="5dp"
+        android:contentDescription="@string/favorites_btn"
+        android:textColor="@color/colorAccent"
+        android:layout_toStartOf="@+id/listtext"
+        android:textSize="@dimen/date"
+        app:srcCompat="@android:drawable/star_big_on"
+        tools:ignore="SpUsage" />
     <!-- text -->
     <org.sufficientlysecure.htmltextview.HtmlTextView
         android:id="@+id/listtext"

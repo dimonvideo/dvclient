@@ -1,12 +1,12 @@
 package com.dimonvideo.client;
 
+import android.app.Activity;
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -28,7 +28,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -41,7 +40,6 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
-import com.dimonvideo.client.util.AsyncCountPm;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -51,6 +49,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -122,7 +121,41 @@ public class MainActivity extends AppCompatActivity {
             status.setImageResource(R.drawable.ic_status_green);
             Login_Name.setText(getString(R.string.sign_as));
             Login_Name.append(login_name);
-            final AsyncCountPm task = new AsyncCountPm(this);
+            class AsyncCountPm extends AsyncTask<String, String, String> {
+                SharedPreferences sharedPrefs;
+                private WeakReference<Context> contextRef;
+
+                public AsyncCountPm(Context context) {
+                    this.contextRef = new WeakReference<>(context);
+                }
+
+                @Override
+                protected String doInBackground(String... params) {
+                    Context context = contextRef.get();
+                    if (context != null) {
+                        try {
+                            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                            // check is logged
+                            final String password = sharedPrefs.getString("dvc_password", "null");
+                            View view = ((Activity) context).getWindow().getDecorView().getRootView();
+
+                            NetworkUtils.checkPassword(context, view, password);
+
+                            return null;
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(String result) {
+                    super.onPostExecute(result);
+                    // do something with data here-display it or send to mainactivity
+                }
+            }
+            AsyncCountPm task = new AsyncCountPm(this);
             task.execute(login_name);
         } else {
             Login_Name.setOnClickListener(v -> {

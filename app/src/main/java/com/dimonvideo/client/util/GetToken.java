@@ -66,7 +66,7 @@ public class GetToken {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }, error -> error.printStackTrace()) {
+                }, Throwable::printStackTrace) {
 
                     @Override
                     protected Map<String, String> getParams() {

@@ -109,6 +109,8 @@ public class ButtonsActions {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        if (type == 1) Toast.makeText(mContext, mContext.getString(R.string.favorites_btn), Toast.LENGTH_LONG).show(); else Toast.makeText(mContext, mContext.getString(R.string.unfavorites_btn), Toast.LENGTH_LONG).show();
+
         RequestQueue queue = Volley.newRequestQueue(mContext);
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
         Log.d("tag", url);

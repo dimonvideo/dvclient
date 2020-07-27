@@ -53,6 +53,7 @@ public class Config {
     //JSON TAGS
     public static final String TAG_ID = "lid";
     public static final String TAG_IMAGE_URL = "image";
+    public static final String TAG_FAV = "fav";
     public static final String TAG_TITLE = "title";
     public static final String TAG_TEXT = "text";
     public static final String TAG_FULL_TEXT = "full_text";

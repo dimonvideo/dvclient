@@ -54,7 +54,7 @@
     <string name="like">Like</string>
     <string name="unlike">UnLike</string>
     <string name="favorites_btn">Added to favorites</string>
-    <string name="unfavorites_btn">Removed from favrites</string>
+    <string name="unfavorites_btn">Removed from favorites</string>
 
     <string name="error_network_timeout">Error timeout, try again later</string>
     <string name="error_server">Server error, try again later!</string>
@@ -85,7 +85,7 @@
     <string name="clear_login">Clear login detail</string>
     <string name="clear_alert_title">Really exit?</string>
     <string name="clear_alert_message">Logout from site</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="no">No</string>
     <string name="register">Registration</string>
     <string name="login">Login</string>

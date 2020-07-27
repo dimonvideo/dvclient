@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
@@ -111,80 +112,6 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
-
-        // swipe to restore
-        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
-            private Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), android.R.drawable.star_big_off);
-            private final ColorDrawable background = new ColorDrawable(Color.GREEN);
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-                super.onSelectedChanged(viewHolder, actionState);
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    swipLayout.setEnabled(false);
-                } else {
-                    swipLayout.setEnabled(true);
-                }
-            }
-
-            @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive);
-
-                View itemView = viewHolder.itemView;
-
-                int iconMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
-                int iconTop = itemView.getTop() + (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
-                int iconBottom = iconTop + deleteIcon.getIntrinsicHeight();
-
-                if (dX > 0) {
-                    int iconLeft = itemView.getLeft() + iconMargin + deleteIcon.getIntrinsicWidth();
-                    int iconRight = itemView.getLeft() + iconMargin;
-
-                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                    background.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + ((int) dX), itemView.getBottom());
-                } else if (dX < 0) {
-                    int iconLeft = itemView.getRight() - iconMargin - deleteIcon.getIntrinsicWidth();
-                    int iconRight = itemView.getRight() - iconMargin;
-
-                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                    background.setBounds(itemView.getRight() + ((int) dX), itemView.getTop(), itemView.getRight(), itemView.getBottom());
-                } else {
-                    background.setBounds(0, 0, 0, 0);
-                }
-
-                background.draw(c);
-                deleteIcon.draw(c);
-            }
-
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                ((MainAdapter) adapter).removeFav(position);
-                Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG);
-                snackbar.setAction(getString(R.string.tab_restore), view -> {
-
-                    FragmentManager fragmentManager = getParentFragmentManager();
-
-                    Fragment homeFrag = new MainFragmentContent();
-
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.nav_host_fragment, homeFrag)
-                            .addToBackStack(null)
-                            .commit();
-                });
-
-                snackbar.setActionTextColor(Color.YELLOW);
-                snackbar.show();
-            }
-        };
-
-        new ItemTouchHelper(itemTouchHelper).attachToRecyclerView(recyclerView);
 
         recyclerView.setAdapter(adapter);
         return root;
@@ -289,6 +216,7 @@ Log.e("fav", url + requestCount + s_url+"&fav=1&login_name="+ login_name);
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                             jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
+                            jsonFeed.setFav(json.getInt(Config.TAG_FAV));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }

@@ -8,9 +8,13 @@
     <string name="menu_home">Главное</string>
     <string name="menu_gallery">Картинки</string>
     <string name="menu_slideshow">Обменник</string>
+    <string name="menu_news">Новости</string>
+    <string name="menu_share_title">Поделится</string>
+    <string name="menu_forum">Форум</string>
+    <string name="menu_android">Android</string>
+    <string name="menu_fav">В избранное</string>
     <string name="Comments">Комментарии</string>
     <string name="no_more">Файлов больше нет</string>
-    <string name="menu_news">Новости</string>
     <string name="refresh">Обновить</string>
     <string name="action_others">Другие приложения</string>
     <string name="action_feedback">Обратная связь</string>
@@ -29,7 +33,6 @@
     <string name="books">Библиотека</string>
     <string name="by"> прислал: </string>
     <string name="articles">Статьи</string>
-    <string name="menu_share_title">Поделится</string>
     <string name="action_open">Открыть в браузере</string>
     <string name="view_header">Внешний вид</string>
     <string name="theme_black">Темная тема</string>
@@ -41,7 +44,6 @@
     <string name="search">Поиск</string>
     <string name="new_files">Новинки в разделе</string>
     <string name="download_mp4">Смотреть онлайн</string>
-    <string name="menu_forum">Форум</string>
     <string name="tab_topics">Последние темы</string>
     <string name="tab_forums">Форумы</string>
     <string name="no_more_forums">Форумов больше нет</string>
@@ -50,7 +52,6 @@
     <string name="unlike">Отметка понравилась снята</string>
     <string name="favorites_btn">Добавлено в Избранное</string>
     <string name="unfavorites_btn">Удалено из Избранного</string>
-
     <string name="error_network_timeout">Таймаут сети, попробуйте позже</string>
     <string name="error_server">Ошибка на сервере, попробуйте позже</string>
     <string name="error_network">Ошибка сети, попробуйте позже</string>
@@ -58,8 +59,14 @@
     <string name="tab_details">Подробно</string>
     <string name="tab_categories">Категории</string>
     <string name="tab_favorites">Избранное</string>
+    <string name="tab_inbox">Входящие</string>
+    <string name="tab_pm">Сообщения</string>
+    <string name="tab_trash">Корзина</string>
+    <string name="tab_arhiv">Архив</string>
+    <string name="tab_outbox">Отправленные</string>
+    <string name="tab_ish">Исходящие</string>
+    <string name="tab_restore">Вернутся в раздел</string>
     <string name="cats_text">Файлов:</string>
-    <string name="menu_android">Android</string>
     <string name="uploader_pref_tab">Настройки Обменника</string>
     <string name="android_pref_tab">Настройки раздела Андроид</string>
     <string name="muzon_pref_tab">Настройки раздела Музыка</string>
@@ -86,15 +93,8 @@
     <string name="login">Логин</string>
     <string name="login_btn">Зарегистрироваться</string>
     <string name="control">2+6=(прописью)</string>
-    <string name="tab_inbox">Входящие</string>
-    <string name="tab_pm">Сообщения</string>
-    <string name="tab_trash">Корзина</string>
-    <string name="tab_arhiv">Архив</string>
-    <string name="tab_outbox">Отправленные</string>
-    <string name="tab_ish">Исходящие</string>
+    <string name="msg_restored">Сообщение восстановлено</string>
     <string name="msg_removed">Сообщение удалено!</string>
     <string name="pm_send">Отправить</string>
-    <string name="msg_restored">Сообщение восстановлено</string>
-    <string name="tab_restore">Вернутся в раздел</string>
 
 </resources>

@@ -3,6 +3,7 @@ package com.dimonvideo.client.adater;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.CustomVolleyRequest;
@@ -35,6 +37,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
@@ -99,6 +102,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
+        if (Feed.getFav() > 0) {
+            holder.fav_star.setVisibility(View.VISIBLE);
+            holder.fav_star.setOnClickListener(v -> removeFav(position));
+
+        }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
         holder.itemView.setOnClickListener(v -> {
@@ -138,7 +146,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             context.startActivity(intent);
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
+            final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             holder.url = Config.BASE_URL + "/" + Feed.getRazdel() + "/" + Feed.getId();
@@ -153,13 +161,16 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                     } catch (Throwable ignored) {
                     }
                 }
-                if (item == 1) { // like
+                if (item == 1) { // fav
+                    ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                }
+                if (item == 2) { // like
                     ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
                 }
-                if (item == 2) { // screen
+                if (item == 3) { // screen
                     ButtonsActions.loadScreen(context, Feed.getImageUrl());
                 }
-                if (item == 3) { // download
+                if (item == 4) { // download
                     DownloadFile.download(context, Feed.getLink());
                 }
             });
@@ -185,7 +196,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         //Views
         public NetworkImageView imageView;
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits;
-        public ImageView rating_logo, status_logo;
+        public ImageView rating_logo, status_logo, fav_star;
         public HtmlTextView textViewText;
         public String url;
 
@@ -194,6 +205,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             super(itemView);
             imageView = itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
+            fav_star = itemView.findViewById(R.id.fav);
             status_logo = itemView.findViewById(R.id.status);
             textViewTitle = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);
