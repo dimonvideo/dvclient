@@ -62,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
     static int razdel = 10;
     BroadcastReceiver updateUIReciver;
 
-        @Override
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
@@ -118,6 +119,22 @@ public class MainActivity extends AppCompatActivity {
 
         Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
 
+        Intent intent_pm = getIntent();
+        if (intent_pm != null) {
+            try{
+            if (intent_pm.getStringExtra("action").equals("PmFragment")) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+
+                Fragment PmFragment = new PmFragment();
+
+                fragmentManager.beginTransaction()
+                        .add(R.id.nav_host_fragment, PmFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+            } catch (Throwable ignored) {
+            }
+        }
 
         if (auth_state > 0) {
             status.setImageResource(R.drawable.ic_status_green);
@@ -178,11 +195,11 @@ public class MainActivity extends AppCompatActivity {
                     TextView fab_badge = findViewById(R.id.fab_badge);
                     fab_badge.setText(String.valueOf(pm_unread));
                     if (pm_unread == 0) fab_badge.setVisibility(View.GONE);
-                    Log.e("pmse", "---"+pm_unread);
+                    Log.e("pmse", "---" + pm_unread);
 
                 }
             };
-            registerReceiver(updateUIReciver,filter);
+            registerReceiver(updateUIReciver, filter);
 
         } else {
             Login_Name.setOnClickListener(v -> {
@@ -218,7 +235,6 @@ public class MainActivity extends AppCompatActivity {
                         .commit();
             }
         });
-
 
 
     }

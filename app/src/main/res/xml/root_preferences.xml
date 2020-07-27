@@ -22,6 +22,11 @@
             app:key="dvc_pm"
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            android:dependency="dvc_pm"
+            app:key="dvc_pm_notify"
+            app:title="@string/disable_pm_notify" />
         <Preference
             android:key="dvc_register"
             android:title="@string/register"/>
