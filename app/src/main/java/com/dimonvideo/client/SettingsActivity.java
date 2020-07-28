@@ -33,6 +33,7 @@ import org.json.JSONObject;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -181,7 +182,7 @@ public class SettingsActivity extends AppCompatActivity {
                                 GetToken.getToken(mContext);
 
                                 Toast.makeText(mContext, mContext.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
-                                getActivity().onBackPressed();
+                                requireActivity().onBackPressed();
                                 dialog.dismiss();
 
                             } else Toast.makeText(mContext, mContext.getString(R.string.unsuccess_auth), Toast.LENGTH_LONG).show();
@@ -189,7 +190,7 @@ public class SettingsActivity extends AppCompatActivity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    }, error -> error.printStackTrace()) {
+                    }, Throwable::printStackTrace) {
 
                         @Override
                         protected Map<String, String> getParams() {

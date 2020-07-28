@@ -46,7 +46,7 @@ public class Config {
     public static final String CHECK_AUTH_URL = BASE_URL + "/apps/dvclient.php?op=10";
     public static final String PM_URL = BASE_URL + "/apps/dvclient.php?op=11&min=";
     public static final String REGISTRATION_URL = BASE_URL + "/apps/dvclient.php?op=12";
-    public static final String REGISTRATION_CONTROL = "восемь";
+    public static final String REGISTRATION_CONTROL = "8";
 
     public static final String LIKE_URL = BASE_URL + "/apps/dvclient.php?op=8&razdel=";
 
@@ -76,6 +76,7 @@ public class Config {
     public static final String TAG_MIN = "min";
     public static final String TAG_PLUS = "plus";
     public static final String TAG_PM_UNREAD = "pm_unread";
+    public static final String TAG_TOKEN = "token";
 
 }
 

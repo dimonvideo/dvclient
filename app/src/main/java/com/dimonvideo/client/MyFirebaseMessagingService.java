@@ -1,5 +1,6 @@
 package com.dimonvideo.client;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,15 +9,22 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.dimonvideo.client.util.ActionReceiver;
+import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
@@ -34,8 +42,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getData().size() > 0) {
             String action = remoteMessage.getData().get("action");
             String count_pm = remoteMessage.getData().get("count_pm");
-            int id = Integer.parseInt(remoteMessage.getData().get("id"));
+            int id = Integer.parseInt(Objects.requireNonNull(remoteMessage.getData().get("id")));
 
+            assert action != null;
             if (!action.isEmpty() && action.equals("new_pm")) {
                 SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
                 final boolean dvc_pm_notify = sharedPrefs.getBoolean("dvc_pm_notify", false);
@@ -48,7 +57,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 local.setAction("com.dimonvideo.client.PM");
                 this.sendBroadcast(local);
                 if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify))
-                    generateNotification(getApplicationContext(), remoteMessage.getData().get("subj"), Objects.requireNonNull(remoteMessage.getData().get("text")), id);
+                    getBitmapAsync(getApplicationContext(),
+                            Objects.requireNonNull(remoteMessage.getData().get("subj")),
+                            Objects.requireNonNull(remoteMessage.getData().get("text")), id,
+                            Objects.requireNonNull(remoteMessage.getData().get("image")));
 
             }
 
@@ -62,12 +74,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(@NonNull String token) {
-        Log.d("tag", "Refreshed token: " + token);
+        GetToken.getToken(this);
     }
 
-    private void generateNotification(Context context, String msg, String text, int id) {
+    private void getBitmapAsync(Context context, String msg, String text, int id, String imageUrl) {
 
-        int notify_id = id;
+        final Bitmap[] bitmap = {null};
+
+        Glide.with(getApplicationContext())
+                .asBitmap()
+                .load(imageUrl)
+                .apply(RequestOptions.circleCropTransform())
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+
+                        bitmap[0] = resource;
+                        generateNotification(context, msg, text, id, bitmap[0]);
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                    }
+                });
+    }
+
+    private void generateNotification(Context context, String msg, String text, int id, Bitmap bitmap) {
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -86,22 +118,27 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationIntent.putExtra("action", "PmFragment");
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
-        Intent intentAction = new Intent(context, ActionReceiver.class);
-        intentAction.putExtra("action","deletePm");
-        intentAction.putExtra("id", String.valueOf(id));
 
-        PendingIntent pIntentDelete = PendingIntent.getBroadcast(context,1,intentAction,PendingIntent.FLAG_CANCEL_CURRENT);
+        Intent intentAction = new Intent(context, ActionReceiver.class);
+        intentAction.putExtra("action", "deletePm");
+        intentAction.putExtra("id", String.valueOf(id));
+        PendingIntent pIntentDelete = PendingIntent.getBroadcast(context, 1, intentAction, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent intentAction2 = new Intent(context, ActionReceiver.class);
+        intentAction2.putExtra("action", "replyPm");
+        intentAction2.putExtra("id", String.valueOf(id));
+        PendingIntent pIntentReply = PendingIntent.getBroadcast(context, 2, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channelId);
+
         mBuilder.setSmallIcon(R.mipmap.ic_launcher);
-
-        mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(text));
-        mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher));
-
+        mBuilder.setLargeIcon(bitmap);
         mBuilder.setContentTitle(msg);
         mBuilder.setContentText(text);
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setAutoCancel(true);
+        mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(text));
+        mBuilder.addAction(android.R.drawable.stat_notify_more, getString(R.string.tab_pm), pIntentReply);
         mBuilder.addAction(android.R.drawable.ic_delete, getString(R.string.pm_delete), pIntentDelete);
 
         assert notificationManager != null;

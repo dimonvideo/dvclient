@@ -4,6 +4,9 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+
+import com.dimonvideo.client.MainActivity;
 
 public class ActionReceiver extends BroadcastReceiver {
 
@@ -12,6 +15,7 @@ public class ActionReceiver extends BroadcastReceiver {
         if (intent != null) {
             String action = intent.getStringExtra("action");
             String id = intent.getStringExtra("id");
+            Log.e("pmse", "---" + id);
 
             assert id != null;
             if (Integer.parseInt(id) > 0) {
@@ -29,19 +33,23 @@ public class ActionReceiver extends BroadcastReceiver {
                 performAction2(context, id);
 
             }
-            //This is used to close the notification tray
+
             Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
             context.sendBroadcast(it);
         }
     }
+
+    // delete PM from notify
     public void performAction1(Context context, String id){
-
         NetworkUtils.deletePm(context, Integer.parseInt(id), 0);
-
-
     }
 
+    // open PM fragment from notify
     public void performAction2(Context context, String id){
+        Intent notificationIntent = new Intent(context, MainActivity.class);
+        notificationIntent.putExtra("action", "PmFragment");
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        context.startActivity(notificationIntent);
 
     }
 }

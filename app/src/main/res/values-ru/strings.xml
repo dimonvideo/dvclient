@@ -92,7 +92,7 @@
     <string name="register">Регистрация на сайте</string>
     <string name="login">Логин</string>
     <string name="login_btn">Зарегистрироваться</string>
-    <string name="control">2+6=(прописью)</string>
+    <string name="control">2+6=(цифрами)</string>
     <string name="msg_restored">Сообщение восстановлено</string>
     <string name="msg_removed">Сообщение удалено!</string>
     <string name="pm_send">Отправить</string>

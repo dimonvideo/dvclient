@@ -30,6 +30,7 @@ public class GetToken {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         String login = sharedPrefs.getString("dvc_login","null");
         String pass = sharedPrefs.getString("dvc_password","null");
+        String current_token = sharedPrefs.getString("current_token","null");
         try {
             pass = URLEncoder.encode(pass, "utf-8");
             login = URLEncoder.encode(login, "utf-8");
@@ -37,6 +38,8 @@ public class GetToken {
             e.printStackTrace();
         }
         try {
+
+
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setApplicationId("1:771109015774:android:dfe7f6831106e74781324f")
                     .setProjectId("dv-offline")
@@ -45,19 +48,28 @@ public class GetToken {
             FirebaseInstanceId.getInstance().getInstanceId();
             String finalPass = pass;
             String finalLogin = login;
+
+
             FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
 
                 // Get new Instance ID token
                 try {
                     token[0] = Objects.requireNonNull(task.getResult()).getToken();
+                    SharedPreferences.Editor editor;
+                    editor = sharedPrefs.edit();
+                    editor.putString("current_token", token[0]);
+                    editor.apply();
+
+                 //   if ((current_token != null) && (current_token.equals(token[0]))) return;
+
                 } catch (Exception ignored) {
                 }
 
                 String url = Config.CHECK_AUTH_URL + "&login_name=" + finalLogin + "&login_password=" + finalPass;
-                Log.e("tag", url);
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
-                    Log.e("Volley Result", "" + response);
+                    Log.e("Get token Result", "curr token: " + token[0] + response);
+
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         String state = jsonObject.getString("state");

@@ -41,6 +41,7 @@ public class NetworkUtils {
     public static void checkPassword(Context context, View view, String password) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String login = sharedPrefs.getString("dvc_login", "null");
+        String current_token = sharedPrefs.getString("current_token","null");
         if (password == null || password.length() < 5 || password.length() > 71) {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
@@ -62,6 +63,7 @@ public class NetworkUtils {
                             int state = jsonObject.getInt(Config.TAG_STATE);
                             int pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
                             String image = jsonObject.getString(Config.TAG_IMAGE_URL);
+                            String token = jsonObject.getString(Config.TAG_TOKEN);
                             if (state > 0) {
                                 Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                             } else
@@ -73,7 +75,8 @@ public class NetworkUtils {
                             editor.putString("auth_foto", image);
                             editor.putInt("pm_unread", pm_unread);
                             editor.apply();
-                            GetToken.getToken(context);
+
+                            if (!token.equals(current_token)) GetToken.getToken(context);
 
                         } catch (JSONException e) {
                             e.printStackTrace();

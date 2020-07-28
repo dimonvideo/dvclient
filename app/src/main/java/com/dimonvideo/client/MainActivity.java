@@ -197,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
                     TextView fab_badge = findViewById(R.id.fab_badge);
                     fab_badge.setText(String.valueOf(pm_unread));
                     if (pm_unread == 0) fab_badge.setVisibility(View.GONE);
-                    Log.e("pmse", "---" + pm_unread);
 
                 }
             };
