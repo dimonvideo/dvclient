@@ -42,8 +42,12 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.google.android.material.snackbar.Snackbar;
 import com.potyvideo.library.AndExoPlayerView;
 import com.potyvideo.library.globalEnums.EnumAspectRatio;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -109,14 +113,26 @@ public class ButtonsActions {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        if (type == 1) Toast.makeText(mContext, mContext.getString(R.string.favorites_btn), Toast.LENGTH_LONG).show(); else Toast.makeText(mContext, mContext.getString(R.string.unfavorites_btn), Toast.LENGTH_LONG).show();
 
         RequestQueue queue = Volley.newRequestQueue(mContext);
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
         Log.d("tag", url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        int state = jsonObject.getInt(Config.TAG_STATE);
 
+                        if (state == 1) {
+                            if (type == 1)
+                                Toast.makeText(mContext, mContext.getString(R.string.favorites_btn), Toast.LENGTH_LONG).show();
+                            else
+                                Toast.makeText(mContext, mContext.getString(R.string.unfavorites_btn), Toast.LENGTH_LONG).show();
+                        } else Toast.makeText(mContext, mContext.getString(R.string.nav_header_title), Toast.LENGTH_LONG).show();
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }, error -> {
             if (error instanceof TimeoutError || error instanceof NoConnectionError) {
                 Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
