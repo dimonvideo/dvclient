@@ -371,7 +371,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
-        unregisterReceiver(updateUIReciver);
+        try { unregisterReceiver(updateUIReciver);
+        } catch (Throwable ignored) {
+        }
         super.onDestroy();
     }
 
