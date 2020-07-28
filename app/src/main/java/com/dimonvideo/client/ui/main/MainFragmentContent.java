@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -51,6 +52,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
+    LinearLayout emptyLayout;
 
     private RequestQueue requestQueue;
 
@@ -89,6 +91,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
+        emptyLayout = root.findViewById(R.id.linearEmpty);
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
@@ -97,7 +100,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         // получение данных
         getData();
         adapter = new MainAdapter(listFeed, getContext());
-
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));

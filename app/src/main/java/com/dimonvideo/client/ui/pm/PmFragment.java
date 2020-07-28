@@ -18,6 +18,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -63,6 +64,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
+    LinearLayout emptyLayout;
 
     private RequestQueue requestQueue;
 
@@ -94,12 +96,14 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         requestQueue = Volley.newRequestQueue(requireActivity());
 
         progressBar = root.findViewById(R.id.progressbar);
+        emptyLayout = root.findViewById(R.id.linearEmpty);
         progressBar.setVisibility(View.VISIBLE);
         ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
         adapter = new PmAdapter(listFeed, getContext());
+
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);

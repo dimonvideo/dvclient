@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.util.Log;
 
+import com.dimonvideo.client.util.ActionReceiver;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -33,6 +34,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getData().size() > 0) {
             String action = remoteMessage.getData().get("action");
             String count_pm = remoteMessage.getData().get("count_pm");
+            int id = Integer.parseInt(remoteMessage.getData().get("id"));
 
             if (!action.isEmpty() && action.equals("new_pm")) {
                 SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -46,9 +48,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 local.setAction("com.dimonvideo.client.PM");
                 this.sendBroadcast(local);
                 if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify))
-                    generateNotification(getApplicationContext(), remoteMessage.getData().get("subj"), Objects.requireNonNull(remoteMessage.getData().get("text")).substring(0, 100));
+                    generateNotification(getApplicationContext(), remoteMessage.getData().get("subj"), Objects.requireNonNull(remoteMessage.getData().get("text")), id);
 
-                Log.e("pm", "---"+count_pm);
             }
 
             if (!action.isEmpty() && action.equals("new")) {
@@ -64,7 +65,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Log.d("tag", "Refreshed token: " + token);
     }
 
-    private void generateNotification(Context context, String msg, String text) {
+    private void generateNotification(Context context, String msg, String text, int id) {
+
+        int notify_id = id;
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -83,6 +86,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationIntent.putExtra("action", "PmFragment");
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
+        Intent intentAction = new Intent(context, ActionReceiver.class);
+        intentAction.putExtra("action","deletePm");
+        intentAction.putExtra("id", String.valueOf(id));
+
+        PendingIntent pIntentDelete = PendingIntent.getBroadcast(context,1,intentAction,PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channelId);
         mBuilder.setSmallIcon(R.mipmap.ic_launcher);
@@ -94,8 +102,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         mBuilder.setContentText(text);
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setAutoCancel(true);
+        mBuilder.addAction(android.R.drawable.ic_delete, getString(R.string.pm_delete), pIntentDelete);
+
         assert notificationManager != null;
-        notificationManager.notify(1, mBuilder.build());
+        notificationManager.notify(id, mBuilder.build());
     }
 
 }

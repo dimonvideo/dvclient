@@ -104,4 +104,6 @@
     <string name="tab_restore">Back</string>
     <string name="success_send_pm">Message sent</string>
     <string name="disable_pm_notify">Disable PM notify</string>
+    <string name="dialog_no_result">No items found</string>
+    <string name="pm_delete">Delete</string>
 </resources>

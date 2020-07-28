@@ -116,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
         status.setImageResource(R.drawable.ic_status_gray);
         TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
         ImageView avatar = navigationView.getHeaderView(0).findViewById(R.id.avatar);
+        TextView app_version = navigationView.getHeaderView(0).findViewById(R.id.app_version);
+        app_version.append(": " + BuildConfig.VERSION_NAME);
 
         Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
 
