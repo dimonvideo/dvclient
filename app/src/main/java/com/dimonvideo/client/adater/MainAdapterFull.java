@@ -95,17 +95,9 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             holder.modBtn.setVisibility(View.GONE);
         }
 
-        holder.downloadBtn.setOnClickListener(view -> {
+        holder.downloadBtn.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
 
-            DownloadFile.download(context, Feed.getLink());
-
-        });
-
-        holder.modBtn.setOnClickListener(view -> {
-
-            DownloadFile.download(context, Feed.getMod());
-
-        });
+        holder.modBtn.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
 
         if (Feed.getComments() > 0) {
             String comText = context.getResources().getString(R.string.Comments) + ": " + Feed.getComments();

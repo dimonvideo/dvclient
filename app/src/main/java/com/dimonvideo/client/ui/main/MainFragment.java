@@ -58,7 +58,6 @@ public class MainFragment extends Fragment  {
         adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
         adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
         if ((login != null) && (login.length() > 2)) adapt.addfrg(new MainFragmentFav(),getString(R.string.tab_favorites));
-        tabLayout.setTabMode(TabLayout.MODE_FIXED);
 
         viewPager.setAdapter(adapt);
 

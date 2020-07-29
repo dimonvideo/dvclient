@@ -4,7 +4,7 @@ import com.dimonvideo.client.Config;
 
 public class Feed {
 	//Data Variables
-	private String imageUrl, title, text, date, razdel, category, headers, user, size, link, mod;
+	private String imageUrl, title, text, full_text, date, razdel, category, headers, user, size, link, mod;
 	private int id, comments, hits, min, plus, fav;
 	private Long time;
 	//Getters and Setters
@@ -25,6 +25,15 @@ public class Feed {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+
+	public String getFull_text() {
+		return full_text;
+	}
+
+	public void setFull_text(String full_text) {
+		this.full_text = full_text;
 	}
 
 	public void setHeaders(String headers) {
