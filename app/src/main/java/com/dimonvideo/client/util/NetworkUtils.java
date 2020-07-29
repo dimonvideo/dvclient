@@ -189,9 +189,10 @@ public class NetworkUtils {
                             editor = sharedPrefs.edit();
                             editor.putInt("pm_unread", pm_unread-1);
                             editor.apply();
-                            Intent local = new Intent();
-                            local.setAction("com.dimonvideo.client.PM");
-                            context.sendBroadcast(local);
+                            String count = String.valueOf(pm_unread-1);
+                            Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
+                            intent.putExtra("count", count);
+                            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                         }
                             }, error -> {
                     if (error instanceof TimeoutError || error instanceof NoConnectionError) {
@@ -218,6 +219,7 @@ public class NetworkUtils {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
+        final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
         if (login == null || login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
@@ -236,7 +238,10 @@ public class NetworkUtils {
                 Log.e("net", url);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
-
+                            String count = String.valueOf(pm_unread-1);
+                            Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
+                            intent.putExtra("count", count);
+                            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                         }, error -> {
                     if (error instanceof TimeoutError || error instanceof NoConnectionError) {
                         Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();

@@ -1,6 +1,5 @@
 package com.dimonvideo.client;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,20 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.util.Log;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
-import com.dimonvideo.client.util.ActionReceiver;
-import com.dimonvideo.client.util.GetToken;
-import com.dimonvideo.client.util.MessageEvent;
-import com.google.firebase.messaging.FirebaseMessagingService;
-import com.google.firebase.messaging.RemoteMessage;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,12 +16,19 @@ import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
-import org.greenrobot.eventbus.EventBus;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.dimonvideo.client.util.ActionReceiver;
+import com.dimonvideo.client.util.GetToken;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Objects;
-import java.util.Random;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -54,15 +48,18 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 assert count_pm != null;
                 editor.putInt("pm_unread", Integer.parseInt(count_pm));
                 editor.apply();
-                Intent local = new Intent();
-                local.setAction("com.dimonvideo.client.PM");
-                this.sendBroadcast(local);
-                if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify) && (is_pm.equals("on")))
+
+                if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify) && (is_pm.equals("on"))) {
+
+                    Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
+                    intent.putExtra("count", count_pm);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
                     getBitmapAsync(getApplicationContext(),
                             Objects.requireNonNull(remoteMessage.getData().get("subj")),
                             Objects.requireNonNull(remoteMessage.getData().get("text")), id,
                             Objects.requireNonNull(remoteMessage.getData().get("image")));
-
+                }
             }
 
             if (!action.isEmpty() && action.equals("new")) {

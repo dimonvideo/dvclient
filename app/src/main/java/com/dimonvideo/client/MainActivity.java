@@ -1,6 +1,7 @@
 package com.dimonvideo.client;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
@@ -35,6 +36,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -65,9 +67,9 @@ public class MainActivity extends AppCompatActivity {
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
     static int razdel = 10;
-    BroadcastReceiver updateUIReciver;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +88,9 @@ public class MainActivity extends AppCompatActivity {
         final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme", false);
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -128,25 +131,27 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent_pm = getIntent();
         if (intent_pm != null) {
-            try{
-            if (intent_pm.getStringExtra("action").equals("PmFragment")) {
-                FragmentManager fragmentManager = getSupportFragmentManager();
+            try {
+                if (intent_pm.getStringExtra("action").equals("PmFragment")) {
+                    FragmentManager fragmentManager = getSupportFragmentManager();
 
-                Fragment PmFragment = new PmFragment();
+                    Fragment PmFragment = new PmFragment();
 
-                fragmentManager.beginTransaction()
-                        .add(R.id.nav_host_fragment, PmFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
+                    fragmentManager.beginTransaction()
+                            .add(R.id.nav_host_fragment, PmFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
             } catch (Throwable ignored) {
             }
         }
 
         if (auth_state > 0) {
+
             status.setImageResource(R.drawable.ic_status_green);
             Login_Name.setText(getString(R.string.sign_as));
             Login_Name.append(login_name);
+            @SuppressLint("StaticFieldLeak")
             class AsyncCountPm extends AsyncTask<String, String, String> {
                 SharedPreferences sharedPrefs;
                 private WeakReference<Context> contextRef;
@@ -189,24 +194,6 @@ public class MainActivity extends AppCompatActivity {
             AsyncCountPm task = new AsyncCountPm(this);
             task.execute(login_name);
 
-            IntentFilter filter = new IntentFilter();
-
-            filter.addAction("com.dimonvideo.client.PM");
-
-            updateUIReciver = new BroadcastReceiver() {
-
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                    int pm_unread = sharedPrefs.getInt("pm_unread", 0);
-                    TextView fab_badge = findViewById(R.id.fab_badge);
-                    fab_badge.setText(String.valueOf(pm_unread));
-                    if (pm_unread == 0) fab_badge.setVisibility(View.GONE);
-
-                }
-            };
-            registerReceiver(updateUIReciver, filter);
-
         } else {
             Login_Name.setOnClickListener(v -> {
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
@@ -224,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        TextView fab_badge = findViewById(R.id.fab_badge);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -241,11 +227,26 @@ public class MainActivity extends AppCompatActivity {
                         .commit();
             }
         });
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
+        lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
 
         if (!isPermissionGranted()) requestPermission();
 
 
+    }
+    public BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null) {
+                String str = intent.getStringExtra("count");
+                TextView fab_badge = findViewById(R.id.fab_badge);
+                fab_badge.setVisibility(View.VISIBLE);
+                fab_badge.setText(str);
+                if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
+                Log.e("pm", "recived");
+            }
         }
+    };
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -377,7 +378,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
-        try { unregisterReceiver(updateUIReciver);
+        try {
+            unregisterReceiver(receiver);
         } catch (Throwable ignored) {
         }
         super.onDestroy();
