@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/linearLayout1"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="5dp"
+    android:layout_below="@id/listtext"
+    android:paddingRight="5dp"
+    android:paddingBottom="5dp"
+    android:visibility="gone"
+    android:baselineAligned="true"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <EditText
+        android:layout_weight="1"
+        android:id="@+id/textInput"
+        android:layout_height="45dp"
+        android:layout_width="0dip"
+        android:autofillHints=""
+        android:labelFor="@id/listtext"
+        android:inputType="text"
+        tools:ignore="LabelFor">
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:text="@string/pm_send"
+        android:layout_height="45dp"
+        android:layout_width="125dp"
+        app:backgroundTint="@color/colorPmSend"
+        android:id="@+id/btnSend" />
+</LinearLayout>

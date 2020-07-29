@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +13,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
@@ -33,6 +36,7 @@ import com.like.OnLikeListener;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
+import org.sufficientlysecure.htmltextview.OnClickATagListener;
 
 import java.util.Calendar;
 import java.util.List;
@@ -45,7 +49,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     List<Feed> jsonFeed;
 
     //Constructor of this class
-    public MainAdapter(List<Feed> jsonFeed, Context context){
+    public MainAdapter(List<Feed> jsonFeed, Context context) {
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
@@ -66,9 +70,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
         //Getting the particular item from the list
-        final Feed Feed =  jsonFeed.get(position);
+        final Feed Feed = jsonFeed.get(position);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
+        final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -105,8 +109,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
             intent.putExtra(Config.TAG_PLUS, String.valueOf(Feed.getPlus()));
-            intent.putExtra(Config.TAG_DATE,Feed.getDate());
-            intent.putExtra(Config.TAG_HEADERS,Feed.getHeaders());
+            intent.putExtra(Config.TAG_DATE, Feed.getDate());
+            intent.putExtra(Config.TAG_HEADERS, Feed.getHeaders());
             intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
             intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
             intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
@@ -120,11 +124,26 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
-        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play) holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play)
+            holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+
+        if (Feed.getMin() > 0) {
+            holder.btn_comms.setVisibility(View.GONE);
+            holder.txt_plus.setVisibility(View.GONE);
+            holder.likeButton.setVisibility(View.GONE);
+            holder.starButton.setVisibility(View.GONE);
+            holder.btn_mp4.setVisibility(View.GONE);
+            holder.btn_download.setVisibility(View.GONE);
+            holder.btn_mod.setVisibility(View.GONE);
+        }
 
         holder.textViewText.setOnClickListener(v -> {
+            holder.txt_plus.setVisibility(View.VISIBLE);
+            holder.likeButton.setVisibility(View.VISIBLE);
+            holder.starButton.setVisibility(View.VISIBLE);
 
             holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
+
             // comments
             holder.btn_comms.setVisibility(View.VISIBLE);
             holder.btn_comms.setOnClickListener(view -> {
@@ -156,67 +175,82 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                 holder.btn_mod.setVisibility(View.VISIBLE);
                 holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
             }
-            // download
-            holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
+        });
 
-            // like and favorites
-            holder.likeButton.setOnLikeListener(new OnLikeListener() {
-                @Override
-                public void liked(LikeButton likeButton) {
-                    Snackbar.make(holder.itemView, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
-                    ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
-                    holder.txt_plus.setText(String.valueOf(Feed.getPlus()+1));
+        // download
+        holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
 
-                }
+        // like and favorites
+        holder.starButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton starButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
+            }
 
-                @Override
-                public void unLiked(LikeButton likeButton) {
-                    Snackbar.make(holder.itemView, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
-                    ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 2);
-                    holder.txt_plus.setText(String.valueOf(Feed.getPlus()-1));
-                }
-            });
+            @Override
+            public void unLiked(LikeButton starButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
+            }
+        });
 
-            holder.starButton.setOnLikeListener(new OnLikeListener() {
-                @Override
-                public void liked(LikeButton starButton) {
-                    Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-                }
+        holder.likeButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton likeButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                holder.txt_plus.setText(String.valueOf(Feed.getPlus() + 1));
 
-                @Override
-                public void unLiked(LikeButton starButton) {
-                    Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
-                }
-            });
+            }
 
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 2);
+                holder.txt_plus.setText(String.valueOf(Feed.getPlus() - 1));
+            }
         });
 
         holder.textViewText.setOnLongClickListener(view -> {
-            final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
+            final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             holder.url = Config.BASE_URL + "/" + Feed.getRazdel() + "/" + Feed.getId();
-            if (Feed.getRazdel().equals(Config.COMMENTS_RAZDEL)) holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
+            if (Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+                holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
 
             builder.setTitle(Feed.getTitle());
             builder.setItems(items, (dialog, item) -> {
-                if (item == 0) { // browser
+                if (item == 0) { // share
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+                    sendIntent.setType("text/plain");
+
+                    Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+                    try {
+                        context.startActivity(shareIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (item == 1) { // browser
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
                     try {
                         context.startActivity(browserIntent);
                     } catch (Throwable ignored) {
                     }
                 }
-                if (item == 1) { // fav
+                if (item == 2) { // fav
                     ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1);
                 }
-                if (item == 2) { // like
+                if (item == 3) { // like
                     ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
                 }
-                if (item == 3) { // screen
+                if (item == 4) { // screen
                     ButtonsActions.loadScreen(context, Feed.getImageUrl());
                 }
-                if (item == 4) { // download
+                if (item == 5) { // download
                     DownloadFile.download(context, Feed.getLink());
                 }
             });
@@ -232,7 +266,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     // swipe to remove favorites
     public void removeFav(int position) {
-        final Feed Feed =  jsonFeed.get(position);
+        final Feed Feed = jsonFeed.get(position);
         jsonFeed.remove(position);
         notifyDataSetChanged();
         ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2);

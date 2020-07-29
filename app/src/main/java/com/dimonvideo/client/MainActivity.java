@@ -1,5 +1,6 @@
 package com.dimonvideo.client;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -21,12 +23,15 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -61,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPrefs;
     static int razdel = 10;
     BroadcastReceiver updateUIReciver;
-
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
+    private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,13 +82,12 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon", true);
         final boolean is_books = sharedPrefs.getBoolean("dvc_books", true);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme", false);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -237,8 +242,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if (!isPermissionGranted()) requestPermission();
 
-    }
+
+        }
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -386,4 +393,31 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    // проверяем разрешение - есть ли оно у приложения
+    public boolean isPermissionGranted() {
+        int permissionCheck = ActivityCompat.checkSelfPermission(getApplicationContext(), MainActivity.WRITE_EXTERNAL_STORAGE_PERMISSION);
+        return permissionCheck == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                Toast.makeText(MainActivity.this, "Разрешения получены", Toast.LENGTH_LONG).show();
+
+
+            } else {
+                Toast.makeText(MainActivity.this, "Разрешения не получены", Toast.LENGTH_LONG).show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    public void requestPermission() {
+        // запрашиваем разрешение
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{MainActivity.WRITE_EXTERNAL_STORAGE_PERMISSION}, MainActivity.REQUEST_WRITE_EXTERNAL_STORAGE);
+    }
 }

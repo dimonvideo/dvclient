@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
@@ -27,6 +28,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 
 import com.android.volley.AuthFailureError;
@@ -83,6 +85,8 @@ public class ButtonsActions {
         RequestQueue queue = Volley.newRequestQueue(mContext);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
+
+            Log.e("favR", response);
 
                 }, error -> {
             if (error instanceof TimeoutError || error instanceof NoConnectionError) {
@@ -198,7 +202,11 @@ public class ButtonsActions {
         webView.getSettings().setAppCachePath(mContext.getFilesDir().getPath() + mContext.getPackageName() + "/cache");
         webView.getSettings().setAppCacheEnabled(true);
         webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-        webView.setBackgroundColor(0);
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+        if (is_dark) webView.setBackgroundColor(Color.BLACK); else webView.setBackgroundColor(0);
+
         webView.setWebViewClient(new WebViewClient() {
 
 
@@ -242,7 +250,7 @@ public class ButtonsActions {
     private static void injectCSS(Context mContext, WebView webView) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
-
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         if (is_dark) webView.loadUrl(
                 "javascript:document.body.style.setProperty(\"color\", \"white\");"
         );

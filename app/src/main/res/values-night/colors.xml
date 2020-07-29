@@ -3,9 +3,12 @@
     <color name="colorPrimary">#292929</color>
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#5FA4E1</color>
+    <color name="colorPm">#337ab7</color>
+    <color name="colorPmSend">#419641 </color>
+    <color name="colorDelete">#F44336</color>
 
     <color name="colorList">#000000</color>
-
+    <color name="text">#BFBFBF</color>
     <color name="category">#EFEFEF</color>
     <color name="year">#888888</color>
     <color name="list_row_start_color">#ffffff</color>

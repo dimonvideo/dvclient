@@ -90,18 +90,14 @@ public class AllContent extends AppCompatActivity  {
     Dialog dialog;
     TextView txt_plus;
 
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
-    private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
     SharedPreferences sharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
         super.onCreate(savedInstanceState);
 
         dialog = new Dialog(AllContent.this,android.R.style.Theme_Translucent_NoTitleBar);
@@ -153,23 +149,9 @@ public class AllContent extends AppCompatActivity  {
             modBtn.setVisibility(View.GONE);
         }
 
-        downloadBtn.setOnClickListener(view -> {
+        downloadBtn.setOnClickListener(view -> DownloadFile.download(getApplicationContext(), link));
 
-            if (isPermissionGranted()) {
-                DownloadFile.download(getApplicationContext(), link);
-            } else {
-                // иначе запрашиваем разрешение у пользователя
-                requestPermission();
-            }
-        });
-
-        modBtn.setOnClickListener(view -> {
-            if (isPermissionGranted()) {
-                DownloadFile.download(getApplicationContext(), mod);
-                // иначе запрашиваем разрешение у пользователя
-                requestPermission();
-            }
-        });
+        modBtn.setOnClickListener(view -> DownloadFile.download(getApplicationContext(), mod));
 
         if (comments > 0) {
             String comText = getResources().getString(R.string.Comments) + ": " + comments;
@@ -338,8 +320,8 @@ public class AllContent extends AppCompatActivity  {
 
     @Override
     public void onBackPressed() {
-        if(getFragmentManager().getBackStackEntryCount() > 0) {
-            getFragmentManager().popBackStackImmediate();
+        if(getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStackImmediate();
         } else {
             super.onBackPressed();
             finish();
@@ -356,31 +338,5 @@ public class AllContent extends AppCompatActivity  {
     }
 
 
-    // проверяем разрешение - есть ли оно у приложения
-    public boolean isPermissionGranted() {
-        int permissionCheck = ActivityCompat.checkSelfPermission(getApplicationContext(), AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION);
-        return permissionCheck == PackageManager.PERMISSION_GRANTED;
-    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                Toast.makeText(AllContent.this, "Разрешения получены", Toast.LENGTH_LONG).show();
-
-
-            } else {
-                Toast.makeText(AllContent.this, "Разрешения не получены", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-    public void requestPermission() {
-        // запрашиваем разрешение
-        ActivityCompat.requestPermissions(AllContent.this, new String[]{AllContent.WRITE_EXTERNAL_STORAGE_PERMISSION}, AllContent.REQUEST_WRITE_EXTERNAL_STORAGE);
-    }
 }

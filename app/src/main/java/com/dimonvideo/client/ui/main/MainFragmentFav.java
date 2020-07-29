@@ -189,7 +189,6 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
-Log.e("fav", url + requestCount + s_url+"&fav=1&login_name="+ login_name);
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {
                     progressBar.setVisibility(View.GONE);

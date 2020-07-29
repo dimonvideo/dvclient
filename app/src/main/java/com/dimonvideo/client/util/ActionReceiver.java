@@ -48,7 +48,7 @@ public class ActionReceiver extends BroadcastReceiver {
     public void performAction2(Context context, String id){
         Intent notificationIntent = new Intent(context, MainActivity.class);
         notificationIntent.putExtra("action", "PmFragment");
-        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
         context.startActivity(notificationIntent);
 
     }

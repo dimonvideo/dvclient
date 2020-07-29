@@ -21,7 +21,7 @@ public class DownloadFile {
             request.setDestinationInExternalPublicDir(
                     Environment.DIRECTORY_DOWNLOADS,    //Download folder
                     URLUtil.guessFileName(link, null, null));  //Name of file
-            request.allowScanningByMediaScanner();
+            assert downloadManager != null;
             downloadManager.enqueue(request);
         } catch (Throwable ignored) {
         }

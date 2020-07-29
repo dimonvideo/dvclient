@@ -5,7 +5,7 @@ import com.dimonvideo.client.Config;
 public class FeedForum {
 	//Data Variables
 	private String imageUrl, last_poster_name, title, text, date, category, state, user, pinned;
-	private int id, comments, hits;
+	private int id, comments, hits, newtopic, topic_id;
 	private Long time;
 
 	//Getters and Setters
@@ -68,12 +68,29 @@ public class FeedForum {
 		this.hits = hits;
 	}
 
+	public int getNewtopic() {
+		return newtopic;
+	}
+
+	public void setNewtopic(int newtopic) {
+		this.newtopic = newtopic;
+	}
+
 	public int getId() {
 		return id;
 	}
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+
+	public int getTopic_id() {
+		return topic_id;
+	}
+
+	public void setTopic_id(int topic_id) {
+		this.topic_id = topic_id;
 	}
 
 	public String getLast_poster_name() {

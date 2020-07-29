@@ -107,7 +107,7 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         root.setOnKeyListener((v, keyCode, event) -> {
             if( keyCode == KeyEvent.KEYCODE_BACK )
             {
-                try { getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+                try { requireActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 } catch (Throwable ignored) {
                 }
                 return true;
@@ -147,6 +147,8 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
                             jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                            jsonFeed.setNewtopic(json.getInt(Config.TAG_NEW_TOPIC));
+                            jsonFeed.setTopic_id(json.getInt(Config.TAG_TOPIC_ID));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }

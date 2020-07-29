@@ -48,6 +48,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             if (!action.isEmpty() && action.equals("new_pm")) {
                 SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
                 final boolean dvc_pm_notify = sharedPrefs.getBoolean("dvc_pm_notify", false);
+                final String is_pm = sharedPrefs.getString("dvc_pm", "off");
                 SharedPreferences.Editor editor;
                 editor = sharedPrefs.edit();
                 assert count_pm != null;
@@ -56,7 +57,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 Intent local = new Intent();
                 local.setAction("com.dimonvideo.client.PM");
                 this.sendBroadcast(local);
-                if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify))
+                if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify) && (is_pm.equals("on")))
                     getBitmapAsync(getApplicationContext(),
                             Objects.requireNonNull(remoteMessage.getData().get("subj")),
                             Objects.requireNonNull(remoteMessage.getData().get("text")), id,

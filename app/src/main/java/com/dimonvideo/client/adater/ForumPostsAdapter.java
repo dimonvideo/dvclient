@@ -1,21 +1,29 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.util.ButtonsActions;
+import com.dimonvideo.client.util.NetworkUtils;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
@@ -67,12 +75,18 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         }
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        final String password = sharedPrefs.getString("dvc_password", "null");
 
+        if ((Feed.getNewtopic() == 1) && (!password.equals("null"))) holder.post_layout.setVisibility(View.VISIBLE);
+
+        holder.btnSend.setOnClickListener(v -> {
+            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2);
+            holder.post_layout.setVisibility(View.GONE);
+        });
 
         holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
 
-
-    //    holder.textViewText.setText(Feed.getText());
 
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
@@ -94,11 +108,21 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         return jsonFeed.size();
     }
 
+    // swipe to remove favorites
+    public void addPost(int position) {
+        final FeedForum Feed =  jsonFeed.get(position);
+        notifyDataSetChanged();
+      //  ButtonsActions.add_post(context, Feed.getId(), 2);
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, imageView;
         public HtmlTextView textViewText;
+        public LinearLayout post_layout;
+        public Button btnSend;
+        public EditText textInput;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -113,6 +137,9 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
             textViewTitle = itemView.findViewById(R.id.names);
+            post_layout = itemView.findViewById(R.id.post);
+            btnSend = itemView.findViewById(R.id.btnSend);
+            textInput = itemView.findViewById(R.id.textInput);
 
         }
 

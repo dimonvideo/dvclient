@@ -70,6 +70,14 @@
         android:layout_marginTop="5dp"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
+
+    <include
+        layout="@layout/post"
+        android:id="@+id/post"
+        android:layout_below="@id/listtext"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
     <!-- autor -->
     <TextView
         android:id="@+id/names"
@@ -77,7 +85,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center_vertical|right"
-        android:layout_below="@id/listtext"
+        android:layout_below="@id/post"
         android:textSize="@dimen/text"
         android:text="@string/menu_forum"
         tools:ignore="SpUsage" />

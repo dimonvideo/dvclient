@@ -8,7 +8,7 @@
     <color name="colorDelete">#F44336</color>
 
     <color name="colorList">#FFFFFF</color>
-
+    <color name="text">#D22C2C2C</color>
     <color name="category">#666666</color>
     <color name="year">#888888</color>
     <color name="list_row_start_color">#ffffff</color>

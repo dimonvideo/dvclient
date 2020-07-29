@@ -35,6 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/thumbnail"
+        android:textColor="@color/text"
         android:layout_toEndOf="@+id/status"
         android:textSize="@dimen/title"
         android:textStyle="bold"
@@ -86,7 +87,7 @@
         android:layout_below="@id/progressBar"
         android:layout_toEndOf="@+id/thumbnail"
         android:layout_marginTop="5dp"
-        android:textColor="@color/category"
+        android:textColor="@color/text"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
 

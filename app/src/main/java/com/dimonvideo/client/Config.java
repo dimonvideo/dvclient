@@ -77,6 +77,8 @@ public class Config {
     public static final String TAG_PLUS = "plus";
     public static final String TAG_PM_UNREAD = "pm_unread";
     public static final String TAG_TOKEN = "token";
+    public static final String TAG_NEW_TOPIC = "newtopic";
+    public static final String TAG_TOPIC_ID = "topic_id";
 
 }
 

@@ -130,11 +130,13 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             @Override
             public void liked(LikeButton starButton) {
                 Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
             }
 
             @Override
             public void unLiked(LikeButton starButton) {
                 Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
             }
         });
     }
