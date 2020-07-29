@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -87,6 +88,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
 
         EventBus.getDefault().post(new MessageEvent(razdel, ""));
         recyclerView = root.findViewById(R.id.recycler_view);
+        TextView emptyView = root.findViewById(R.id.empty_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);

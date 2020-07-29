@@ -100,5 +100,6 @@
     <string name="disable_pm_notify">Отключить уведомления о новых сообщениях</string>
     <string name="dialog_no_result">Ничего не найдено</string>
     <string name="pm_delete">Удалить</string>
+    <string name="no_data_available">No data aviable</string>
 
 </resources>

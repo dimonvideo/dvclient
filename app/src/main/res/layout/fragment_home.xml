@@ -22,7 +22,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="ViewPager Example"
         />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -44,6 +43,15 @@
                 android:background="@color/colorList"
                 android:clipToPadding="false"
                 android:scrollbars="vertical" />
+
+            <TextView
+                android:id="@+id/empty_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:visibility="gone"
+                android:text="@string/no_data_available" />
+
             <LinearLayout
                 android:id="@+id/linearEmpty"
                 android:visibility="gone"
