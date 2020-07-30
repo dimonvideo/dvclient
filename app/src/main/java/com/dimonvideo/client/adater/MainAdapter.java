@@ -100,7 +100,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         if (Feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);
             holder.fav_star.setOnClickListener(v -> removeFav(position));
-
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 

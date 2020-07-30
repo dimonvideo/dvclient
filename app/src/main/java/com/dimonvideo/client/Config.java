@@ -49,6 +49,7 @@ public class Config {
     public static final String REGISTRATION_CONTROL = "8";
 
     public static final String LIKE_URL = BASE_URL + "/apps/dvclient.php?op=8&razdel=";
+    public static final String LIKE_POST_URL = BASE_URL + "/apps/dvclient.php?op=13";
 
     //JSON TAGS
     public static final String TAG_ID = "lid";

@@ -5,7 +5,7 @@ import com.dimonvideo.client.Config;
 public class FeedForum {
 	//Data Variables
 	private String imageUrl, last_poster_name, title, text, date, category, state, user, pinned;
-	private int id, comments, hits, newtopic, topic_id;
+	private int id, comments, hits, newtopic, topic_id, fav;
 	private Long time;
 
 	//Getters and Setters
@@ -18,6 +18,14 @@ public class FeedForum {
 			imageUrl = Config.BASE_URL + imageUrl;
 		}
 		this.imageUrl = imageUrl;
+	}
+
+	public int getFav() {
+		return fav;
+	}
+
+	public void setFav(int fav) {
+		this.fav = fav;
 	}
 
 	public String getTitle() {

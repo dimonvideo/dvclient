@@ -3,165 +3,165 @@ package com.dimonvideo.client.model;
 import com.dimonvideo.client.Config;
 
 public class Feed {
-	//Data Variables
-	private String imageUrl, title, text, full_text, date, razdel, category, headers, user, size, link, mod;
-	private int id, comments, hits, min, plus, fav;
-	private Long time;
-	//Getters and Setters
-	public String getImageUrl() {
-		return imageUrl;
-	}
+    //Data Variables
+    private String imageUrl, title, text, full_text, date, razdel, category, headers, user, size, link, mod;
+    private int id, comments, hits, min, plus, fav;
+    private Long time;
 
-	public void setImageUrl(String imageUrl) {
-		if (!imageUrl.startsWith("http")) {
-			imageUrl = Config.BASE_URL + imageUrl;
-		}
-		this.imageUrl = imageUrl;
-	}
+    //Getters and Setters
+    public String getImageUrl() {
+        return imageUrl;
+    }
 
-	public String getTitle() {
-		return title;
-	}
+    public void setImageUrl(String imageUrl) {
+        if (!imageUrl.startsWith("http")) {
+            imageUrl = Config.BASE_URL + imageUrl;
+        }
+        this.imageUrl = imageUrl;
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-
-	public String getFull_text() {
-		return full_text;
-	}
-
-	public void setFull_text(String full_text) {
-		this.full_text = full_text;
-	}
-
-	public void setHeaders(String headers) {
-		this.headers = headers;
-	}
-
-	public String getHeaders() {
-		return headers;
-	}
-
-	public String getDate() {
-		return date;
-	}
-
-	public void setDate(String date) {
-		this.date = date;
-	}
-
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
-	}
-
-	public int getComments() {
-		return comments;
-	}
-
-	public void setComments(int comments) {
-		this.comments = comments;
-	}
-
-	public int getHits() {
-		return hits;
-	}
-
-	public void setHits(int hits) {
-		this.hits = hits;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
 
-	public int getFav() {
-		return fav;
-	}
+    public String getFull_text() {
+        return full_text;
+    }
 
-	public void setFav(int fav) {
-		this.fav = fav;
-	}
+    public void setFull_text(String full_text) {
+        this.full_text = full_text;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public void setHeaders(String headers) {
+        this.headers = headers;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public String getHeaders() {
+        return headers;
+    }
 
-	public String getRazdel() {
-		return razdel;
-	}
+    public String getDate() {
+        return date;
+    }
 
-	public void setRazdel(String razdel) {
-		this.razdel = razdel;
-	}
+    public void setDate(String date) {
+        this.date = date;
+    }
 
-	public String getCategory() {
-		return category;
-	}
+    public String getText() {
+        return text;
+    }
 
-	public void setCategory(String category) {
-		this.category = category;
-	}
+    public void setText(String text) {
+        this.text = text;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public int getComments() {
+        return comments;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public void setComments(int comments) {
+        this.comments = comments;
+    }
 
-	public String getSize() {
-		return size;
-	}
+    public int getHits() {
+        return hits;
+    }
 
-	public void setSize(String size) {
-		this.size = size;
-	}
+    public void setHits(int hits) {
+        this.hits = hits;
+    }
 
-	public String getLink() {
-		return link;
-	}
+    public int getFav() {
+        return fav;
+    }
 
-	public void setLink(String link) {
-		this.link = link;
-	}
+    public void setFav(int fav) {
+        this.fav = fav;
+    }
 
-	public String getMod() {
-		return mod;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public void setMod(String mod) {
-		this.mod = mod;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public Long getTime() {
-		return time;
-	}
+    public String getRazdel() {
+        return razdel;
+    }
 
-	public void setTime(Long time) {
-		this.time = time;
-	}
+    public void setRazdel(String razdel) {
+        this.razdel = razdel;
+    }
 
-	public int getMin() {
-		return min;
-	}
+    public String getCategory() {
+        return category;
+    }
 
-	public void setMin(int min) {
-		this.min = min;
-	}
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-	public int getPlus() {
-		return plus;
-	}
+    public String getUser() {
+        return user;
+    }
 
-	public void setPlus(int plus) {
-		this.plus = plus;
-	}
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public String getMod() {
+        return mod;
+    }
+
+    public void setMod(String mod) {
+        this.mod = mod;
+    }
+
+    public Long getTime() {
+        return time;
+    }
+
+    public void setTime(Long time) {
+        this.time = time;
+    }
+
+    public int getMin() {
+        return min;
+    }
+
+    public void setMin(int min) {
+        this.min = min;
+    }
+
+    public int getPlus() {
+        return plus;
+    }
+
+    public void setPlus(int plus) {
+        this.plus = plus;
+    }
 }

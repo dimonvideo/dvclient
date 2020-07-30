@@ -1,7 +1,9 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,15 +16,18 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
+import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
@@ -100,6 +105,43 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
+        holder.textViewText.setOnLongClickListener(view -> {
+            final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.action_like)};
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            holder.url = Config.BASE_URL + "/forum/post_" + Feed.getId();
+
+
+            builder.setTitle(Feed.getTitle());
+            builder.setItems(items, (dialog, item) -> {
+
+                if (item == 0) { // share
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+                    sendIntent.setType("text/plain");
+
+                    Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+                    try {
+                        context.startActivity(shareIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (item == 1) { // browser
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (item == 2) { // like
+                    ButtonsActions.like_forum_post(context, Feed.getId(), 1);
+                }
+
+            });
+            builder.show();
+            return true;
+        });
 
     }
 
@@ -123,6 +165,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         public LinearLayout post_layout;
         public Button btnSend;
         public EditText textInput;
+        public String url;
 
         //Initializing Views
         public ViewHolder(View itemView) {

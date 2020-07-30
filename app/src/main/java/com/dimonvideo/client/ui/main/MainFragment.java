@@ -62,7 +62,7 @@ public class MainFragment extends Fragment  {
         viewPager.setAdapter(adapt);
 
         tabLayout.setupWithViewPager(viewPager);
-        viewPager.setOffscreenPageLimit(2);
+        viewPager.setOffscreenPageLimit(4);
         EventBus.getDefault().post(new MessageEvent(razdel, null));
 
 

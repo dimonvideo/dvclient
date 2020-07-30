@@ -105,6 +105,36 @@ public class ButtonsActions {
 
     }
 
+    // оценка плюс или отмена плюса
+    public static void like_forum_post(Context mContext, int id, int type){
+        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(mContext.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        android_id = "DVClient_" + android_id;
+        final String is_name = sharedPrefs.getString("dvc_login",android_id);
+        RequestQueue queue = Volley.newRequestQueue(mContext);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_POST_URL + "&id="+id + "&u=" + is_name + "&t=" + type,
+                response -> {
+
+                    Log.e("favR", response);
+
+                }, error -> {
+            if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
+            } else if (error instanceof AuthFailureError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
+            } else if (error instanceof ServerError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
+            } else if (error instanceof NetworkError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_network), Toast.LENGTH_LONG).show();
+            } else if (error instanceof ParseError) {
+                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
+            }
+        });
+        queue.add(stringRequest);
+
+    }
+
     // добавление или удаление файла из избранного
     public static void add_to_fav_file(Context mContext, String razdel, int id, int type){
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);

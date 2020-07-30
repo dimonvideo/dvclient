@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.forum;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.dimonvideo.client.R;
@@ -38,15 +40,17 @@ public class ForumFragment extends Fragment  {
 
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);
-
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String login = sharedPrefs.getString("dvc_password", "");
         TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
         adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
         adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
+        if ((login != null) && (login.length() > 2)) adapt.addfrg(new ForumFragmentTopicsFav(),getString(R.string.tab_favorites));
 
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);
-        viewPager.setOffscreenPageLimit(2);
+        viewPager.setOffscreenPageLimit(4);
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
@@ -61,6 +65,7 @@ public class ForumFragment extends Fragment  {
                 if (pos == 0) toolbar.setTitle(getString(R.string.tab_topics));
                 if (pos == 1) toolbar.setTitle(getString(R.string.tab_forums));
                 if (pos == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
+                if (pos == 3) toolbar.setTitle(getString(R.string.tab_favorites));
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
@@ -80,6 +85,7 @@ public class ForumFragment extends Fragment  {
                 if (viewPager.getCurrentItem() == 0) toolbar.setTitle(getString(R.string.tab_topics));
                 if (viewPager.getCurrentItem() == 1) toolbar.setTitle(getString(R.string.tab_forums));
                 if (viewPager.getCurrentItem() == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
+                if (viewPager.getCurrentItem() == 3) toolbar.setTitle(getString(R.string.tab_favorites));
 
                 return false;
             } else {
@@ -87,7 +93,6 @@ public class ForumFragment extends Fragment  {
             }
         });
         EventBus.getDefault().post(new MessageEvent(razdel, null));
-        Log.e("tag", String.valueOf(razdel));
         return root;
     }
 

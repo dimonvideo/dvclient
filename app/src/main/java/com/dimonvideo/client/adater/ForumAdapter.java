@@ -1,6 +1,8 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -19,8 +22,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
+import com.dimonvideo.client.util.ButtonsActions;
 
 import java.util.Calendar;
 import java.util.List;
@@ -91,6 +96,47 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
             ft.add(R.id.nav_host_fragment, fragment);
             ft.commit();
         });
+        if (Feed.getFav() > 0) {
+            holder.fav_star.setVisibility(View.VISIBLE);
+            holder.fav_star.setOnClickListener(v -> removeFav(position));
+        }
+        holder.itemView.setOnLongClickListener(view -> {
+            final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.menu_fav)};
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            holder.url = Config.BASE_URL + "/forum/topic_" + Feed.getId();
+
+
+            builder.setTitle(Feed.getTitle());
+            builder.setItems(items, (dialog, item) -> {
+
+                if (item == 0) { // share
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+                    sendIntent.setType("text/plain");
+
+                    Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+                    try {
+                        context.startActivity(shareIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (item == 1) { // browser
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (item == 2) { // fav
+                    ButtonsActions.add_to_fav_file(context, "forum", Feed.getId(), 1);
+                }
+
+            });
+            builder.show();
+            return true;
+        });
 
     }
 
@@ -99,10 +145,19 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
         return jsonFeed.size();
     }
 
+    // swipe to remove favorites
+    public void removeFav(int position) {
+        final FeedForum Feed = jsonFeed.get(position);
+        jsonFeed.remove(position);
+        notifyDataSetChanged();
+        ButtonsActions.add_to_fav_file(context, "forum", Feed.getId(), 2);
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
-        public ImageView rating_logo, status_logo;
+        public ImageView rating_logo, status_logo, fav_star;
+        public String url;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -116,6 +171,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
             textViewNames = itemView.findViewById(R.id.names);
+            fav_star = itemView.findViewById(R.id.fav);
 
         }
 

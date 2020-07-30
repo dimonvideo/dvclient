@@ -145,7 +145,7 @@ public class SettingsActivity extends AppCompatActivity {
             final Dialog dialog = new Dialog(mContext);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             dialog.setContentView(R.layout.registration);
-            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+            Objects.requireNonNull(dialog.getWindow()).setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
 
             dialog.show();
 
@@ -156,11 +156,9 @@ public class SettingsActivity extends AppCompatActivity {
                 EditText userName = (EditText) dialog.findViewById(R.id.txtName);
                 EditText userEmail = (EditText) dialog.findViewById(R.id.txtEmail);
                 EditText userPassword = (EditText) dialog.findViewById(R.id.txtPwd);
-                EditText userControl = (EditText) dialog.findViewById(R.id.control);
 
                 String url = Config.REGISTRATION_URL;
 
-                if (userControl.getText().toString().trim().equalsIgnoreCase(Config.REGISTRATION_CONTROL)) {
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
                         Log.e("Volley Result", "" + response);
@@ -203,7 +201,7 @@ public class SettingsActivity extends AppCompatActivity {
                     };
 
                     Volley.newRequestQueue(mContext).add(stringRequest);
-                }
+
             });
 
         }
