@@ -101,5 +101,6 @@
     <string name="dialog_no_result">Ничего не найдено</string>
     <string name="pm_delete">Удалить</string>
     <string name="no_data_available">No data aviable</string>
+    <string name="is_more">Отключить Подробно в разделах</string>
 
 </resources>

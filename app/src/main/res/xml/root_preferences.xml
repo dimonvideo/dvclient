@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory app:title="@string/messages_header">
@@ -23,25 +24,25 @@
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
-            app:defaultValue="false"
             android:dependency="dvc_pm"
+            app:defaultValue="false"
             app:key="dvc_pm_notify"
             app:title="@string/disable_pm_notify" />
         <Preference
             android:key="dvc_register"
-            android:title="@string/register"/>
+            android:title="@string/register" />
         <Preference
             android:dependency="dvc_password"
             android:key="dvc_clear_login"
-            android:title="@string/clear_login"/>
+            android:title="@string/clear_login" />
 
         <ListPreference
-            android:key="dvc_main_razdel"
-            android:title="@string/select_razdel"
-            android:summary="%s"
+            android:defaultValue="10"
             android:entries="@array/razdel_list"
             android:entryValues="@array/razdel_list_values"
-            android:defaultValue="10" />
+            android:key="dvc_main_razdel"
+            android:summary="%s"
+            android:title="@string/select_razdel" />
 
 
     </PreferenceCategory>
@@ -52,7 +53,10 @@
             app:defaultValue="false"
             app:key="dvc_theme"
             app:title="@string/theme_black" />
-
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_more"
+            app:title="@string/is_more" />
     </PreferenceCategory>
 
     <!-- Uploader Preference -->
@@ -88,7 +92,7 @@
             app:dialogTitle="@string/category_title"
             app:entries="@array/uploader_entries"
             app:entryValues="@array/uploader_values"
-            app:key="dvc_uploader_cat"
+            app:key="dvc_android_cat"
             app:summary="@string/menu_android"
             app:title="@string/category_title" />
     </PreferenceCategory>
@@ -132,14 +136,14 @@
         <SwitchPreferenceCompat
             android:dependency="dvc_vuploader"
             app:defaultValue="false"
-            app:summary="@string/vuploader_play_behavior"
             app:key="dvc_vuploader_play"
+            app:summary="@string/vuploader_play_behavior"
             app:title="@string/vuploader_play_behavior" />
         <SwitchPreferenceCompat
             android:dependency="dvc_vuploader"
             app:defaultValue="false"
-            app:summary="@string/vuploader_video_behavior"
             app:key="dvc_vuploader_aspect"
+            app:summary="@string/vuploader_video_behavior"
             app:title="@string/vuploader_video_behavior" />
     </PreferenceCategory>
 

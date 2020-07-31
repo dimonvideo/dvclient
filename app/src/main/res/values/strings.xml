@@ -107,4 +107,5 @@
     <string name="dialog_no_result">No items found</string>
     <string name="pm_delete">Delete</string>
     <string name="no_data_available">No data aviable</string>
+    <string name="is_more">Show More tab</string>
 </resources>
