@@ -108,4 +108,6 @@
     <string name="pm_delete">Delete</string>
     <string name="no_data_available">No data aviable</string>
     <string name="is_more">Show More tab</string>
+    <string name="tab_inline">Inline tabs headers</string>
+    <string name="download_started">Download started</string>
 </resources>

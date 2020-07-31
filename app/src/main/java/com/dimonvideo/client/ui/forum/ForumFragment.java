@@ -42,6 +42,7 @@ public class ForumFragment extends Fragment  {
         ViewPager viewPager = root.findViewById(R.id.view_pager);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String login = sharedPrefs.getString("dvc_password", "");
+        final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
         TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
         adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
@@ -51,6 +52,7 @@ public class ForumFragment extends Fragment  {
         viewPager.setAdapter(adapt);
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setOffscreenPageLimit(4);
+        if (dvc_tab_inline) tabLayout.setTabMode(TabLayout.MODE_FIXED);
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));

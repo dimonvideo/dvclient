@@ -5,6 +5,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.webkit.URLUtil;
+import android.widget.Toast;
+
+import com.dimonvideo.client.R;
 
 public class DownloadFile {
 
@@ -15,7 +18,7 @@ public class DownloadFile {
 
         try {
             Uri uri = Uri.parse(link);
-
+            Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_LONG).show();
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             request.setDestinationInExternalPublicDir(

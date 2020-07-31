@@ -44,10 +44,10 @@
     <string name="search">Поиск</string>
     <string name="new_files">Новинки в разделе</string>
     <string name="download_mp4">Смотреть онлайн</string>
-    <string name="tab_topics">Последние темы</string>
+    <string name="tab_topics">Новое</string>
     <string name="tab_forums">Форумы</string>
     <string name="no_more_forums">Форумов больше нет</string>
-    <string name="tab_topics_no_posts">Темы без ответов</string>
+    <string name="tab_topics_no_posts">Без ответов</string>
     <string name="like">Отметка Понравилось установлена</string>
     <string name="unlike">Отметка понравилась снята</string>
     <string name="favorites_btn">Добавлено в Избранное</string>
@@ -102,5 +102,7 @@
     <string name="pm_delete">Удалить</string>
     <string name="no_data_available">No data aviable</string>
     <string name="is_more">Отключить Подробно в разделах</string>
+    <string name="tab_inline">Выровнять вкладки по центру</string>
+    <string name="download_started">Загрузка файла начата, ожидайте…</string>
 
 </resources>

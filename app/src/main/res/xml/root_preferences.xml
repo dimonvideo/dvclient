@@ -57,6 +57,10 @@
             app:defaultValue="false"
             app:key="dvc_more"
             app:title="@string/is_more" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_tab_inline"
+            app:title="@string/tab_inline" />
     </PreferenceCategory>
 
     <!-- Uploader Preference -->

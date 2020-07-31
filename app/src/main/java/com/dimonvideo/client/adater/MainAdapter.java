@@ -140,7 +140,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.txt_plus.setVisibility(View.VISIBLE);
             holder.likeButton.setVisibility(View.VISIBLE);
             holder.starButton.setVisibility(View.VISIBLE);
-
+            holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
             holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
 
             // comments
