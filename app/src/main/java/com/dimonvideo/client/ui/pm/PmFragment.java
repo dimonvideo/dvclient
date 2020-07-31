@@ -1,5 +1,8 @@
 package com.dimonvideo.client.ui.pm;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +12,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,10 +44,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
@@ -53,13 +59,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
@@ -114,9 +121,10 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
         // swipe to delete
-        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
+        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             private Drawable deleteIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_delete);
             private final ColorDrawable background = new ColorDrawable(Color.RED);
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -134,7 +142,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
 
             @Override
             public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive);
+                super.onChildDraw(c, recyclerView, viewHolder, dX / 4, dY, actionState, isCurrentlyActive);
 
                 View itemView = viewHolder.itemView;
 
@@ -192,12 +200,50 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_pm));
         setHasOptionsMenu(true);
+
         return root;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        @SuppressLint("StaticFieldLeak")
+        class AsyncCountPm extends AsyncTask<String, String, String> {
+            SharedPreferences sharedPrefs;
+
+            @Override
+            protected String doInBackground(String... params) {
+                Context context = getContext();
+                if (context != null) {
+                    try {
+                        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                        // check is logged
+                        final String password = sharedPrefs.getString("dvc_password", "null");
+                        View view = requireActivity().getWindow().getDecorView().getRootView();
+                        NetworkUtils.checkPassword(context, view, password);
+                        return null;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                super.onPostExecute(result);
+
+                TextView fab_badge = requireActivity().findViewById(R.id.fab_badge);
+                fab_badge.setVisibility(View.GONE);
+
+            }
+        }
+        new AsyncCountPm().execute();
+
+    }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_pm_inbox, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -249,15 +295,15 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
+    public void onMessageEvent(MessageEvent event) {
         razdel = event.razdel;
     }
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
-        String login = sharedPrefs.getString("dvc_login","null");
-        String pass = sharedPrefs.getString("dvc_password","null");
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext().getApplicationContext());
+        String login = sharedPrefs.getString("dvc_login", "null");
+        String pass = sharedPrefs.getString("dvc_password", "null");
         try {
             pass = URLEncoder.encode(pass, "utf-8");
             login = URLEncoder.encode(login, "utf-8");

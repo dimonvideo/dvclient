@@ -44,10 +44,7 @@
     <string name="search">Поиск</string>
     <string name="new_files">Новинки в разделе</string>
     <string name="download_mp4">Смотреть онлайн</string>
-    <string name="tab_topics">Новое</string>
-    <string name="tab_forums">Форумы</string>
     <string name="no_more_forums">Форумов больше нет</string>
-    <string name="tab_topics_no_posts">Без ответов</string>
     <string name="like">Отметка Понравилось установлена</string>
     <string name="unlike">Отметка понравилась снята</string>
     <string name="favorites_btn">Добавлено в Избранное</string>
@@ -66,6 +63,10 @@
     <string name="tab_outbox">Отправленные</string>
     <string name="tab_ish">Исходящие</string>
     <string name="tab_restore">Вернутся в раздел</string>
+    <string name="tab_inline">Выровнять вкладки по центру</string>
+    <string name="tab_topics_no_posts">Без ответов</string>
+    <string name="tab_forums">Форумы</string>
+    <string name="tab_topics">Новое</string>
     <string name="cats_text">Файлов:</string>
     <string name="uploader_pref_tab">Настройки Обменника</string>
     <string name="android_pref_tab">Настройки раздела Андроид</string>
@@ -102,7 +103,6 @@
     <string name="pm_delete">Удалить</string>
     <string name="no_data_available">No data aviable</string>
     <string name="is_more">Отключить Подробно в разделах</string>
-    <string name="tab_inline">Выровнять вкладки по центру</string>
     <string name="download_started">Загрузка файла начата, ожидайте…</string>
 
 </resources>

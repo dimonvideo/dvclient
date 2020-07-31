@@ -43,10 +43,11 @@ public class ForumFragment extends Fragment  {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String login = sharedPrefs.getString("dvc_password", "");
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
+        final boolean tab_topics_no_posts = sharedPrefs.getBoolean("dvc_tab_topics_no_posts", true);
         TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
         adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
         adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
-        adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
+        if (tab_topics_no_posts) adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
         if ((login != null) && (login.length() > 2)) adapt.addfrg(new ForumFragmentTopicsFav(),getString(R.string.tab_favorites));
 
         viewPager.setAdapter(adapt);

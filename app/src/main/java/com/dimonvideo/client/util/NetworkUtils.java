@@ -1,6 +1,5 @@
 package com.dimonvideo.client.util;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,11 +21,9 @@ import com.android.volley.TimeoutError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.google.android.material.snackbar.Snackbar;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 

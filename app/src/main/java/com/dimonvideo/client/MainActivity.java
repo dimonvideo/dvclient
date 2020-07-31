@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon", true);
         final boolean is_books = sharedPrefs.getBoolean("dvc_books", true);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
+        final boolean is_forum = sharedPrefs.getBoolean("dvc_forum", true);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
@@ -209,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
         if (!is_muzon) navigationView.getMenu().removeItem(R.id.nav_muzon);
         if (!is_books) navigationView.getMenu().removeItem(R.id.nav_books);
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
+        if (!is_forum) navigationView.getMenu().removeItem(R.id.nav_forum);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
