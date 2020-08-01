@@ -89,6 +89,7 @@ public class ForumFragment extends Fragment  {
                 if (viewPager.getCurrentItem() == 1) toolbar.setTitle(getString(R.string.tab_forums));
                 if (viewPager.getCurrentItem() == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
                 if (viewPager.getCurrentItem() == 3) toolbar.setTitle(getString(R.string.tab_favorites));
+             //   if (viewPager.getCurrentItem() > 0) viewPager.setCurrentItem(viewPager.getCurrentItem()-1);
 
                 return false;
             } else {

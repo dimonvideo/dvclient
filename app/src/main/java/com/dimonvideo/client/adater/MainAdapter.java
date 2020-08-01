@@ -224,7 +224,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
             AppCompatActivity activity = (AppCompatActivity) view.getContext();
             Fragment myFragment = new CommentsFragmentContent(comm_url, Feed.getTitle());
-            activity.getSupportFragmentManager().beginTransaction().add(R.id.nav_host_fragment, myFragment).addToBackStack("CommentsFragmentContent").commit();
+            activity.getSupportFragmentManager().beginTransaction().add(R.id.nav_host_fragment, myFragment).addToBackStack(null).commit();
         });
         if (Feed.getComments() > 0) {
             String comText = context.getResources().getString(R.string.Comments) + " " + Feed.getComments();

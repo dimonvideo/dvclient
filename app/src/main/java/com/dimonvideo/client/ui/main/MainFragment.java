@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -67,12 +68,25 @@ public class MainFragment extends Fragment  {
 
         tabLayout.setupWithViewPager(viewPager);
         viewPager.setOffscreenPageLimit(4);
+
         EventBus.getDefault().post(new MessageEvent(razdel, null));
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
 
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        Toast.makeText(getContext(), ""+viewPager.getCurrentItem(), Toast.LENGTH_LONG).show();
+        root.setOnKeyListener((v, keyCode, event) -> {
+            if( keyCode == KeyEvent.KEYCODE_BACK )
+            {
+                if(viewPager.getCurrentItem() > 0) viewPager.setCurrentItem(viewPager.getCurrentItem()-1);
+                if(viewPager.getCurrentItem() == 0) requireActivity().onBackPressed();
 
-
+                return true;
+            } else {
+                return true;
+            }
+        });
         return root;
     }
 }

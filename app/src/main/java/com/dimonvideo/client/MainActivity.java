@@ -116,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_muzon,
                 R.id.nav_books,
                 R.id.nav_uploader,
+                R.id.nav_cats,
+                R.id.nav_comments,
                 R.id.nav_android,
                 R.id.nav_articles
         ).setOpenableLayout(drawer).build();
@@ -379,6 +381,37 @@ public class MainActivity extends AppCompatActivity {
         } catch (Throwable ignored) {
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!recursivePopBackStack(getSupportFragmentManager())) {
+            super.onBackPressed();
+        }
+    }
+
+    /**
+     * Recursively look through nested fragments for a backstack entry to pop
+     * @return: true if a pop was performed
+     */
+    public static boolean recursivePopBackStack(FragmentManager fragmentManager) {
+        if (fragmentManager.getFragments() != null) {
+            for (Fragment fragment : fragmentManager.getFragments()) {
+                if (fragment != null && fragment.isVisible()) {
+                    boolean popped = recursivePopBackStack(fragment.getChildFragmentManager());
+                    if (popped) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack();
+            return true;
+        }
+
+        return false;
     }
 
     @Override
