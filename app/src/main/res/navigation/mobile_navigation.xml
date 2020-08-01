@@ -28,12 +28,6 @@
             android:name="category"
             android:defaultValue="1"
             />
-        <action
-            android:id="@+id/action_nav_gallery_to_nav_news"
-            app:destination="@id/nav_news" />
-        <action
-            android:id="@+id/action_nav_gallery_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_fav"
@@ -45,12 +39,6 @@
             android:name="category"
             android:defaultValue="20"
             />
-        <action
-            android:id="@+id/action_nav_fav_to_nav_news"
-            app:destination="@id/nav_news" />
-        <action
-            android:id="@+id/action_nav_fav_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_uploader"
@@ -62,12 +50,6 @@
             android:name="category"
             android:defaultValue="2"
             />
-        <action
-            android:id="@+id/action_nav_uploader_to_nav_android"
-            app:destination="@id/nav_articles" />
-        <action
-            android:id="@+id/action_nav_uploader_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_android"
@@ -79,12 +61,6 @@
             android:name="category"
             android:defaultValue="11"
             />
-        <action
-            android:id="@+id/action_nav_android_to_nav_articles"
-            app:destination="@id/nav_articles" />
-        <action
-            android:id="@+id/action_nav_android_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_vuploader"
@@ -96,12 +72,6 @@
             android:name="category"
             android:defaultValue="3"
             />
-        <action
-            android:id="@+id/action_nav_vuploader_to_nav_gallery"
-            app:destination="@id/nav_gallery" />
-        <action
-            android:id="@+id/action_nav_vuploader_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_news"
@@ -113,12 +83,6 @@
             android:name="category"
             android:defaultValue="4"
             />
-        <action
-            android:id="@+id/action_nav_news_to_nav_books"
-            app:destination="@id/nav_books" />
-        <action
-            android:id="@+id/action_nav_news_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_muzon"
@@ -130,12 +94,6 @@
             android:name="category"
             android:defaultValue="5"
             />
-        <action
-            android:id="@+id/action_nav_muzon_to_nav_vuploader"
-            app:destination="@id/nav_vuploader" />
-        <action
-            android:id="@+id/action_nav_muzon_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_books"
@@ -147,12 +105,6 @@
             android:name="category"
             android:defaultValue="6"
             />
-        <action
-            android:id="@+id/action_nav_books_to_nav_home"
-            app:destination="@id/nav_home" />
-        <action
-            android:id="@+id/action_nav_books_to_nav_home2"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_articles"
@@ -164,12 +116,6 @@
             android:name="category"
             android:defaultValue="7"
             />
-        <action
-            android:id="@+id/action_nav_articles_to_nav_muzon"
-            app:destination="@id/nav_muzon" />
-        <action
-            android:id="@+id/action_nav_articles_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
     android:id="@+id/nav_forum"
@@ -181,15 +127,6 @@
         android:name="category"
         android:defaultValue="8"
         />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_posts"
-            app:destination="@id/nav_posts" />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_home"
-            app:destination="@id/nav_home" />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_home2"
-            app:destination="@id/nav_home" />
 
     </fragment>
     <fragment
@@ -202,12 +139,6 @@
             android:name="category"
             android:defaultValue="9"
             />
-        <action
-            android:id="@+id/action_nav_posts_to_nav_forum"
-            app:destination="@id/nav_forum" />
-        <action
-            android:id="@+id/action_nav_posts_to_nav_home"
-            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_pminbox"
@@ -218,6 +149,21 @@
         <argument
             android:name="category"
             android:defaultValue="13"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_comments"
+        android:name="com.dimonvideo.client.ui.main.CommentsFragmentContent"
+        android:label="@string/Comments"
+        android:tag="comments"
+        tools:layout="@layout/comments_list">
+        <argument
+            android:name="category"
+            android:defaultValue="14"
+            app:destination="@id/nav_android"
+            app:launchSingleTop="true"
+            app:popUpTo="@+id/nav_android"
+            app:popUpToInclusive="true"
             />
     </fragment>
 </navigation>

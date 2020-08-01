@@ -1,6 +1,6 @@
-package com.dimonvideo.client.ui.forum;
+package com.dimonvideo.client.ui.main;
 
-import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -8,13 +8,15 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,50 +27,47 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.ForumPostsAdapter;
+import com.dimonvideo.client.adater.CommentsAdapter;
+import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.util.FragmentToActivity;
+import com.dimonvideo.client.util.MessageEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
+public class CommentsFragmentContent extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
-
+    SwipeRefreshLayout swipLayout;
+    LinearLayout emptyLayout;
+    String comm_url, file_title;
     private RequestQueue requestQueue;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.FORUM_POSTS_URL;
-    String story = null;
-    String s_url = "";
-    String id = null;
-    String t_name;
-    int razdel = 9; // forum fragment posts
-    SwipeRefreshLayout swipLayout;
 
-    public ForumFragmentPosts() {
-        // Required empty public constructor
+    public CommentsFragmentContent(String url, String title) {
+        comm_url = url;
+        file_title = title;
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
-
-        if (this.getArguments() != null) {
-            id = getArguments().getString(Config.TAG_ID);
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            t_name = (String) getArguments().getSerializable(Config.TAG_TITLE);
-        }
+        View root = inflater.inflate(R.layout.comments_list, container, false);
+        requestCount = 1;
+        Toast.makeText(getContext(), comm_url, Toast.LENGTH_LONG).show();
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -76,9 +75,9 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
-
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
+        emptyLayout = root.findViewById(R.id.linearEmpty);
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
@@ -86,46 +85,25 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new ForumPostsAdapter(listFeed, getContext());
-
-
-
+        adapter = new CommentsAdapter(listFeed, getContext());
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        if(savedInstanceState != null) recyclerView.scrollToPosition(savedInstanceState.getInt("position"));
+        // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        if (!TextUtils.isEmpty(t_name)) toolbar.setTitle(t_name);
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-        root.setOnKeyListener((v, keyCode, event) -> {
-            if( keyCode == KeyEvent.KEYCODE_BACK )
-            {
-                try { requireActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
-                } catch (Throwable ignored) {
-                }
-                return true;
-            } else {
-                return false;
-            }
-        });
+
         return root;
     }
-
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        if (!TextUtils.isEmpty(id)) {
-            s_url = "&id=" + id;
-        }
-        return new JsonArrayRequest(url + requestCount + s_url,
+        return new JsonArrayRequest(comm_url + requestCount,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -135,20 +113,15 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
                         try {
                             json = response.getJSONObject(i);
                             jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                            jsonFeed.setId(json.getInt(Config.TAG_ID));
-                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
-                            jsonFeed.setUser(json.getString(Config.TAG_USER));
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setState(json.getString(Config.TAG_STATE));
-                            jsonFeed.setPinned(json.getString(Config.TAG_PINNED));
                             jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                            jsonFeed.setNewtopic(json.getInt(Config.TAG_NEW_TOPIC));
-                            jsonFeed.setTopic_id(json.getInt(Config.TAG_TOPIC_ID));
+                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                            jsonFeed.setUser(json.getString(Config.TAG_USER));
+                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                            jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -194,9 +167,13 @@ public class ForumFragmentPosts extends Fragment implements RecyclerView.OnScrol
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(ForumFragmentPosts.this)
-                .attach(ForumFragmentPosts.this)
+                .detach(CommentsFragmentContent.this)
+                .attach(CommentsFragmentContent.this)
                 .commit();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 }

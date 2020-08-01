@@ -19,11 +19,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
+import com.dimonvideo.client.ui.main.CommentsFragmentContent;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
@@ -203,6 +207,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     }
 
     // подробный вывод файла
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void open_content(ViewHolder holder, final int position, Context context){
         final Feed Feed = jsonFeed.get(position);
         holder.txt_plus.setVisibility(View.VISIBLE);
@@ -216,8 +221,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         // comments
         holder.btn_comms.setVisibility(View.VISIBLE);
         holder.btn_comms.setOnClickListener(view -> {
-            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
-            ButtonsActions.loadComments(context, comm_url, holder.progressBar);
+            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
+            AppCompatActivity activity = (AppCompatActivity) view.getContext();
+            Fragment myFragment = new CommentsFragmentContent(comm_url, Feed.getTitle());
+            activity.getSupportFragmentManager().beginTransaction().add(R.id.nav_host_fragment, myFragment).addToBackStack("CommentsFragmentContent").commit();
         });
         if (Feed.getComments() > 0) {
             String comText = context.getResources().getString(R.string.Comments) + " " + Feed.getComments();

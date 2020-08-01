@@ -1,6 +1,5 @@
 package com.dimonvideo.client.adater;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,14 +8,12 @@ import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -28,7 +25,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
@@ -40,7 +36,7 @@ import org.sufficientlysecure.htmltextview.HtmlTextView;
 import java.util.Calendar;
 import java.util.List;
 
-public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.ViewHolder> {
+public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHolder> {
 
     private Context context;
 
@@ -48,7 +44,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
     List<FeedForum> jsonFeed;
 
     //Constructor of this class
-    public ForumPostsAdapter(List<FeedForum> jsonFeed, Context context) {
+    public CommentsAdapter(List<FeedForum> jsonFeed, Context context) {
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;

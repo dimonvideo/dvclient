@@ -28,7 +28,6 @@ public class Feed {
         this.title = title;
     }
 
-
     public String getFull_text() {
         return full_text;
     }

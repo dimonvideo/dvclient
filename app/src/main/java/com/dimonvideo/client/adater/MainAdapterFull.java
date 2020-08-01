@@ -110,7 +110,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         holder.commentsBtn.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
-            ButtonsActions.loadComments(context, comm_url, holder.progressBar);
+
         });
 
         holder.likeButton.setOnLikeListener(new OnLikeListener() {
