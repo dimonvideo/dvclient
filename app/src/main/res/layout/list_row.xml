@@ -80,12 +80,48 @@
         android:layout_marginTop="7dp"
         android:layout_marginBottom="7dp"
         android:indeterminate="true" />
+
+   <!-- author -->
+    <LinearLayout
+        android:id="@+id/name_layout"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/progressBar"
+        android:layout_toEndOf="@+id/thumbnail"
+        android:visibility="gone"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp"
+        android:layout_gravity="center_horizontal|center"
+        tools:ignore="ExtraText">
+
+        <!-- Added by -->
+        <TextView
+            android:id="@+id/added_by"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text"
+            android:text="@string/added_by"
+            android:textSize="@dimen/date"
+            tools:ignore="SpUsage" />
+
+        <!-- name -->
+        <TextView
+            android:id="@+id/by_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold"
+            android:textSize="@dimen/date"
+            tools:ignore="SpUsage" />
+    </LinearLayout>
+
     <!-- text -->
     <org.sufficientlysecure.htmltextview.HtmlTextView
         android:id="@+id/listtext"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/progressBar"
+        android:layout_below="@id/name_layout"
         android:layout_toEndOf="@+id/thumbnail"
         android:layout_marginTop="5dp"
         android:textColor="@color/text"

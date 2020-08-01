@@ -110,4 +110,6 @@
     <string name="is_more">Show More tab</string>
     <string name="tab_inline">Inline tabs headers</string>
     <string name="download_started">Download started</string>
+    <string name="added_by">"Added by: "</string>
+    <string name="disable_open_links">Open links in browser</string>
 </resources>

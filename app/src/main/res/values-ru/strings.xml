@@ -104,5 +104,7 @@
     <string name="no_data_available">No data aviable</string>
     <string name="is_more">Отключить Подробно в разделах</string>
     <string name="download_started">Загрузка файла начата, ожидайте…</string>
+    <string name="added_by">"Добавил: "</string>
+    <string name="disable_open_links">Открывать ссылки в браузере</string>
 
 </resources>

@@ -1,7 +1,9 @@
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -65,6 +68,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         final Feed Feed =  jsonFeed.get(position);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
+        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
 
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
 
@@ -139,6 +143,37 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
             }
         });
+
+        // open links from listtext
+        if (!is_open_link) {
+            holder.textViewText.setOnClickATagListener((widget, href) -> {
+                String url = href;
+                try {
+                    assert href != null;
+                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
+                    url = href.replace("https://m.dimonvideo.ru/go?", "");
+                    url = href.replace("https://dimonvideo.ru/go/?", "");
+                    url = href.replace("https://dimonvideo.ru/go?", "");
+                } catch (Throwable ignored) {
+                }
+                assert url != null;
+                String extension = url.substring(url.lastIndexOf(".") + 1);
+                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
+                    ButtonsActions.loadScreen(context, url);
+                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
+                        || (extension.equals("mp3"))
+                        || (extension.equals("m4a"))
+                        || (extension.equals("rar"))
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                else {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            });
+        }
     }
 
     @Override

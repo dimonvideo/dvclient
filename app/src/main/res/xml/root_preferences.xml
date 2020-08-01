@@ -27,6 +27,8 @@
             android:dependency="dvc_pm"
             app:defaultValue="false"
             app:key="dvc_pm_notify"
+            android:summary="@string/disable_pm_notify"
+            app:useSimpleSummaryProvider="true"
             app:title="@string/disable_pm_notify" />
         <Preference
             android:key="dvc_register"
@@ -43,7 +45,12 @@
             android:key="dvc_main_razdel"
             android:summary="%s"
             android:title="@string/select_razdel" />
-
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_open_link"
+            android:summary="@string/disable_open_links"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/disable_open_links" />
 
     </PreferenceCategory>
 
@@ -55,6 +62,8 @@
             app:title="@string/theme_black" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
+            android:summary="@string/is_more"
+            app:useSimpleSummaryProvider="true"
             app:key="dvc_more"
             app:title="@string/is_more" />
         <SwitchPreferenceCompat

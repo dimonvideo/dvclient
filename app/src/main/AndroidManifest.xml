@@ -22,13 +22,7 @@
         tools:replace="android:allowBackup"
         tools:targetApi="n">
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
-        <activity
-            android:name=".AllContent"
-            android:launchMode="singleTask"
-            android:label="@string/uploader"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+
         <activity
             android:name=".SettingsActivity"
             android:theme="@style/AppTheme"

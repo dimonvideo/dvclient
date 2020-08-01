@@ -5,12 +5,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,13 +23,11 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.dimonvideo.client.AllContent;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.DownloadFile;
-import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
@@ -73,6 +71,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         final Feed Feed = jsonFeed.get(position);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
+        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -93,6 +92,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.textViewComments.setText(String.valueOf(Feed.getComments()));
         holder.textViewComments.setVisibility(View.VISIBLE);
         holder.rating_logo.setVisibility(View.VISIBLE);
+        holder.textViewName.setText(Feed.getUser());
+
         if (Feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
@@ -103,26 +104,12 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, AllContent.class);
-            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-            intent.putExtra(Config.TAG_PLUS, String.valueOf(Feed.getPlus()));
-            intent.putExtra(Config.TAG_DATE, Feed.getDate());
-            intent.putExtra(Config.TAG_HEADERS, Feed.getHeaders());
-            intent.putExtra(Config.TAG_IMAGE_URL, Feed.getImageUrl());
-            intent.putExtra(Config.TAG_CATEGORY, Feed.getCategory());
-            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
-            intent.putExtra(Config.TAG_USER, Feed.getUser());
-            intent.putExtra(Config.TAG_SIZE, Feed.getSize());
-            intent.putExtra(Config.TAG_LINK, Feed.getLink());
-            intent.putExtra(Config.TAG_MOD, Feed.getMod());
-            intent.putExtra(Config.TAG_HITS, String.valueOf(Feed.getHits()));
-            intent.putExtra(Config.TAG_COMMENTS, String.valueOf(Feed.getComments()));
-            context.startActivity(intent);
-        });
+        holder.itemView.setOnClickListener(v -> open_content(holder, position, context));
+
+        holder.textViewText.setOnClickListener(v -> open_content(holder, position, context));
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
+
         if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play)
             holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
 
@@ -136,81 +123,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.btn_mod.setVisibility(View.GONE);
         }
 
-        holder.textViewText.setOnClickListener(v -> {
-            holder.txt_plus.setVisibility(View.VISIBLE);
-            holder.likeButton.setVisibility(View.VISIBLE);
-            holder.starButton.setVisibility(View.VISIBLE);
-            holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
-            holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
-
-            // comments
-            holder.btn_comms.setVisibility(View.VISIBLE);
-            holder.btn_comms.setOnClickListener(view -> {
-                String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
-                ButtonsActions.loadComments(context, comm_url, holder.progressBar);
-            });
-            if (Feed.getComments() > 0) {
-                String comText = context.getResources().getString(R.string.Comments) + " " + Feed.getComments();
-                holder.btn_comms.setText(comText);
-            } else {
-                String comText = context.getResources().getString(R.string.Comments) + " " + 0;
-                holder.btn_comms.setText(comText);
-            }
-            // смотреть онлайн
-            if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)) {
-                holder.btn_mp4.setVisibility(View.VISIBLE);
-                holder.btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
-            }
-            // если нет размера файла
-            if (Feed.getSize().startsWith("0")) {
-                holder.btn_download.setVisibility(View.GONE);
-                holder.btn_mod.setVisibility(View.GONE);
-            } else {
-                holder.btn_download.setText(context.getString(R.string.download) + " " + Feed.getSize());
-                holder.btn_download.setVisibility(View.VISIBLE);
-            }
-            // если нет mod
-            if (!Feed.getMod().startsWith("null")) {
-                holder.btn_mod.setVisibility(View.VISIBLE);
-                holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
-            }
-        });
-
-        // download
-        holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
-
-        // like and favorites
-        holder.starButton.setOnLikeListener(new OnLikeListener() {
-            @Override
-            public void liked(LikeButton starButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
-            }
-
-            @Override
-            public void unLiked(LikeButton starButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
-            }
-        });
-
-        holder.likeButton.setOnLikeListener(new OnLikeListener() {
-            @Override
-            public void liked(LikeButton likeButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
-                holder.txt_plus.setText(String.valueOf(Feed.getPlus() + 1));
-
-            }
-
-            @Override
-            public void unLiked(LikeButton likeButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 2);
-                holder.txt_plus.setText(String.valueOf(Feed.getPlus() - 1));
-            }
-        });
-
+        // dialog menu
         holder.textViewText.setOnLongClickListener(view -> {
             final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
 
@@ -256,6 +169,117 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             builder.show();
             return true;
         });
+
+        // open links from listtext
+        if (!is_open_link) {
+            holder.textViewText.setOnClickATagListener((widget, href) -> {
+                String url = href;
+                try {
+                    assert href != null;
+                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
+                    url = href.replace("https://m.dimonvideo.ru/go?", "");
+                    url = href.replace("https://dimonvideo.ru/go/?", "");
+                    url = href.replace("https://dimonvideo.ru/go?", "");
+                } catch (Throwable ignored) {
+                }
+                assert url != null;
+                String extension = url.substring(url.lastIndexOf(".") + 1);
+                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
+                    ButtonsActions.loadScreen(context, url);
+                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
+                        || (extension.equals("mp3"))
+                        || (extension.equals("m4a"))
+                        || (extension.equals("rar"))
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                else {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            });
+        }
+    }
+
+    // подробный вывод файла
+    private void open_content(ViewHolder holder, final int position, Context context){
+        final Feed Feed = jsonFeed.get(position);
+        holder.txt_plus.setVisibility(View.VISIBLE);
+        holder.likeButton.setVisibility(View.VISIBLE);
+        holder.starButton.setVisibility(View.VISIBLE);
+        holder.name.setVisibility(View.VISIBLE);
+        holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
+        holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
+
+
+        // comments
+        holder.btn_comms.setVisibility(View.VISIBLE);
+        holder.btn_comms.setOnClickListener(view -> {
+            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
+            ButtonsActions.loadComments(context, comm_url, holder.progressBar);
+        });
+        if (Feed.getComments() > 0) {
+            String comText = context.getResources().getString(R.string.Comments) + " " + Feed.getComments();
+            holder.btn_comms.setText(comText);
+        } else {
+            String comText = context.getResources().getString(R.string.Comments) + " " + 0;
+            holder.btn_comms.setText(comText);
+        }
+        // смотреть онлайн
+        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)) {
+            holder.btn_mp4.setVisibility(View.VISIBLE);
+            holder.btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        }
+        // если нет размера файла
+        if (Feed.getSize().startsWith("0")) {
+            holder.btn_download.setVisibility(View.GONE);
+            holder.btn_mod.setVisibility(View.GONE);
+        } else {
+            holder.btn_download.setText(context.getString(R.string.download) + " " + Feed.getSize());
+            holder.btn_download.setVisibility(View.VISIBLE);
+        }
+        // если нет mod
+        if (!Feed.getMod().startsWith("null")) {
+            holder.btn_mod.setVisibility(View.VISIBLE);
+            holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
+        }
+
+
+    // download
+        holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
+
+    // like and favorites
+        holder.starButton.setOnLikeListener(new OnLikeListener() {
+        @Override
+        public void liked(LikeButton starButton) {
+            Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+            ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
+        }
+
+        @Override
+        public void unLiked(LikeButton starButton) {
+            Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
+            ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
+        }
+    });
+
+        holder.likeButton.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton likeButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                holder.txt_plus.setText(String.valueOf(Feed.getPlus() + 1));
+
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 2);
+                holder.txt_plus.setText(String.valueOf(Feed.getPlus() - 1));
+            }
+        });
     }
 
     @Override
@@ -273,13 +297,14 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, txt_plus;
+        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, txt_plus, textViewName;
         public ImageView imageView, rating_logo, status_logo, fav_star;
         public HtmlTextView textViewText;
         public String url;
         public Button btn_comms, btn_download, btn_mod, btn_mp4;
         public ProgressBar progressBar;
         public LikeButton likeButton, starButton;
+        public LinearLayout name;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -291,6 +316,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             textViewTitle = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
+            textViewName = itemView.findViewById(R.id.by_name);
             textViewComments = itemView.findViewById(R.id.rating);
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
@@ -302,6 +328,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             likeButton = itemView.findViewById(R.id.thumb_button);
             starButton = itemView.findViewById(R.id.star_button);
             txt_plus = itemView.findViewById(R.id.txt_plus);
+            name = itemView.findViewById(R.id.name_layout);
         }
 
     }
