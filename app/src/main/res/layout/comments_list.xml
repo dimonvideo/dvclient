@@ -31,10 +31,18 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <include
+                layout="@layout/post"
+                android:id="@+id/post"
+                android:layout_marginTop="10dp"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_below="@id/post"
                 android:background="@color/colorList"
                 android:clipToPadding="false"
                 android:focusableInTouchMode="true"

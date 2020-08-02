@@ -11,6 +11,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -28,6 +29,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -102,6 +105,16 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         swipLayout = findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
+        LinearLayout post_layout = findViewById(R.id.post);
+        post_layout.setVisibility(View.VISIBLE);
+        // отправка ответа
+        Button btnSend = findViewById(R.id.btnSend);
+        EditText textInput = findViewById(R.id.textInput);
+
+        btnSend.setOnClickListener(v -> {
+            NetworkUtils.sendPm(this, Integer.parseInt(lid), textInput.getText().toString(), 20, razdel);
+            textInput.getText().clear();
+        });
     }
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
