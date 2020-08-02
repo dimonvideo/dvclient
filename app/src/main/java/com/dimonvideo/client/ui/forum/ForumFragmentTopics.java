@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,6 +30,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.model.FeedForum;
@@ -45,7 +49,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
+public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -99,7 +103,6 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         adapter = new ForumAdapter(listFeed, getContext());
 
 
-
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
@@ -112,16 +115,20 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         if (!TextUtils.isEmpty(f_name)) toolbar.setTitle(f_name);
+        else toolbar.setTitle(getString(R.string.menu_forum));
         root.setFocusableInTouchMode(true);
         root.requestFocus();
         root.setOnKeyListener((v, keyCode, event) -> {
-            if( keyCode == KeyEvent.KEYCODE_BACK )
+            if( keyCode == KeyEvent.KEYCODE_BACK  && event.getAction() == KeyEvent.ACTION_DOWN )
             {
-                toolbar.setTitle(getString(R.string.tab_topics));
-                try { getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
-                } catch (Throwable ignored) {
-                    getActivity().onBackPressed();
-                }
+                toolbar.setTitle(getString(R.string.menu_forum));
+                String current = Objects.requireNonNull(requireActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment)).getClass().getSimpleName();
+                if (current.equals("ForumFragmentPosts")) {
+                    requireActivity().getSupportFragmentManager().popBackStack("ForumFragmentTopics", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                } else if (current.equals("ForumFragmentTopics")) {
+                    requireActivity().getSupportFragmentManager().popBackStack("ForumFragmentForums", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                } else requireActivity().onBackPressed();
+                Log.e("tag", current);
                 return true;
             } else {
                 return true;
@@ -130,8 +137,9 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         return root;
     }
 
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
+    public void onMessageEvent(MessageEvent event) {
         razdel = event.razdel;
         story = event.story;
     }
@@ -139,19 +147,11 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        Set<String> selections = sharedPrefs.getStringSet("dvc_forum_cat", null);
-        String category_string = "all";
-        if (selections != null) {
-            String[] selected = selections.toArray(new String[]{});
-            category_string = TextUtils.join(",", selected);
-        }
-
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
 
-        if (id>0) {
+        if (id > 0) {
             s_url = "&id=" + id;
         }
         return new JsonArrayRequest(url + requestCount + s_url,
@@ -223,9 +223,12 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
                 .attach(ForumFragmentTopics.this)
                 .commit();
     }
+
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
+
+
 }

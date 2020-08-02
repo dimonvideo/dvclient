@@ -24,6 +24,8 @@ import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.Objects;
+
 public class ForumFragment extends Fragment  {
 
     int razdel = 8; // forum fragment
@@ -59,47 +61,10 @@ public class ForumFragment extends Fragment  {
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         // set default title
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.tab_topics));
-        // add here
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                int pos = tab.getPosition();
-                if (pos == 0) toolbar.setTitle(getString(R.string.tab_topics));
-                if (pos == 1) toolbar.setTitle(getString(R.string.tab_forums));
-                if (pos == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
-                if (pos == 3) toolbar.setTitle(getString(R.string.tab_favorites));
-
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-        root.setOnKeyListener((v, keyCode, event) -> {
-            if( keyCode == KeyEvent.KEYCODE_BACK )
-            {
-                if (viewPager.getCurrentItem() == 0) toolbar.setTitle(getString(R.string.tab_topics));
-                if (viewPager.getCurrentItem() == 1) toolbar.setTitle(getString(R.string.tab_forums));
-                if (viewPager.getCurrentItem() == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
-                if (viewPager.getCurrentItem() == 3) toolbar.setTitle(getString(R.string.tab_favorites));
-             //   if (viewPager.getCurrentItem() > 0) viewPager.setCurrentItem(viewPager.getCurrentItem()-1);
-
-                return false;
-            } else {
-                return false;
-            }
-        });
+        toolbar.setTitle(getString(R.string.menu_forum));
         EventBus.getDefault().post(new MessageEvent(razdel, null));
+
         return root;
     }
-
 
 }

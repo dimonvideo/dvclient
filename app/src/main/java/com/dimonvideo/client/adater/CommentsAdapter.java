@@ -83,21 +83,16 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
-        holder.textViewNames.setText(Feed.getCategory());
+        holder.textViewCategory.setText(Feed.getCategory());
+        holder.textViewNames.setVisibility(View.GONE);
 
         if ((Feed.getNewtopic() == 1) && (!password.equals("null")))
             holder.post_layout.setVisibility(View.GONE);
 
         // отправка ответа
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20);
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20, Feed.getState());
             holder.post_layout.setVisibility(View.GONE);
-
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            assert imm != null;
-            imm.hideSoftInputFromWindow(holder.textInput.getWindowToken(), 0);
-            } catch (Throwable ignored) {
-            }
             notifyDataSetChanged();
         });
 
@@ -113,33 +108,24 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         holder.textViewText.setOnClickListener(view -> {
             holder.post_layout.setVisibility(View.VISIBLE);
             holder.textInput.setText("[b]"+ Feed.getUser() +"[/b], ");
+            holder.textInput.setSelection(holder.textInput.getText().length());;
+            holder.textInput.setFocusableInTouchMode(true);
             holder.textInput.requestFocus();
 
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            assert imm != null;
-            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-            } catch (Throwable ignored) {
-            }
+
         });
         holder.itemView.setOnClickListener(view -> {
             holder.post_layout.setVisibility(View.VISIBLE);
             holder.textInput.setText("[b]"+ Feed.getUser() +"[/b], ");
+            holder.textInput.setSelection(holder.textInput.getText().length());;
             holder.textInput.requestFocus();
+            holder.textInput.setFocusableInTouchMode(true);
 
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                assert imm != null;
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-            } catch (Throwable ignored) {
-            }
+
         });
 
         if (Feed.getMin()>0) {
             holder.post_layout.setVisibility(View.GONE);
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                assert imm != null;
-                imm.hideSoftInputFromWindow(holder.textInput.getWindowToken(), 0);
-            } catch (Throwable ignored) {
-            }
         }
 
         // open links from listtext
@@ -182,7 +168,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames;
+        public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView;
         public HtmlTextView textViewText;
         public LinearLayout post_layout;
@@ -204,7 +190,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             post_layout = itemView.findViewById(R.id.post);
             btnSend = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
-            textViewNames = itemView.findViewById(R.id.category);
+            textViewCategory = itemView.findViewById(R.id.category);
+            textViewNames = itemView.findViewById(R.id.names);
         }
 
     }

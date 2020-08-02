@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.dimonvideo.client.Comments;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
@@ -74,7 +75,36 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
         if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play) holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
-
+        // open links from listtext
+        if (!is_open_link) {
+            holder.textViewText.setOnClickATagListener((widget, href) -> {
+                String url = href;
+                try {
+                    assert href != null;
+                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
+                    url = href.replace("https://m.dimonvideo.ru/go?", "");
+                    url = href.replace("https://dimonvideo.ru/go/?", "");
+                    url = href.replace("https://dimonvideo.ru/go?", "");
+                } catch (Throwable ignored) {
+                }
+                assert url != null;
+                String extension = url.substring(url.lastIndexOf(".") + 1);
+                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
+                    ButtonsActions.loadScreen(context, url);
+                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
+                        || (extension.equals("mp3"))
+                        || (extension.equals("m4a"))
+                        || (extension.equals("rar"))
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                else {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            });
+        }
         holder.headersTitle.setText(Feed.getTitle());
         holder.subHeadersTitle.setText(Feed.getDate());
         holder.subHeadersTitle.append(" " + context.getString(R.string.by) + " " + Feed.getUser());
@@ -109,8 +139,13 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         }
 
         holder.commentsBtn.setOnClickListener(view -> {
-            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId();
-
+            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
+            Intent intent = new Intent(context, Comments.class);
+            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+            intent.putExtra(Config.TAG_LINK, comm_url);
+            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+            context.startActivity(intent);
         });
 
         holder.likeButton.setOnLikeListener(new OnLikeListener() {
@@ -144,36 +179,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             }
         });
 
-        // open links from listtext
-        if (!is_open_link) {
-            holder.textViewText.setOnClickATagListener((widget, href) -> {
-                String url = href;
-                try {
-                    assert href != null;
-                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
-                    url = href.replace("https://m.dimonvideo.ru/go?", "");
-                    url = href.replace("https://dimonvideo.ru/go/?", "");
-                    url = href.replace("https://dimonvideo.ru/go?", "");
-                } catch (Throwable ignored) {
-                }
-                assert url != null;
-                String extension = url.substring(url.lastIndexOf(".") + 1);
-                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                    ButtonsActions.loadScreen(context, url);
-                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                        || (extension.equals("mp3"))
-                        || (extension.equals("m4a"))
-                        || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
-                else {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-            });
-        }
+
     }
 
     @Override

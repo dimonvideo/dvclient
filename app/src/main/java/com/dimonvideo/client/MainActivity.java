@@ -50,6 +50,7 @@ import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
@@ -128,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
         ).setOpenableLayout(drawer).build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
-        navController.popBackStack(R.id.nav_host_fragment,false);
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                 Fragment PmFragment = new PmFragment();
 
                 fragmentManager.beginTransaction()
-                        .replace(R.id.nav_host_fragment, PmFragment)
+                        .add(R.id.nav_host_fragment, PmFragment)
                         .addToBackStack(null)
                         .commit();
             }
@@ -393,9 +393,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed(){
-        super.onBackPressed();
-
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack(); // pop fragment here
+        } else {
+            super.onBackPressed(); // after nothing is there default behavior of android works.
+        }
     }
 
     @Override

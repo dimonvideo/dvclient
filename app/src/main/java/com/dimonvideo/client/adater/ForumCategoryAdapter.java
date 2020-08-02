@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
@@ -88,11 +89,11 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
             bundle.putInt(Config.TAG_ID, Feed.getId());
             bundle.putString(Config.TAG_CATEGORY, Feed.getTitle());
             fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
+            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.addToBackStack(String.valueOf(R.string.tab_forums));
-            ft.replace(R.id.nav_host_fragment, fragment);
+            ft.addToBackStack("ForumFragmentForums");
+            ft.add(R.id.nav_host_fragment, fragment);
             ft.commit();
         });
 

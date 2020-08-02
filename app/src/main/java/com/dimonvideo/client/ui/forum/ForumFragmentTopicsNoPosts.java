@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -94,7 +96,25 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-
+        root.setFocusableInTouchMode(true);
+        root.requestFocus();
+        root.setOnKeyListener((v, keyCode, event) -> {
+            Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+            if( keyCode == KeyEvent.KEYCODE_BACK  && event.getAction() == KeyEvent.ACTION_DOWN )
+            {
+                toolbar.setTitle(getString(R.string.tab_topics_no_posts));
+                String current = Objects.requireNonNull(requireActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment)).getClass().getSimpleName();
+                if (current.equals("ForumFragmentPosts")) {
+                    requireActivity().getSupportFragmentManager().popBackStack("ForumFragmentTopics", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                } else if (current.equals("ForumFragmentTopics")) {
+                    requireActivity().getSupportFragmentManager().popBackStack("ForumFragmentForums", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                } else requireActivity().onBackPressed();
+                Log.e("tag", current);
+                return true;
+            } else {
+                return true;
+            }
+        });
         return root;
     }
 

@@ -30,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -120,6 +121,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
                             jsonFeed.setUser(json.getString(Config.TAG_USER));
                             jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                            jsonFeed.setState(json.getString(Config.TAG_RAZDEL));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));

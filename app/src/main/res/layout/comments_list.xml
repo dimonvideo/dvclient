@@ -37,6 +37,8 @@
                 android:layout_height="match_parent"
                 android:background="@color/colorList"
                 android:clipToPadding="false"
+                android:focusableInTouchMode="true"
+                android:descendantFocusability="beforeDescendants"
                 android:paddingBottom="50dp"
                 android:scrollbars="vertical" />
 

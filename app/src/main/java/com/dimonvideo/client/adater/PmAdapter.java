@@ -91,14 +91,14 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
             holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
             holder.btns.setVisibility(View.GONE);
-            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 0);
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 0, null);
 
         });
         holder.send.setOnLongClickListener(v -> {
 
             holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
             holder.btns.setVisibility(View.GONE);
-            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1);
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1, null);
 
             return true;
         });

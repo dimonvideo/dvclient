@@ -206,7 +206,6 @@
     <argument
         android:name="category"
         android:defaultValue="8"
-        app:defaultNavHost="true"
         />
         <action
             android:id="@+id/action_nav_forum_to_nav_topics"

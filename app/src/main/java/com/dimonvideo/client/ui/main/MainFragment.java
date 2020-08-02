@@ -88,11 +88,8 @@ public class MainFragment extends Fragment  {
                 } else {
                     Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
                     toolbar.setTitle(getString(R.string.menu_home));
-                    try { getParentFragmentManager().popBackStack();
-                    } catch (Throwable ignored) {
-                        requireActivity().onBackPressed();
-                    }
-                    Toast.makeText(getContext(), "88888"+keyCode, Toast.LENGTH_LONG).show();
+                    requireActivity().onBackPressed();
+
                 }
                 return true;
             } else {

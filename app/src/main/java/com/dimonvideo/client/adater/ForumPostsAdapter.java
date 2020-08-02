@@ -94,18 +94,11 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2);
+            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2, null);
             holder.post_layout.setVisibility(View.GONE);
-
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            assert imm != null;
-            imm.hideSoftInputFromWindow(holder.textInput.getWindowToken(), 0);
-            } catch (Throwable ignored) {
-            }
             notifyDataSetChanged();
         });
 
-        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
 
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
@@ -117,30 +110,52 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
+
+        // open links from listtext
+        if (!is_open_link) {
+            holder.textViewText.setOnClickATagListener((widget, href) -> {
+                String url = href;
+                try {
+                    assert href != null;
+                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
+                    url = href.replace("https://m.dimonvideo.ru/go?", "");
+                    url = href.replace("https://dimonvideo.ru/go/?", "");
+                    url = href.replace("https://dimonvideo.ru/go?", "");
+                } catch (Throwable ignored) {
+                }
+                assert url != null;
+                String extension = url.substring(url.lastIndexOf(".") + 1);
+                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
+                    ButtonsActions.loadScreen(context, url);
+                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
+                        || (extension.equals("mp3"))
+                        || (extension.equals("m4a"))
+                        || (extension.equals("rar"))
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                else {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            });
+        }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             holder.post_layout.setVisibility(View.VISIBLE);
             holder.textInput.setText("[b]"+ Feed.getLast_poster_name() +"[/b], ");
-            holder.textInput.requestFocus();
+            holder.textInput.setSelection(holder.textInput.getText().length());;
 
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            assert imm != null;
-            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-            } catch (Throwable ignored) {
-            }
         });
         holder.itemView.setOnClickListener(view -> {
             holder.post_layout.setVisibility(View.VISIBLE);
             holder.textInput.setText("[b]"+ Feed.getLast_poster_name() +"[/b], ");
-            holder.textInput.requestFocus();
+            holder.textInput.setSelection(holder.textInput.getText().length());;
 
-            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                assert imm != null;
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
-            } catch (Throwable ignored) {
-            }
         });
 
         holder.textViewText.setOnLongClickListener(view -> {
@@ -182,36 +197,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         });
 
 
-        // open links from listtext
-        if (!is_open_link) {
-            holder.textViewText.setOnClickATagListener((widget, href) -> {
-                String url = href;
-                try {
-                    assert href != null;
-                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
-                    url = href.replace("https://m.dimonvideo.ru/go?", "");
-                    url = href.replace("https://dimonvideo.ru/go/?", "");
-                    url = href.replace("https://dimonvideo.ru/go?", "");
-                } catch (Throwable ignored) {
-                }
-                assert url != null;
-                String extension = url.substring(url.lastIndexOf(".") + 1);
-                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                    ButtonsActions.loadScreen(context, url);
-                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                        || (extension.equals("mp3"))
-                        || (extension.equals("m4a"))
-                        || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
-                else {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-            });
-        }
+
     }
 
 
