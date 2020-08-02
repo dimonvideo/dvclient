@@ -3,8 +3,6 @@ package com.dimonvideo.client.ui.forum;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,8 +21,6 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
-
-import java.util.Objects;
 
 public class ForumFragment extends Fragment  {
 

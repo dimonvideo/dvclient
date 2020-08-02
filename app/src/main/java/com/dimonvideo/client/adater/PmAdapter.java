@@ -26,8 +26,6 @@ import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.List;
 
-import static android.net.Uri.encode;
-
 public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
     private Context context;

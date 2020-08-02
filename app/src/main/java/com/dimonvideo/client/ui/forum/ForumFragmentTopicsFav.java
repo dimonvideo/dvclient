@@ -41,7 +41,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {

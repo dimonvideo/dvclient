@@ -1,12 +1,9 @@
 package com.dimonvideo.client.ui.main;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +13,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,9 +28,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.util.FragmentToActivity;
 import com.dimonvideo.client.util.MessageEvent;
-import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -65,10 +58,10 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     int cid = 0;
     String url = Config.COMMENTS_URL;
     String search_url = Config.COMMENTS_SEARCH_URL;
-    static String story = null;
     String s_url = "";
     String key = "comments";
     SharedPreferences sharedPrefs;
+    static String story;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -78,12 +71,11 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         requestCount = 1;
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+
 
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
+            story = (String) getArguments().getSerializable(Config.TAG_STORY);
         }
 
         recyclerView = root.findViewById(R.id.recycler_view);
@@ -124,18 +116,18 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
         story = event.story;
-        if (TextUtils.isEmpty(story)) story = null;
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
         if (razdel == 10) {
             if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
         }
-    }
+     }
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
+
         if (razdel == 10) {
             if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
         }
@@ -243,6 +235,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        Toast.makeText(getContext(), story+razdel, Toast.LENGTH_LONG).show();
         ProgressBarBottom.setVisibility(View.VISIBLE);
         requestQueue.add(getDataFromServer(requestCount));
         requestCount++;
@@ -282,5 +275,15 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         super.onDestroy();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
 }

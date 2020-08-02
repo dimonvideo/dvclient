@@ -3,8 +3,6 @@ package com.dimonvideo.client.ui.main;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +23,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.adater.MainCategoryAdapter;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedCats;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -40,7 +36,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {

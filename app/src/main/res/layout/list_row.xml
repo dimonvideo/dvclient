@@ -125,6 +125,10 @@
         android:layout_toEndOf="@+id/thumbnail"
         android:layout_marginTop="5dp"
         android:textColor="@color/text"
+        android:enabled="true"
+        android:textIsSelectable="true"
+        android:focusable="true"
+        android:longClickable="true"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
 

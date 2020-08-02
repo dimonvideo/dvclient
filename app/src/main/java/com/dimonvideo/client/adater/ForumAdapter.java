@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.ButtonsActions;

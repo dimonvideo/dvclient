@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -15,7 +14,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,17 +28,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -50,7 +45,6 @@ import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
@@ -59,7 +53,6 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -298,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                 //run query to the server
                 FragmentManager fragmentManager = getSupportFragmentManager();
 
-                homeFrag = new MainFragment();
+                homeFrag = new MainFragmentContent();
 
                 if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
                 if (razdel == 13) homeFrag = new PmFragment(); // pm
@@ -378,7 +371,33 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // donate
+        if (id == R.id.action_donate) {
 
+            String url = Config.BASE_URL + "/reklama.php";
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                    url));
+
+            try {
+                startActivity(browserIntent);
+            } catch (Throwable ignored) {
+            }
+        }
+
+        // votes
+        if (id == R.id.action_vote) {
+
+            String url = Config.BASE_URL + "/votes";
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                    url));
+
+            try {
+                startActivity(browserIntent);
+            } catch (Throwable ignored) {
+            }
+        }
         return super.onOptionsItemSelected(item);
     }
 

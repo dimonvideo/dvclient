@@ -1,38 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="none">
         <item
             android:id="@+id/nav_home"
+            android:checkable="true"
             android:title="@string/menu_home" />
         <item
             android:id="@+id/nav_forum"
+            android:checkable="true"
             android:title="@string/menu_forum" />
         <item
             android:id="@+id/nav_news"
+            android:checkable="true"
             android:title="@string/menu_news" />
         <item
             android:id="@+id/nav_uploader"
+            android:checkable="true"
             android:title="@string/menu_slideshow" />
         <item
             android:id="@+id/nav_android"
+            android:checkable="true"
             android:title="@string/menu_android" />
         <item
             android:id="@+id/nav_vuploader"
+            android:checkable="true"
             android:title="@string/vuploader" />
         <item
             android:id="@+id/nav_books"
+            android:checkable="true"
             android:title="@string/books" />
         <item
             android:id="@+id/nav_muzon"
+            android:checkable="true"
             android:title="@string/muzon" />
         <item
             android:id="@+id/nav_articles"
+            android:checkable="true"
             android:title="@string/articles" />
         <item
             android:id="@+id/nav_gallery"
+            android:checkable="true"
             android:title="@string/menu_gallery" />
 
     </group>

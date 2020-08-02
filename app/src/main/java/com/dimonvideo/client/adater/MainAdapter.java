@@ -77,8 +77,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         cal.set(Calendar.MILLISECOND, 0);
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
+        try{
         if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
             holder.status_logo.setImageResource(R.drawable.ic_status_green);
+        }
+        } catch (Exception ignored) {
         }
         //Loading image from url
         Glide.with(context).load(Feed.getImageUrl()).into(holder.imageView);
@@ -91,7 +94,16 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.textViewComments.setVisibility(View.VISIBLE);
         holder.rating_logo.setVisibility(View.VISIBLE);
         holder.textViewName.setText(Feed.getUser());
+        holder.textViewComments.setOnClickListener(view -> {
+            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
+            Intent intent = new Intent(context, Comments.class);
+            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+            intent.putExtra(Config.TAG_LINK, comm_url);
+            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+            context.startActivity(intent);
 
+        });
         if (Feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
@@ -108,9 +120,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
 
+        try{
         if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play)
             holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
-
+        } catch (Exception ignored) {
+        }
         if (Feed.getMin() > 0) {
             holder.btn_comms.setVisibility(View.GONE);
             holder.txt_plus.setVisibility(View.GONE);
@@ -122,7 +136,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
 
         // dialog menu
-        holder.textViewText.setOnLongClickListener(view -> {
+        holder.itemView.setOnLongClickListener(view -> {
             final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen), context.getString(R.string.download)};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);

@@ -3,8 +3,6 @@ package com.dimonvideo.client.ui.main;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
@@ -23,13 +20,10 @@ import androidx.viewpager.widget.ViewPager;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
-import com.dimonvideo.client.ui.forum.ForumFragmentTopicsNoPosts;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
-
-import java.util.Objects;
 
 public class MainFragment extends Fragment  {
 
