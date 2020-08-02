@@ -1,106 +1,107 @@
-package com.dimonvideo.client.ui.main;
+package com.dimonvideo.client;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+import com.dimonvideo.client.adater.CommentsAdapter;
+import com.dimonvideo.client.model.FeedForum;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
-import com.dimonvideo.client.Config;
-import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.CommentsAdapter;
-import com.dimonvideo.client.adater.MainAdapter;
-import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.util.MessageEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class CommentsFragmentContent extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
-
+public class Comments extends AppCompatActivity  implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
-    String comm_url, file_title;
+    String comm_url, file_title, razdel, lid;
     private RequestQueue requestQueue;
-
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
+    SharedPreferences sharedPrefs;
 
-    public CommentsFragmentContent(String url, String title) {
-        comm_url = url;
-        file_title = title;
-    }
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.comments_list, container, false);
-        requestCount = 1;
-        Toast.makeText(getContext(), comm_url, Toast.LENGTH_LONG).show();
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
+        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.comments_list);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        recyclerView = root.findViewById(R.id.recycler_view);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        if (getIntent()!=null) {
+            file_title = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
+            comm_url = (String) getIntent().getSerializableExtra(Config.TAG_LINK);
+            razdel = (String) getIntent().getSerializableExtra(Config.TAG_RAZDEL);
+            lid = getIntent().getStringExtra(Config.TAG_ID);
+        }
+
+        Objects.requireNonNull(getSupportActionBar()).setTitle(file_title);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        recyclerView = findViewById(R.id.recycler_view);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(requireActivity());
-        emptyLayout = root.findViewById(R.id.linearEmpty);
+        requestQueue = Volley.newRequestQueue(this);
+        emptyLayout = findViewById(R.id.linearEmpty);
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = findViewById(R.id.ProgressBarBottom);
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new CommentsAdapter(listFeed, getContext());
+        adapter = new CommentsAdapter(listFeed, this);
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
+        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(this, R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
         // pull to refresh
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-
-        return root;
     }
-
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
@@ -117,10 +118,8 @@ public class CommentsFragmentContent extends Fragment implements RecyclerView.On
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                            jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
                             jsonFeed.setUser(json.getString(Config.TAG_USER));
+                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
@@ -166,15 +165,50 @@ public class CommentsFragmentContent extends Fragment implements RecyclerView.On
     @Override
     public void onRefresh() {
         requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(CommentsFragmentContent.this)
-                .attach(CommentsFragmentContent.this)
-                .commit();
+        recreate();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_comments, menu);
+        return true;
+    }
+
+    // toolbar main arrow
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        // main arrow
+        if (id == android.R.id.home) {
+            onBackPressed();
+        }
+        // settings
+        if (id == R.id.action_settings) {
+            Intent i = new Intent(Comments.this, SettingsActivity.class);
+            startActivityForResult(i, 1);
+            return true;
+        }
+        // refresh
+        if (id == R.id.action_refresh) {
+            recreate();
+        }
+        // open page
+        if (id == R.id.action_open) {
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(Config.BASE_URL+"/"+razdel+"/"+lid+"#comments"));
+            try {
+                startActivity(browserIntent);
+            } catch (Throwable ignored) {
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

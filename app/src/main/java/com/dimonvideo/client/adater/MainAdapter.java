@@ -13,21 +13,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.dimonvideo.client.Comments;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
-import com.dimonvideo.client.ui.main.CommentsFragmentContent;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
@@ -38,7 +33,6 @@ import com.like.OnLikeListener;
 
 import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
-import org.sufficientlysecure.htmltextview.OnClickATagListener;
 
 import java.util.Calendar;
 import java.util.List;
@@ -222,9 +216,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.btn_comms.setVisibility(View.VISIBLE);
         holder.btn_comms.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
-            AppCompatActivity activity = (AppCompatActivity) view.getContext();
-            Fragment myFragment = new CommentsFragmentContent(comm_url, Feed.getTitle());
-            activity.getSupportFragmentManager().beginTransaction().add(R.id.nav_host_fragment, myFragment).addToBackStack(null).commit();
+            Intent intent = new Intent(context, Comments.class);
+            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+            intent.putExtra(Config.TAG_LINK, comm_url);
+            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+            context.startActivity(intent);
+
         });
         if (Feed.getComments() > 0) {
             String comText = context.getResources().getString(R.string.Comments) + " " + Feed.getComments();

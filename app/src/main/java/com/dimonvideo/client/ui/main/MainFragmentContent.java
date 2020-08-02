@@ -16,8 +16,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -110,6 +112,9 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
+
+
+
 
 
         return root;
@@ -276,4 +281,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
+
+
 }

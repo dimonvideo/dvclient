@@ -69,6 +69,7 @@ public class ForumFragment extends Fragment  {
                 if (pos == 1) toolbar.setTitle(getString(R.string.tab_forums));
                 if (pos == 2) toolbar.setTitle(getString(R.string.tab_topics_no_posts));
                 if (pos == 3) toolbar.setTitle(getString(R.string.tab_favorites));
+
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {

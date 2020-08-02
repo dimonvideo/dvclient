@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
@@ -56,7 +57,9 @@ public class MainFragment extends Fragment  {
         final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
         String login = sharedPrefs.getString("dvc_password", "");
+
         TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
+
         adapt.addfrg(new MainFragmentContent(),getString(R.string.tab_last));
         if (!is_more) adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
         adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
@@ -73,20 +76,34 @@ public class MainFragment extends Fragment  {
 
         tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
 
+        // override back pressed
         root.setFocusableInTouchMode(true);
         root.requestFocus();
-        Toast.makeText(getContext(), ""+viewPager.getCurrentItem(), Toast.LENGTH_LONG).show();
         root.setOnKeyListener((v, keyCode, event) -> {
-            if( keyCode == KeyEvent.KEYCODE_BACK )
-            {
-                if(viewPager.getCurrentItem() > 0) viewPager.setCurrentItem(viewPager.getCurrentItem()-1);
-                if(viewPager.getCurrentItem() == 0) requireActivity().onBackPressed();
 
+            if( keyCode == KeyEvent.KEYCODE_BACK  && event.getAction() == KeyEvent.ACTION_DOWN )
+            {
+                if (viewPager.getCurrentItem() != 0) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                } else {
+                    Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+                    toolbar.setTitle(getString(R.string.menu_home));
+                    try { getParentFragmentManager().popBackStack();
+                    } catch (Throwable ignored) {
+                        requireActivity().onBackPressed();
+                    }
+                    Toast.makeText(getContext(), "88888"+keyCode, Toast.LENGTH_LONG).show();
+                }
                 return true;
             } else {
-                return true;
+                return false;
             }
         });
+
+
+
+
         return root;
     }
+
 }

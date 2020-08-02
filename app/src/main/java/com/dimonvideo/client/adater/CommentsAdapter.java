@@ -80,17 +80,17 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         }
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
-        holder.textViewTitle.setText(Feed.getTitle());
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
+        holder.textViewNames.setText(Feed.getCategory());
 
         if ((Feed.getNewtopic() == 1) && (!password.equals("null")))
-            holder.post_layout.setVisibility(View.VISIBLE);
+            holder.post_layout.setVisibility(View.GONE);
 
-        // отправка ответа на форум
+        // отправка ответа
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2);
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20);
             holder.post_layout.setVisibility(View.GONE);
 
             try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -102,23 +102,17 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         });
 
         holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
-
+        holder.textViewTitle.setText("#"+String.valueOf(Feed.getMin()+position+1)+" ");
+        holder.textViewTitle.append(Feed.getUser());
         holder.textViewDate.setText(Feed.getDate());
-        holder.textViewNames.setText(Feed.getLast_poster_name());
-        holder.textViewCategory.setText(Feed.getCategory());
-        holder.textViewComments.setText(String.valueOf(Feed.getComments()));
-        holder.textViewComments.setVisibility(View.VISIBLE);
-        holder.rating_logo.setVisibility(View.VISIBLE);
-        if (Feed.getComments() == 0) {
-            holder.textViewComments.setVisibility(View.INVISIBLE);
-            holder.rating_logo.setVisibility(View.INVISIBLE);
-        }
+        holder.textViewComments.setVisibility(View.GONE);
+        holder.rating_logo.setVisibility(View.GONE);
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             holder.post_layout.setVisibility(View.VISIBLE);
-            holder.textInput.setText("[b]"+ Feed.getLast_poster_name() +"[/b], ");
+            holder.textInput.setText("[b]"+ Feed.getUser() +"[/b], ");
             holder.textInput.requestFocus();
 
             try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -129,7 +123,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         });
         holder.itemView.setOnClickListener(view -> {
             holder.post_layout.setVisibility(View.VISIBLE);
-            holder.textInput.setText("[b]"+ Feed.getLast_poster_name() +"[/b], ");
+            holder.textInput.setText("[b]"+ Feed.getUser() +"[/b], ");
             holder.textInput.requestFocus();
 
             try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -139,44 +133,14 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             }
         });
 
-        holder.textViewText.setOnLongClickListener(view -> {
-            final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.action_like)};
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            holder.url = Config.BASE_URL + "/forum/post_" + Feed.getId();
-
-
-            builder.setTitle(Feed.getTitle());
-            builder.setItems(items, (dialog, item) -> {
-
-                if (item == 0) { // share
-                    Intent sendIntent = new Intent();
-                    sendIntent.setAction(Intent.ACTION_SEND);
-                    sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
-                    sendIntent.setType("text/plain");
-
-                    Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
-                    try {
-                        context.startActivity(shareIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-                if (item == 1) { // browser
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-                if (item == 2) { // like
-                    ButtonsActions.like_forum_post(context, Feed.getId(), 1);
-                }
-
-            });
-            builder.show();
-            return true;
-        });
-
+        if (Feed.getMin()>0) {
+            holder.post_layout.setVisibility(View.GONE);
+            try { InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                assert imm != null;
+                imm.hideSoftInputFromWindow(holder.textInput.getWindowToken(), 0);
+            } catch (Throwable ignored) {
+            }
+        }
 
         // open links from listtext
         if (!is_open_link) {
@@ -218,7 +182,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
+        public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, imageView;
         public HtmlTextView textViewText;
         public LinearLayout post_layout;
@@ -232,17 +196,15 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             imageView = itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
             status_logo = itemView.findViewById(R.id.status);
-            textViewNames = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
             textViewComments = itemView.findViewById(R.id.rating);
-            textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
-            textViewTitle = itemView.findViewById(R.id.names);
+            textViewTitle = itemView.findViewById(R.id.title);
             post_layout = itemView.findViewById(R.id.post);
             btnSend = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
-
+            textViewNames = itemView.findViewById(R.id.category);
         }
 
     }

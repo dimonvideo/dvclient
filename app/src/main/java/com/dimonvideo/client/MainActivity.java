@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -14,6 +15,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Log;
@@ -28,14 +30,17 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -53,6 +58,7 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -103,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-        final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home,
@@ -117,12 +123,12 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_books,
                 R.id.nav_uploader,
                 R.id.nav_cats,
-                R.id.nav_comments,
                 R.id.nav_android,
                 R.id.nav_articles
         ).setOpenableLayout(drawer).build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+        navController.popBackStack(R.id.nav_host_fragment,false);
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
@@ -133,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
         Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
 
+        // открываем лс из уведомления
         Intent intent_pm = getIntent();
         if (intent_pm != null) {
             try {
@@ -152,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (auth_state > 0) {
 
+            // обновляем счетчик лс
             status.setImageResource(R.drawable.ic_status_green);
             Login_Name.setText(getString(R.string.sign_as));
             Login_Name.append(login_name);
@@ -215,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
         if (!is_forum) navigationView.getMenu().removeItem(R.id.nav_forum);
 
+        // open PM
         FloatingActionButton fab = findViewById(R.id.fab);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -227,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                 Fragment PmFragment = new PmFragment();
 
                 fragmentManager.beginTransaction()
-                        .add(R.id.nav_host_fragment, PmFragment)
+                        .replace(R.id.nav_host_fragment, PmFragment)
                         .addToBackStack(null)
                         .commit();
             }
@@ -384,34 +393,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        if (!recursivePopBackStack(getSupportFragmentManager())) {
-            super.onBackPressed();
-        }
-    }
+    public void onBackPressed(){
+        super.onBackPressed();
 
-    /**
-     * Recursively look through nested fragments for a backstack entry to pop
-     * @return: true if a pop was performed
-     */
-    public static boolean recursivePopBackStack(FragmentManager fragmentManager) {
-        if (fragmentManager.getFragments() != null) {
-            for (Fragment fragment : fragmentManager.getFragments()) {
-                if (fragment != null && fragment.isVisible()) {
-                    boolean popped = recursivePopBackStack(fragment.getChildFragmentManager());
-                    if (popped) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        if (fragmentManager.getBackStackEntryCount() > 0) {
-            fragmentManager.popBackStack();
-            return true;
-        }
-
-        return false;
     }
 
     @Override

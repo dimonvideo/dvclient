@@ -39,14 +39,12 @@ public class Config {
     public static final String FORUM_CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=6&min=";
     public static final String FORUM_POSTS_URL = BASE_URL + "/apps/dvclient.php?op=7&min=";
 
-    public static final String TEXT_URL = BASE_URL + "/apps/dvclient.php?op=2&razdel=";
     public static final String COMMENTS_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&razdel=";
     public static final String CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=9&razdel=";
 
     public static final String CHECK_AUTH_URL = BASE_URL + "/apps/dvclient.php?op=10";
     public static final String PM_URL = BASE_URL + "/apps/dvclient.php?op=11&min=";
     public static final String REGISTRATION_URL = BASE_URL + "/apps/dvclient.php?op=12";
-    public static final String REGISTRATION_CONTROL = "8";
 
     public static final String LIKE_URL = BASE_URL + "/apps/dvclient.php?op=8&razdel=";
     public static final String LIKE_POST_URL = BASE_URL + "/apps/dvclient.php?op=13";
