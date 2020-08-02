@@ -20,6 +20,7 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_layout"
         android:layout_marginTop="50dp"
+        android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -28,7 +29,6 @@
             android:layout_width="match_parent"
             android:layout_below="@id/swipe_layout"
             android:layout_height="match_parent"
-            android:descendantFocusability="blocksDescendants"
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
@@ -38,7 +38,6 @@
                 android:background="@color/colorList"
                 android:clipToPadding="false"
                 android:focusableInTouchMode="true"
-                android:descendantFocusability="beforeDescendants"
                 android:paddingBottom="50dp"
                 android:scrollbars="vertical" />
 

@@ -124,6 +124,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         });
 
+
         if (Feed.getMin()>0) {
             holder.post_layout.setVisibility(View.GONE);
         }
