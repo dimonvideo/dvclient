@@ -10,6 +10,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -45,10 +48,12 @@ import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -59,6 +64,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -132,22 +138,62 @@ public class MainActivity extends AppCompatActivity {
 
         Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
 
+        if (auth_state > 0) avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
+
         // открываем лс из уведомления
         Intent intent_pm = getIntent();
         if (intent_pm != null) {
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            Fragment PmFragment = new MainFragment();
             try {
-                if (intent_pm.getStringExtra("action").equals("PmFragment")) {
-                    FragmentManager fragmentManager = getSupportFragmentManager();
-
-                    Fragment PmFragment = new PmFragment();
-
-                    fragmentManager.beginTransaction()
-                            .add(R.id.nav_host_fragment, PmFragment)
-                            .addToBackStack(null)
-                            .commit();
+                if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {
+                     PmFragment = new PmFragment();
                 }
+                if (Objects.equals(intent_pm.getStringExtra("action"), "ForumFragment")) {
+                    PmFragment = new ForumFragment();
+                }
+                fragmentManager.beginTransaction()
+                        .add(R.id.nav_host_fragment, PmFragment)
+                        .addToBackStack(null)
+                        .commit();
             } catch (Throwable ignored) {
             }
+        }
+
+        // shortcuts
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
+
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            notificationIntent.putExtra("action", "PmFragment");
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
+                    .setShortLabel(getString(R.string.tab_pm))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(notificationIntent.setAction(Intent.ACTION_VIEW))
+                    .build();
+
+            Intent forumIntent = new Intent(this, MainActivity.class);
+            forumIntent.putExtra("action", "ForumFragment");
+            forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            ShortcutInfo forumShortcut = new ShortcutInfo.Builder(this, "shortcut_forum")
+                    .setShortLabel(getString(R.string.tab_forums))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(forumIntent.setAction(Intent.ACTION_VIEW))
+                    .build();
+
+            ShortcutInfo logShortcut = new ShortcutInfo.Builder(this, "shortcut_visit")
+                    .setShortLabel(getString(R.string.action_page))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.BASE_URL)))
+                    .build();
+
+            assert shortcutManager != null;
+
+            if (auth_state > 0) shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut)); else
+                shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut));
+
         }
 
         if (auth_state > 0) {
@@ -349,7 +395,9 @@ public class MainActivity extends AppCompatActivity {
 
             String url = "https://play.google.com/store/apps/dev?id=6091758746633814135";
 
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+            if (BuildConfig.FLAVOR.equals("DVClientSamsung")) url = "https://dimonvideo.ru/android.html";
+
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                     url));
 
             try {

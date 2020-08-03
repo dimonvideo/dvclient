@@ -60,7 +60,13 @@ public class NetworkUtils {
                             int state = jsonObject.getInt(Config.TAG_STATE);
                             int pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
                             String image = jsonObject.getString(Config.TAG_IMAGE_URL);
+                            String status = jsonObject.getString(Config.TAG_HEADERS);
+                            String lastdate = jsonObject.getString(Config.TAG_TIME);
                             String token = jsonObject.getString(Config.TAG_TOKEN);
+                            String rep = jsonObject.getString(Config.TAG_REP);
+                            String reg = jsonObject.getString(Config.TAG_REG);
+                            String rat = jsonObject.getString(Config.TAG_COMMENTS);
+                            String posts = jsonObject.getString(Config.TAG_COUNT);
                             if (state > 0) {
                                 Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                             } else
@@ -70,10 +76,18 @@ public class NetworkUtils {
                             editor = sharedPrefs.edit();
                             editor.putInt("auth_state", state);
                             editor.putString("auth_foto", image);
+                            editor.putString("auth_rang", status);
+                            editor.putString("auth_last", lastdate);
+                            editor.putString("auth_rep", rep);
+                            editor.putString("auth_reg", reg);
+                            editor.putString("auth_rat", rat);
+                            editor.putString("auth_posts", posts);
                             editor.putInt("pm_unread", pm_unread);
                             editor.apply();
 
                             if (!token.equals(current_token)) GetToken.getToken(context);
+
+                            Log.e("auth", response);
 
                         } catch (JSONException e) {
                             e.printStackTrace();

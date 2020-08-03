@@ -114,4 +114,12 @@
     <string name="disable_open_links">Open links in browser</string>
     <string name="action_donate">Donate</string>
     <string name="action_vote">Votes</string>
+    <string name="action_page">Visit site</string>
+    <string name="user_rang">"User status: "</string>
+    <string name="user_last">"Last visit: "</string>
+    <string name="user_rep">"Reputation: "</string>
+    <string name="user_reg">"Registration: "</string>
+    <string name="user_rat">"Rating: "</string>
+    <string name="user_posts">"Posts: "</string>
+    <string name="btn_profile">Open profile</string>
 </resources>

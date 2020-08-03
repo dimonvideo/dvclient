@@ -12,6 +12,7 @@
       <w>framelayout</w>
       <w>imageloader</w>
       <w>imageview</w>
+      <w>lastdate</w>
       <w>linearlayout</w>
       <w>listtext</w>
       <w>muzon</w>
@@ -19,6 +20,7 @@
       <w>noavatar</w>
       <w>ratingtext</w>
       <w>razdel</w>
+      <w>regdate</w>
       <w>requestcount</w>
       <w>swip</w>
       <w>symbian</w>

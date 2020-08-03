@@ -78,6 +78,8 @@ public class Config {
     public static final String TAG_TOKEN = "token";
     public static final String TAG_NEW_TOPIC = "newtopic";
     public static final String TAG_TOPIC_ID = "topic_id";
+    public static final String TAG_REP = "reputation";
+    public static final String TAG_REG = "reg_date";
 
 }
 

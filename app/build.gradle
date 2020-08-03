@@ -10,8 +10,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 22
         targetSdkVersion 29
-        versionCode 308
-        versionName "1.8"
+        versionCode 400
+        versionName "2.0"
 
     }
     compileOptions {
@@ -23,6 +23,19 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions 'dimonvideo'
+    productFlavors {
+        DVClientSamsung {
+            dimension = 'dimonvideo'
+            versionNameSuffix "-samsung"
+        }
+        DVClientGoogle {
+            dimension = 'dimonvideo'
+            versionNameSuffix "-release"
+
         }
     }
 }

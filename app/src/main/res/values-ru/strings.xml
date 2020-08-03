@@ -108,5 +108,13 @@
     <string name="disable_open_links">Открывать ссылки в браузере</string>
     <string name="action_donate">Поддержи сайт!</string>
     <string name="action_vote">Опросы на сайте</string>
+    <string name="action_page">Открыть сайт</string>
+    <string name="user_rang">"Ранг: "</string>
+    <string name="user_last">"Активность: "</string>
+    <string name="user_rep">"Репутация: "</string>
+    <string name="user_reg">"На сайте с: "</string>
+    <string name="user_rat">"Рейтинг: "</string>
+    <string name="user_posts">"Ответов: "</string>
+    <string name="btn_profile">Перейти в профиль</string>
 
 </resources>
