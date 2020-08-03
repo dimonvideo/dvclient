@@ -296,7 +296,6 @@ public class MainActivity extends AppCompatActivity {
                 fab_badge.setVisibility(View.VISIBLE);
                 fab_badge.setText(str);
                 if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
-                Log.e("pm", "recived");
             }
         }
     };
@@ -330,7 +329,6 @@ public class MainActivity extends AppCompatActivity {
         assert searchManager != null;
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(500);
-        Log.d("tagActivity", String.valueOf(razdel));
 
         searchEditText.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {

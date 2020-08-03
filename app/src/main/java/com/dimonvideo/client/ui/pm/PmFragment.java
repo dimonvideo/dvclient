@@ -305,7 +305,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         String finalPass = pass;
         String finalLogin = login;
         String url = Config.PM_URL + requestCount + "&login_name=" + finalLogin + "&login_password=" + finalPass;
-        Log.e("pm", url);
         return new JsonArrayRequest(url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
