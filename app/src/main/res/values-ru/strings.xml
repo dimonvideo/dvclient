@@ -116,5 +116,7 @@
     <string name="user_rat">"Рейтинг: "</string>
     <string name="user_posts">"Ответов: "</string>
     <string name="btn_profile">Перейти в профиль</string>
+    <string name="scale_title">Размер шрифта</string>
+    <string name="please_reload">Перезапустите приложение для применения настройки шрифта!</string>
 
 </resources>

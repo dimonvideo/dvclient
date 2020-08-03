@@ -70,6 +70,13 @@
             app:defaultValue="false"
             app:key="dvc_tab_inline"
             app:title="@string/tab_inline" />
+        <ListPreference
+            app:defaultValue="1.0f"
+            app:entries="@array/size_entries"
+            app:entryValues="@array/size_values"
+            app:key="dvc_scale"
+            app:title="@string/scale_title"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <!-- Uploader Preference -->

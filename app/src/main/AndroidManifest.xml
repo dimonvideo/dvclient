@@ -27,9 +27,11 @@
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <uses-library
-            android:name="org.apache.http.legacy"
-            android:required="false" />
+        <activity
+            android:name=".Posts"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".SettingsActivity"

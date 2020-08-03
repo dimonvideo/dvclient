@@ -81,11 +81,8 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final String password = sharedPrefs.getString("dvc_password", "null");
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
-
-        if ((Feed.getNewtopic() == 1) && (!password.equals("null")))
-            holder.post_layout.setVisibility(View.VISIBLE);
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
@@ -141,16 +138,18 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
-            holder.post_layout.setVisibility(View.VISIBLE);
-            holder.textInput.setText("[b]"+ Feed.getLast_poster_name() +"[/b], ");
-            holder.textInput.setSelection(holder.textInput.getText().length());;
-
+            if (auth_state > 0) {
+                holder.post_layout.setVisibility(View.VISIBLE);
+                holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
+                holder.textInput.setSelection(holder.textInput.getText().length());
+            }
         });
         holder.itemView.setOnClickListener(view -> {
-            holder.post_layout.setVisibility(View.VISIBLE);
-            holder.textInput.setText("[b]"+ Feed.getLast_poster_name() +"[/b], ");
-            holder.textInput.setSelection(holder.textInput.getText().length());;
-
+            if (auth_state > 0) {
+                holder.post_layout.setVisibility(View.VISIBLE);
+                holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
+                holder.textInput.setSelection(holder.textInput.getText().length());
+            }
         });
 
         holder.textViewText.setOnLongClickListener(view -> {

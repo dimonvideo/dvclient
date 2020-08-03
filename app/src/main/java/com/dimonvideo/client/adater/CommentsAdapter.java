@@ -79,6 +79,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         holder.textViewCategory.setText(Feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);
@@ -103,21 +104,23 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
-            holder.post_layout.setVisibility(View.VISIBLE);
-            holder.textInput.setText("[b]"+ Feed.getUser() +"[/b], ");
-            holder.textInput.setSelection(holder.textInput.getText().length());;
-            holder.textInput.setFocusableInTouchMode(true);
-            holder.textInput.requestFocus();
-
+            if (auth_state > 0) {
+                holder.post_layout.setVisibility(View.VISIBLE);
+                holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
+                holder.textInput.setSelection(holder.textInput.getText().length());
+                holder.textInput.setFocusableInTouchMode(true);
+                holder.textInput.requestFocus();
+            }
 
         });
         holder.itemView.setOnClickListener(view -> {
-            holder.post_layout.setVisibility(View.VISIBLE);
-            holder.textInput.setText("[b]"+ Feed.getUser() +"[/b], ");
-            holder.textInput.setSelection(holder.textInput.getText().length());;
-            holder.textInput.requestFocus();
-            holder.textInput.setFocusableInTouchMode(true);
-
+            if (auth_state > 0) {
+                holder.post_layout.setVisibility(View.VISIBLE);
+                holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
+                holder.textInput.setSelection(holder.textInput.getText().length());
+                holder.textInput.requestFocus();
+                holder.textInput.setFocusableInTouchMode(true);
+            }
 
         });
 

@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -19,10 +20,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -100,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
+        adjustFontScale( getResources().getConfiguration());
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -287,6 +291,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    private void adjustFontScale(Configuration configuration) {
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        assert wm != null;
+        wm.getDefaultDisplay().getMetrics(metrics);
+        metrics.scaledDensity = configuration.fontScale * metrics.density;
+        getBaseContext().getResources().updateConfiguration(configuration, metrics);
+    }
+
     public BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -459,11 +475,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack(); // pop fragment here
-        } else {
-            super.onBackPressed(); // after nothing is there default behavior of android works.
-        }
+        super.onBackPressed();
     }
 
     @Override
@@ -503,4 +515,5 @@ public class MainActivity extends AppCompatActivity {
         // запрашиваем разрешение
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{MainActivity.WRITE_EXTERNAL_STORAGE_PERMISSION}, MainActivity.REQUEST_WRITE_EXTERNAL_STORAGE);
     }
+
 }

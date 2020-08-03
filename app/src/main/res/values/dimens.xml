@@ -8,9 +8,9 @@
     <dimen name="mtrl_badge_with_text_radius">12dp</dimen>
 
     <dimen name="title">15sp</dimen>
-    <dimen name="rating">15dip</dimen>
-    <dimen name="text">13dip</dimen>
-    <dimen name="date">12dip</dimen>
+    <dimen name="rating">14sp</dimen>
+    <dimen name="text">13sp</dimen>
+    <dimen name="date">12sp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="text_margin">16dp</dimen>
 </resources>

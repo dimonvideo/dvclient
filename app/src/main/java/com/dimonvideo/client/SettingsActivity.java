@@ -3,7 +3,9 @@ package com.dimonvideo.client;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -39,6 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        adjustFontScale( getResources().getConfiguration());
         setContentView(R.layout.settings_activity);
         getSupportFragmentManager()
                 .beginTransaction()
@@ -48,6 +51,17 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+    }
+
+    private void adjustFontScale(Configuration configuration) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        assert wm != null;
+        wm.getDefaultDisplay().getMetrics(metrics);
+        metrics.scaledDensity = configuration.fontScale * metrics.density;
+        getBaseContext().getResources().updateConfiguration(configuration, metrics);
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements
@@ -62,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_pm = findPreference("dvc_pm");
             Preference dvc_clear_login = findPreference("dvc_clear_login");
             Preference dvc_register = findPreference("dvc_register");
+            Preference dvc_scale = findPreference("dvc_scale");
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceClickListener(
                     arg0 -> {
@@ -70,7 +85,12 @@ public class SettingsActivity extends AppCompatActivity {
                         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                         return true;
                     });
-
+            assert dvc_scale != null;
+            dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
+                ((SettingsActivity) requireActivity()).recreate();
+                Toast.makeText(getContext(), getString(R.string.please_reload), Toast.LENGTH_LONG).show();
+                return true;
+            });
             assert dvc_password != null;
             dvc_password.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
@@ -95,12 +115,14 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
+            assert dvc_clear_login != null;
             dvc_clear_login.setOnPreferenceClickListener(preference -> {
                 alertForClearData();
 
                 return true;
             });
 
+            assert dvc_register != null;
             dvc_register.setOnPreferenceClickListener(preference -> {
                 loadReg(getContext());
 
@@ -113,6 +135,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
         }
+
 
         private void alertForClearData(){
 

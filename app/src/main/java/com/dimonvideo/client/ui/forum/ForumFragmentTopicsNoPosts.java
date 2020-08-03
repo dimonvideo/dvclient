@@ -89,25 +89,7 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
 
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-        root.setOnKeyListener((v, keyCode, event) -> {
-            Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-            if( keyCode == KeyEvent.KEYCODE_BACK  && event.getAction() == KeyEvent.ACTION_DOWN )
-            {
-                toolbar.setTitle(getString(R.string.tab_topics_no_posts));
-                String current = Objects.requireNonNull(requireActivity().getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment)).getClass().getSimpleName();
-                if (current.equals("ForumFragmentPosts")) {
-                    requireActivity().getSupportFragmentManager().popBackStack("ForumFragmentTopics", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                } else if (current.equals("ForumFragmentTopics")) {
-                    requireActivity().getSupportFragmentManager().popBackStack("ForumFragmentForums", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                } else requireActivity().onBackPressed();
-                Log.e("tag", current);
-                return true;
-            } else {
-                return true;
-            }
-        });
+
         return root;
     }
 

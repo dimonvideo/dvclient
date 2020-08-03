@@ -219,17 +219,6 @@
 
     </fragment>
     <fragment
-        android:id="@+id/nav_posts"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentPosts"
-        android:label="@string/tab_topics_no_posts"
-        android:tag="posts"
-        tools:layout="@layout/fragment_home">
-        <argument
-            android:name="category"
-            android:defaultValue="9"
-            />
-    </fragment>
-    <fragment
         android:id="@+id/nav_forums"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentForums"
         android:label="@string/tab_forums"
@@ -256,9 +245,7 @@
         <action
             android:id="@+id/action_nav_topics_to_nav_forums"
             app:destination="@id/nav_forums" />
-        <action
-            android:id="@+id/action_nav_topics_to_nav_posts"
-            app:destination="@id/nav_posts" />
+
     </fragment>
     <fragment
         android:id="@+id/nav_topics_fav"
@@ -284,9 +271,7 @@
             android:name="category"
             android:defaultValue="9"
             />
-        <action
-            android:id="@+id/action_nav_topics_no_posts_to_nav_topics"
-            app:destination="@id/nav_topics" />
+
     </fragment>
     <fragment
         android:id="@+id/nav_pminbox"

@@ -122,4 +122,6 @@
     <string name="user_rat">"Rating: "</string>
     <string name="user_posts">"Posts: "</string>
     <string name="btn_profile">Open profile</string>
+    <string name="scale_title">Font size</string>
+    <string name="please_reload">Please restart the app!</string>
 </resources>

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,16 +13,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
+import com.dimonvideo.client.Posts;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.ButtonsActions;
 
 import java.util.Calendar;
@@ -84,17 +79,10 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(v -> {
-            Fragment fragment = new ForumFragmentPosts();
-            Bundle bundle = new Bundle();
-            bundle.putString(Config.TAG_ID, String.valueOf(Feed.getId()));
-            bundle.putString(Config.TAG_TITLE, Feed.getTitle());
-            fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.addToBackStack("ForumFragmentTopics");
-            ft.add(R.id.nav_host_fragment, fragment);
-            ft.commit();
+            Intent intent = new Intent(context, Posts.class);
+            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            context.startActivity(intent);
         });
         if (Feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);

@@ -22,8 +22,6 @@
         android:labelFor="@id/listtext"
         android:inputType="text"
         tools:ignore="LabelFor">
-
-        <requestFocus />
     </EditText>
 
     <Button
