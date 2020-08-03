@@ -1,7 +1,5 @@
-package com.dimonvideo.client;
+package com.dimonvideo.client.ui.forum;
 
-import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -10,11 +8,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -23,10 +21,8 @@ import android.widget.ProgressBar;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -36,23 +32,23 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
-import com.dimonvideo.client.adater.CommentsAdapter;
+import com.dimonvideo.client.Config;
+import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumPostsAdapter;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.NetworkUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
+public class PostsSearch extends AppCompatActivity  implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -61,8 +57,6 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_POSTS_URL;
-    String story = null;
-    String s_url = "";
     String tid = "1728146606";
     String t_name;
     SwipeRefreshLayout swipLayout;
@@ -85,7 +79,7 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
 
         if (getIntent()!=null) {
             tid = (String) getIntent().getSerializableExtra(Config.TAG_ID);
-            t_name = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
+            t_name = (String) getIntent().getSerializableExtra(Config.TAG_STORY);
         }
 
         Objects.requireNonNull(getSupportActionBar()).setTitle(t_name);
@@ -132,12 +126,13 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
-
-        if (!TextUtils.isEmpty(tid)) {
-            s_url = "&id=" + tid;
+        try {
+            t_name = URLEncoder.encode(t_name, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
-
-        return new JsonArrayRequest(url + requestCount + s_url,
+Log.e("search", url + requestCount + "&id=" + tid + "&story=" + t_name);
+        return new JsonArrayRequest(url + requestCount + "&id=" + tid + "&story=" + t_name,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -214,28 +209,6 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_topics, menu);
-        /*
-        // search
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        final EditText searchEditText = searchView.findViewById(R.id.search_src_text);
-
-        searchEditText.setHint(getString(R.string.search));
-
-        searchEditText.setHintTextColor(getResources().getColor(R.color.list_row_end_color));
-        assert searchManager != null;
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setMaxWidth(500);
-
-        searchEditText.setOnEditorActionListener((view, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-
-                story = searchEditText.getText().toString().trim();
-
-            }
-            return false;
-        });
-*/
         return true;
     }
     // toolbar main arrow
@@ -329,5 +302,20 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
         wm.getDefaultDisplay().getMetrics(metrics);
         metrics.scaledDensity = configuration.fontScale * metrics.density;
         getBaseContext().getResources().updateConfiguration(configuration, metrics);
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 }

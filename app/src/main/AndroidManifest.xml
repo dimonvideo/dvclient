@@ -22,13 +22,19 @@
         tools:replace="android:allowBackup"
         tools:targetApi="n">
         <activity
-            android:name=".Comments"
+            android:name=".ui.main.Comments"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
-            android:name=".Posts"
+            android:name=".ui.forum.Posts"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".ui.forum.PostsSearch"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />

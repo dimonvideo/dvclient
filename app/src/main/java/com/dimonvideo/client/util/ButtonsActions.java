@@ -30,7 +30,6 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.dimonvideo.client.Comments;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.potyvideo.library.AndExoPlayerView;

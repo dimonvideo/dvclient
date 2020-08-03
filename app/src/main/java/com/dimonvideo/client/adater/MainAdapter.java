@@ -21,7 +21,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.dimonvideo.client.Comments;
+import com.dimonvideo.client.ui.main.Comments;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.R;

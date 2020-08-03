@@ -16,7 +16,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.Posts;
+import com.dimonvideo.client.ui.forum.Posts;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
