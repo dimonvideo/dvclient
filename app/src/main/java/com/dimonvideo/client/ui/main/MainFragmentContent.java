@@ -235,7 +235,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        Toast.makeText(getContext(), story+razdel, Toast.LENGTH_LONG).show();
         ProgressBarBottom.setVisibility(View.VISIBLE);
         requestQueue.add(getDataFromServer(requestCount));
         requestCount++;
