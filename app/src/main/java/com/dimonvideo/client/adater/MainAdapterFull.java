@@ -118,19 +118,19 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.modBtn.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
 
-        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)) {
+        if ((Feed.getRazdel() != null) && (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL))) {
             holder.mp4Btn.setVisibility(View.VISIBLE);
             holder.mp4Btn.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
 
         }
         // если нет размера файла
-        if (Feed.getSize().startsWith("0")) {
+        if ((Feed.getSize() != null) || (Feed.getSize().startsWith("0"))) {
             holder.downloadBtn.setVisibility(View.GONE);
             holder.modBtn.setVisibility(View.GONE);
         } else holder.downloadBtn.setText(context.getString(R.string.download) + " " + Feed.getSize());
 
         // если нет mod
-        if (Feed.getMod().startsWith("null")) {
+        if ((Feed.getMod() != null) && (Feed.getMod().startsWith("null"))) {
             holder.modBtn.setVisibility(View.GONE);
         }
 

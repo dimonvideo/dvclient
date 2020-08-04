@@ -270,12 +270,12 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.btn_comms.setText(comText);
         }
         // смотреть онлайн
-        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)) {
+        if ((Feed.getRazdel() != null) && (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL))) {
             holder.btn_mp4.setVisibility(View.VISIBLE);
             holder.btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
         }
         // если нет размера файла
-        if (Feed.getSize().startsWith("0")) {
+        if ((Feed.getSize() == null) || (Feed.getSize().startsWith("0"))) {
             holder.btn_download.setVisibility(View.GONE);
             holder.btn_mod.setVisibility(View.GONE);
         } else {
@@ -283,7 +283,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.btn_download.setVisibility(View.VISIBLE);
         }
         // если нет mod
-        if (!Feed.getMod().startsWith("null")) {
+        if ((Feed.getMod() != null) && (!Feed.getMod().startsWith("null"))) {
             holder.btn_mod.setVisibility(View.VISIBLE);
             holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
         }
