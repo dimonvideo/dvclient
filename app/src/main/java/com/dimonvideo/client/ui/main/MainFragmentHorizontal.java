@@ -32,6 +32,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -47,13 +49,13 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     private RequestQueue requestQueue;
 
     private int requestCount = 1;
-    private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
     String url = Config.COMMENTS_URL;
     String search_url = Config.COMMENTS_SEARCH_URL;
     static String story = null;
     String key = "comments";
     SharedPreferences sharedPrefs;
+    String s_url = "";
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -149,8 +151,17 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             String[] selected = selections.toArray(new String[]{});
             category_string = TextUtils.join(",", selected);
         }
+        if (!TextUtils.isEmpty(story)) {
+            url = search_url;
 
-        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string,
+            try {
+                story = URLEncoder.encode(story, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            s_url = "&story=" + story;
+        }
+        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {
                     for (int i = 0; i < response.length(); i++) {
                             Feed jsonFeed = new Feed();

@@ -73,7 +73,7 @@ public class ButtonsActions {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
-            Log.e("favR", response);
+                    Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_LONG).show();
 
                 }, error -> {
             if (error instanceof TimeoutError || error instanceof NoConnectionError) {
@@ -103,7 +103,7 @@ public class ButtonsActions {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_POST_URL + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
-                    Log.e("favR", response);
+                    Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_LONG).show();
 
                 }, error -> {
             if (error instanceof TimeoutError || error instanceof NoConnectionError) {

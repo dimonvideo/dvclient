@@ -1,10 +1,13 @@
 package com.dimonvideo.client.adater;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,14 +16,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -94,7 +100,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             notifyDataSetChanged();
         });
 
-        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        } catch (Throwable ignored) {
+        }
         holder.textViewTitle.setText("#"+String.valueOf(Feed.getMin()+position+1)+" ");
         holder.textViewTitle.append(Feed.getUser());
         holder.textViewDate.setText(Feed.getDate());
@@ -159,8 +167,39 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
                 }
             });
         }
+
+        // show dialog
+        holder.itemView.setOnLongClickListener(view -> {
+            show_dialog(holder, position, context);
+            return true;
+        });
+        holder.textViewText.setOnLongClickListener(view -> {
+            show_dialog(holder, position, context);
+            return true;
+        });
     }
 
+
+    // dialog
+    private void show_dialog(ViewHolder holder, final int position, Context context){
+        final CharSequence[] items = {context.getString(R.string.copy_listtext)};
+        final FeedForum Feed = jsonFeed.get(position);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+        builder.setTitle(Feed.getTitle());
+        builder.setItems(items, (dialog, item) -> {
+
+            if (item == 0) { // copy text
+                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
+                holder.myClipboard.setPrimaryClip(holder.myClip);
+                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+            }
+
+        });
+        builder.show();
+    }
 
     @Override
     public int getItemCount() {
@@ -176,6 +215,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         public Button btnSend;
         public EditText textInput;
         public String url;
+        public ClipboardManager myClipboard;
+        public ClipData myClip;
 
         //Initializing Views
         public ViewHolder(View itemView) {

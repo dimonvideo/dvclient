@@ -124,4 +124,6 @@
     <string name="btn_profile">Open profile</string>
     <string name="scale_title">Font size</string>
     <string name="please_reload">Please restart the app!</string>
+    <string name="success">Success!</string>
+    <string name="copy_listtext">Copy description</string>
 </resources>

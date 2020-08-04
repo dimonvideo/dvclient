@@ -1,9 +1,15 @@
 package com.dimonvideo.client.ui.main;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -15,12 +21,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -31,15 +41,19 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.SettingsActivity;
 import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -64,6 +78,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         adjustFontScale( getResources().getConfiguration());
@@ -119,6 +134,67 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
             NetworkUtils.sendPm(this, Integer.parseInt(lid), textInput.getText().toString(), 20, razdel);
             textInput.getText().clear();
         });
+
+        // open PM
+        FloatingActionButton fab = findViewById(R.id.fab);
+        if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
+        fab.setOnClickListener(view -> {
+            Intent notificationIntent = new Intent(getBaseContext(), MainActivity.class);
+            notificationIntent.putExtra("action", "PmFragment");
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(notificationIntent);
+
+        });
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
+        lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
+
+        if (auth_state > 0) {
+
+            // обновляем счетчик лс
+            @SuppressLint("StaticFieldLeak")
+            class AsyncCountPm extends AsyncTask<String, String, String> {
+                SharedPreferences sharedPrefs;
+                private WeakReference<Context> contextRef;
+
+                public AsyncCountPm(Context context) {
+                    this.contextRef = new WeakReference<>(context);
+                }
+
+                @Override
+                protected String doInBackground(String... params) {
+                    Context context = contextRef.get();
+                    if (context != null) {
+                        try {
+                            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                            // check is logged
+                            final String password = sharedPrefs.getString("dvc_password", "null");
+                            View view = ((Activity) context).getWindow().getDecorView().getRootView();
+
+                            NetworkUtils.checkPassword(context, view, password);
+
+                            return null;
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(String result) {
+                    super.onPostExecute(result);
+                    final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
+                    if (pm_unread > 0) {
+                        TextView fab_badge = findViewById(R.id.fab_badge);
+                        fab_badge.setVisibility(View.VISIBLE);
+                        fab_badge.setText(String.valueOf(pm_unread));
+                    }
+                }
+            }
+            AsyncCountPm task = new AsyncCountPm(this);
+            task.execute();
+
+        }
     }
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
@@ -156,6 +232,19 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
                 });
     }
 
+    public BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null) {
+                String str = intent.getStringExtra("count");
+                TextView fab_badge = findViewById(R.id.fab_badge);
+                fab_badge.setVisibility(View.VISIBLE);
+                fab_badge.setText(str);
+                if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
+            }
+        }
+    };
+
     // получение данных и увеличение номера страницы
     private void getData() {
         ProgressBarBottom.setVisibility(View.VISIBLE);
@@ -189,6 +278,10 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
     @Override
     public void onDestroy() {
+        try {
+            unregisterReceiver(receiver);
+        } catch (Throwable ignored) {
+        }
         super.onDestroy();
     }
 

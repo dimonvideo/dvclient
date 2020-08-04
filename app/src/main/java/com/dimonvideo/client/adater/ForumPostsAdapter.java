@@ -1,10 +1,13 @@
 package com.dimonvideo.client.adater;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -59,7 +63,6 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         return new ViewHolder(v);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -134,8 +137,9 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             });
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
-        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
-
+        try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        } catch (Throwable ignored) {
+        }
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             if (auth_state > 0) {
@@ -152,48 +156,64 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             }
         });
 
+        // show dialog
+        holder.itemView.setOnLongClickListener(view -> {
+            show_dialog(holder, position, context);
+            return true;
+        });
         holder.textViewText.setOnLongClickListener(view -> {
-            final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.action_like)};
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            holder.url = Config.BASE_URL + "/forum/post_" + Feed.getId();
-
-
-            builder.setTitle(Feed.getTitle());
-            builder.setItems(items, (dialog, item) -> {
-
-                if (item == 0) { // share
-                    Intent sendIntent = new Intent();
-                    sendIntent.setAction(Intent.ACTION_SEND);
-                    sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
-                    sendIntent.setType("text/plain");
-
-                    Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
-                    try {
-                        context.startActivity(shareIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-                if (item == 1) { // browser
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-                if (item == 2) { // like
-                    ButtonsActions.like_forum_post(context, Feed.getId(), 1);
-                }
-
-            });
-            builder.show();
+            show_dialog(holder, position, context);
             return true;
         });
 
 
-
     }
 
+    // dialog
+    private void show_dialog(ViewHolder holder, final int position, Context context){
+        final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open),
+                context.getString(R.string.action_like), context.getString(R.string.copy_listtext)};
+        FeedForum Feed = jsonFeed.get(position);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        holder.url = Config.BASE_URL + "/forum/post_" + Feed.getId();
+
+        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+        builder.setTitle(Feed.getTitle());
+        builder.setItems(items, (dialog, item) -> {
+
+            if (item == 0) { // share
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+                sendIntent.setType("text/plain");
+
+                Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+                try {
+                    context.startActivity(shareIntent);
+                } catch (Throwable ignored) {
+                }
+            }
+            if (item == 1) { // browser
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+                try {
+                    context.startActivity(browserIntent);
+                } catch (Throwable ignored) {
+                }
+            }
+            if (item == 2) { // like
+                ButtonsActions.like_forum_post(context, Feed.getId(), 1);
+            }
+            if (item == 3) { // copy text
+                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
+                holder.myClipboard.setPrimaryClip(holder.myClip);
+                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+            }
+
+        });
+        builder.show();
+    }
 
     @Override
     public int getItemCount() {
@@ -209,6 +229,8 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         public Button btnSend;
         public EditText textInput;
         public String url;
+        public ClipboardManager myClipboard;
+        public ClipData myClip;
 
         //Initializing Views
         public ViewHolder(View itemView) {

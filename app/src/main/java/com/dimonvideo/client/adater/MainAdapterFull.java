@@ -1,10 +1,13 @@
 package com.dimonvideo.client.adater;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +15,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -106,7 +111,9 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.headersTitle.setText(Feed.getTitle());
         holder.subHeadersTitle.setText(Feed.getDate());
         holder.subHeadersTitle.append(" " + context.getString(R.string.by) + " " + Feed.getUser());
-        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        } catch (Throwable ignored) {
+        }
         holder.downloadBtn.setVisibility(View.VISIBLE);
         holder.modBtn.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
@@ -176,8 +183,73 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
             }
         });
+        // dialog menu
+        holder.itemView.setOnLongClickListener(view -> {
+            show_dialog(holder, position, context);
+            return true;
+        });
+        holder.textViewText.setOnLongClickListener(view -> {
+            show_dialog(holder, position, context);
+            return true;
+        });
 
+    }
 
+    // dialog
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void show_dialog(ViewHolder holder, final int position, Context context){
+        final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open),
+                context.getString(R.string.menu_fav), context.getString(R.string.action_like),
+                context.getString(R.string.action_screen), context.getString(R.string.download), context.getString(R.string.copy_listtext)};
+        final Feed Feed =  jsonFeed.get(position);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        holder.url = Config.BASE_URL + "/" + Feed.getRazdel() + "/" + Feed.getId();
+        if (Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+            holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
+
+        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+
+        builder.setTitle(Feed.getTitle());
+        builder.setItems(items, (dialog, item) -> {
+            if (item == 0) { // share
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+                sendIntent.setType("text/plain");
+
+                Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+                try {
+                    context.startActivity(shareIntent);
+                } catch (Throwable ignored) {
+                }
+            }
+            if (item == 1) { // browser
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+                try {
+                    context.startActivity(browserIntent);
+                } catch (Throwable ignored) {
+                }
+            }
+            if (item == 2) { // fav
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1);
+            }
+            if (item == 3) { // like
+                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
+            }
+            if (item == 4) { // screen
+                ButtonsActions.loadScreen(context, Feed.getImageUrl());
+            }
+            if (item == 5) { // download
+                DownloadFile.download(context, Feed.getLink());
+            }
+            if (item == 6) { // copy text
+                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getFull_text()).toString());
+                holder.myClipboard.setPrimaryClip(holder.myClip);
+                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+            }
+
+        });
+        builder.show();
     }
 
     @Override
@@ -193,6 +265,9 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         public Button downloadBtn, modBtn, commentsBtn, mp4Btn;
         public LikeButton likeButton, starButton;
         public ProgressBar progressBar;
+        public String url;
+        public ClipboardManager myClipboard;
+        public ClipData myClip;
 
         //Initializing Views
         public ViewHolder(View itemView) {

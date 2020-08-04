@@ -118,5 +118,7 @@
     <string name="btn_profile">Перейти в профиль</string>
     <string name="scale_title">Размер шрифта</string>
     <string name="please_reload">Перезапустите приложение для применения настройки шрифта!</string>
+    <string name="success">Успешно!</string>
+    <string name="copy_listtext">Скопировать описание в буфер обмена</string>
 
 </resources>

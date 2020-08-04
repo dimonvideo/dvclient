@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -247,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             AsyncCountPm task = new AsyncCountPm(this);
-            task.execute(login_name);
+            task.execute();
 
         } else {
             Login_Name.setOnClickListener(v -> {
@@ -292,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // scale font
     private void adjustFontScale(Configuration configuration) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));

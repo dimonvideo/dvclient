@@ -35,6 +35,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -186,8 +188,12 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
         if (!TextUtils.isEmpty(story)) {
             url = search_url;
-        }
-        if (!TextUtils.isEmpty(story)) {
+
+            try {
+                story = URLEncoder.encode(story, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             s_url = "&story=" + story;
         }
 
