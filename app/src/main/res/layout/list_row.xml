@@ -7,15 +7,6 @@
     android:layout_height="wrap_content"
     android:padding="8dp" >
 
-    <!-- Thumbnail Image -->
-    <ImageView
-        android:id="@+id/thumbnail"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginEnd="8dp"
-        android:contentDescription="@string/action_screen" />
-
     <!-- status -->
     <ImageView
         android:id="@+id/status"
@@ -23,10 +14,8 @@
         android:layout_height="@dimen/text"
         android:layout_marginEnd="5dip"
         android:layout_marginTop="5dip"
-        android:layout_marginStart="1dip"
-        android:layout_alignTop="@+id/thumbnail"
-        android:layout_below="@id/listtext"
-        android:layout_toEndOf="@+id/thumbnail"
+        android:layout_marginBottom="4dp"
+        android:layout_alignParentStart="true"
         android:contentDescription="@string/Comments"
         android:src="@drawable/ic_status_green" />
 
@@ -35,20 +24,32 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/thumbnail"
         android:textColor="@color/text"
         android:layout_toEndOf="@+id/status"
         android:textSize="@dimen/title"
+        android:layout_marginBottom="4dp"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
+
+    <!-- Thumbnail Image -->
+    <ImageView
+        android:id="@+id/thumbnail"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_below="@id/title"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@string/action_screen" />
+
+
 
     <!-- category -->
     <TextView
         android:id="@+id/category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="@+id/thumbnail"
         android:layout_below="@id/title"
-        android:layout_marginTop="5dp"
         android:layout_toEndOf="@+id/thumbnail"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
@@ -61,7 +62,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/thumbnail"
         android:visibility="gone"
-        android:layout_alignParentTop="@+id/thumbnail"
         android:layout_marginTop="5dp"
         android:contentDescription="@string/favorites_btn"
         android:textColor="@color/colorAccent"

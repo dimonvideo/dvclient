@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -79,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -127,6 +127,11 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_uploader,
                 R.id.nav_cats,
                 R.id.nav_android,
+                R.id.nav_pminbox,
+                R.id.nav_topics,
+                R.id.nav_topics_fav,
+                R.id.nav_topics_no_posts,
+                R.id.nav_fav,
                 R.id.nav_articles
         ).setOpenableLayout(drawer).build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);

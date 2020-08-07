@@ -25,6 +25,9 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.ui.main.Comments;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -88,7 +91,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         } catch (Exception ignored) {
         }
         //Loading image from url
-        Glide.with(context).load(Feed.getImageUrl()).into(holder.imageView);
+        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));

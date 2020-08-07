@@ -29,6 +29,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
@@ -52,7 +53,7 @@ public class ButtonsActions {
         dialog.setContentView(R.layout.screen);
         ImageView image = dialog.findViewById(R.id.screenshot);
         image.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
-        Glide.with(mContext).load(image_url).into(image);
+        Glide.with(mContext).load(image_url).apply(RequestOptions.bitmapTransform(new RoundedCorners(24))).into(image);
 
         dialog.show();
 

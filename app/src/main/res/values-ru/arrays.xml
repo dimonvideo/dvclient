@@ -66,7 +66,9 @@
         <item>Android</item>
         <item>PC</item>
         <item>Symbian</item>
-        <item>Книги</item>
+        <item>Все книги</item>
+        <item>Аудиокниги</item>
+        <item>Художественные книги</item>
     </string-array>
 
     <string-array name="uploader_values">
@@ -75,6 +77,23 @@
         <item>pc</item>
         <item>symbian</item>
         <item>books</item>
+        <item>abooks</item>
+        <item>hbooks</item>
+    </string-array>
+
+    <!-- Android Preference -->
+    <string-array name="android_entries">
+        <item>Все</item>
+        <item>Программы</item>
+        <item>Игры</item>
+        <item>Темы, обои</item>
+    </string-array>
+
+    <string-array name="android_values">
+        <item>all</item>
+        <item>soft</item>
+        <item>games</item>
+        <item>themes</item>
     </string-array>
 
     <!-- vUploader Preference -->

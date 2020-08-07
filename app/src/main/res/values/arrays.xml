@@ -67,6 +67,8 @@
         <item>PC</item>
         <item>Symbian</item>
         <item>Books</item>
+        <item>AudioBooks</item>
+        <item>FB2 Books</item>
     </string-array>
 
     <string-array name="uploader_values">
@@ -75,6 +77,23 @@
         <item>pc</item>
         <item>symbian</item>
         <item>books</item>
+        <item>abooks</item>
+        <item>hbooks</item>
+    </string-array>
+
+    <!-- Android Preference -->
+    <string-array name="android_entries">
+        <item>All</item>
+        <item>Soft</item>
+        <item>Games</item>
+        <item>Themes</item>
+    </string-array>
+
+    <string-array name="android_values">
+        <item>all</item>
+        <item>soft</item>
+        <item>games</item>
+        <item>themes</item>
     </string-array>
 
     <!-- vUploader Preference -->

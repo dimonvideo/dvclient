@@ -124,8 +124,8 @@
             android:dependency="dvc_android"
             app:defaultValue="@array/default_values"
             app:dialogTitle="@string/category_title"
-            app:entries="@array/uploader_entries"
-            app:entryValues="@array/uploader_values"
+            app:entries="@array/android_entries"
+            app:entryValues="@array/android_values"
             app:key="dvc_android_cat"
             app:summary="@string/menu_android"
             app:title="@string/category_title" />
