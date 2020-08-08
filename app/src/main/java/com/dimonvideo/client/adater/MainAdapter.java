@@ -61,11 +61,14 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
-
-
-        return new ViewHolder(v);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (Feed.getRazdel().equals("gallery")) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_gallery, parent, false);
+            return new ViewHolder(v);
+        } else {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
+            return new ViewHolder(v);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -84,10 +87,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         cal.set(Calendar.MILLISECOND, 0);
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
-        try{
-        if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
-            holder.status_logo.setImageResource(R.drawable.ic_status_green);
-        }
+        try {
+            if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
+                holder.status_logo.setImageResource(R.drawable.ic_status_green);
+            }
         } catch (Exception ignored) {
         }
         //Loading image from url
@@ -127,9 +130,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
 
-        try{
-        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play)
-            holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        try {
+            if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play)
+                holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
         } catch (Exception ignored) {
         }
         if (Feed.getMin() > 0) {
@@ -185,7 +188,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     }
 
     // dialog
-    private void show_dialog(ViewHolder holder, final int position, Context context){
+    private void show_dialog(ViewHolder holder, final int position, Context context) {
         final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open),
                 context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen),
                 context.getString(R.string.download), context.getString(R.string.copy_listtext)};
@@ -195,7 +198,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         if (Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
             holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
 
-        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        holder.myClipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 
         builder.setTitle(Feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
@@ -241,14 +244,15 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     // подробный вывод файла
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void open_content(ViewHolder holder, final int position, Context context){
+    private void open_content(ViewHolder holder, final int position, Context context) {
         final Feed Feed = jsonFeed.get(position);
         holder.txt_plus.setVisibility(View.VISIBLE);
         holder.likeButton.setVisibility(View.VISIBLE);
         holder.starButton.setVisibility(View.VISIBLE);
         holder.name.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
-        try { holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
+        try {
+            holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
         } catch (Throwable ignored) {
         }
 
@@ -292,23 +296,23 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
 
 
-    // download
+        // download
         holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
 
-    // like and favorites
+        // like and favorites
         holder.starButton.setOnLikeListener(new OnLikeListener() {
-        @Override
-        public void liked(LikeButton starButton) {
-            Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-            ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
-        }
+            @Override
+            public void liked(LikeButton starButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
+            }
 
-        @Override
-        public void unLiked(LikeButton starButton) {
-            Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
-            ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
-        }
-    });
+            @Override
+            public void unLiked(LikeButton starButton) {
+                Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
+                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
+            }
+        });
 
         holder.likeButton.setOnLikeListener(new OnLikeListener() {
             @Override

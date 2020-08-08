@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp" >
+
+    <!-- status -->
+    <ImageView
+        android:id="@+id/status"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_marginEnd="5dip"
+        android:layout_marginTop="5dip"
+        android:layout_marginBottom="4dp"
+        android:layout_alignParentStart="true"
+        android:contentDescription="@string/Comments"
+        android:src="@drawable/ic_status_green" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text"
+        android:layout_toEndOf="@+id/status"
+        android:textSize="@dimen/title"
+        android:layout_marginBottom="4dp"
+        android:textStyle="bold"
+        tools:ignore="SpUsage" />
+
+    <!-- category -->
+    <TextView
+        android:id="@+id/category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+    <!-- author -->
+    <LinearLayout
+        android:id="@+id/name_layout"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/category"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp"
+        android:layout_gravity="center_horizontal|center"
+        tools:ignore="ExtraText">
+
+        <!-- Added by -->
+        <TextView
+            android:id="@+id/added_by"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text"
+            android:text="@string/added_by"
+            android:textSize="@dimen/date"
+            tools:ignore="SpUsage" />
+
+        <!-- name -->
+        <TextView
+            android:id="@+id/by_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:textColor="@color/colorAccent"
+            android:textStyle="bold"
+            android:textSize="@dimen/date"
+            tools:ignore="SpUsage" />
+    </LinearLayout>
+
+    <!-- Thumbnail Image -->
+    <ImageView
+        android:id="@+id/thumbnail"
+        android:layout_width="wrap_content"
+        android:minHeight="200dp"
+        android:layout_below="@id/name_layout"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="4dp"
+        android:adjustViewBounds="true"
+        android:layout_gravity="center_horizontal|center"
+        android:contentDescription="@string/action_screen"
+        android:layout_height="wrap_content" />
+
+    <!-- favorites -->
+    <ImageView
+        android:id="@+id/fav"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_below="@id/thumbnail"
+        android:layout_marginTop="5dp"
+        android:contentDescription="@string/favorites_btn"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
+        app:srcCompat="@android:drawable/star_big_on"
+        tools:ignore="SpUsage" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="15dp"
+        android:layout_below="@id/fav"
+        android:visibility="gone"
+        android:indeterminate="true" />
+
+
+
+    <!-- text -->
+    <org.sufficientlysecure.htmltextview.HtmlTextView
+        android:id="@+id/listtext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/progressBar"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/text"
+        android:textSize="@dimen/text"
+        tools:ignore="SpUsage" />
+
+    <LinearLayout
+        android:id="@+id/like_layout"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/listtext"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_marginTop="5dp"
+        android:layout_gravity="center_horizontal|center"
+        tools:ignore="ExtraText">
+
+        <com.like.LikeButton
+            android:id="@+id/star_button"
+            app:icon_size="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon_type="star"
+            android:visibility="gone"/>
+
+        <com.like.LikeButton
+            android:id="@+id/thumb_button"
+            android:layout_marginStart="10dp"
+            app:icon_size="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon_type="thumb"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/txt_plus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:gravity="left"
+            tools:ignore="RtlHardcoded"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_comment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@id/like_layout"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/btn"
+        android:text="@string/Comments"
+        android:textStyle="bold"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/btn_download"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:layout_below="@id/btn_comment"
+        android:background="@drawable/btn"
+        android:text="@string/download"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btn_mod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@id/btn_download"
+        android:layout_margin="10dp"
+        android:background="@drawable/btn"
+        android:text="@string/download_mod"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btn_mp4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@id/btn_mod"
+        android:layout_margin="10dp"
+        android:background="@drawable/btn"
+        android:text="@string/download_mp4"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- views -->
+    <ImageView
+        android:id="@+id/views_logo"
+        android:layout_width="@dimen/title"
+        android:layout_height="@dimen/title"
+        android:layout_marginEnd="3dip"
+        android:layout_marginTop="3dip"
+        android:layout_below="@id/btn_mp4"
+        android:tint="@color/colorAccent"
+        android:contentDescription="@string/Comments"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/ic_menu_view"
+        tools:src="@android:drawable/ic_menu_view"
+        tools:srcCompat="@android:drawable/ic_menu_view" />
+    <TextView
+        android:id="@+id/views_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dip"
+        android:layout_toEndOf="@+id/views_logo"
+        android:layout_below="@id/btn_mp4"
+        android:visibility="gone"
+        android:textSize="@dimen/date"
+        android:textColor="@color/colorAccent"
+        tools:ignore="SpUsage" />
+
+    <!-- comments -->
+    <ImageView
+        android:id="@+id/rating_logo"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_marginEnd="3dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginStart="15dip"
+        android:layout_below="@id/btn_mp4"
+        android:visibility="gone"
+        android:tint="@color/colorAccent"
+        android:layout_toEndOf="@+id/views_count"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@android:drawable/sym_action_chat"
+        tools:src="@android:drawable/sym_action_chat"
+        tools:srcCompat="@android:drawable/sym_action_chat" />
+    <TextView
+        android:id="@+id/rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_mp4"
+        android:visibility="gone"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold"
+        android:layout_marginTop="3dip"
+        android:layout_toEndOf="@+id/rating_logo"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
+        tools:ignore="SpUsage" />
+
+</RelativeLayout>
