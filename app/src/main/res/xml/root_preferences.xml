@@ -148,6 +148,12 @@
             app:key="dvc_muzon_cat"
             app:summary="@string/muzon"
             app:title="@string/category_title" />
+        <SwitchPreferenceCompat
+            android:dependency="dvc_muzon"
+            app:defaultValue="true"
+            app:key="dvc_muzon_play"
+            app:summary="@string/muzon_play_behavior"
+            app:title="@string/muzon_play_behavior" />
     </PreferenceCategory>
 
     <!-- Vuploader Preference -->
@@ -169,7 +175,7 @@
             app:title="@string/category_title" />
         <SwitchPreferenceCompat
             android:dependency="dvc_vuploader"
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:key="dvc_vuploader_play"
             app:summary="@string/vuploader_play_behavior"
             app:title="@string/vuploader_play_behavior" />

@@ -6,9 +6,11 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
@@ -33,6 +35,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
@@ -102,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
-        adjustFontScale( getResources().getConfiguration());
+        adjustFontScale(getResources().getConfiguration());
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -146,7 +149,8 @@ public class MainActivity extends AppCompatActivity {
 
         Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
 
-        if (auth_state > 0) avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
+        if (auth_state > 0)
+            avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
 
         // открываем лс из уведомления
         Intent intent_pm = getIntent();
@@ -156,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             Fragment PmFragment = new MainFragment();
             try {
                 if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {
-                     PmFragment = new PmFragment();
+                    PmFragment = new PmFragment();
                 }
                 if (Objects.equals(intent_pm.getStringExtra("action"), "ForumFragment")) {
                     PmFragment = new ForumFragment();
@@ -199,7 +203,9 @@ public class MainActivity extends AppCompatActivity {
 
             assert shortcutManager != null;
 
-            if (auth_state > 0) shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut)); else
+            if (auth_state > 0)
+                shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut));
+            else
                 shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut));
 
         }
@@ -291,7 +297,22 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
 
-        if (!isPermissionGranted()) requestPermission();
+        if (!isPermissionGranted())
+            requestPermission();
+
+
+            try {
+                if (appWasUpdated(this)) {
+
+                    new AlertDialog.Builder(this)
+                            .setTitle(getString(R.string.whats_new_title))
+                            .setMessage(getString(R.string.whats_new_text))
+                            .setNegativeButton(android.R.string.ok,
+                                    (dialog, which) -> dialog.dismiss()).setIcon(R.mipmap.ic_launcher_round).show();
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
 
 
     }
@@ -299,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
     // scale font
     private void adjustFontScale(Configuration configuration) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));
+        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale", "1.0f"));
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         assert wm != null;
@@ -414,9 +435,10 @@ public class MainActivity extends AppCompatActivity {
 
             String url = "https://play.google.com/store/apps/dev?id=6091758746633814135";
 
-            if (BuildConfig.FLAVOR.equals("DVClientSamsung")) url = "https://dimonvideo.ru/android.html";
+            if (BuildConfig.FLAVOR.equals("DVClientSamsung"))
+                url = "https://dimonvideo.ru/android.html";
 
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                     url));
 
             try {
@@ -521,4 +543,16 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{MainActivity.WRITE_EXTERNAL_STORAGE_PERMISSION}, MainActivity.REQUEST_WRITE_EXTERNAL_STORAGE);
     }
 
+    // is new version
+    public boolean appWasUpdated(Context context) throws PackageManager.NameNotFoundException {
+        PackageManager manager = context.getPackageManager();
+        PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
+        int versionCode = info.versionCode;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (prefs.getInt("last_version_code", 1) != versionCode) {
+            prefs.edit().putInt("last_version_code", versionCode).apply();
+               return true;
+        }
+        return false;
+    }
 }

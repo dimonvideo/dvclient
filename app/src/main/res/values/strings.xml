@@ -126,4 +126,8 @@
     <string name="please_reload">Please restart the app!</string>
     <string name="success">Success!</string>
     <string name="copy_listtext">Copy description</string>
+    <string name="listen_online">Listen online</string>
+    <string name="muzon_play_behavior">Play audio on screen tap</string>
+    <string name="whats_new_title">Whats new</string>
+    <string name="whats_new_text">bug fix</string>
 </resources>

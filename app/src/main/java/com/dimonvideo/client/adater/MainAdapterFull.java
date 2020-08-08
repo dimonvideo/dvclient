@@ -72,12 +72,21 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         final Feed Feed =  jsonFeed.get(position);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
+        final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play",true);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
 
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
-        if (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play) holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        try {
+        if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play) holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        } catch (Exception ignored) {
+        }
+        try {
+            if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.MUZON_RAZDEL) && is_muzon_play))
+                holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+        } catch (Exception ignored) {
+        }
         // open links from listtext
         if (!is_open_link) {
             holder.textViewText.setOnClickATagListener((widget, href) -> {
