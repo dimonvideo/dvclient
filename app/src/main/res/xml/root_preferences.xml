@@ -51,6 +51,12 @@
             android:summary="@string/disable_open_links"
             app:useSimpleSummaryProvider="true"
             app:title="@string/disable_open_links" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_dvget"
+            android:summary="@string/dvget"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/dvget" />
         <Preference
             android:key="dvc_export"
             android:title="@string/export" />

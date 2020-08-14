@@ -135,4 +135,6 @@
     <string name="import_success">Import success, restart thr app.</string>
     <string name="import_settings">Import from SD</string>
     <string name="restart_app">Please restart app!</string>
+    <string name="dvget">DVGet / ADM integration</string>
+    <string name="dvget_not_found">DVGet / ADM not installed!</string>
 </resources>
