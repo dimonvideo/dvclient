@@ -291,6 +291,7 @@ public class NetworkUtils {
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
                             Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
+                    Log.e("pm", response+url);
 
                 }, Throwable::printStackTrace) {
 
