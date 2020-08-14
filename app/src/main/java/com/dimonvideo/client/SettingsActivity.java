@@ -19,7 +19,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -143,13 +142,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_export != null;
             dvc_export.setOnPreferenceClickListener(preference -> {
-                saveSharedPreferencesToFile(new File(android.os.Environment.getExternalStorageDirectory().toString() + "/dvclient.settings"));
+                saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/dvclient.settings"));
                 return true;
             });
 
             assert dvc_import != null;
             dvc_import.setOnPreferenceClickListener(preference -> {
-                loadSharedPreferencesFromFile(new File(android.os.Environment.getExternalStorageDirectory().toString() + "/dvclient.settings"));
+                loadSharedPreferencesFromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/dvclient.settings"));
                 return true;
             });
         }
@@ -252,7 +251,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         // save settings
-        private boolean saveSharedPreferencesToFile(File dst) {
+        private void saveSharedPreferencesToFile(File dst) {
             boolean res = false;
             ObjectOutputStream output = null;
             try {
@@ -276,12 +275,11 @@ public class SettingsActivity extends AppCompatActivity {
                     ex.printStackTrace();
                 }
             }
-            return res;
         }
 
         // import settings
         @SuppressWarnings({"unchecked"})
-        private boolean loadSharedPreferencesFromFile(File src) {
+        private void loadSharedPreferencesFromFile(File src) {
             boolean res = false;
             ObjectInputStream input = null;
             try {
@@ -322,7 +320,6 @@ public class SettingsActivity extends AppCompatActivity {
                     ex.printStackTrace();
                 }
             }
-            return res;
         }
     }
 
