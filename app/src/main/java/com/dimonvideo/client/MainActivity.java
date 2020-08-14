@@ -46,6 +46,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
+import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme", false);
+        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
         if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
@@ -118,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavGraph navGraph = navController.getNavInflater().inflate(R.navigation.mobile_navigation);
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home,
@@ -139,6 +142,19 @@ public class MainActivity extends AppCompatActivity {
         ).setOpenableLayout(drawer).build();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        // main razdel
+        if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
+        if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
+        if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
+        if (Integer.parseInt(main_razdel) == 3) navGraph.setStartDestination(R.id.nav_vuploader);
+        if (Integer.parseInt(main_razdel) == 5) navGraph.setStartDestination(R.id.nav_muzon);
+        if (Integer.parseInt(main_razdel) == 6) navGraph.setStartDestination(R.id.nav_books);
+        if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
+        if (Integer.parseInt(main_razdel) == 11) navGraph.setStartDestination(R.id.nav_android);
+        if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
+
+        navController.setGraph(navGraph);
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
@@ -275,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
         if (!is_books) navigationView.getMenu().removeItem(R.id.nav_books);
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
         if (!is_forum) navigationView.getMenu().removeItem(R.id.nav_forum);
+
 
         // open PM
         FloatingActionButton fab = findViewById(R.id.fab);

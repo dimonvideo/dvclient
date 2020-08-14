@@ -88,7 +88,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         return root;
     }
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
         story = event.story;
@@ -96,10 +96,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        if (razdel == 10) {
-            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
-        }
+
         if (razdel == 1) {
             url = Config.GALLERY_URL;
             search_url = Config.GALLERY_SEARCH_URL;

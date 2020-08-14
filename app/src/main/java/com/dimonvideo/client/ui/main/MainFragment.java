@@ -3,6 +3,7 @@ package com.dimonvideo.client.ui.main;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,16 +39,19 @@ public class MainFragment extends Fragment  {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+
         View root = inflater.inflate(R.layout.fragment_tabs, container, false);
         if (this.getArguments() != null) {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            EventBus.getDefault().post(new MessageEvent(razdel, story));
+            Log.e("mainFragment", ""+razdel);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
         }
 
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
         ViewPager viewPager = root.findViewById(R.id.view_pager);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
         String login = sharedPrefs.getString("dvc_password", "");

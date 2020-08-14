@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,6 +69,13 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         // Required empty public constructor
     }
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        Log.e("mainFragmentContent", ""+razdel);
+        story = event.story;
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -113,25 +121,15 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         return root;
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
-        story = event.story;
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        if (razdel == 10) {
-            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
-        }
-     }
+
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
 
-        if (razdel == 10) {
-            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
-        }
+
+
+
         if (razdel == 1) {
             url = Config.GALLERY_URL;
             search_url = Config.GALLERY_SEARCH_URL;
