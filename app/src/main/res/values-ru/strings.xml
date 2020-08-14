@@ -131,5 +131,6 @@
     <string name="export_success">Экспорт прошел успешно!</string>
     <string name="import_success">Импорт завершен, перезагрузите приложение!</string>
     <string name="import_settings">Импорт настроек с SD</string>
+    <string name="restart_app">Перезагрузите приложение!</string>
 
 </resources>

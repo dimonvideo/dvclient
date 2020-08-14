@@ -50,9 +50,9 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adjustFontScale( getResources().getConfiguration());
+        adjustFontScale(getResources().getConfiguration());
         setContentView(R.layout.settings_activity);
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.settings, new SettingsFragment())
@@ -66,7 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void adjustFontScale(Configuration configuration) {
         SharedPreferences sharedPrefs = getDefaultSharedPreferences(this);
-        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));
+        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale", "1.0f"));
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         assert wm != null;
@@ -93,9 +93,8 @@ public class SettingsActivity extends AppCompatActivity {
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceClickListener(
                     arg0 -> {
-                        SharedPreferences sharedPrefs = getDefaultSharedPreferences(requireContext());
-                        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
-                        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                        Toast.makeText(requireContext(), requireContext().getString(R.string.restart_app), Toast.LENGTH_LONG).show();
+
                         return true;
                     });
             assert dvc_scale != null;
@@ -122,7 +121,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             dvc_pm.setOnPreferenceChangeListener((preference, newValue) -> {
                 SharedPreferences sharedPrefs = getDefaultSharedPreferences(requireContext());
-                final String password = sharedPrefs.getString("dvc_password","null");
+                final String password = sharedPrefs.getString("dvc_password", "null");
                 View view = getView();
                 NetworkUtils.checkPassword(getContext(), view, password);
                 return true;
@@ -144,13 +143,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_export != null;
             dvc_export.setOnPreferenceClickListener(preference -> {
-                saveSharedPreferencesToFile(new File(android.os.Environment.getExternalStorageDirectory().toString()+"/dvclient.settings"));
+                saveSharedPreferencesToFile(new File(android.os.Environment.getExternalStorageDirectory().toString() + "/dvclient.settings"));
                 return true;
             });
 
             assert dvc_import != null;
             dvc_import.setOnPreferenceClickListener(preference -> {
-                loadSharedPreferencesFromFile(new File(android.os.Environment.getExternalStorageDirectory().toString()+"/dvclient.settings"));
+                loadSharedPreferencesFromFile(new File(android.os.Environment.getExternalStorageDirectory().toString() + "/dvclient.settings"));
                 return true;
             });
         }
@@ -161,7 +160,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
 
-        private void alertForClearData(){
+        private void alertForClearData() {
 
             AlertDialog.Builder alert = new AlertDialog.Builder(requireActivity());
 
@@ -205,48 +204,48 @@ public class SettingsActivity extends AppCompatActivity {
 
                 String url = Config.REGISTRATION_URL;
 
-                    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
-                        Log.e("Volley Result", "" + response);
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            String state = jsonObject.getString("state");
-                            Log.e("tag", state);
+                    Log.e("Volley Result", "" + response);
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        String state = jsonObject.getString("state");
 
-                            if (state.equals("2")) {
+                        if (state.equals("2")) {
 
-                                SharedPreferences.Editor editor;
-                                SharedPreferences sharedPrefs = getDefaultSharedPreferences(mContext);
-                                editor = sharedPrefs.edit();
-                                editor.putInt("auth_state", 1);
-                                editor.putString("dvc_password", userPassword.getText().toString());
-                                editor.putString("dvc_login", userName.getText().toString());
-                                editor.apply();
+                            SharedPreferences.Editor editor;
+                            SharedPreferences sharedPrefs = getDefaultSharedPreferences(mContext);
+                            editor = sharedPrefs.edit();
+                            editor.putInt("auth_state", 1);
+                            editor.putString("dvc_password", userPassword.getText().toString());
+                            editor.putString("dvc_login", userName.getText().toString());
+                            editor.apply();
 
-                                GetToken.getToken(mContext);
+                            GetToken.getToken(mContext);
 
-                                Toast.makeText(mContext, mContext.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
-                                requireActivity().onBackPressed();
-                                dialog.dismiss();
+                            Toast.makeText(mContext, mContext.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
+                            requireActivity().onBackPressed();
+                            dialog.dismiss();
 
-                            } else Toast.makeText(mContext, mContext.getString(R.string.unsuccess_auth), Toast.LENGTH_LONG).show();
+                        } else
+                            Toast.makeText(mContext, mContext.getString(R.string.unsuccess_auth), Toast.LENGTH_LONG).show();
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }, Throwable::printStackTrace) {
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }, Throwable::printStackTrace) {
 
-                        @Override
-                        protected Map<String, String> getParams() {
-                            Map<String, String> postMap = new HashMap<>();
-                            postMap.put("userName", userName.getText().toString());
-                            postMap.put("userEmail", userEmail.getText().toString());
-                            postMap.put("userPassword", userPassword.getText().toString());
-                            return postMap;
-                        }
-                    };
+                    @Override
+                    protected Map<String, String> getParams() {
+                        Map<String, String> postMap = new HashMap<>();
+                        postMap.put("userName", userName.getText().toString());
+                        postMap.put("userEmail", userEmail.getText().toString());
+                        postMap.put("userPassword", userPassword.getText().toString());
+                        return postMap;
+                    }
+                };
 
-                    Volley.newRequestQueue(mContext).add(stringRequest);
+                Volley.newRequestQueue(mContext).add(stringRequest);
 
             });
 
@@ -266,7 +265,7 @@ public class SettingsActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 try {
                     if (output != null) {
                         output.flush();
@@ -281,7 +280,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         // import settings
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         private boolean loadSharedPreferencesFromFile(File src) {
             boolean res = false;
             ObjectInputStream input = null;
@@ -313,7 +312,7 @@ public class SettingsActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 try {
                     if (input != null) {
                         input.close();
@@ -356,7 +355,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
         return super.onKeyLongPress(keycode, event);
     }
-
 
 
 }
