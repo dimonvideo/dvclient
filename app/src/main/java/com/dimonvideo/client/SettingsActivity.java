@@ -142,13 +142,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_export != null;
             dvc_export.setOnPreferenceClickListener(preference -> {
-                saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/dvclient.settings"));
+                saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
                 return true;
             });
 
             assert dvc_import != null;
             dvc_import.setOnPreferenceClickListener(preference -> {
-                loadSharedPreferencesFromFile(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/dvclient.settings"));
+                loadSharedPreferencesFromFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
                 return true;
             });
         }
@@ -252,14 +252,14 @@ public class SettingsActivity extends AppCompatActivity {
 
         // save settings
         private void saveSharedPreferencesToFile(File dst) {
-            boolean res = false;
             ObjectOutputStream output = null;
+
+
             try {
                 output = new ObjectOutputStream(new FileOutputStream(dst));
                 SharedPreferences pref = getDefaultSharedPreferences(requireContext());
                 output.writeObject(pref.getAll());
 
-                res = true;
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {

@@ -21,8 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
         tools:replace="android:allowBackup"
-        tools:targetApi="n">
+        tools:targetApi="q">
         <activity
             android:name=".ui.main.Comments"
             android:launchMode="singleTop"
