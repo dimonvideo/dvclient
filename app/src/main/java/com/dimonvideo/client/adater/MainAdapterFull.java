@@ -252,8 +252,10 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 DownloadFile.download(context, Feed.getLink());
             }
             if (item == 6) { // copy text
-                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getFull_text()).toString());
+                try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getFull_text()).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
+                } catch (Throwable ignored) {
+                }
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
 

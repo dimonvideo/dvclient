@@ -142,8 +142,10 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
                 }
             }
             if (item == 1) { // copy text
-                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
+                try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
+                } catch (Throwable ignored) {
+                }
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
 

@@ -106,7 +106,7 @@
     <string name="disable_pm_notify">Disable PM notify</string>
     <string name="dialog_no_result">No items found</string>
     <string name="pm_delete">Delete</string>
-    <string name="no_data_available">No data aviable</string>
+    <string name="no_data_available">No data available</string>
     <string name="is_more">Show More tab</string>
     <string name="tab_inline">Inline tabs headers</string>
     <string name="download_started">Download started</string>
@@ -137,4 +137,6 @@
     <string name="restart_app">Please restart app!</string>
     <string name="dvget">DVGet / ADM integration</string>
     <string name="dvget_not_found">DVGet / ADM not installed!</string>
+    <string name="thanks">Thank you for donate!</string>
+    <string name="thanks_more">You donate is successful!</string>
 </resources>

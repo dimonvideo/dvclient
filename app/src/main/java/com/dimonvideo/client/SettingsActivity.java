@@ -80,7 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            Preference dvc_theme = findPreference("dvc_theme");
+            Preference dvc_theme = findPreference("dvc_theme_list");
             Preference dvc_password = findPreference("dvc_password");
             Preference dvc_login = findPreference("dvc_login");
             Preference dvc_pm = findPreference("dvc_pm");
@@ -90,8 +90,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_export = findPreference("dvc_export");
             Preference dvc_import = findPreference("dvc_import");
             assert dvc_theme != null;
-            dvc_theme.setOnPreferenceClickListener(
-                    arg0 -> {
+            dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
                         Toast.makeText(requireContext(), requireContext().getString(R.string.restart_app), Toast.LENGTH_LONG).show();
 
                         return true;

@@ -60,6 +60,19 @@
 
     <string-array name="default_values"><item>all</item></string-array>
 
+    <!-- Theme Preference -->
+    <string-array name="theme_list">
+        <item>@string/no</item>
+        <item>@string/ok</item>
+        <item>@string/theme_system</item>
+    </string-array>
+
+    <string-array name="theme_list_values">
+        <item>false</item>
+        <item>true</item>
+        <item>system</item>
+    </string-array>
+
     <!-- Uploader Preference -->
     <string-array name="uploader_entries">
         <item>Все</item>
@@ -196,4 +209,5 @@
         <item>others</item>
     </string-array>
 
+    <string name="theme_system">Следовать системным настройкам</string>
 </resources>

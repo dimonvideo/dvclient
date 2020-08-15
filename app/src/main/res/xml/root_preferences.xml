@@ -67,10 +67,13 @@
 
     <PreferenceCategory app:title="@string/view_header">
 
-        <SwitchPreferenceCompat
+        <ListPreference
             app:defaultValue="false"
-            app:key="dvc_theme"
-            app:title="@string/theme_black" />
+            app:key="dvc_theme_list"
+            app:title="@string/theme_black"
+            android:entries="@array/theme_list"
+            android:entryValues="@array/theme_list_values"
+            android:summary="%s"/>
         <SwitchPreferenceCompat
             app:defaultValue="false"
             android:summary="@string/is_more"

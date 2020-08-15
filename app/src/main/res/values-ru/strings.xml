@@ -124,7 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - DVGet / ADM интеграция для закачки файлов, включается в Настройках;
+        - DVGet / ADM интеграция для закачки файлов, включается в Настройках;\n
+        - Раздел Поддержка сайта теперь использует механизм встрооенных покупок, буду благодарен за поддержку);\n
+        - Новая настройка темной темы - Следовать системе;
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -133,5 +135,7 @@
     <string name="restart_app">Перезагрузите приложение!</string>
     <string name="dvget">DVGet / ADM интеграция для загрузки файлов.</string>
     <string name="dvget_not_found">DVGet / ADM не установлены!</string>
+    <string name="thanks">Спасибо за поддержку сайта!</string>
+    <string name="thanks_more">Статус обновлен!</string>
 
 </resources>

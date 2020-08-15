@@ -5,11 +5,9 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -21,7 +19,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -36,6 +33,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -54,6 +52,17 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
+import com.android.billingclient.api.AcknowledgePurchaseParams;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ConsumeResponseListener;
+import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.SkuDetailsParams;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.ui.forum.ForumFragment;
@@ -64,6 +73,7 @@ import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.Security;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
@@ -71,11 +81,16 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity {
+import static com.android.billingclient.api.BillingClient.SkuType.INAPP;
+
+public class MainActivity extends AppCompatActivity implements PurchasesUpdatedListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     Fragment homeFrag;
@@ -83,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
     static int razdel = 10;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    private BillingClient billingClient;
+    private String mSkuId = "com.dimonvideo.client_1";
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -103,9 +120,10 @@ public class MainActivity extends AppCompatActivity {
         final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme", false);
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+        if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
@@ -333,6 +351,177 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+
+        // Establish connection to billing client
+        //check purchase status from google play store cache
+        //to check if item already Purchased previously or refunded
+        billingClient = BillingClient.newBuilder(this)
+                .enablePendingPurchases().setListener(this).build();
+        billingClient.startConnection(new BillingClientStateListener() {
+            @Override
+            public void onBillingSetupFinished(BillingResult billingResult) {
+                if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK){
+                    Purchase.PurchasesResult queryPurchase = billingClient.queryPurchases(INAPP);
+                    List<Purchase> queryPurchases = queryPurchase.getPurchasesList();
+                    if(queryPurchases!=null && queryPurchases.size()>0){
+                        handlePurchases(queryPurchases);
+                    }
+                    //if purchase list is empty that means item is not purchased
+                    //Or purchase is refunded or canceled
+                    else{
+                      //  savePurchaseValueToPref(false);
+                    }
+                }
+            }
+
+            @Override
+            public void onBillingServiceDisconnected() {
+            }
+        });
+
+
+    }
+
+    // donate
+    public void purchase() {
+        //check if service is already connected
+        if (billingClient.isReady()) {
+            initiatePurchase();
+        }
+        //else reconnect service
+        else{
+            billingClient = BillingClient.newBuilder(this).enablePendingPurchases().setListener(this).build();
+            billingClient.startConnection(new BillingClientStateListener() {
+                @Override
+                public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
+                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                        initiatePurchase();
+                    }
+                }
+                @Override
+                public void onBillingServiceDisconnected() {
+                }
+            });
+        }
+    }
+    private void initiatePurchase() {
+        List<String> skuList = new ArrayList<>();
+        skuList.add(mSkuId);
+        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+        params.setSkusList(skuList).setType(INAPP);
+        billingClient.querySkuDetailsAsync(params.build(),
+                (billingResult, skuDetailsList) -> {
+                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                        if (skuDetailsList != null && skuDetailsList.size() > 0) {
+                            BillingFlowParams flowParams = BillingFlowParams.newBuilder()
+                                    .setSkuDetails(skuDetailsList.get(0))
+                                    .build();
+                            billingClient.launchBillingFlow(MainActivity.this, flowParams);
+                        }
+                        else{
+                            //try to add item/product id "purchase" inside managed product in google play console
+                            Toast.makeText(getApplicationContext(),"Purchase Item not Found",Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                " Error "+billingResult.getDebugMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    @Override
+    public void onPurchasesUpdated(BillingResult billingResult, @Nullable List<Purchase> purchases) {
+        //if item newly purchased
+        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
+            handlePurchases(purchases);
+        }
+        //if item already purchased then check and reflect changes
+        else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            Purchase.PurchasesResult queryAlreadyPurchasesResult = billingClient.queryPurchases(INAPP);
+            List<Purchase> alreadyPurchases = queryAlreadyPurchasesResult.getPurchasesList();
+            if(alreadyPurchases!=null){
+                handlePurchases(alreadyPurchases);
+            }
+        }
+        //if purchase cancelled
+        else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
+            Toast.makeText(getApplicationContext(),"Purchase Canceled",Toast.LENGTH_SHORT).show();
+        }
+        // Handle any other error msgs
+        else {
+            Toast.makeText(getApplicationContext(),"Error "+billingResult.getDebugMessage(),Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    void handlePurchases(List<Purchase>  purchases) {
+        for(Purchase purchase:purchases) {
+            //if item is purchased
+            if (mSkuId.equals(purchase.getSku()) && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED)
+            {
+                if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
+                    // Invalid purchase
+                    // show error to user
+                    Toast.makeText(getApplicationContext(), "Error : Invalid Purchase", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                // else purchase is valid
+                //if item is purchased and not acknowledged
+                if (!purchase.isAcknowledged()) {
+                    AcknowledgePurchaseParams acknowledgePurchaseParams =
+                            AcknowledgePurchaseParams.newBuilder()
+                                    .setPurchaseToken(purchase.getPurchaseToken())
+                                    .build();
+                    billingClient.acknowledgePurchase(acknowledgePurchaseParams, ackPurchase);
+                }
+                //else item is purchased and also acknowledged
+                else {
+                    // Grant entitlement to the user on item purchase
+
+                        Toast.makeText(getApplicationContext(), getString(R.string.thanks), Toast.LENGTH_SHORT).show();
+                }
+            }
+            //if purchase is pending
+            else if( mSkuId.equals(purchase.getSku()) && purchase.getPurchaseState() == Purchase.PurchaseState.PENDING)
+            {
+                Toast.makeText(getApplicationContext(),
+                        "Purchase is Pending. Please complete Transaction", Toast.LENGTH_SHORT).show();
+            }
+            //if purchase is unknown
+            else if(mSkuId.equals(purchase.getSku()) && purchase.getPurchaseState() == Purchase.PurchaseState.UNSPECIFIED_STATE)
+            {
+                Toast.makeText(getApplicationContext(), "Purchase Status Unknown", Toast.LENGTH_SHORT).show();
+            }
+            ConsumeParams consumeParams =
+                    ConsumeParams.newBuilder()
+                            .setPurchaseToken(purchase.getPurchaseToken())
+                            .build();
+
+            ConsumeResponseListener listener = (billingResult, purchaseToken) -> {
+                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.thanks_more), Toast.LENGTH_SHORT).show();
+                }
+            };
+
+            billingClient.consumeAsync(consumeParams, listener);
+        }
+
+
+
+
+    }
+    AcknowledgePurchaseResponseListener ackPurchase = billingResult -> {
+        if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK){
+            Toast.makeText(getApplicationContext(), getString(R.string.thanks), Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private boolean verifyValidSignature(String signedData, String signature) {
+        try {
+            // To get key go to Developer Console > Select your app > Development Tools > Services & APIs.
+            String base64Key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApjK3cAie0hq350cYJ4Pib5bj6bMKVP4BYDSv3ISPd9LIs/j9o8YQHX1R8qG02GH48Pi3arNYpx/U6k1eYcdRgk+pt0r8VsH+Frj2QV6GcvlTzDSgLf6+9EeWO4uW6Kt9PPSElnhNzZ5M48BpWmWzw6PdYcB/y5aKHdZ0XiLA44Bq1DWNcRFt42yT958A75H6wvmYaU377XqjlK5xwAJr5ZKPV6e6KPUoBe9UcjZ0WWtO2jClDj1ex6gFAiZVXJavuayoWz6tVnhTfPlvgQgqiQetwr/lbTZIkeH+/9XraXs1JGCPZzVr4Go95K9kL38axd/gstgMo/cf25qC9ugqwQIDAQAB";
+            return Security.verifyPurchase(base64Key, signedData, signature);
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     // scale font
@@ -486,10 +675,13 @@ public class MainActivity extends AppCompatActivity {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                     url));
 
-            try {
-                startActivity(browserIntent);
-            } catch (Throwable ignored) {
-            }
+
+            if (BuildConfig.FLAVOR.equals("DVClientSamsung")) {
+                try {
+                    startActivity(browserIntent);
+                } catch (Throwable ignored) {
+                }
+            } else purchase();
         }
 
         // votes
@@ -514,6 +706,9 @@ public class MainActivity extends AppCompatActivity {
         try {
             unregisterReceiver(receiver);
         } catch (Throwable ignored) {
+        }
+        if(billingClient!=null){
+            billingClient.endConnection();
         }
         super.onDestroy();
     }

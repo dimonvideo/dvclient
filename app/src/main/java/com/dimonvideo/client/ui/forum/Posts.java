@@ -87,10 +87,13 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
     protected void onCreate(Bundle savedInstanceState) {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
-        if (is_dark) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES); else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+        if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         super.onCreate(savedInstanceState);
         adjustFontScale( getResources().getConfiguration());
         setContentView(R.layout.comments_list);
