@@ -30,7 +30,7 @@ public class DownloadFile {
         if (isPackageInstalled("com.dv.adm", context.getPackageManager())) intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
         else if (isPackageInstalled("com.dv.get", context.getPackageManager())) intent.setClassName("com.dv.get", "com.dv.get.AEditor");
         intent.putExtra("android.intent.extra.TEXT", link);
-        intent.putExtra("com.dv.get.ACTION_LIST_ADD", link);
+     //   intent.putExtra("com.dv.get.ACTION_LIST_ADD", link);
         try {
             if ((is_dvget) && ((isPackageInstalled("com.dv.adm", context.getPackageManager())) || (isPackageInstalled("com.dv.get", context.getPackageManager())))) context.startActivity(intent); else
             if (is_dvget) Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
