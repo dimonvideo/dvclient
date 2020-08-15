@@ -137,5 +137,6 @@
     <string name="dvget_not_found">DVGet / ADM не установлены!</string>
     <string name="thanks">Спасибо за поддержку сайта!</string>
     <string name="thanks_more">Статус обновлен!</string>
+    <string name="tracker">Tracker</string>
 
 </resources>

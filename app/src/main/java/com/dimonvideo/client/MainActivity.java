@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 R.id.nav_muzon,
                 R.id.nav_books,
                 R.id.nav_uploader,
+                R.id.nav_tracker,
                 R.id.nav_cats,
                 R.id.nav_android,
                 R.id.nav_pminbox,

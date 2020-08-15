@@ -33,6 +33,10 @@
             android:checkable="true"
             android:title="@string/menu_android" />
         <item
+            android:id="@+id/nav_tracker"
+            android:checkable="true"
+            android:title="@string/tracker" />
+        <item
             android:id="@+id/nav_vuploader"
             android:checkable="true"
             android:title="@string/vuploader" />

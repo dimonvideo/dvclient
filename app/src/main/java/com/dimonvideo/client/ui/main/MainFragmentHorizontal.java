@@ -142,6 +142,12 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
             search_url = Config.ANDROID_SEARCH_URL;
             key = Config.ANDROID_RAZDEL;
         }
+        if (razdel == 14) {
+            url = Config.TRACKER_URL;
+            search_url = Config.TRACKER_SEARCH_URL;
+            key = Config.TRACKER_RAZDEL;
+        }
+
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
         if (selections != null) {

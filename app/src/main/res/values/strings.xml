@@ -139,4 +139,5 @@
     <string name="dvget_not_found">DVGet / ADM not installed!</string>
     <string name="thanks">Thank you for donate!</string>
     <string name="thanks_more">You donate is successful!</string>
+    <string name="tracker">Tracker</string>
 </resources>
