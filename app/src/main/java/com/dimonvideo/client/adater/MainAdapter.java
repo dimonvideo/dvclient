@@ -65,10 +65,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         if ((Feed.getRazdel() != null) && ((Feed.getRazdel().equals(Config.GALLERY_RAZDEL)) || (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)))) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_gallery, parent, false);
             return new ViewHolder(v);
-        } else if ((Feed.getRazdel() != null) && ((Feed.getRazdel().equals(Config.TRACKER_RAZDEL)))) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_tracker, parent, false);
-            return new ViewHolder(v);
-        } else {
+       } else {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
             return new ViewHolder(v);
         }
