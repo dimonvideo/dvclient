@@ -107,7 +107,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                         || (extension.equals("mp3"))
                         || (extension.equals("m4a"))
                         || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url, com.dimonvideo.client.model.Feed.getRazdel());
                 else {
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     try {
@@ -143,9 +143,11 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             holder.modBtn.setVisibility(View.GONE);
         }
 
-        holder.downloadBtn.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
+        holder.downloadBtn.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel()));
 
-        holder.modBtn.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
+        holder.modBtn.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod(), com.dimonvideo.client.model.Feed.getRazdel()));
+
+        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.TRACKER_RAZDEL))) holder.commentsBtn.setVisibility(View.GONE);
 
         if (Feed.getComments() > 0) {
             String comText = context.getResources().getString(R.string.Comments) + ": " + Feed.getComments();
@@ -249,7 +251,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 ButtonsActions.loadScreen(context, Feed.getImageUrl());
             }
             if (item == 5) { // download
-                DownloadFile.download(context, Feed.getLink());
+                DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel());
             }
             if (item == 6) { // copy text
                 try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getFull_text()).toString());

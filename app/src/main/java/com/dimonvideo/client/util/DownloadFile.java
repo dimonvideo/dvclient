@@ -14,11 +14,13 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.model.Feed;
 
 public class DownloadFile {
 
-    public static void download(Context context, String link) {
+    public static void download(Context context, String link, String razdel) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean is_dvget = sharedPrefs.getBoolean("dvc_dvget", false);
 
@@ -30,12 +32,22 @@ public class DownloadFile {
         if (isPackageInstalled("com.dv.adm", context.getPackageManager())) intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
         else if (isPackageInstalled("com.dv.get", context.getPackageManager())) intent.setClassName("com.dv.get", "com.dv.get.AEditor");
         intent.putExtra("android.intent.extra.TEXT", link);
-     //   intent.putExtra("com.dv.get.ACTION_LIST_ADD", link);
         try {
             if ((is_dvget) && ((isPackageInstalled("com.dv.adm", context.getPackageManager())) || (isPackageInstalled("com.dv.get", context.getPackageManager())))) context.startActivity(intent); else
             if (is_dvget) Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
 
         } catch (Throwable ignored) {
+
+        }
+
+        if ((razdel != null) && ((razdel.equals(Config.TRACKER_RAZDEL)))){
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+            try {
+                context.startActivity(browserIntent);
+                return;
+            } catch (Throwable ignored) {
+            }
 
         }
 

@@ -157,7 +157,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
                         || (extension.equals("mp3"))
                         || (extension.equals("m4a"))
                         || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url, com.dimonvideo.client.model.Feed.getRazdel());
                 else {
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     try {

@@ -108,6 +108,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         if (razdel == 6) key = Config.BOOKS_RAZDEL;
         if (razdel == 7) key = Config.ARTICLES_RAZDEL;
         if (razdel == 11) key = Config.ANDROID_RAZDEL;
+        if (razdel == 14) key = Config.TRACKER_RAZDEL;
 
         return new JsonArrayRequest(url + key,
                 response -> {

@@ -65,6 +65,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         if ((Feed.getRazdel() != null) && ((Feed.getRazdel().equals(Config.GALLERY_RAZDEL)) || (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)))) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_gallery, parent, false);
             return new ViewHolder(v);
+        } else if ((Feed.getRazdel() != null) && ((Feed.getRazdel().equals(Config.TRACKER_RAZDEL)))) {
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_tracker, parent, false);
+            return new ViewHolder(v);
         } else {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
             return new ViewHolder(v);
@@ -182,7 +185,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                         || (extension.equals("mp3"))
                         || (extension.equals("m4a"))
                         || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url);
+                        || (extension.equals("mp4"))) DownloadFile.download(context, url, com.dimonvideo.client.model.Feed.getRazdel());
                 else {
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     try {
@@ -238,7 +241,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                 ButtonsActions.loadScreen(context, Feed.getImageUrl());
             }
             if (item == 5) { // download
-                DownloadFile.download(context, Feed.getLink());
+                DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel());
             }
             if (item == 6) { // copy text
                 try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getFull_text()).toString());
@@ -267,7 +270,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
 
         // comments
-        holder.btn_comms.setVisibility(View.VISIBLE);
+        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.TRACKER_RAZDEL))) holder.btn_comms.setVisibility(View.GONE); else holder.btn_comms.setVisibility(View.VISIBLE);
+
+
         holder.btn_comms.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + com.dimonvideo.client.model.Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
             Intent intent = new Intent(context, Comments.class);
@@ -307,12 +312,12 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         // если нет mod
         if ((Feed.getMod() != null) && (!Feed.getMod().startsWith("null"))) {
             holder.btn_mod.setVisibility(View.VISIBLE);
-            holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod()));
+            holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod(), com.dimonvideo.client.model.Feed.getRazdel()));
         }
 
 
         // download
-        holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink()));
+        holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel()));
 
         // like and favorites
         holder.starButton.setOnLikeListener(new OnLikeListener() {
