@@ -685,7 +685,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                     startActivity(browserIntent);
                 } catch (Throwable ignored) {
                 }
-            } else purchase();
+            } else
+            {
+               try{ purchase();
+               } catch (Throwable ignored) {
+               }
+            }
         }
 
         // votes
