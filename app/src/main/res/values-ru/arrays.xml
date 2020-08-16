@@ -44,6 +44,7 @@
         <item>@string/muzon</item>
         <item>@string/books</item>
         <item>@string/articles</item>
+        <item>@string/tracker</item>
     </string-array>
 
     <string-array name="razdel_list_values">
@@ -56,6 +57,7 @@
         <item>5</item>
         <item>6</item>
         <item>7</item>
+        <item>14</item>
     </string-array>
 
     <string-array name="default_values"><item>all</item></string-array>

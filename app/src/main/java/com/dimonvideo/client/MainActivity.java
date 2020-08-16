@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         final boolean is_books = sharedPrefs.getBoolean("dvc_books", true);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
         final boolean is_forum = sharedPrefs.getBoolean("dvc_forum", true);
+        final boolean is_tracker = sharedPrefs.getBoolean("dvc_tracker", true);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
@@ -174,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
         if (Integer.parseInt(main_razdel) == 11) navGraph.setStartDestination(R.id.nav_android);
         if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
+        if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
 
         navController.setGraph(navGraph);
 
@@ -312,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (!is_books) navigationView.getMenu().removeItem(R.id.nav_books);
         if (!is_articles) navigationView.getMenu().removeItem(R.id.nav_articles);
         if (!is_forum) navigationView.getMenu().removeItem(R.id.nav_forum);
+        if (!is_tracker) navigationView.getMenu().removeItem(R.id.nav_tracker);
 
 
         // open PM

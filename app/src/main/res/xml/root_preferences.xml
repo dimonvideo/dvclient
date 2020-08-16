@@ -278,4 +278,15 @@
             app:title="@string/category_title" />
 
     </PreferenceCategory>
+
+    <!-- Tracker Preference -->
+
+    <PreferenceCategory app:title="@string/tracker">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_tracker"
+            app:title="@string/tracker" />
+
+    </PreferenceCategory>
 </PreferenceScreen>
