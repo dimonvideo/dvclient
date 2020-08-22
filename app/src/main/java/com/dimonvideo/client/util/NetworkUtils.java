@@ -86,7 +86,7 @@ public class NetworkUtils {
                             editor.apply();
 
                             if (!token.equals(current_token)) GetToken.getToken(context);
-
+                            //GetToken.getToken(context);
                             Log.e("auth", response);
 
                         } catch (JSONException e) {
@@ -197,9 +197,11 @@ public class NetworkUtils {
                         if (delete == 0) {
                             SharedPreferences.Editor editor;
                             editor = sharedPrefs.edit();
-                            editor.putInt("pm_unread", pm_unread-1);
+                            if (pm_unread>1) editor.putInt("pm_unread", pm_unread-1); else editor.putInt("pm_unread", 0);
                             editor.apply();
-                            String count = String.valueOf(pm_unread-1);
+                            String count = "0";
+                            if (pm_unread>1) count = String.valueOf(pm_unread-1);
+                            if (Integer.parseInt(count)<1) count = "0";
                             Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                             intent.putExtra("count", count);
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
@@ -247,7 +249,9 @@ public class NetworkUtils {
                 String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=11";
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
-                            String count = String.valueOf(pm_unread-1);
+                            String count = "0";
+                            if (pm_unread>1) count = String.valueOf(pm_unread-1);
+                            if (Integer.parseInt(count)<1) count = "0";
                             Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                             intent.putExtra("count", count);
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
@@ -307,5 +311,7 @@ public class NetworkUtils {
 
             }
         }
+
+        GetToken.getToken(context);
     }
 }

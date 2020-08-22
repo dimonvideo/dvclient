@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
@@ -78,7 +79,10 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         try { holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
         } catch (Throwable ignored) {
         }
-        if (Feed.getIs_new() > 0) holder.status_logo.setImageResource(R.drawable.ic_status_green);
+        if (Feed.getIs_new() > 0) {
+            holder.status_logo.setImageResource(R.drawable.ic_status_green);
+            holder.itemView.setBackgroundColor(Color.parseColor("#F6CAC4"));
+        }
 
         holder.itemView.setOnClickListener(v -> {
 

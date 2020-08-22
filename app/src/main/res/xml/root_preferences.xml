@@ -199,6 +199,12 @@
             app:key="dvc_vuploader_aspect"
             app:summary="@string/vuploader_video_behavior"
             app:title="@string/vuploader_video_behavior" />
+        <SwitchPreferenceCompat
+            android:dependency="dvc_vuploader"
+            app:defaultValue="false"
+            app:key="dvc_external_video"
+            app:summary="@string/vuploader_external_video"
+            app:title="@string/vuploader_external_video" />
     </PreferenceCategory>
 
     <!-- Books Preference -->

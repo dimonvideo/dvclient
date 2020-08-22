@@ -26,17 +26,16 @@ import java.util.Objects;
 public class GetToken {
 
     public static void getToken(Context context){
-        final String[] token = {"error"};
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         String login = sharedPrefs.getString("dvc_login","null");
         String pass = sharedPrefs.getString("dvc_password","null");
-        String current_token = sharedPrefs.getString("current_token","null");
         try {
             pass = URLEncoder.encode(pass, "utf-8");
             login = URLEncoder.encode(login, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+
         try {
 
 
@@ -50,25 +49,20 @@ public class GetToken {
             String finalLogin = login;
 
 
-            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
-
+            FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(instanceIdResult -> {
+                String token = instanceIdResult.getToken();
                 // Get new Instance ID token
-                try {
-                    token[0] = Objects.requireNonNull(task.getResult()).getToken();
+
                     SharedPreferences.Editor editor;
                     editor = sharedPrefs.edit();
-                    editor.putString("current_token", token[0]);
+                    editor.putString("current_token", token);
                     editor.apply();
 
-                 //   if ((current_token != null) && (current_token.equals(token[0]))) return;
-
-                } catch (Exception ignored) {
-                }
 
                 String url = Config.CHECK_AUTH_URL + "&login_name=" + finalLogin + "&login_password=" + finalPass;
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
-                    Log.e("Get token Result", "curr token: " + token[0] + response);
+                    Log.e("Get token Result", "curr token: " + token + response);
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
@@ -83,7 +77,7 @@ public class GetToken {
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> postMap = new HashMap<>();
-                        postMap.put("token", token[0]);
+                        postMap.put("token", token);
                         return postMap;
                     }
                 };

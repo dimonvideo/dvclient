@@ -124,7 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - Новый раздел Трекер (наш торрент-трекер сайта);
+        - Новый раздел Трекер (наш торрент-трекер сайта);\n
+        - подсветка новых личных сообщений;\n
+        - новая возможность - открывать видео в сторонних плеерах. Включается в Настройках;
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -136,5 +138,7 @@
     <string name="thanks">Спасибо за поддержку сайта!</string>
     <string name="thanks_more">Статус обновлен!</string>
     <string name="tracker">Трекер</string>
+    <string name="open_video">Открыть видеофайл</string>
+    <string name="vuploader_external_video">Открывать видео в стороннем плеере</string>
 
 </resources>

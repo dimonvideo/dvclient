@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "771109015774-iurahm7a70s0qsokg7g2hohoe78mtb30.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dimonvideo.client",
+            "certificate_hash": "928e7da65fdd07df354438a3b1cd5a48ef159b34"
+          }
+        },
+        {
           "client_id": "771109015774-94nieuuuknv2ajt21ckg15369dhev3l4.apps.googleusercontent.com",
           "client_type": 3
         }

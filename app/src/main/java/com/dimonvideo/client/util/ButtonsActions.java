@@ -178,19 +178,29 @@ public class ButtonsActions {
     public static void PlayVideo(Context context, String link) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_aspect = sharedPrefs.getBoolean("dvc_vuploader_aspect",false);
+        final boolean is_external_video = sharedPrefs.getBoolean("dvc_external_video",false);
         link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
-        final Dialog dialog = new Dialog(context);
-        Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.video);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
-        if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9); else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
-        andExoPlayerView.setSource(link);
-        dialog.show();
-
+        if (is_external_video) {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.parse(link), "video/*");
+            try {
+                context.startActivity(Intent.createChooser(intent, context.getString(R.string.open_video)));
+            } catch (Throwable ignored) {
+            }
+        } else {
+            final Dialog dialog = new Dialog(context);
+            Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.video);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
+            if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
+            else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
+            andExoPlayerView.setSource(link);
+            dialog.show();
+        }
     }
 
     public static void loadProfile(Context context, String login_name, String image_url) {
