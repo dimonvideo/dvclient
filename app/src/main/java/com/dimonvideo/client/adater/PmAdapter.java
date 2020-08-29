@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
@@ -81,7 +82,8 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         }
         if (Feed.getIs_new() > 0) {
             holder.status_logo.setImageResource(R.drawable.ic_status_green);
-            holder.itemView.setBackgroundColor(Color.parseColor("#F6CAC4"));
+            holder.itemView.setBackgroundColor(Color.parseColor("#992301"));
+            holder.textViewText.setTypeface(null, Typeface.BOLD);
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -90,6 +92,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             holder.btns.setVisibility(View.VISIBLE);
             NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+            holder.itemView.setBackgroundColor(0x00000000);
 
         });
         holder.textViewText.setOnClickListener(v -> {
@@ -98,6 +101,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             holder.btns.setVisibility(View.VISIBLE);
             NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+            holder.itemView.setBackgroundColor(0x00000000);
 
         });
         holder.send.setOnClickListener(v -> {
@@ -112,7 +116,8 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1, null);
-
+            jsonFeed.remove(position);
+            notifyDataSetChanged();
             return true;
         });
         // show dialog

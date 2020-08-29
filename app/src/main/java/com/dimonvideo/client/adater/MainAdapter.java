@@ -125,10 +125,24 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
-        holder.itemView.setOnClickListener(v ->
-                open_content(holder, position, context));
-        holder.textViewText.setOnClickListener(v ->
-                open_content(holder, position, context));
+        holder.itemView.setOnClickListener(view -> {
+            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+            if (holder.btn_comms.getVisibility() == View.VISIBLE) {
+                hide_content(holder, position);
+            } else {
+                open_content(holder, position, context);
+            }
+
+        });
+
+        holder.textViewText.setOnClickListener(view -> {
+            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+            if (holder.btn_comms.getVisibility() == View.VISIBLE) {
+                hide_content(holder, position);
+            } else {
+                open_content(holder, position, context);
+            }
+        });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
 
@@ -347,6 +361,23 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                 holder.txt_plus.setText(String.valueOf(Feed.getPlus() - 1));
             }
         });
+    }
+
+    // подробный вывод файла - close
+    private void hide_content(ViewHolder holder, final int position) {
+        final Feed Feed = jsonFeed.get(position);
+        holder.txt_plus.setVisibility(View.GONE);
+        holder.likeButton.setVisibility(View.GONE);
+        holder.starButton.setVisibility(View.GONE);
+        holder.name.setVisibility(View.GONE);
+        holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
+        try {
+            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        } catch (Throwable ignored) {
+        }
+        holder.btn_download.setVisibility(View.GONE);
+        holder.btn_mod.setVisibility(View.GONE);
+        holder.btn_comms.setVisibility(View.GONE);
     }
 
     @Override

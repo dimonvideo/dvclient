@@ -28,8 +28,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -46,7 +44,6 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.SettingsActivity;
 import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -136,6 +133,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         btnSend.setOnClickListener(v -> {
             NetworkUtils.sendPm(this, Integer.parseInt(lid), textInput.getText().toString(), 20, razdel);
             textInput.getText().clear();
+            recreate();
         });
 
         // open PM

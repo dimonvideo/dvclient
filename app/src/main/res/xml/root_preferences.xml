@@ -10,9 +10,9 @@
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             android:dependency="dvc_login"
-            android:inputType="textPassword"
             app:key="dvc_password"
             app:title="@string/password_title"
+            android:inputType="textPassword"
             app:useSimpleSummaryProvider="false" />
 
         <ListPreference

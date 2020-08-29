@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -16,9 +17,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -108,6 +111,11 @@ public class SettingsActivity extends AppCompatActivity {
                 NetworkUtils.checkPassword(getContext(), view, listValue);
                 return true;
             });
+            EditTextPreference PasPreference = findPreference("dvc_password");
+            if (PasPreference!= null) {
+                PasPreference.setOnBindEditTextListener(
+                        editText -> editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD));
+            }
             assert dvc_login != null;
             dvc_login.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
