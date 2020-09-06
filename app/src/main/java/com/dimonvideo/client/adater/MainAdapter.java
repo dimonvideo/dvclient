@@ -137,9 +137,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            if (holder.btn_comms.getVisibility() == View.VISIBLE) {
-                hide_content(holder, position);
-            } else {
+            if (holder.btn_comms.getVisibility() != View.VISIBLE) {
                 open_content(holder, position, context);
             }
         });
@@ -179,6 +177,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         // open links from listtext
         if (!is_open_link) {
             holder.textViewText.setOnClickATagListener((widget, href) -> {
+               // open_content(holder, position, context);
                 String url = href;
                 try {
                     assert href != null;

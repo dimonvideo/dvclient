@@ -10,8 +10,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 22
         targetSdkVersion 30
-        versionCode 2009
-        versionName "2.9"
+        versionCode 20091
+        versionName "2.9.1"
 
     }
     compileOptions {
@@ -44,8 +44,8 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.material:material:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
     implementation 'androidx.navigation:navigation-fragment:2.3.0'
     implementation 'androidx.navigation:navigation-ui:2.3.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
@@ -60,7 +60,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics:17.5.0'
     implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
     implementation 'com.google.firebase:firebase-messaging:20.2.4'
-    implementation 'com.google.android.material:material:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
     implementation 'com.android.billingclient:billing:3.0.0'
 
 }
