@@ -80,6 +80,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         try { holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
         } catch (Throwable ignored) {
         }
+        holder.itemView.setBackgroundColor(0x00000000);
         if (Feed.getIs_new() > 0) {
             holder.status_logo.setImageResource(R.drawable.ic_status_green);
             holder.itemView.setBackgroundColor(Color.parseColor("#992301"));

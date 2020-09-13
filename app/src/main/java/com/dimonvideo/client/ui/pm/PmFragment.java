@@ -1,6 +1,7 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
@@ -83,8 +84,8 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-
-
+        NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
         EventBus.getDefault().post(new MessageEvent(razdel, ""));
         recyclerView = root.findViewById(R.id.recycler_view);
         TextView emptyView = root.findViewById(R.id.empty_view);

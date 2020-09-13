@@ -294,9 +294,9 @@ public class NetworkUtils {
                 String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete="+delete+"&razdel="+razdel;
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
-                            Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
                     Log.e("pm", response+url);
-
+                    GetToken.getToken(context);
                 }, Throwable::printStackTrace) {
 
                     @Override
