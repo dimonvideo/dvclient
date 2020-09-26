@@ -76,6 +76,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+        assert is_dark != null;
         if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
