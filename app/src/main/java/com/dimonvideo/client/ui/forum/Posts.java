@@ -90,6 +90,7 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+        assert is_dark != null;
         if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -144,10 +145,12 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
         btnSend.setOnClickListener(v -> {
             NetworkUtils.sendPm(this, Integer.parseInt(tid), textInput.getText().toString(), 2, null);
             textInput.getText().clear();
+            recreate();
         });
 
         // open PM
         FloatingActionButton fab = findViewById(R.id.fab);
+        assert is_pm != null;
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(view -> {
             Intent notificationIntent = new Intent(getBaseContext(), MainActivity.class);
