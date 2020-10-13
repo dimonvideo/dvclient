@@ -723,6 +723,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        this.finishActivity(0);
+    }
+
+    @Override
     public void onBackPressed() {
         super.onBackPressed();
     }
