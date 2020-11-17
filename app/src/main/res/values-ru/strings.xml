@@ -124,7 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - обновление зависимых библиотек.
+        - обновление зависимых библиотек.\n - новый раздел Блоги.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -138,5 +138,6 @@
     <string name="tracker">Трекер</string>
     <string name="open_video">Открыть видеофайл</string>
     <string name="vuploader_external_video">Открывать видео в стороннем плеере</string>
+    <string name="blog">Блоги</string>
 
 </resources>

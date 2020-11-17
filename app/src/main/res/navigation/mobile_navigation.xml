@@ -196,14 +196,25 @@
             />
     </fragment>
     <fragment
-        android:id="@+id/nav_tracker"
+    android:id="@+id/nav_tracker"
+    android:name="com.dimonvideo.client.ui.main.MainFragment"
+    android:label="@string/tracker"
+    android:tag="tracker"
+    tools:layout="@layout/fragment_tabs">
+    <argument
+        android:name="category"
+        android:defaultValue="14"
+        />
+</fragment>
+    <fragment
+        android:id="@+id/nav_blog"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
-        android:label="@string/tracker"
-        android:tag="tracker"
+        android:label="@string/blog"
+        android:tag="blog"
         tools:layout="@layout/fragment_tabs">
         <argument
             android:name="category"
-            android:defaultValue="14"
+            android:defaultValue="15"
             />
     </fragment>
 </navigation>

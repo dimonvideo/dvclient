@@ -295,4 +295,15 @@
             app:title="@string/tracker" />
 
     </PreferenceCategory>
+
+    <!-- Blog Preference -->
+
+    <PreferenceCategory app:title="@string/blog">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_blog"
+            app:title="@string/blog" />
+
+    </PreferenceCategory>
 </PreferenceScreen>
