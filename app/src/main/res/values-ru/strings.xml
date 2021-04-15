@@ -101,7 +101,7 @@
     <string name="disable_pm_notify">Отключить уведомления о новых сообщениях</string>
     <string name="dialog_no_result">Ничего не найдено</string>
     <string name="pm_delete">Удалить</string>
-    <string name="no_data_available">No data aviable</string>
+    <string name="no_data_available">Новых сообщений нет</string>
     <string name="is_more">Отключить Подробно в разделах</string>
     <string name="download_started">Загрузка файла начата, ожидайте…</string>
     <string name="added_by">"Добавил: "</string>
@@ -124,7 +124,10 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - обновление зависимых библиотек.\n - в Новостях теперь видно источник.
+        - обновление зависимых библиотек.
+        \n - возможность скрывать раздел Андроид.
+        \n - при авторизации, если пароль - логин неверен, выскакивает сообщение об ошибке.
+        \n - если новых сообщений нет, теперь это написано.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>

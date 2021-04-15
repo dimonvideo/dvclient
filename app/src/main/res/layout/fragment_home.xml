@@ -50,6 +50,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:visibility="gone"
+                android:textStyle="bold"
                 android:text="@string/no_data_available" />
 
             <LinearLayout

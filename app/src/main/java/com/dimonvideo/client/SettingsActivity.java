@@ -109,6 +109,7 @@ public class SettingsActivity extends AppCompatActivity {
                 String listValue = (String) newValue;
                 View view = getView();
                 NetworkUtils.checkPassword(getContext(), view, listValue);
+                Toast.makeText(requireContext(), requireContext().getString(R.string.restart_app), Toast.LENGTH_LONG).show();
                 return true;
             });
             EditTextPreference PasPreference = findPreference("dvc_password");

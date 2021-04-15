@@ -106,6 +106,8 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         getData();
         adapter = new PmAdapter(listFeed, getContext());
 
+
+
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
@@ -194,8 +196,27 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         toolbar.setTitle(getString(R.string.tab_pm));
         setHasOptionsMenu(true);
 
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+
+
+                if (adapter.getItemCount() == 0) {
+                    emptyView.setVisibility(View.VISIBLE);
+                }
+                else {
+                    emptyView.setVisibility(View.GONE);
+                }
+
+
+            }
+        });
+
+
         return root;
     }
+
 
     @Override
     public void onResume() {

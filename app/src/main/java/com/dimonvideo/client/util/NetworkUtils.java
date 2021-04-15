@@ -38,7 +38,7 @@ public class NetworkUtils {
     public static void checkPassword(Context context, View view, String password) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String login = sharedPrefs.getString("dvc_login", "null");
-        String current_token = sharedPrefs.getString("current_token","null");
+        String current_token = sharedPrefs.getString("current_token", "null");
         if (password == null || password.length() < 5 || password.length() > 71) {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
@@ -58,16 +58,21 @@ public class NetworkUtils {
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             int state = jsonObject.getInt(Config.TAG_STATE);
-                            int pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
-                            String image = jsonObject.getString(Config.TAG_IMAGE_URL);
-                            String status = jsonObject.getString(Config.TAG_HEADERS);
-                            String lastdate = jsonObject.getString(Config.TAG_TIME);
-                            String token = jsonObject.getString(Config.TAG_TOKEN);
-                            String rep = jsonObject.getString(Config.TAG_REP);
-                            String reg = jsonObject.getString(Config.TAG_REG);
-                            String rat = jsonObject.getString(Config.TAG_COMMENTS);
-                            String posts = jsonObject.getString(Config.TAG_COUNT);
+
+                            String image = "0", status = "0", lastdate = "0", token = "0", rep = "0", reg = "0", rat = "0", posts = "0";
+                            int pm_unread = 0;
+
                             if (state > 0) {
+                                pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
+                                image = jsonObject.getString(Config.TAG_IMAGE_URL);
+                                status = jsonObject.getString(Config.TAG_HEADERS);
+                                lastdate = jsonObject.getString(Config.TAG_TIME);
+                                token = jsonObject.getString(Config.TAG_TOKEN);
+                                rep = jsonObject.getString(Config.TAG_REP);
+                                reg = jsonObject.getString(Config.TAG_REG);
+                                rat = jsonObject.getString(Config.TAG_COMMENTS);
+                                posts = jsonObject.getString(Config.TAG_COUNT);
+
                                 Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                             } else
                                 Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
@@ -75,17 +80,20 @@ public class NetworkUtils {
                             SharedPreferences.Editor editor;
                             editor = sharedPrefs.edit();
                             editor.putInt("auth_state", state);
-                            editor.putString("auth_foto", image);
-                            editor.putString("auth_rang", status);
-                            editor.putString("auth_last", lastdate);
-                            editor.putString("auth_rep", rep);
-                            editor.putString("auth_reg", reg);
-                            editor.putString("auth_rat", rat);
-                            editor.putString("auth_posts", posts);
-                            editor.putInt("pm_unread", pm_unread);
+                            if (state > 0) {
+
+                                editor.putString("auth_foto", image);
+                                editor.putString("auth_rang", status);
+                                editor.putString("auth_last", lastdate);
+                                editor.putString("auth_rep", rep);
+                                editor.putString("auth_reg", reg);
+                                editor.putString("auth_rat", rat);
+                                editor.putString("auth_posts", posts);
+                                editor.putInt("pm_unread", pm_unread);
+                            }
                             editor.apply();
 
-                            if (!token.equals(current_token)) GetToken.getToken(context);
+                            if ((!token.equals(current_token)) && (state > 0)) GetToken.getToken(context);
                             //GetToken.getToken(context);
                             Log.e("auth", response);
 
@@ -190,23 +198,24 @@ public class NetworkUtils {
                     e.printStackTrace();
                 }
 
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete="+ delete;
+                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete=" + delete;
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
 
-                        if (delete == 0) {
-                            SharedPreferences.Editor editor;
-                            editor = sharedPrefs.edit();
-                            if (pm_unread>1) editor.putInt("pm_unread", pm_unread-1); else editor.putInt("pm_unread", 0);
-                            editor.apply();
-                            String count = "0";
-                            if (pm_unread>1) count = String.valueOf(pm_unread-1);
-                            if (Integer.parseInt(count)<1) count = "0";
-                            Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
-                            intent.putExtra("count", count);
-                            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                        }
-                            }, error -> {
+                            if (delete == 0) {
+                                SharedPreferences.Editor editor;
+                                editor = sharedPrefs.edit();
+                                if (pm_unread > 1) editor.putInt("pm_unread", pm_unread - 1);
+                                else editor.putInt("pm_unread", 0);
+                                editor.apply();
+                                String count = "0";
+                                if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
+                                if (Integer.parseInt(count) < 1) count = "0";
+                                Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
+                                intent.putExtra("count", count);
+                                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                            }
+                        }, error -> {
                     if (error instanceof TimeoutError || error instanceof NoConnectionError) {
                         Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
                     } else if (error instanceof AuthFailureError) {
@@ -250,8 +259,8 @@ public class NetworkUtils {
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
                             String count = "0";
-                            if (pm_unread>1) count = String.valueOf(pm_unread-1);
-                            if (Integer.parseInt(count)<1) count = "0";
+                            if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
+                            if (Integer.parseInt(count) < 1) count = "0";
                             Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                             intent.putExtra("count", count);
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
@@ -284,18 +293,18 @@ public class NetworkUtils {
         if (login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
-            if ((text != null) && (text.length() > 1) ){
+            if ((text != null) && (text.length() > 1)) {
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
                     login = URLEncoder.encode(login, "utf-8");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete="+delete+"&razdel="+razdel;
+                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel;
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
                     Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
-                    Log.e("pm", response+url);
+                    Log.e("pm", response + url);
                     GetToken.getToken(context);
                 }, Throwable::printStackTrace) {
 

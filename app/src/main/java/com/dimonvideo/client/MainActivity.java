@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         }
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
+        final boolean is_android = sharedPrefs.getBoolean("dvc_android", true);
         final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader", true);
         final boolean is_news = sharedPrefs.getBoolean("dvc_news", true);
         final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery", true);
@@ -309,6 +310,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);
+        if (!is_android) navigationView.getMenu().removeItem(R.id.nav_android);
         if (!is_news) navigationView.getMenu().removeItem(R.id.nav_news);
         if (!is_gallery) navigationView.getMenu().removeItem(R.id.nav_gallery);
         if (!is_vuploader) navigationView.getMenu().removeItem(R.id.nav_vuploader);
@@ -323,21 +325,19 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         // open PM
         FloatingActionButton fab = findViewById(R.id.fab);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View view) {
+        fab.setOnClickListener(view -> {
 
-                FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentManager fragmentManager = getSupportFragmentManager();
 
-                Fragment PmFragment = new PmFragment();
+            Fragment PmFragment = new PmFragment();
 
-                fragmentManager.beginTransaction()
-                        .add(R.id.nav_host_fragment, PmFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
+            fragmentManager.beginTransaction()
+                    .add(R.id.nav_host_fragment, PmFragment)
+                    .addToBackStack(null)
+                    .commit();
         });
+
+
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
 
