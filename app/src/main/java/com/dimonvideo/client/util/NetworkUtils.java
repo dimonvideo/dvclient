@@ -298,7 +298,7 @@ public class NetworkUtils {
         if (error instanceof TimeoutError || error instanceof NoConnectionError) {
             return R.string.error_network_timeout;
         } else if (error instanceof AuthFailureError) {
-            return R.string.error_network_timeout;
+            return R.string.unsuccess_auth;
         } else if (error instanceof ServerError) {
             return R.string.error_server;
         } else if (error instanceof NetworkError) {
