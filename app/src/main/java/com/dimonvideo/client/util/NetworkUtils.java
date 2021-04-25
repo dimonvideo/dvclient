@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.StringRes;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
@@ -18,6 +19,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
@@ -100,19 +102,8 @@ public class NetworkUtils {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    }, error -> {
-                if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                    Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                } else if (error instanceof AuthFailureError) {
-                    Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                } else if (error instanceof ServerError) {
-                    Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                } else if (error instanceof NetworkError) {
-                    Toast.makeText(context, context.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-                } else if (error instanceof ParseError) {
-                    Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                }
-            });
+                    }, error -> showErrorToast(context, error)
+            );
             queue.add(stringRequest);
 
         }
@@ -158,19 +149,9 @@ public class NetworkUtils {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                        }, error -> {
-                    if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                        Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof AuthFailureError) {
-                        Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ServerError) {
-                        Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof NetworkError) {
-                        Toast.makeText(context, context.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ParseError) {
-                        Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    }
-                });
+                        }, error -> showErrorToast(context, error)
+                );
+
                 queue.add(stringRequest);
             }
 
@@ -215,19 +196,9 @@ public class NetworkUtils {
                                 intent.putExtra("count", count);
                                 LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                             }
-                        }, error -> {
-                    if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                        Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof AuthFailureError) {
-                        Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ServerError) {
-                        Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof NetworkError) {
-                        Toast.makeText(context, context.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ParseError) {
-                        Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    }
-                });
+                        }, error -> showErrorToast(context, error)
+                );
+
                 queue.add(stringRequest);
             }
 
@@ -264,19 +235,9 @@ public class NetworkUtils {
                             Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                             intent.putExtra("count", count);
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                        }, error -> {
-                    if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                        Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof AuthFailureError) {
-                        Toast.makeText(context, context.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ServerError) {
-                        Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof NetworkError) {
-                        Toast.makeText(context, context.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-                    } else if (error instanceof ParseError) {
-                        Toast.makeText(context, context.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-                    }
-                });
+                        }, error -> showErrorToast(context, error)
+                );
+
                 queue.add(stringRequest);
             }
 
@@ -322,5 +283,30 @@ public class NetworkUtils {
         }
 
         GetToken.getToken(context);
+    }
+
+    static void showErrorToast(Context context, VolleyError error) {
+        @StringRes int errorTextRes = getErrorTextResId(error);
+
+        if (errorTextRes != 0) {
+            Toast.makeText(context, context.getString(errorTextRes), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @StringRes
+    private static int getErrorTextResId(VolleyError error) {
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+            return R.string.error_network_timeout;
+        } else if (error instanceof AuthFailureError) {
+            return R.string.unsuccess_auth;
+        } else if (error instanceof ServerError) {
+            return R.string.error_server;
+        } else if (error instanceof NetworkError) {
+            return R.string.error_network;
+        } else if (error instanceof ParseError) {
+            return R.string.error_server;
+        }
+
+        return 0;
     }
 }

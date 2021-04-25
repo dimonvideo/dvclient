@@ -20,14 +20,8 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkError;
-import com.android.volley.NoConnectionError;
-import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.ServerError;
-import com.android.volley.TimeoutError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
@@ -44,6 +38,8 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Objects;
+
+import static com.dimonvideo.client.util.NetworkUtils.showErrorToast;
 
 public class ButtonsActions {
 
@@ -78,19 +74,9 @@ public class ButtonsActions {
 
                     Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_LONG).show();
 
-                }, error -> {
-            if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-            } else if (error instanceof AuthFailureError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-            } else if (error instanceof ServerError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-            } else if (error instanceof NetworkError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-            } else if (error instanceof ParseError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-            }
-        });
+                }, error -> showErrorToast(mContext, error)
+        );
+
         queue.add(stringRequest);
 
     }
@@ -108,19 +94,9 @@ public class ButtonsActions {
 
                     Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_LONG).show();
 
-                }, error -> {
-            if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-            } else if (error instanceof AuthFailureError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-            } else if (error instanceof ServerError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-            } else if (error instanceof NetworkError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-            } else if (error instanceof ParseError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-            }
-        });
+                }, error -> showErrorToast(mContext, error)
+        );
+
         queue.add(stringRequest);
 
     }
@@ -157,19 +133,9 @@ public class ButtonsActions {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }, error -> {
-            if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-            } else if (error instanceof AuthFailureError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network_timeout), Toast.LENGTH_LONG).show();
-            } else if (error instanceof ServerError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-            } else if (error instanceof NetworkError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_network), Toast.LENGTH_LONG).show();
-            } else if (error instanceof ParseError) {
-                Toast.makeText(mContext, mContext.getString(R.string.error_server), Toast.LENGTH_LONG).show();
-            }
-        });
+                }, error -> showErrorToast(mContext, error)
+        );
+
         queue.add(stringRequest);
 
     }
