@@ -3,6 +3,7 @@ package com.dimonvideo.client.ui.pm;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +29,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
+import com.dimonvideo.client.adater.FriendsAdapter;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -45,7 +46,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class PmFriendsFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
@@ -59,7 +60,7 @@ public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollCh
     static int razdel = 13;
     String url = Config.PM_URL;
 
-    public PmArhivFragment() {
+    public PmFriendsFragment() {
         // Required empty public constructor
     }
 
@@ -86,7 +87,7 @@ public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollCh
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed, getContext());
+        adapter = new FriendsAdapter(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -98,8 +99,10 @@ public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollCh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.tab_arhiv));
+        toolbar.setTitle(getString(R.string.tab_friends));
         setHasOptionsMenu(true);
+
+
 
         return root;
     }
@@ -180,8 +183,9 @@ public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollCh
         }
         String finalPass = pass;
         String finalLogin = login;
+        Log.e("tag", url + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass);
 
-        return new JsonArrayRequest(url + requestCount + "&pm=2&login_name=" + finalLogin + "&login_password=" + finalPass,
+        return new JsonArrayRequest(url + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -194,7 +198,7 @@ public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollCh
                             jsonFeed.setImageUrl(json.getString(Config.TAG_CATEGORY));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setIs_new(json.getInt(Config.TAG_HITS));
+                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
                             jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
@@ -243,8 +247,8 @@ public class PmArhivFragment extends Fragment implements RecyclerView.OnScrollCh
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(PmArhivFragment.this)
-                .attach(PmArhivFragment.this)
+                .detach(PmFriendsFragment.this)
+                .attach(PmFriendsFragment.this)
                 .commit();
     }
 

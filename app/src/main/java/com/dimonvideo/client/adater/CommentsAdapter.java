@@ -95,7 +95,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         // отправка ответа
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20, Feed.getState());
+            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20, Feed.getState(), 0);
             holder.post_layout.setVisibility(View.GONE);
             notifyDataSetChanged();
         });

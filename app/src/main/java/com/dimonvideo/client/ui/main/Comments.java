@@ -132,7 +132,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         EditText textInput = findViewById(R.id.textInput);
 
         btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(this, Integer.parseInt(lid), textInput.getText().toString(), 20, razdel);
+            NetworkUtils.sendPm(this, Integer.parseInt(lid), textInput.getText().toString(), 20, razdel, 0);
             textInput.getText().clear();
             recreate();
         });

@@ -245,7 +245,7 @@ public class NetworkUtils {
 
     }
 
-    public static void sendPm(Context context, int pm_id, String text, int delete, String razdel) {
+    public static void sendPm(Context context, int pm_id, String text, int delete, String razdel, int uid) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
@@ -261,7 +261,7 @@ public class NetworkUtils {
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel;
+                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
                     Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();

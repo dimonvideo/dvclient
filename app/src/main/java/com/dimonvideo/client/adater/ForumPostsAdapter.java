@@ -89,7 +89,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2, null);
+            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2, null, 0);
             holder.post_layout.setVisibility(View.GONE);
             notifyDataSetChanged();
         });

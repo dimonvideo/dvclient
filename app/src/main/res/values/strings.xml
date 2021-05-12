@@ -143,4 +143,5 @@
     <string name="open_video">Open video</string>
     <string name="vuploader_external_video">Open video in external player</string>
     <string name="blog">Blogs</string>
+    <string name="tab_friends">Список друзей</string>
 </resources>

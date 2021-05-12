@@ -143,7 +143,7 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
         EditText textInput = findViewById(R.id.textInput);
 
         btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(this, Integer.parseInt(tid), textInput.getText().toString(), 2, null);
+            NetworkUtils.sendPm(this, Integer.parseInt(tid), textInput.getText().toString(), 2, null, 0);
             textInput.getText().clear();
             recreate();
         });

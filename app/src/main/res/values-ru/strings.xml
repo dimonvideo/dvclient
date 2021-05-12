@@ -124,10 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - обновление зависимых библиотек.
-        \n - возможность скрывать раздел Андроид.
-        \n - при авторизации, если пароль - логин неверен, выскакивает сообщение об ошибке.
-        \n - если новых сообщений нет, теперь это написано.
+        - добавлен Список друзей.
+        \n - возможность написать личное сообщение в списке друзей.
+        \n - технические исправления в коде.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -142,5 +141,6 @@
     <string name="open_video">Открыть видеофайл</string>
     <string name="vuploader_external_video">Открывать видео в стороннем плеере</string>
     <string name="blog">Блоги</string>
+    <string name="tab_friends">Список друзей</string>
 
 </resources>

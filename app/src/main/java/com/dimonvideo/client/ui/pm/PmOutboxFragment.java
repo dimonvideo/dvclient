@@ -120,6 +120,14 @@ public class PmOutboxFragment extends Fragment implements RecyclerView.OnScrollC
                     .commit();
             return true;
         }
+        if (item.getItemId() == R.id.action_friends) {
+            Fragment homeFrag = new PmFriendsFragment();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
         if (item.getItemId() == R.id.action_outbox) {
             Fragment homeFrag = new PmOutboxFragment();
             fragmentManager.beginTransaction()

@@ -6,6 +6,7 @@ public class FeedPm {
     //Data Variables
     private String imageUrl, title, full_text, date, last_poster_name, text;
     private int id, Is_new;
+    private Long time;
 
     //Getters and Setters
 
@@ -40,6 +41,12 @@ public class FeedPm {
     }
     public String getDate() {
         return date;
+    }
+    public Long getTime() {
+        return time;
+    }
+    public void setTime(Long time) {
+        this.time = time;
     }
 
     public void setDate(String date) {
