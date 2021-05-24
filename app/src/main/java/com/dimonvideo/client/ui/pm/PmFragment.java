@@ -117,7 +117,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         recyclerView.addItemDecoration(dividerItemDecoration);
         // swipe to delete
         ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            private Drawable deleteIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_delete);
+            private final Drawable deleteIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_delete);
             private final ColorDrawable background = new ColorDrawable(Color.RED);
 
             @Override
@@ -128,11 +128,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
             @Override
             public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
                 super.onSelectedChanged(viewHolder, actionState);
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    swipLayout.setEnabled(false);
-                } else {
-                    swipLayout.setEnabled(true);
-                }
+                swipLayout.setEnabled(actionState != ItemTouchHelper.ACTION_STATE_SWIPE);
             }
 
             @Override

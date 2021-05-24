@@ -41,7 +41,7 @@ import java.util.List;
 
 public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHolder> {
 
-    private Context context;
+    private final Context context;
 
     //List to store all
     List<FeedForum> jsonFeed;
@@ -103,7 +103,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
         } catch (Throwable ignored) {
         }
-        holder.textViewTitle.setText("#"+String.valueOf(Feed.getMin()+position+1)+" ");
+        holder.textViewTitle.setText("#"+ (Feed.getMin() + position + 1) +" ");
         holder.textViewTitle.append(Feed.getUser());
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewComments.setVisibility(View.GONE);

@@ -153,7 +153,7 @@ public class PostsSearch extends AppCompatActivity  implements RecyclerView.OnSc
             @SuppressLint("StaticFieldLeak")
             class AsyncCountPm extends AsyncTask<String, String, String> {
                 SharedPreferences sharedPrefs;
-                private WeakReference<Context> contextRef;
+                private final WeakReference<Context> contextRef;
 
                 public AsyncCountPm(Context context) {
                     this.contextRef = new WeakReference<>(context);

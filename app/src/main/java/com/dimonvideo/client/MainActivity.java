@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
     private BillingClient billingClient;
-    private String mSkuId = "com.dimonvideo.client_1";
+    private final String mSkuId = "com.dimonvideo.client_1";
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             @SuppressLint("StaticFieldLeak")
             class AsyncCountPm extends AsyncTask<String, String, String> {
                 SharedPreferences sharedPrefs;
-                private WeakReference<Context> contextRef;
+                private final WeakReference<Context> contextRef;
 
                 public AsyncCountPm(Context context) {
                     this.contextRef = new WeakReference<>(context);

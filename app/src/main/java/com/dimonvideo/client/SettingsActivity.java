@@ -205,9 +205,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             btnLogin.setOnClickListener(view -> {
 
-                EditText userName = (EditText) dialog.findViewById(R.id.txtName);
-                EditText userEmail = (EditText) dialog.findViewById(R.id.txtEmail);
-                EditText userPassword = (EditText) dialog.findViewById(R.id.txtPwd);
+                EditText userName = dialog.findViewById(R.id.txtName);
+                EditText userEmail = dialog.findViewById(R.id.txtEmail);
+                EditText userPassword = dialog.findViewById(R.id.txtPwd);
 
                 String url = Config.REGISTRATION_URL;
 

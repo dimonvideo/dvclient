@@ -98,7 +98,7 @@ public class Feed {
     }
 
     public void setRazdel(String razdel) {
-        this.razdel = razdel;
+        Feed.razdel = razdel;
     }
 
     public String getCategory() {

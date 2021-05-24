@@ -11,9 +11,7 @@ buildscript {
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.6.1'
     }
 }
-plugins {
-    id("maven-publish")
-}
+
 allprojects {
     repositories {
         google()

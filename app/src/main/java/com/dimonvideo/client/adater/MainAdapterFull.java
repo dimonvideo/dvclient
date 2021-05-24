@@ -42,7 +42,7 @@ import java.util.List;
 
 public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHolder> {
 
-    private Context context;
+    private final Context context;
 
     //List to store all
     List<Feed> jsonFeed;
@@ -127,7 +127,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.modBtn.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
 
-        if ((Feed.getRazdel() != null) && (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL))) {
+        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL))) {
             holder.mp4Btn.setVisibility(View.VISIBLE);
             holder.mp4Btn.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
 
@@ -155,12 +155,12 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         }
 
         holder.commentsBtn.setOnClickListener(view -> {
-            String comm_url = Config.COMMENTS_READS_URL + Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
+            String comm_url = Config.COMMENTS_READS_URL + com.dimonvideo.client.model.Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
             Intent intent = new Intent(context, Comments.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_LINK, comm_url);
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-            intent.putExtra(Config.TAG_RAZDEL, Feed.getRazdel());
+            intent.putExtra(Config.TAG_RAZDEL, com.dimonvideo.client.model.Feed.getRazdel());
             context.startActivity(intent);
         });
 
@@ -168,7 +168,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             @Override
             public void liked(LikeButton likeButton) {
                 Snackbar.make(holder.itemView, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                ButtonsActions.like_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 1);
                 holder.txt_plus.setText(String.valueOf(Feed.getPlus()+1));
 
             }
@@ -176,7 +176,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             @Override
             public void unLiked(LikeButton likeButton) {
                 Snackbar.make(holder.itemView, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 2);
+                ButtonsActions.like_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 2);
                 holder.txt_plus.setText(String.valueOf(Feed.getPlus()-1));
             }
         });
@@ -185,13 +185,13 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             @Override
             public void liked(LikeButton starButton) {
                 Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1); // в избранное
+                ButtonsActions.add_to_fav_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 1); // в избранное
             }
 
             @Override
             public void unLiked(LikeButton starButton) {
                 Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 2); // из избранного
+                ButtonsActions.add_to_fav_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 2); // из избранного
             }
         });
         // dialog menu
@@ -214,8 +214,8 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 context.getString(R.string.action_screen), context.getString(R.string.download), context.getString(R.string.copy_listtext)};
         final Feed Feed =  jsonFeed.get(position);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        holder.url = Config.BASE_URL + "/" + Feed.getRazdel() + "/" + Feed.getId();
-        if (Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+        holder.url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getId();
+        if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
             holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
 
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -242,10 +242,10 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 }
             }
             if (item == 2) { // fav
-                ButtonsActions.add_to_fav_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                ButtonsActions.add_to_fav_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 1);
             }
             if (item == 3) { // like
-                ButtonsActions.like_file(context, Feed.getRazdel(), Feed.getId(), 1);
+                ButtonsActions.like_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 1);
             }
             if (item == 4) { // screen
                 ButtonsActions.loadScreen(context, Feed.getImageUrl());

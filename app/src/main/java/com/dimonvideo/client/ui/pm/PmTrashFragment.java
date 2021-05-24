@@ -101,7 +101,7 @@ public class PmTrashFragment extends Fragment implements RecyclerView.OnScrollCh
 
         // swipe to restore
         ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT) {
-            private Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), android.R.drawable.ic_dialog_email);
+            private final Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), android.R.drawable.ic_dialog_email);
             private final ColorDrawable background = new ColorDrawable(Color.GREEN);
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -111,11 +111,7 @@ public class PmTrashFragment extends Fragment implements RecyclerView.OnScrollCh
             @Override
             public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
                 super.onSelectedChanged(viewHolder, actionState);
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    swipLayout.setEnabled(false);
-                } else {
-                    swipLayout.setEnabled(true);
-                }
+                swipLayout.setEnabled(actionState != ItemTouchHelper.ACTION_STATE_SWIPE);
             }
 
             @Override

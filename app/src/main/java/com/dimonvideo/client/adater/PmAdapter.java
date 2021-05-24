@@ -40,7 +40,7 @@ import java.util.List;
 
 public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
-    private Context context;
+    private final Context context;
 
     //List to store all
     List<FeedPm> jsonFeed;
@@ -202,7 +202,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         //Initializing Views
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = (ImageView) itemView.findViewById(R.id.thumbnail);
+            imageView = itemView.findViewById(R.id.thumbnail);
             status_logo = itemView.findViewById(R.id.status);
             textViewTitle = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);

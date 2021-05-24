@@ -26,7 +26,7 @@ import java.util.List;
 
 public class MainCategoryAdapter extends RecyclerView.Adapter<MainCategoryAdapter.ViewHolder> {
 
-    private Context context;
+    private final Context context;
 
     //List to store all
     List<FeedCats> jsonFeed;

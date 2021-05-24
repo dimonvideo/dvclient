@@ -26,7 +26,7 @@ import java.util.List;
 
 public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> {
 
-    private Context context;
+    private final Context context;
 
     //List to store all
     List<FeedForum> jsonFeed;

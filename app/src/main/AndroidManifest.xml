@@ -11,8 +11,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.android.vending.BILLING"/>
     <queries>
-    <package android:name="com.dv.adm.AEditor" />
-    <package android:name="com.dv.get.AEditor" />
+        <package android:name="com.dv.adm.AEditor" />
+        <package android:name="com.dv.get.AEditor" />
+        <package android:name="com.dv.get" />
+        <package android:name="com.dv.adm" />
     </queries>
     <application
         android:allowBackup="true"
