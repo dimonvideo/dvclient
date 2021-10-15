@@ -144,4 +144,7 @@
     <string name="vuploader_external_video">Open video in external player</string>
     <string name="blog">Blogs</string>
     <string name="tab_friends">Список друзей</string>
+    <string name="btn_share_switch">Disable Share button</string>
+    <string name="tab_inline_more">Align top tabs in center</string>
+    <string name="btn_share_switch_more">Switch off big Share button</string>
 </resources>

@@ -74,6 +74,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play",true);
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play",true);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
+        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
 
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
 
@@ -204,6 +205,30 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             return true;
         });
 
+        // share menu
+        holder.btn_share.setVisibility(View.VISIBLE);
+        holder.btn_share.setOnClickListener(view -> {
+
+            holder.url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getId();
+            if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+                holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
+
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+            sendIntent.setType("text/plain");
+            Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+
+            try {
+                context.startActivity(shareIntent);
+            } catch (Throwable ignored) {
+            }
+
+        });
+
+        if (is_share_btn) holder.btn_share.setVisibility(View.GONE);
+
+
     }
 
     // dialog
@@ -275,7 +300,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         public ImageView imageView;
         public TextView headersTitle, subHeadersTitle, txt_plus;
         public HtmlTextView textViewText;
-        public Button downloadBtn, modBtn, commentsBtn, mp4Btn;
+        public Button downloadBtn, modBtn, commentsBtn, mp4Btn, btn_share;
         public LikeButton likeButton, starButton;
         public ProgressBar progressBar;
         public String url;
@@ -297,6 +322,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             starButton = itemView.findViewById(R.id.star_button);
             txt_plus = itemView.findViewById(R.id.txt_plus);
             progressBar = itemView.findViewById(R.id.progressBar);
+            btn_share = itemView.findViewById(R.id.btn_share);
 
         }
 

@@ -82,8 +82,16 @@
             app:title="@string/is_more" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
+            app:useSimpleSummaryProvider="true"
+            android:summary="@string/tab_inline_more"
             app:key="dvc_tab_inline"
             app:title="@string/tab_inline" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:useSimpleSummaryProvider="true"
+            android:summary="@string/btn_share_switch_more"
+            app:key="dvc_btn_share"
+            app:title="@string/btn_share_switch" />
         <ListPreference
             app:defaultValue="1.0f"
             app:entries="@array/size_entries"

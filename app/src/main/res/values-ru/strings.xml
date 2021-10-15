@@ -124,7 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - улучшена интеграция с DVGet.
+        - добавлена кнопка Поделится.\n
+        - добавлена новая настройка для отключения кнопки Поделиться.\n
+        - исправления ошибок и обновления кода.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -140,5 +142,8 @@
     <string name="vuploader_external_video">Открывать видео в стороннем плеере</string>
     <string name="blog">Блоги</string>
     <string name="tab_friends">Список друзей</string>
+    <string name="btn_share_switch">Отключить кнопку Поделиться</string>
+    <string name="tab_inline_more">Выровнять названия вкладок по центру.</string>
+    <string name="btn_share_switch_more">Убрать большую кнопку Поделиться, необходимо перезапустить приложение.</string>
 
 </resources>

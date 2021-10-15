@@ -61,6 +61,7 @@ import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.bumptech.glide.Glide;
@@ -443,11 +444,14 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         }
         //if item already purchased then check and reflect changes
         else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
-            Purchase.PurchasesResult queryAlreadyPurchasesResult = billingClient.queryPurchases(INAPP);
-            List<Purchase> alreadyPurchases = queryAlreadyPurchasesResult.getPurchasesList();
-            if(alreadyPurchases!=null){
-                handlePurchases(alreadyPurchases);
-            }
+
+
+            billingClient.queryPurchasesAsync(BillingClient.SkuType.SUBS, new PurchasesResponseListener() {
+                @Override
+                public void onQueryPurchasesResponse(@NonNull BillingResult billingResult, @NonNull List<Purchase> alreadyPurchases) {
+                    handlePurchases(alreadyPurchases);
+                }
+            });
         }
         //if purchase cancelled
         else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
@@ -462,12 +466,17 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     void handlePurchases(List<Purchase>  purchases) {
         for(Purchase purchase:purchases) {
             //if item is purchased
-            if (mSkuId.equals(purchase.getSku()) && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED)
+            if (mSkuId.equals(purchase.getSkus()) && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED)
             {
                 if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
                     // Invalid purchase
                     // show error to user
-                    Toast.makeText(getApplicationContext(), "Error : Invalid Purchase", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(() -> {
+                        final Toast toast =  Toast.makeText(getApplicationContext(),
+                                "Error : Invalid Purchase", Toast.LENGTH_SHORT);
+                        toast.show();
+                    });
+
                     return;
                 }
                 // else purchase is valid
@@ -482,20 +491,35 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 //else item is purchased and also acknowledged
                 else {
                     // Grant entitlement to the user on item purchase
+                    runOnUiThread(() -> {
+                        final Toast toast =  Toast.makeText(getApplicationContext(),
+                                getString(R.string.thanks), Toast.LENGTH_SHORT);
+                        toast.show();
+                    });
 
-                        Toast.makeText(getApplicationContext(), getString(R.string.thanks), Toast.LENGTH_SHORT).show();
                 }
             }
             //if purchase is pending
-            else if( mSkuId.equals(purchase.getSku()) && purchase.getPurchaseState() == Purchase.PurchaseState.PENDING)
+            else if( mSkuId.equals(purchase.getSkus()) && purchase.getPurchaseState() == Purchase.PurchaseState.PENDING)
             {
-                Toast.makeText(getApplicationContext(),
-                        "Purchase is Pending. Please complete Transaction", Toast.LENGTH_SHORT).show();
+
+                runOnUiThread(() -> {
+                    final Toast toast =  Toast.makeText(getApplicationContext(),
+                            "Purchase is Pending. Please complete Transaction", Toast.LENGTH_SHORT);
+                    toast.show();
+                });
+
             }
             //if purchase is unknown
-            else if(mSkuId.equals(purchase.getSku()) && purchase.getPurchaseState() == Purchase.PurchaseState.UNSPECIFIED_STATE)
+            else if(mSkuId.equals(purchase.getSkus()) && purchase.getPurchaseState() == Purchase.PurchaseState.UNSPECIFIED_STATE)
             {
-                Toast.makeText(getApplicationContext(), "Purchase Status Unknown", Toast.LENGTH_SHORT).show();
+
+                runOnUiThread(() -> {
+                    final Toast toast =  Toast.makeText(getApplicationContext(),
+                            "Purchase Status Unknown", Toast.LENGTH_SHORT);
+                    toast.show();
+                });
+
             }
             ConsumeParams consumeParams =
                     ConsumeParams.newBuilder()
@@ -504,7 +528,13 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
             ConsumeResponseListener listener = (billingResult, purchaseToken) -> {
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.thanks_more), Toast.LENGTH_SHORT).show();
+
+                    runOnUiThread(() -> {
+                        final Toast toast =  Toast.makeText(getApplicationContext(),
+                                getString(R.string.thanks_more), Toast.LENGTH_SHORT);
+                        toast.show();
+                    });
+
                 }
             };
 
@@ -517,7 +547,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     }
     AcknowledgePurchaseResponseListener ackPurchase = billingResult -> {
         if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK){
-            Toast.makeText(getApplicationContext(), getString(R.string.thanks), Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> {
+                final Toast toast =  Toast.makeText(getApplicationContext(),
+                        getString(R.string.thanks), Toast.LENGTH_SHORT);
+                toast.show();
+            });
+
         }
     };
 
