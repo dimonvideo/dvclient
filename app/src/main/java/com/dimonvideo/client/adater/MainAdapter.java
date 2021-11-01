@@ -131,7 +131,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             if (holder.btn_comms.getVisibility() == View.VISIBLE) {
                 hide_content(holder, position);
             } else {
-                open_content(holder, position, context, is_share_btn);
+
+                try { open_content(holder, position, context, is_share_btn);
+                } catch (Throwable ignored) {
+                }
             }
 
         });
@@ -323,8 +326,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.btn_mod.setVisibility(View.VISIBLE);
             holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod(), com.dimonvideo.client.model.Feed.getRazdel()));
         }
+
         // share menu
-        holder.btn_share.setVisibility(View.VISIBLE);
+        try {
+            holder.btn_share.setVisibility(View.VISIBLE);
+        } catch (Throwable ignored) {
+        }
+
         holder.btn_share.setOnClickListener(view -> {
 
             holder.url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getId();
