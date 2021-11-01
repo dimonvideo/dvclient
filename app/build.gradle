@@ -10,7 +10,7 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 22
         targetSdkVersion 30
-        versionCode 300911
+        versionCode 3009211
         versionName "2.11"
 
     }
