@@ -84,6 +84,8 @@
         <item>Books</item>
         <item>AudioBooks</item>
         <item>FB2 Books</item>
+        <item>Android games</item>
+        <item>Android soft</item>
     </string-array>
 
     <string-array name="uploader_values">
@@ -94,6 +96,8 @@
         <item>books</item>
         <item>abooks</item>
         <item>hbooks</item>
+        <item>androidgames</item>
+        <item>androidsoft</item>
     </string-array>
 
     <!-- Android Preference -->

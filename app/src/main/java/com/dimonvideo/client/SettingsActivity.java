@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -92,6 +93,8 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_scale = findPreference("dvc_scale");
             Preference dvc_export = findPreference("dvc_export");
             Preference dvc_import = findPreference("dvc_import");
+            Preference dvc_uploader_cat = findPreference("dvc_uploader_cat");
+
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
                         Toast.makeText(requireContext(), requireContext().getString(R.string.restart_app), Toast.LENGTH_LONG).show();
@@ -159,6 +162,10 @@ public class SettingsActivity extends AppCompatActivity {
                 loadSharedPreferencesFromFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
                 return true;
             });
+
+
+
+
         }
 
         @Override

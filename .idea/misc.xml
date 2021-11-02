@@ -5,6 +5,9 @@
       <map>
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row.xml" value="0.3614583333333333" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_full.xml" value="0.3614583333333333" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_gallery.xml" value="0.16875" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_tracker.xml" value="0.16875" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/settings_activity.xml" value="0.16875" />
         <entry key="..\:/Android/DVClient/app/src/main/res/xml/root_preferences.xml" value="0.3614583333333333" />
       </map>
     </option>

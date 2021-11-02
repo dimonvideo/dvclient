@@ -84,6 +84,8 @@
         <item>Все книги</item>
         <item>Аудиокниги</item>
         <item>Художественные книги</item>
+        <item>Android игры</item>
+        <item>Android программы</item>
     </string-array>
 
     <string-array name="uploader_values">
@@ -94,6 +96,8 @@
         <item>books</item>
         <item>abooks</item>
         <item>hbooks</item>
+        <item>androidgames</item>
+        <item>androidsoft</item>
     </string-array>
 
     <!-- Android Preference -->

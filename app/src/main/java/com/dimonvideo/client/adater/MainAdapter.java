@@ -142,8 +142,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             if (holder.btn_comms.getVisibility() != View.VISIBLE) {
-                open_content(holder, position, context, is_share_btn);
-            }
+                try { open_content(holder, position, context, is_share_btn);
+                } catch (Throwable ignored) {
+                }            }
         });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
