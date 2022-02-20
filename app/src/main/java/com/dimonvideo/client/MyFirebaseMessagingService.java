@@ -112,20 +112,31 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             notificationManager.createNotificationChannel(mChannel);
         }
 
+
+
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
         notificationIntent.putExtra("action", "PmFragment");
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), id-100, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pendingIntent = PendingIntent.getActivity(getApplicationContext(), id - 100, notificationIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+        } else pendingIntent = PendingIntent.getActivity(getApplicationContext(), id-100, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
 
         Intent intentAction = new Intent(context, ActionReceiver.class);
         intentAction.putExtra("action", "deletePm");
         intentAction.putExtra("id", String.valueOf(id));
-        PendingIntent pIntentDelete = PendingIntent.getBroadcast(context, id-200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pIntentDelete;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
+        } else pIntentDelete = PendingIntent.getBroadcast(context, id-200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT);
 
         Intent intentAction2 = new Intent(context, ActionReceiver.class);
         intentAction2.putExtra("action", "replyPm");
         intentAction2.putExtra("id", String.valueOf(id));
-        PendingIntent pIntentReply = PendingIntent.getBroadcast(context, id-300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pIntentReply;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
+        } else pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channelId);
 
