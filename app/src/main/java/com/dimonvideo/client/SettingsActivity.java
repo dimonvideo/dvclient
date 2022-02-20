@@ -3,7 +3,9 @@ package com.dimonvideo.client;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
@@ -22,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -269,14 +272,11 @@ public class SettingsActivity extends AppCompatActivity {
         private void saveSharedPreferencesToFile(File dst) {
             ObjectOutputStream output = null;
 
-
             try {
                 output = new ObjectOutputStream(new FileOutputStream(dst));
                 SharedPreferences pref = getDefaultSharedPreferences(requireContext());
                 output.writeObject(pref.getAll());
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -319,11 +319,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 prefEdit.apply();
                 res = true;
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
             } finally {
                 try {

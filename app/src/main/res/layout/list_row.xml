@@ -118,7 +118,7 @@
     </LinearLayout>
 
     <!-- text -->
-    <org.sufficientlysecure.htmltextview.HtmlTextView
+    <TextView
         android:id="@+id/listtext"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

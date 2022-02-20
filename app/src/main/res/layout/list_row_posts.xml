@@ -60,7 +60,7 @@
         tools:ignore="SpUsage" />
 
     <!-- text -->
-    <org.sufficientlysecure.htmltextview.HtmlTextView
+    <WebView
         android:id="@+id/listtext"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -69,7 +69,7 @@
         android:layout_toEndOf="@+id/container"
         android:layout_marginTop="5dp"
         android:textSize="@dimen/text"
-        tools:ignore="SpUsage" />
+        tools:ignore="SpUsage,WebViewLayout" />
 
     <include
         layout="@layout/post"
@@ -98,7 +98,7 @@
         android:layout_marginTop="3dip"
         android:layout_below="@id/names"
         android:layout_toEndOf="@+id/container"
-        android:tint="@color/colorAccent"
+        app:tint="@color/colorAccent"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/ic_menu_view"
         tools:src="@android:drawable/ic_menu_view"
@@ -123,7 +123,7 @@
         android:layout_marginTop="6dip"
         android:layout_marginStart="15dip"
         android:layout_below="@id/names"
-        android:tint="@color/colorAccent"
+        app:tint="@color/colorAccent"
         android:layout_toEndOf="@+id/views_count"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/sym_action_chat"

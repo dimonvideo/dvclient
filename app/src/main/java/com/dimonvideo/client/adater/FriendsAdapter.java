@@ -3,12 +3,9 @@ package com.dimonvideo.client.adater;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,22 +14,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.NetworkUtils;
-
-import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.Calendar;
 import java.util.List;
@@ -81,7 +72,9 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        try { holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+        try {
+            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
         }
 
@@ -94,7 +87,8 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
 
         holder.itemView.setOnClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.VISIBLE);
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             holder.itemView.setBackgroundColor(0x00000000);
@@ -102,7 +96,8 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
         });
         holder.textViewText.setOnClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.VISIBLE);
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             holder.itemView.setBackgroundColor(0x00000000);
@@ -111,7 +106,8 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
 
         holder.send.setOnClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, 0, holder.textInput.getText().toString(), 0, null, Feed.getId());
 
@@ -131,7 +127,7 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
         //Views
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
-        public HtmlTextView textViewText;
+        public TextView textViewText;
         public LinearLayout btns;
         public Button send;
         public EditText textInput;

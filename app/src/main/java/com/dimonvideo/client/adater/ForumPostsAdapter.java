@@ -1,16 +1,22 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,22 +25,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.webkit.WebSettingsCompat;
+import androidx.webkit.WebViewFeature;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
-import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
-
-import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.Calendar;
 import java.util.List;
@@ -63,6 +70,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         return new ViewHolder(v);
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -81,11 +89,12 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         } catch (Throwable ignored) {
 
         }
-        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+        Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
@@ -106,38 +115,18 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
 
-        // open links from listtext
-        if (!is_open_link) {
-            holder.textViewText.setOnClickATagListener((widget, href) -> {
-                String url = href;
-                try {
-                    assert href != null;
-                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
-                    url = href.replace("https://m.dimonvideo.ru/go?", "");
-                    url = href.replace("https://dimonvideo.ru/go/?", "");
-                    url = href.replace("https://dimonvideo.ru/go?", "");
-                } catch (Throwable ignored) {
-                }
-                assert url != null;
-                String extension = url.substring(url.lastIndexOf(".") + 1);
-                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                    ButtonsActions.loadScreen(context, url);
-                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                        || (extension.equals("mp3"))
-                        || (extension.equals("m4a"))
-                        || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url, "forum");
-                else {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-            });
-        }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
-        try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        try {
+            holder.textViewText.getSettings().setJavaScriptEnabled(true);
+            holder.textViewText.loadData(Feed.getText(), "text/html; charset=utf-8", "UTF-8");
+            WebSettings settings = holder.textViewText.getSettings();
+
+            int nightModeFlags = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    settings.setForceDark(WebSettings.FORCE_DARK_ON);
+                }
+            }
         } catch (Throwable ignored) {
         }
         // цитирование
@@ -226,7 +215,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, imageView;
-        public HtmlTextView textViewText;
+        public WebView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
         public EditText textInput;

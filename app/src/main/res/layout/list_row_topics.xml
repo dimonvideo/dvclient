@@ -109,7 +109,7 @@
         android:layout_marginTop="6dip"
         android:layout_marginStart="15dip"
         android:layout_below="@id/names"
-        android:tint="@color/colorAccent"
+        app:tint="@color/colorAccent"
         android:layout_toEndOf="@+id/views_count"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/sym_action_chat"

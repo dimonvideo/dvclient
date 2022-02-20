@@ -132,7 +132,7 @@
     <string name="whats_new_text">bug fix</string>
     <string name="export">Export settings to a file</string>
     <string name="export_success">Export to SD success</string>
-    <string name="import_success">Import success, restart thr app.</string>
+    <string name="import_success">Import success, restart the app.</string>
     <string name="import_settings">Import from SD</string>
     <string name="restart_app">Please restart app!</string>
     <string name="dvget">DVGet / ADM integration</string>

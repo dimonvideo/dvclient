@@ -3,11 +3,24 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/activity_main.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/comments_list.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/fragment_tabs.xml" value="0.5385416666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row.xml" value="0.3614583333333333" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_categories.xml" value="0.5385416666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_full.xml" value="0.3614583333333333" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_gallery.xml" value="0.16875" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_pm.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_posts.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_topics.xml" value="0.5385416666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/list_row_tracker.xml" value="0.16875" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/nav_header_main.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/post.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/profile.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/registration.xml" value="0.5385416666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/screen.xml" value="0.5385416666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/settings_activity.xml" value="0.16875" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/layout/video.xml" value="0.5385416666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/xml/root_preferences.xml" value="0.3614583333333333" />
       </map>
     </option>

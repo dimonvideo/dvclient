@@ -19,6 +19,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -63,6 +65,7 @@ import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -99,8 +102,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     static int razdel = 10;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
     private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    private BillingClient billingClient;
-    private final String mSkuId = "com.dimonvideo.client_1";
+
+    // ---------- billing ----------------
+    BillingClient billingClient;
+    List<String> skuList = new ArrayList<>();
+    String product = "com.dimonvideo.client_1";
+    // ------------------------------------
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -247,9 +254,9 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             assert shortcutManager != null;
 
             if (auth_state > 0)
-                shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut));
+                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut))).start();
             else
-                shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut));
+                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut))).start();
 
         }
 
@@ -342,12 +349,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
 
-        if (!isPermissionGranted())
-            requestPermission();
+        if (!isPermissionGranted()) requestPermission();
 
 
-            try {
-                if (appWasUpdated(this)) {
+        try {
+
+            if (appWasUpdated(this)) {
 
                     new AlertDialog.Builder(this)
                             .setTitle(getString(R.string.whats_new_title))
@@ -357,214 +364,99 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 }
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
+        }
+
+
+
+
+        // ---- billing init --------
+        billingClient = BillingClient.newBuilder(MainActivity.this).enablePendingPurchases().setListener((billingResult, list) -> {
+            if(list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK)
+            {
+                for(Purchase purchase : list)
+                {
+                    handlePurchase(purchase);
+                }
             }
-
-
-        // Establish connection to billing client
-        //check purchase status from google play store cache
-        //to check if item already Purchased previously or refunded
-        billingClient = BillingClient.newBuilder(this)
-                .enablePendingPurchases().setListener(this).build();
+        }).build();
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
-                if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK){
-                    Purchase.PurchasesResult queryPurchase = billingClient.queryPurchases(INAPP);
-                    List<Purchase> queryPurchases = queryPurchase.getPurchasesList();
-                    if(queryPurchases!=null && queryPurchases.size()>0){
-                        handlePurchases(queryPurchases);
-                    }
-                    //if purchase list is empty that means item is not purchased
-                    //Or purchase is refunded or canceled
-                    else{
-                      //  savePurchaseValueToPref(false);
-                    }
+                if(billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK)
+                {
+                    Toast.makeText(MainActivity.this, "Successfully connected to Billing Client", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this, "Failed to connect to Google Services", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onBillingServiceDisconnected() {
+                Toast.makeText(MainActivity.this, "Disconnected from the Billing Client", Toast.LENGTH_SHORT).show();
             }
         });
 
-
+        // -------------------
     }
 
-    // donate
-    public void purchase() {
-        //check if service is already connected
-        if (billingClient.isReady()) {
-            initiatePurchase();
-        }
-        //else reconnect service
-        else{
-            billingClient = BillingClient.newBuilder(this).enablePendingPurchases().setListener(this).build();
-            billingClient.startConnection(new BillingClientStateListener() {
-                @Override
-                public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
-                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                        initiatePurchase();
-                    }
-                }
-                @Override
-                public void onBillingServiceDisconnected() {
-                }
-            });
-        }
+    private boolean isSignatureValid(Purchase purchase) {
+        return Security.verifyPurchase(Security.BASE_64_ENCODED_PUBLIC_KEY, purchase.getOriginalJson(), purchase.getSignature());
     }
-    private void initiatePurchase() {
-        List<String> skuList = new ArrayList<>();
-        skuList.add(mSkuId);
-        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(INAPP);
-        billingClient.querySkuDetailsAsync(params.build(),
-                (billingResult, skuDetailsList) -> {
-                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                        if (skuDetailsList != null && skuDetailsList.size() > 0) {
-                            BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                                    .setSkuDetails(skuDetailsList.get(0))
-                                    .build();
-                            billingClient.launchBillingFlow(MainActivity.this, flowParams);
-                        }
-                        else{
-                            //try to add item/product id "purchase" inside managed product in google play console
-                            Toast.makeText(getApplicationContext(),"Purchase Item not Found",Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                " Error "+billingResult.getDebugMessage(), Toast.LENGTH_SHORT).show();
+
+    public void handlePurchase(Purchase purchase) {
+        try {
+            if ((purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) && isSignatureValid(purchase)) {
+                if (purchase.getSkus().get(0).equals(product)) {
+
+                    ConsumeParams.Builder param = ConsumeParams.newBuilder();
+                    param.setPurchaseToken(purchase.getPurchaseToken());
+                    billingClient.consumeAsync(param.build(), (billingResult1, s) ->
+                            (new Handler(Looper.getMainLooper())).post(()->
+                                    Toast.makeText(this, getString(R.string.thanks), Toast.LENGTH_SHORT).show()));
+                    if (billingClient!= null) {
+                        billingClient.endConnection();
                     }
-                });
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+
+
+        }
     }
     @Override
-    public void onPurchasesUpdated(BillingResult billingResult, @Nullable List<Purchase> purchases) {
-        //if item newly purchased
-        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
-            handlePurchases(purchases);
-        }
-        //if item already purchased then check and reflect changes
-        else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
-
-
-            billingClient.queryPurchasesAsync(BillingClient.SkuType.SUBS, new PurchasesResponseListener() {
-                @Override
-                public void onQueryPurchasesResponse(@NonNull BillingResult billingResult, @NonNull List<Purchase> alreadyPurchases) {
-                    handlePurchases(alreadyPurchases);
-                }
-            });
-        }
-        //if purchase cancelled
-        else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
-            Toast.makeText(getApplicationContext(),"Purchase Canceled",Toast.LENGTH_SHORT).show();
-        }
-        // Handle any other error msgs
-        else {
-            Toast.makeText(getApplicationContext(),"Error "+billingResult.getDebugMessage(),Toast.LENGTH_SHORT).show();
+    public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
+        int responseCode = billingResult.getResponseCode();
+        if (responseCode == BillingClient.BillingResponseCode.OK && purchases != null)
+        {
+            for (Purchase purchase : purchases) {
+                handlePurchase(purchase);
+            }
         }
     }
 
-    void handlePurchases(List<Purchase>  purchases) {
-        for(Purchase purchase:purchases) {
-            //if item is purchased
-            if (mSkuId.equals(purchase.getSkus()) && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED)
-            {
-                if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
-                    // Invalid purchase
-                    // show error to user
-                    runOnUiThread(() -> {
-                        final Toast toast =  Toast.makeText(getApplicationContext(),
-                                "Error : Invalid Purchase", Toast.LENGTH_SHORT);
-                        toast.show();
-                    });
+    private final PurchasesUpdatedListener purchasesUpdatedListener = (billingResult, purchases) -> {
+        if(billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases!=null && purchases.size()>0) {
+            for(Purchase purchase: purchases) {
+                if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                    ConsumeParams.Builder param = ConsumeParams.newBuilder();
+                    param.setPurchaseToken(purchase.getPurchaseToken());
+                    billingClient.consumeAsync(param.build(), new ConsumeResponseListener() {
+                        @Override
+                        public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String s) {
 
-                    return;
-                }
-                // else purchase is valid
-                //if item is purchased and not acknowledged
-                if (!purchase.isAcknowledged()) {
-                    AcknowledgePurchaseParams acknowledgePurchaseParams =
-                            AcknowledgePurchaseParams.newBuilder()
-                                    .setPurchaseToken(purchase.getPurchaseToken())
-                                    .build();
-                    billingClient.acknowledgePurchase(acknowledgePurchaseParams, ackPurchase);
-                }
-                //else item is purchased and also acknowledged
-                else {
-                    // Grant entitlement to the user on item purchase
-                    runOnUiThread(() -> {
-                        final Toast toast =  Toast.makeText(getApplicationContext(),
-                                getString(R.string.thanks), Toast.LENGTH_SHORT);
-                        toast.show();
+                            (new Handler(Looper.getMainLooper())).post(()->
+                                    Toast.makeText(MainActivity.this, getString(R.string.thanks), Toast.LENGTH_SHORT).show());
+                        }
                     });
-
                 }
             }
-            //if purchase is pending
-            else if( mSkuId.equals(purchase.getSkus()) && purchase.getPurchaseState() == Purchase.PurchaseState.PENDING)
-            {
-
-                runOnUiThread(() -> {
-                    final Toast toast =  Toast.makeText(getApplicationContext(),
-                            "Purchase is Pending. Please complete Transaction", Toast.LENGTH_SHORT);
-                    toast.show();
-                });
-
-            }
-            //if purchase is unknown
-            else if(mSkuId.equals(purchase.getSkus()) && purchase.getPurchaseState() == Purchase.PurchaseState.UNSPECIFIED_STATE)
-            {
-
-                runOnUiThread(() -> {
-                    final Toast toast =  Toast.makeText(getApplicationContext(),
-                            "Purchase Status Unknown", Toast.LENGTH_SHORT);
-                    toast.show();
-                });
-
-            }
-            ConsumeParams consumeParams =
-                    ConsumeParams.newBuilder()
-                            .setPurchaseToken(purchase.getPurchaseToken())
-                            .build();
-
-            ConsumeResponseListener listener = (billingResult, purchaseToken) -> {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-
-                    runOnUiThread(() -> {
-                        final Toast toast =  Toast.makeText(getApplicationContext(),
-                                getString(R.string.thanks_more), Toast.LENGTH_SHORT);
-                        toast.show();
-                    });
-
-                }
-            };
-
-            billingClient.consumeAsync(consumeParams, listener);
-        }
-
-
-
-
-    }
-    AcknowledgePurchaseResponseListener ackPurchase = billingResult -> {
-        if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK){
-            runOnUiThread(() -> {
-                final Toast toast =  Toast.makeText(getApplicationContext(),
-                        getString(R.string.thanks), Toast.LENGTH_SHORT);
-                toast.show();
-            });
-
         }
     };
 
-    private boolean verifyValidSignature(String signedData, String signature) {
-        try {
-            // To get key go to Developer Console > Select your app > Development Tools > Services & APIs.
-            String base64Key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApjK3cAie0hq350cYJ4Pib5bj6bMKVP4BYDSv3ISPd9LIs/j9o8YQHX1R8qG02GH48Pi3arNYpx/U6k1eYcdRgk+pt0r8VsH+Frj2QV6GcvlTzDSgLf6+9EeWO4uW6Kt9PPSElnhNzZ5M48BpWmWzw6PdYcB/y5aKHdZ0XiLA44Bq1DWNcRFt42yT958A75H6wvmYaU377XqjlK5xwAJr5ZKPV6e6KPUoBe9UcjZ0WWtO2jClDj1ex6gFAiZVXJavuayoWz6tVnhTfPlvgQgqiQetwr/lbTZIkeH+/9XraXs1JGCPZzVr4Go95K9kL38axd/gstgMo/cf25qC9ugqwQIDAQAB";
-            return Security.verifyPurchase(base64Key, signedData, signature);
-        } catch (IOException e) {
-            return false;
-        }
-    }
 
     // scale font
     private void adjustFontScale(Configuration configuration) {
@@ -725,7 +617,22 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 }
             } else
             {
-               try{ purchase();
+               try{
+
+                   skuList.add(product);
+                   final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                   params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
+                   billingClient.querySkuDetailsAsync(params.build(), (billingResult, list) -> {
+                       if (list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                           for (final SkuDetails skuDetails : list) {
+                               BillingFlowParams flowParams = BillingFlowParams.newBuilder()
+                                       .setSkuDetails(skuDetails)
+                                       .build();
+                               billingClient.launchBillingFlow(MainActivity.this, flowParams);
+                           }
+                       }
+                   });
+
                } catch (Throwable ignored) {
                }
             }

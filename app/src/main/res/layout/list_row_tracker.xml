@@ -112,7 +112,7 @@
 
 
     <!-- text -->
-    <org.sufficientlysecure.htmltextview.HtmlTextView
+    <TextView
         android:id="@+id/listtext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -258,7 +258,7 @@
         android:layout_marginStart="15dip"
         android:layout_below="@id/btn_mp4"
         android:visibility="gone"
-        android:tint="@color/colorAccent"
+        app:tint="@color/colorAccent"
         android:layout_toEndOf="@+id/views_count"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/sym_action_chat"

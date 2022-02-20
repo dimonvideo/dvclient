@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,9 +33,6 @@ import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
-
-import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.Calendar;
 import java.util.List;
@@ -100,7 +98,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             notifyDataSetChanged();
         });
 
-        try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        try {
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
         }
         holder.textViewTitle.setText("#"+ (Feed.getMin() + position + 1) +" ");
@@ -135,37 +135,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         if (Feed.getMin()>0) {
             holder.post_layout.setVisibility(View.GONE);
-        }
-
-        // open links from listtext
-        if (!is_open_link) {
-            holder.textViewText.setOnClickATagListener((widget, href) -> {
-                String url = href;
-                try {
-                    assert href != null;
-                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
-                    url = href.replace("https://m.dimonvideo.ru/go?", "");
-                    url = href.replace("https://dimonvideo.ru/go/?", "");
-                    url = href.replace("https://dimonvideo.ru/go?", "");
-                } catch (Throwable ignored) {
-                }
-                assert url != null;
-                String extension = url.substring(url.lastIndexOf(".") + 1);
-                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                    ButtonsActions.loadScreen(context, url);
-                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                        || (extension.equals("mp3"))
-                        || (extension.equals("m4a"))
-                        || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url, com.dimonvideo.client.model.Feed.getRazdel());
-                else {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-            });
         }
 
         // show dialog
@@ -210,7 +179,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView;
-        public HtmlTextView textViewText;
+        public TextView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
         public EditText textInput;

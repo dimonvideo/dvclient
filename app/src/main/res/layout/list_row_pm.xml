@@ -73,7 +73,7 @@
         tools:ignore="SpUsage" />
 
     <!-- text -->
-    <org.sufficientlysecure.htmltextview.HtmlTextView
+    <TextView
         android:id="@+id/listtext"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

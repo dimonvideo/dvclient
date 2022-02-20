@@ -47,12 +47,6 @@
             android:title="@string/select_razdel" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
-            app:key="dvc_open_link"
-            android:summary="@string/disable_open_links"
-            app:useSimpleSummaryProvider="true"
-            app:title="@string/disable_open_links" />
-        <SwitchPreferenceCompat
-            app:defaultValue="false"
             app:key="dvc_dvget"
             android:summary="@string/dvget"
             app:useSimpleSummaryProvider="true"

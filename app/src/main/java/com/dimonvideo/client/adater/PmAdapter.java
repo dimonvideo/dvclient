@@ -9,6 +9,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,13 +29,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.model.FeedPm;
-import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.NetworkUtils;
-
-import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.List;
 
@@ -77,7 +73,9 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
 
-        try { holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+        try {
+            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
         }
         holder.itemView.setBackgroundColor(0x00000000);
@@ -89,7 +87,8 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
         holder.itemView.setOnClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.VISIBLE);
             NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
@@ -98,7 +97,8 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         });
         holder.textViewText.setOnClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.VISIBLE);
             NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
@@ -107,14 +107,16 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         });
         holder.send.setOnClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 0, null, 0);
 
         });
         holder.send.setOnLongClickListener(v -> {
 
-            holder.textViewText.setHtml(Feed.getFullText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1, null, 0);
             jsonFeed.remove(position);
@@ -191,7 +193,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         //Views
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
-        public HtmlTextView textViewText;
+        public TextView textViewText;
         public LinearLayout btns;
         public Button send;
         public EditText textInput;

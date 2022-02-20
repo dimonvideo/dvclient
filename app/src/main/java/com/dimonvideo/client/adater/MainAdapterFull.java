@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,9 +35,6 @@ import com.dimonvideo.client.util.DownloadFile;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
-
-import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.util.List;
 
@@ -88,40 +86,13 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
         } catch (Exception ignored) {
         }
-        // open links from listtext
-        if (!is_open_link) {
-            holder.textViewText.setOnClickATagListener((widget, href) -> {
-                String url = href;
-                try {
-                    assert href != null;
-                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
-                    url = href.replace("https://m.dimonvideo.ru/go?", "");
-                    url = href.replace("https://dimonvideo.ru/go/?", "");
-                    url = href.replace("https://dimonvideo.ru/go?", "");
-                } catch (Throwable ignored) {
-                }
-                assert url != null;
-                String extension = url.substring(url.lastIndexOf(".") + 1);
-                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                    ButtonsActions.loadScreen(context, url);
-                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                        || (extension.equals("mp3"))
-                        || (extension.equals("m4a"))
-                        || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url, com.dimonvideo.client.model.Feed.getRazdel());
-                else {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-            });
-        }
+
         holder.headersTitle.setText(Feed.getTitle());
         holder.subHeadersTitle.setText(Feed.getDate());
         holder.subHeadersTitle.append(" " + context.getString(R.string.by) + " " + Feed.getUser());
-        try { holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        try {
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
         }
         holder.downloadBtn.setVisibility(View.VISIBLE);
@@ -299,7 +270,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         //Views
         public ImageView imageView;
         public TextView headersTitle, subHeadersTitle, txt_plus;
-        public HtmlTextView textViewText;
+        public TextView textViewText;
         public Button downloadBtn, modBtn, commentsBtn, mp4Btn, btn_share;
         public LikeButton likeButton, starButton;
         public ProgressBar progressBar;

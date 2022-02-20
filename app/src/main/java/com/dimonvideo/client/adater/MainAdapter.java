@@ -5,9 +5,17 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LevelListDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.text.Editable;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,24 +33,24 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
-import com.dimonvideo.client.ui.main.Comments;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.ui.main.Comments;
+import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 
-import org.sufficientlysecure.htmltextview.HtmlHttpImageGetter;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
+import org.xml.sax.XMLReader;
 
+import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
@@ -99,7 +107,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
-        holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+        holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new TagHandler()));
+        holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewCategory.setText(Feed.getCategory());
         holder.textViewComments.setText(String.valueOf(Feed.getComments()));
@@ -183,36 +193,19 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             return true;
         });
 
-        // open links from listtext
-        if (!is_open_link) {
-            holder.textViewText.setOnClickATagListener((widget, href) -> {
-               // open_content(holder, position, context);
-                String url = href;
-                try {
-                    assert href != null;
-                    url = href.replace("https://m.dimonvideo.ru/go/?", "");
-                    url = href.replace("https://m.dimonvideo.ru/go?", "");
-                    url = href.replace("https://dimonvideo.ru/go/?", "");
-                    url = href.replace("https://dimonvideo.ru/go?", "");
-                } catch (Throwable ignored) {
-                }
-                assert url != null;
-                String extension = url.substring(url.lastIndexOf(".") + 1);
-                if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                    ButtonsActions.loadScreen(context, url);
-                else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                        || (extension.equals("mp3"))
-                        || (extension.equals("m4a"))
-                        || (extension.equals("rar"))
-                        || (extension.equals("mp4"))) DownloadFile.download(context, url, com.dimonvideo.client.model.Feed.getRazdel());
-                else {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        context.startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                }
-            });
+
+
+    }
+    public static class TagHandler implements Html.TagHandler {
+        @Override
+        public void handleTag(boolean opening, String tag,
+                              Editable output, XMLReader xmlReader) {
+            if (!opening && tag.equals("ul")) {
+                output.append("\n");
+            }
+            if (opening && tag.equals("li")) {
+                output.append("\n\u2022");
+            }
         }
     }
 
@@ -283,7 +276,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.name.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
-            holder.textViewText.setHtml(Feed.getFull_text(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getFull_text(), null,  new TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
         }
         holder.btn_comms.setOnClickListener(view -> {
@@ -415,7 +409,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.name.setVisibility(View.GONE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
-            holder.textViewText.setHtml(Feed.getText(), new HtmlHttpImageGetter(holder.textViewText));
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new TagHandler()));
+            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
         }
         holder.btn_download.setVisibility(View.GONE);
@@ -442,7 +437,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, txt_plus, textViewName;
         public ImageView imageView, rating_logo, status_logo, fav_star;
-        public HtmlTextView textViewText;
+        public TextView textViewText;
         public String url;
         public Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share;
         public ProgressBar progressBar;

@@ -3,6 +3,7 @@ package com.dimonvideo.client.util;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -58,6 +60,8 @@ public class ButtonsActions {
         Button bt_close = dialog.findViewById(R.id.btn_close);
 
         bt_close.setOnClickListener(v -> dialog.dismiss());
+
+
 
     }
 
@@ -164,8 +168,17 @@ public class ButtonsActions {
             AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
             if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
             else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
+
             andExoPlayerView.setSource(link);
             dialog.show();
+            dialog.setOnKeyListener((arg0, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    andExoPlayerView.stopPlayer();
+                    dialog.dismiss();
+                }
+                return true;
+            });
+
         }
     }
 
