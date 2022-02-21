@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    tools:ignore="UnusedNavigation">
+    app:startDestination="@id/nav_home">
 
     <fragment
         android:id="@+id/nav_home"
@@ -39,6 +39,7 @@
             android:defaultValue="20"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_uploader"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -50,6 +51,7 @@
             android:defaultValue="2"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_android"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -61,6 +63,7 @@
             android:defaultValue="11"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_vuploader"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -72,6 +75,7 @@
             android:defaultValue="3"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_news"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -83,6 +87,7 @@
             android:defaultValue="4"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_muzon"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -94,6 +99,7 @@
             android:defaultValue="5"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_books"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -105,6 +111,7 @@
             android:defaultValue="6"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_articles"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -116,17 +123,19 @@
             android:defaultValue="7"
             />
     </fragment>
+
     <fragment
-    android:id="@+id/nav_forum"
-    android:name="com.dimonvideo.client.ui.forum.ForumFragment"
-    android:label="@string/menu_forum"
-    android:tag="topics"
-    tools:layout="@layout/fragment_tabs">
-    <argument
-        android:name="category"
-        android:defaultValue="8"
+        android:id="@+id/nav_forum"
+        android:name="com.dimonvideo.client.ui.forum.ForumFragment"
+        android:label="@string/menu_forum"
+        android:tag="topics"
+        tools:layout="@layout/fragment_tabs">
+        <argument
+            android:name="category"
+            android:defaultValue="8"
         />
     </fragment>
+
     <fragment
         android:id="@+id/nav_forums"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentForums"
@@ -138,6 +147,7 @@
             android:defaultValue="9"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_topics"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
@@ -149,6 +159,7 @@
             android:defaultValue="9"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_topics_fav"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav"
@@ -160,6 +171,7 @@
             android:defaultValue="9"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_topics_no_posts"
         android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopicsNoPosts"
@@ -172,6 +184,7 @@
             />
 
     </fragment>
+
     <fragment
         android:id="@+id/nav_pminbox"
         android:name="com.dimonvideo.client.ui.pm.PmFragment"
@@ -183,6 +196,7 @@
             android:defaultValue="13"
             />
     </fragment>
+
     <fragment
         android:id="@+id/nav_cats"
         android:name="com.dimonvideo.client.ui.main.MainFragmentCats"
@@ -195,6 +209,7 @@
             app:destination="@id/nav_home"
             />
     </fragment>
+
     <fragment
     android:id="@+id/nav_tracker"
     android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -205,7 +220,8 @@
         android:name="category"
         android:defaultValue="14"
         />
-</fragment>
+    </fragment>
+
     <fragment
         android:id="@+id/nav_blog"
         android:name="com.dimonvideo.client.ui.main.MainFragment"

@@ -125,7 +125,9 @@
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
         - исправлено закрытие плеера по кнопке Назад.\n
-        - исправлено обновление тем на форуме.
+        - исправлено обновление тем на форуме.\n
+        - исправлены вылеты на черной теме.
+
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>

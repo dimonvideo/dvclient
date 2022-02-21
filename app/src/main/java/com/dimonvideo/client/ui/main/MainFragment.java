@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.InflateException;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
@@ -31,31 +33,32 @@ public class MainFragment extends Fragment  {
     String story = null;
 
     public MainFragment() {
-        // Required empty public constructor
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
+                View root = inflater.inflate(R.layout.fragment_tabs, container, false);
+
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
-
-        View root = inflater.inflate(R.layout.fragment_tabs, container, false);
         if (this.getArguments() != null) {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            Log.e("mainFragment", ""+razdel);
             EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
         }
 
-        TabLayout tabLayout = root.findViewById(R.id.tabLayout);
-        ViewPager viewPager = root.findViewById(R.id.view_pager);
         final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
         String login = sharedPrefs.getString("dvc_password", "");
 
-        TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
+
+        TabLayout tabLayout = root.findViewById(R.id.tabLayout);
+        ViewPager viewPager = root.findViewById(R.id.view_pager);
+        TabsAdapter adapt = new TabsAdapter(
+                getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
 
         adapt.addfrg(new MainFragmentContent(),getString(R.string.tab_last));
         if (!is_more) adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));

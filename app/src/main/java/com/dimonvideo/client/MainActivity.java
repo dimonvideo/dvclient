@@ -51,6 +51,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
@@ -114,11 +115,11 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
         final boolean is_android = sharedPrefs.getBoolean("dvc_android", true);
@@ -141,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
+        setContentView(R.layout.activity_main);
 
         adjustFontScale(getResources().getConfiguration());
 
@@ -148,12 +150,16 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        NavController navController = null;
+        if (navHostFragment != null) {
+            navController = navHostFragment.getNavController();
+        }
+
         NavGraph navGraph = navController.getNavInflater().inflate(R.navigation.mobile_navigation);
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -176,10 +182,15 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 R.id.nav_articles,
                 R.id.nav_blog
         ).setOpenableLayout(drawer).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
+
+
+        if (navController != null) {
+            NavigationUI.setupActionBarWithNavController(MainActivity.this, navController, mAppBarConfiguration);
+            NavigationUI.setupWithNavController(navigationView, navController);
+        }
 
         // main razdel
+        assert main_razdel != null;
         if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
         if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
         if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
@@ -192,6 +203,9 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
 
         navController.setGraph(navGraph);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
@@ -211,8 +225,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
             FragmentManager fragmentManager = getSupportFragmentManager();
             Fragment PmFragment = new MainFragment();
-
-            Log.e("PMID action", "---" + intent_pm.getStringExtra("action"));
 
             try {
                 if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {

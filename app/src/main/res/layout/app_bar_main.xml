@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context="com.dimonvideo.client.MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/toolbar_app"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
@@ -35,7 +36,8 @@
         android:elevation="0dp"
         app:elevation="0dp"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        app:srcCompat="@android:drawable/ic_dialog_email"
+        android:contentDescription="TODO" />
         <TextView
             android:id="@+id/fab_badge"
             android:visibility="gone"
