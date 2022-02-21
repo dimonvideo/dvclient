@@ -24,6 +24,7 @@ import android.os.Looper;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -112,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -137,10 +141,9 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
-        super.onCreate(savedInstanceState);
+
         adjustFontScale(getResources().getConfiguration());
 
-        setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
@@ -208,6 +211,9 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
             FragmentManager fragmentManager = getSupportFragmentManager();
             Fragment PmFragment = new MainFragment();
+
+            Log.e("PMID action", "---" + intent_pm.getStringExtra("action"));
+
             try {
                 if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {
                     PmFragment = new PmFragment();

@@ -147,4 +147,5 @@
     <string name="btn_share_switch">Disable Share button</string>
     <string name="tab_inline_more">Align top tabs in center</string>
     <string name="btn_share_switch_more">Switch off big Share button</string>
+    <string name="pm_read">Mark read</string>
 </resources>

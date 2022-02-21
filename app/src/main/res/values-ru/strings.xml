@@ -144,5 +144,6 @@
     <string name="btn_share_switch">Отключить кнопку Поделиться</string>
     <string name="tab_inline_more">Выровнять названия вкладок по центру.</string>
     <string name="btn_share_switch_more">Убрать большую кнопку Поделиться, необходимо перезапустить приложение.</string>
+    <string name="pm_read">Прочитано</string>
 
 </resources>

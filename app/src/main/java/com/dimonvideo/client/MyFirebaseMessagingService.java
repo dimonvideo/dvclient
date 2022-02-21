@@ -1,5 +1,6 @@
 package com.dimonvideo.client;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -9,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,6 +55,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                     Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                     intent.putExtra("count", count_pm);
+                    intent.putExtra("action", "new_pm");
+                    intent.putExtra("id", id);
                     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
                     getBitmapAsync(getApplicationContext(),
@@ -97,9 +101,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 });
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private void generateNotification(Context context, String msg, String text, int id, Bitmap bitmap) {
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager;
+        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         String channelId = "dimonvideo.client";
         String channelName = "PM";
@@ -113,28 +119,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
 
+        Log.e("PMID-on", "---  " + id);
 
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
         notificationIntent.putExtra("action", "PmFragment");
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
         PendingIntent pendingIntent;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             pendingIntent = PendingIntent.getActivity(getApplicationContext(), id - 100, notificationIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-        } else pendingIntent = PendingIntent.getActivity(getApplicationContext(), id-100, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
+        } else pendingIntent = PendingIntent.getActivity(getApplicationContext(), id - 100, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
 
         Intent intentAction = new Intent(context, ActionReceiver.class);
         intentAction.putExtra("action", "deletePm");
         intentAction.putExtra("id", String.valueOf(id));
+
         PendingIntent pIntentDelete;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
-        } else pIntentDelete = PendingIntent.getBroadcast(context, id-200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT);
+        } else pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT);
 
         Intent intentAction2 = new Intent(context, ActionReceiver.class);
         intentAction2.putExtra("action", "replyPm");
         intentAction2.putExtra("id", String.valueOf(id));
+
         PendingIntent pIntentReply;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
         } else pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT);
 
@@ -147,7 +157,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setAutoCancel(true);
         mBuilder.setStyle(new NotificationCompat.BigTextStyle().bigText(text));
-        mBuilder.addAction(android.R.drawable.stat_notify_more, getString(R.string.tab_pm), pIntentReply);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            mBuilder.addAction(android.R.drawable.stat_notify_more, getString(R.string.tab_pm), pIntentReply);
+        } else {
+            mBuilder.addAction(android.R.drawable.stat_notify_more, getString(R.string.pm_read), pIntentReply);
+        }
         mBuilder.addAction(android.R.drawable.ic_delete, getString(R.string.pm_delete), pIntentDelete);
 
         assert notificationManager != null;

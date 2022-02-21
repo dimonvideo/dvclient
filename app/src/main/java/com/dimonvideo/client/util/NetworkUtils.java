@@ -194,6 +194,8 @@ public class NetworkUtils {
                                 if (Integer.parseInt(count) < 1) count = "0";
                                 Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                                 intent.putExtra("count", count);
+                                intent.putExtra("action", "deleted");
+                                intent.putExtra("id", 0);
                                 LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                             }
                         }, error -> showErrorToast(context, error)
@@ -234,6 +236,8 @@ public class NetworkUtils {
                             if (Integer.parseInt(count) < 1) count = "0";
                             Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
                             intent.putExtra("count", count);
+                            intent.putExtra("action", "reading");
+                            intent.putExtra("id", 0);
                             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                         }, error -> showErrorToast(context, error)
                 );

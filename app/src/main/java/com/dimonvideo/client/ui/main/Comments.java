@@ -199,6 +199,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         }
     }
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         return new JsonArrayRequest(comm_url + requestCount,

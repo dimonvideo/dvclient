@@ -1,10 +1,12 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
@@ -12,6 +14,8 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -61,6 +65,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         return new ViewHolder(v);
     }
 
+    @SuppressLint({"SetJavaScriptEnabled", "NotifyDataSetChanged"})
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
@@ -96,11 +101,20 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20, Feed.getState(), 0);
             holder.post_layout.setVisibility(View.GONE);
             notifyDataSetChanged();
+
         });
 
         try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            holder.textViewText.getSettings().setJavaScriptEnabled(true);
+            holder.textViewText.loadData(Feed.getText(), "text/html; charset=utf-8", "UTF-8");
+            WebSettings settings = holder.textViewText.getSettings();
+
+            int nightModeFlags = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    settings.setForceDark(WebSettings.FORCE_DARK_ON);
+                }
+            }
         } catch (Throwable ignored) {
         }
         holder.textViewTitle.setText("#"+ (Feed.getMin() + position + 1) +" ");
@@ -179,7 +193,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView;
-        public TextView textViewText;
+        public WebView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
         public EditText textInput;
