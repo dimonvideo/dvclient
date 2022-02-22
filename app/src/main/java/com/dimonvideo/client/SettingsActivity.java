@@ -1,7 +1,9 @@
 package com.dimonvideo.client;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -24,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
@@ -52,6 +55,9 @@ import java.util.Objects;
 import static androidx.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
+    private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,18 +102,44 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_scale = findPreference("dvc_scale");
             Preference dvc_export = findPreference("dvc_export");
             Preference dvc_import = findPreference("dvc_import");
-            Preference dvc_uploader_cat = findPreference("dvc_uploader_cat");
+            Preference dvc_favor = findPreference("dvc_favor");
+            Preference dvc_more = findPreference("dvc_more");
+            Preference dvc_comment = findPreference("dvc_comment");
 
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
-                        Toast.makeText(requireContext(), requireContext().getString(R.string.restart_app), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                this.startActivity(intent);
+                requireActivity().finish();
 
                         return true;
                     });
             assert dvc_scale != null;
             dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
-                requireActivity().recreate();
-                Toast.makeText(getContext(), getString(R.string.please_reload), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                this.startActivity(intent);
+                requireActivity().finish();
+                return true;
+            });
+            assert dvc_favor != null;
+            dvc_favor.setOnPreferenceChangeListener((preference, newValue) -> {
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                this.startActivity(intent);
+                requireActivity().finish();
+                return true;
+            });
+            assert dvc_more != null;
+            dvc_more.setOnPreferenceChangeListener((preference, newValue) -> {
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                this.startActivity(intent);
+                requireActivity().finish();
+                return true;
+            });
+            assert dvc_comment != null;
+            dvc_comment.setOnPreferenceChangeListener((preference, newValue) -> {
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                this.startActivity(intent);
+                requireActivity().finish();
                 return true;
             });
             assert dvc_password != null;
@@ -115,7 +147,9 @@ public class SettingsActivity extends AppCompatActivity {
                 String listValue = (String) newValue;
                 View view = getView();
                 NetworkUtils.checkPassword(getContext(), view, listValue);
-                Toast.makeText(requireContext(), requireContext().getString(R.string.restart_app), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getContext(), MainActivity.class);
+                this.startActivity(intent);
+                requireActivity().finish();
                 return true;
             });
             EditTextPreference PasPreference = findPreference("dvc_password");
@@ -156,6 +190,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_export != null;
             dvc_export.setOnPreferenceClickListener(preference -> {
+                if (!isPermissionGranted()) requestPermission();
                 saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
                 return true;
             });
@@ -171,10 +206,37 @@ public class SettingsActivity extends AppCompatActivity {
 
         }
 
+        private boolean isPermissionGranted() {
+            int permissionCheck = ActivityCompat.checkSelfPermission(requireActivity(), SettingsActivity.WRITE_EXTERNAL_STORAGE_PERMISSION);
+            return permissionCheck == requireActivity().getPackageManager().PERMISSION_GRANTED;
+        }
+
+        private void requestPermission() {
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{SettingsActivity.WRITE_EXTERNAL_STORAGE_PERMISSION}, SettingsActivity.REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
+
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
         }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                               @NonNull int[] grantResults) {
+            if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE) {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    Toast.makeText(requireActivity(), "Разрешения получены", Toast.LENGTH_LONG).show();
+
+
+                } else {
+                    Toast.makeText(requireActivity(), "Разрешения не получены", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
+
 
 
         private void alertForClearData() {
@@ -363,6 +425,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
         return super.onKeyLongPress(keycode, event);
     }
+
 
 
 }

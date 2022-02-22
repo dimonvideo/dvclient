@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.InflateException;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -24,13 +25,21 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.ArrayList;
 
 public class MainFragment extends Fragment  {
 
     int razdel = 10;
     String story = null;
+    ViewPager2 viewPager;
+    TabsAdapter adapt;
+    TabLayoutMediator tabLayoutMediator;
+    TabLayout tabs;
+    private ArrayList<String> tabTiles = new ArrayList<>();
 
     public MainFragment() {
 
@@ -52,29 +61,41 @@ public class MainFragment extends Fragment  {
 
         final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
+        final boolean is_favor = sharedPrefs.getBoolean("dvc_favor", false);
+        final boolean is_comment = sharedPrefs.getBoolean("dvc_comment", false);
         String login = sharedPrefs.getString("dvc_password", "");
 
 
-        TabLayout tabLayout = root.findViewById(R.id.tabLayout);
-        ViewPager viewPager = root.findViewById(R.id.view_pager);
-        TabsAdapter adapt = new TabsAdapter(
-                getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
+        tabs = root.findViewById(R.id.tabLayout);
+        if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
+        viewPager = root.findViewById(R.id.view_pager);
+        adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
 
-        adapt.addfrg(new MainFragmentContent(),getString(R.string.tab_last));
-        if (!is_more) adapt.addfrg(new MainFragmentHorizontal(),getString(R.string.tab_details));
-        adapt.addfrg(new MainFragmentCats(),getString(R.string.tab_categories));
-        if ((login != null) && (login.length() > 2)) adapt.addfrg(new MainFragmentFav(),getString(R.string.tab_favorites));
+        // вкладки
+        tabTiles.add(getString(R.string.tab_last));
+        if (!is_more)  tabTiles.add(getString(R.string.tab_details));
+        tabTiles.add(getString(R.string.tab_categories));
+        if ((login != null) && (login.length() > 2) && (!is_favor)) tabTiles.add(getString(R.string.tab_favorites));
+        if (!is_comment)  tabTiles.add(getString(R.string.Comments));
+        adapt.clearList();
+        adapt.addFragment(new MainFragmentContent());
+        if (!is_more) adapt.addFragment(new MainFragmentHorizontal());
+        adapt.addFragment(new MainFragmentCats());
+        if ((login != null) && (login.length() > 2) && (!is_favor))adapt.addFragment(new MainFragmentFav());
+        if (!is_comment) adapt.addFragment(new MainFragmentComments());
 
-        if (dvc_tab_inline) tabLayout.setTabMode(TabLayout.MODE_FIXED);
 
         viewPager.setAdapter(adapt);
-
-        tabLayout.setupWithViewPager(viewPager);
+        viewPager.setCurrentItem(0,true);
         viewPager.setOffscreenPageLimit(4);
 
-        EventBus.getDefault().post(new MessageEvent(razdel, null));
+        tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+            //position of the current tab and the tab
+            tab.setText(tabTiles.get(position));
+        });
 
-        tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
+        tabLayoutMediator.attach();
+        EventBus.getDefault().post(new MessageEvent(razdel, null));
 
         // override back pressed
         root.setFocusableInTouchMode(true);

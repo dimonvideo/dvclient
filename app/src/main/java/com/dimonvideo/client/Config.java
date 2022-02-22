@@ -86,6 +86,7 @@ public class Config {
     public static final String TAG_TOPIC_ID = "topic_id";
     public static final String TAG_REP = "reputation";
     public static final String TAG_REG = "reg_date";
+    public static final String TAG_POST_ID = "post_id";
 
 }
 

@@ -12,20 +12,35 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.ui.main.MainFragmentCats;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.ui.main.MainFragmentFav;
+import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.ArrayList;
 
 public class ForumFragment extends Fragment  {
 
     int razdel = 8; // forum fragment
+    String story = null;
+    ViewPager2 viewPager;
+    TabsAdapter adapt;
+    TabLayoutMediator tabLayoutMediator;
+    TabLayout tabs;
+    private ArrayList<String> tabTiles = new ArrayList<>();
 
     public ForumFragment() {
         // Required empty public constructor
@@ -37,25 +52,39 @@ public class ForumFragment extends Fragment  {
 
         View root = inflater.inflate(R.layout.fragment_tabs, container, false);
 
-        TabLayout tabLayout = root.findViewById(R.id.tabLayout);
-        ViewPager viewPager = root.findViewById(R.id.view_pager);
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String login = sharedPrefs.getString("dvc_password", "");
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
         final boolean tab_topics_no_posts = sharedPrefs.getBoolean("dvc_tab_topics_no_posts", true);
-        TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT, getContext());
-        adapt.addfrg(new ForumFragmentTopics(),getString(R.string.tab_topics));
-        adapt.addfrg(new ForumFragmentForums(),getString(R.string.tab_forums));
-        if (tab_topics_no_posts) adapt.addfrg(new ForumFragmentTopicsNoPosts(),getString(R.string.tab_topics_no_posts));
-        if ((login != null) && (login.length() > 2)) adapt.addfrg(new ForumFragmentTopicsFav(),getString(R.string.tab_favorites));
+        final boolean is_favor = sharedPrefs.getBoolean("dvc_favor", false);
+
+        tabs = root.findViewById(R.id.tabLayout);
+        if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
+        viewPager = root.findViewById(R.id.view_pager);
+        adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
+
+        // вкладки
+        tabTiles.add(getString(R.string.tab_topics));
+        tabTiles.add(getString(R.string.tab_forums));
+        if (tab_topics_no_posts) tabTiles.add(getString(R.string.tab_topics_no_posts));
+        if ((login != null) && (login.length() > 2) && (!is_favor)) tabTiles.add(getString(R.string.tab_favorites));
+        adapt.clearList();
+        adapt.addFragment(new ForumFragmentTopics());
+        adapt.addFragment(new ForumFragmentForums());
+        if (tab_topics_no_posts) adapt.addFragment(new ForumFragmentTopicsNoPosts());
+        if ((login != null) && (login.length() > 2) && (!is_favor))adapt.addFragment(new ForumFragmentTopicsFav());
+
 
         viewPager.setAdapter(adapt);
-        tabLayout.setupWithViewPager(viewPager);
+        viewPager.setCurrentItem(0,true);
         viewPager.setOffscreenPageLimit(4);
-        if (dvc_tab_inline) tabLayout.setTabMode(TabLayout.MODE_FIXED);
 
-        tabLayout.post(() -> tabLayout.setupWithViewPager(viewPager));
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+            tab.setText(tabTiles.get(position));
+        });
+
+        tabLayoutMediator.attach();
+
         // set default title
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.menu_forum));

@@ -67,7 +67,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         recyclerView = root.findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager
-                = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+                = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);

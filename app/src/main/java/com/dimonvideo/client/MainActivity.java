@@ -1,6 +1,5 @@
 package com.dimonvideo.client;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.SearchManager;
@@ -36,14 +35,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -56,8 +53,6 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
 
-import com.android.billingclient.api.AcknowledgePurchaseParams;
-import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
@@ -65,7 +60,6 @@ import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
@@ -87,14 +81,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.billingclient.api.BillingClient.SkuType.INAPP;
 
 public class MainActivity extends AppCompatActivity implements PurchasesUpdatedListener {
 
@@ -102,8 +93,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
     static int razdel = 10;
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
-    private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 
     // ---------- billing ----------------
     BillingClient billingClient;
@@ -219,35 +209,14 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (auth_state > 0)
             avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
 
-        // открываем лс из уведомления
-        Intent intent_pm = getIntent();
-        if (intent_pm != null) {
-
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            Fragment PmFragment = new MainFragment();
-
-            try {
-                if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {
-                    PmFragment = new PmFragment();
-                }
-                if (Objects.equals(intent_pm.getStringExtra("action"), "ForumFragment")) {
-                    PmFragment = new ForumFragment();
-                }
-                fragmentManager.beginTransaction()
-                        .add(R.id.nav_host_fragment, PmFragment)
-                        .addToBackStack(null)
-                        .commit();
-            } catch (Throwable ignored) {
-            }
-        }
-
         // shortcuts
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
             notificationIntent.putExtra("action", "PmFragment");
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
             ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
                     .setShortLabel(getString(R.string.tab_pm))
                     .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
@@ -256,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
             Intent forumIntent = new Intent(this, MainActivity.class);
             forumIntent.putExtra("action", "ForumFragment");
-            forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             ShortcutInfo forumShortcut = new ShortcutInfo.Builder(this, "shortcut_forum")
                     .setShortLabel(getString(R.string.tab_forums))
                     .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
@@ -275,6 +244,29 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut))).start();
             else
                 new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut))).start();
+
+            // открываем лс из уведомления
+            Intent intent_pm = getIntent();
+            if (intent_pm != null) {
+                Log.e("mainContent", ""+intent_pm.getStringExtra("action"));
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                Fragment PmFragment = new MainFragment();
+
+                try {
+                    if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {
+                        PmFragment = new PmFragment();
+                    }
+                    if (Objects.equals(intent_pm.getStringExtra("action"), "ForumFragment")) {
+                        PmFragment = new ForumFragment();
+                    }
+                    fragmentManager.beginTransaction()
+                            .add(R.id.nav_host_fragment, PmFragment)
+                            .addToBackStack(null)
+                            .commit();
+                } catch (Throwable ignored) {
+                }
+            }
 
         }
 
@@ -366,8 +358,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
-
-        if (!isPermissionGranted()) requestPermission();
 
 
         try {
@@ -570,7 +560,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         // settings
         if (id == R.id.action_settings) {
             Intent i = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivityForResult(i, 1);
+            startActivity(i);
             return true;
         }
         // refresh
@@ -704,34 +694,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     @Override
     public void onPause() {
         super.onPause();
-    }
-
-    // проверяем разрешение - есть ли оно у приложения
-    public boolean isPermissionGranted() {
-        int permissionCheck = ActivityCompat.checkSelfPermission(getApplicationContext(), MainActivity.WRITE_EXTERNAL_STORAGE_PERMISSION);
-        return permissionCheck == PackageManager.PERMISSION_GRANTED;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                Toast.makeText(MainActivity.this, "Разрешения получены", Toast.LENGTH_LONG).show();
-
-
-            } else {
-                Toast.makeText(MainActivity.this, "Разрешения не получены", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-    public void requestPermission() {
-        // запрашиваем разрешение
-        ActivityCompat.requestPermissions(MainActivity.this, new String[]{MainActivity.WRITE_EXTERNAL_STORAGE_PERMISSION}, MainActivity.REQUEST_WRITE_EXTERNAL_STORAGE);
     }
 
     // is new version

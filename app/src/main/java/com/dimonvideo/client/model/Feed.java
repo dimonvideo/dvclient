@@ -6,7 +6,7 @@ public class Feed {
     //Data Variables
     private String imageUrl, title, text, full_text, date, category, headers, user, size, link, mod;
     static String razdel;
-    private int id, comments, hits, min, plus, fav;
+    private int id, comments, hits, min, plus, fav, post_id;
     private Long time;
 
     //Getters and Setters
@@ -91,6 +91,14 @@ public class Feed {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getPost_id() {
+        return post_id;
+    }
+
+    public void setPost_id(int post_id) {
+        this.post_id = post_id;
     }
 
     public static String getRazdel() {

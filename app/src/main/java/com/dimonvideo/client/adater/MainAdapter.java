@@ -5,17 +5,13 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LevelListDrawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.text.Editable;
 import android.text.Html;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,16 +37,17 @@ import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.Comments;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
+import com.dimonvideo.client.util.OpenUrl;
+import com.dimonvideo.client.util.TextViewClickMovement;
+import com.dimonvideo.client.util.URLImageParser;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 
 import org.xml.sax.XMLReader;
 
-import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
@@ -88,7 +85,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -275,9 +271,20 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.starButton.setVisibility(View.VISIBLE);
         holder.name.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getFull_text(), null,  new TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            Spanned spanned = Html.fromHtml(Feed.getFull_text(), parser, new TagHandler());
+            holder.textViewText.setText(spanned);
+            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+                @Override
+                public void onLinkClick(String url) {
+                    // open links from listtext
+                    OpenUrl.open_url(url, is_open_link, context);
+                }
+            });
+
         } catch (Throwable ignored) {
         }
         holder.btn_comms.setOnClickListener(view -> {

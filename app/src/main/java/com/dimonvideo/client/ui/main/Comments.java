@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -195,6 +196,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
             }
             AsyncCountPm task = new AsyncCountPm(this);
             task.execute();
+            Log.e("URL", "---  " + comm_url);
 
         }
     }
@@ -220,6 +222,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
                             jsonFeed.setState(json.getString(Config.TAG_RAZDEL));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            jsonFeed.setPost_id(json.getInt(Config.TAG_POST_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                         } catch (JSONException e) {
                             e.printStackTrace();

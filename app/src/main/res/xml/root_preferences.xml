@@ -47,6 +47,12 @@
             android:title="@string/select_razdel" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
+            app:key="dvc_open_link"
+            android:summary="@string/disable_open_links"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/disable_open_links" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
             app:key="dvc_dvget"
             android:summary="@string/dvget"
             app:useSimpleSummaryProvider="true"
@@ -74,6 +80,18 @@
             app:useSimpleSummaryProvider="true"
             app:key="dvc_more"
             app:title="@string/is_more" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            android:summary="@string/is_favor"
+            app:useSimpleSummaryProvider="true"
+            app:key="dvc_favor"
+            app:title="@string/is_favor" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            android:summary="@string/is_comment"
+            app:useSimpleSummaryProvider="true"
+            app:key="dvc_comment"
+            app:title="@string/is_comment" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
             app:useSimpleSummaryProvider="true"

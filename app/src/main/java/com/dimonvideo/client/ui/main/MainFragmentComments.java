@@ -26,8 +26,10 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -44,9 +46,9 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class MainFragmentContent extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentComments extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
 
-    private List<Feed> listFeed;
+    private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
@@ -57,34 +59,24 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
-    int cid = 0;
-    String url = Config.COMMENTS_URL;
-    String search_url = Config.COMMENTS_SEARCH_URL;
-    String s_url = "";
+    String url = Config.COMMENTS_READS_URL;
     String key = "comments";
     SharedPreferences sharedPrefs;
     static String story;
 
-    public MainFragmentContent() {
+    public MainFragmentComments() {
         // Required empty public constructor
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
-        story = event.story;
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         requestCount = 1;
-
-
-        if (this.getArguments() != null) {
-            cid = getArguments().getInt(Config.TAG_ID);
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
-        }
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -102,7 +94,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new MainAdapter(listFeed, getContext());
+        adapter = new CommentsAdapter(listFeed, getContext());
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
@@ -112,10 +104,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         // pull to refresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(this);
-
-
-
-
 
         return root;
     }
@@ -130,107 +118,66 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
 
         if (razdel == 1) {
-            url = Config.GALLERY_URL;
-            search_url = Config.GALLERY_SEARCH_URL;
             key = Config.GALLERY_RAZDEL;
         }
         if (razdel == 2) {
-            url = Config.UPLOADER_URL;
-            search_url = Config.UPLOADER_SEARCH_URL;
             key = Config.UPLOADER_RAZDEL;
 
         }
         if (razdel == 3) {
-            url = Config.VUPLOADER_URL;
-            search_url = Config.VUPLOADER_SEARCH_URL;
             key = Config.VUPLOADER_RAZDEL;
 
         }
         if (razdel == 4) {
-            url = Config.NEWS_URL;
-            search_url = Config.NEWS_SEARCH_URL;
             key = Config.NEWS_RAZDEL;
 
         }
         if (razdel == 5) {
-            url = Config.MUZON_URL;
-            search_url = Config.MUZON_SEARCH_URL;
             key = Config.MUZON_RAZDEL;
 
         }
         if (razdel == 6) {
-            url = Config.BOOKS_URL;
-            search_url = Config.BOOKS_SEARCH_URL;
             key = Config.BOOKS_RAZDEL;
 
         }
         if (razdel == 7) {
-            url = Config.ARTICLES_URL;
-            search_url = Config.ARTICLES_SEARCH_URL;
             key = Config.ARTICLES_RAZDEL;
         }
         if (razdel == 11) {
-            url = Config.ANDROID_URL;
-            search_url = Config.ANDROID_SEARCH_URL;
             key = Config.ANDROID_RAZDEL;
         }
         if (razdel == 14) {
-            url = Config.TRACKER_URL;
-            search_url = Config.TRACKER_SEARCH_URL;
             key = Config.TRACKER_RAZDEL;
         }
         if (razdel == 15) {
-            url = Config.BLOG_URL;
-            search_url = Config.BLOG_SEARCH_URL;
             key = Config.BLOG_RAZDEL;
         }
-        Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
-        String category_string = "all";
-        if (selections != null) {
-            String[] selected = selections.toArray(new String[]{});
-            category_string = TextUtils.join(",", selected);
-        }
 
-        if (cid > 0) s_url = "&where=" + cid;
 
-        if (!TextUtils.isEmpty(story)) {
-            url = search_url;
 
-            try {
-                story = URLEncoder.encode(story, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            s_url = "&story=" + story;
-        }
 
-        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
+
+        return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {
-                        Feed jsonFeed = new Feed();
+                        FeedForum jsonFeed = new FeedForum();
                         JSONObject json;
                         try {
                             json = response.getJSONObject(i);
                             jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                            jsonFeed.setFull_text(json.getString(Config.TAG_FULL_TEXT));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                            jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
-                            jsonFeed.setLink(json.getString(Config.TAG_LINK));
-                            jsonFeed.setMod(json.getString(Config.TAG_MOD));
-                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
-                            jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
                             jsonFeed.setUser(json.getString(Config.TAG_USER));
-                            jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                            jsonFeed.setState(json.getString(Config.TAG_RAZDEL));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            jsonFeed.setPost_id(json.getInt(Config.TAG_POST_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                            jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -275,8 +222,8 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         requestCount = 1;
         getParentFragmentManager()
                 .beginTransaction()
-                .detach(MainFragmentContent.this)
-                .attach(MainFragmentContent.this)
+                .detach(MainFragmentComments.this)
+                .attach(MainFragmentComments.this)
                 .commit();
     }
 

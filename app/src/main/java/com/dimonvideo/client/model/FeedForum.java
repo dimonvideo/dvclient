@@ -5,8 +5,9 @@ import com.dimonvideo.client.Config;
 public class FeedForum {
 	//Data Variables
 	private String imageUrl, last_poster_name, title, text, date, category, state, user, pinned;
-	private int id, comments, hits, newtopic, topic_id, fav, min;
+	private int id, comments, hits, newtopic, topic_id, fav, min, post_id;
 	private Long time;
+	static String razdel;
 
 	//Getters and Setters
 	public String getImageUrl() {
@@ -26,6 +27,22 @@ public class FeedForum {
 
 	public void setFav(int fav) {
 		this.fav = fav;
+	}
+
+	public int getPost_id() {
+		return post_id;
+	}
+
+	public void setPost_id(int post_id) {
+		this.post_id = post_id;
+	}
+
+	public static String getRazdel() {
+		return razdel;
+	}
+
+	public void setRazdel(String razdel) {
+		Feed.razdel = razdel;
 	}
 
 	public String getTitle() {

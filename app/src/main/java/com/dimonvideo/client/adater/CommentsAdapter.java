@@ -122,7 +122,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewComments.setVisibility(View.GONE);
         holder.rating_logo.setVisibility(View.GONE);
-        holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+        holder.textViewHits.setText(String.valueOf(Feed.getTitle()));
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
@@ -165,11 +165,14 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
     // dialog
     private void show_dialog(ViewHolder holder, final int position, Context context){
-        final CharSequence[] items = {context.getString(R.string.copy_listtext)};
+        final CharSequence[] items = {context.getString(R.string.copy_listtext), context.getString(R.string.action_open)};
         final FeedForum Feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        holder.url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getPost_id();
+        if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+            holder.url = Config.BASE_URL + "/" + Feed.getPost_id() + "-news.html";
 
         builder.setTitle(Feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
@@ -179,7 +182,13 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
                 holder.myClipboard.setPrimaryClip(holder.myClip);
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
-
+            if (item == 1) { // browser
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+                try {
+                    context.startActivity(browserIntent);
+                } catch (Throwable ignored) {
+                }
+            }
         });
         builder.show();
     }
