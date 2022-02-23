@@ -25,22 +25,42 @@ public class DownloadFile {
     public static void download(Context context, String link, String razdel) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean is_dvget = sharedPrefs.getBoolean("dvc_dvget", false);
+        boolean is_idm = sharedPrefs.getBoolean("dvc_idm", false);
 
 
         DownloadManager downloadManager;
 
         downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
 
+        // adm - dvget
         Intent intent = new Intent("android.intent.action.MAIN");
-        if (isPackageInstalled("com.dv.adm", context.getPackageManager())) intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
-        else if (isPackageInstalled("com.dv.get", context.getPackageManager())) intent.setClassName("com.dv.get", "com.dv.get.AEditor");
+        if (isPackageInstalled("com.dv.adm", context.getPackageManager()))
+            intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
+        else if (isPackageInstalled("com.dv.get", context.getPackageManager()))
+            intent.setClassName("com.dv.get", "com.dv.get.AEditor");
+
         intent.putExtra("android.intent.extra.TEXT", link);
         try {
-            if ((is_dvget) && ((isPackageInstalled("com.dv.adm", context.getPackageManager())) || (isPackageInstalled("com.dv.get", context.getPackageManager())))) context.startActivity(intent); else
-            if (is_dvget) Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
-
+            if ((is_dvget) && ((isPackageInstalled("com.dv.adm", context.getPackageManager())) ||
+                    (isPackageInstalled("com.dv.get", context.getPackageManager())))) context.startActivity(intent);
+            else if (is_dvget) Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
         } catch (Throwable ignored) {
+        }
 
+        // IDM
+        if (isPackageInstalled("idm.internet.download.manager.adm.lite", context.getPackageManager()))
+            intent.setClassName("idm.internet.download.manager.adm.lite", "idm.internet.download.manager.Downloader");
+        else if (isPackageInstalled("idm.internet.download.manager.plus", context.getPackageManager()))
+            intent.setClassName("idm.internet.download.manager.plus", "idm.internet.download.manager.Downloader");
+        else if (isPackageInstalled("idm.internet.download.manager", context.getPackageManager()))
+            intent.setClassName("idm.internet.download.manager", "idm.internet.download.manager.Downloader");
+
+        intent.putExtra("secure_uri", link);
+        intent.setData(Uri.parse(link));
+        try {
+            if (is_idm) context.startActivity(intent);
+        } catch (Throwable ignored) {
+            Toast.makeText(context, context.getString(R.string.idm_not_found), Toast.LENGTH_LONG).show();
         }
 
         if ((razdel != null) && ((razdel.equals(Config.TRACKER_RAZDEL)))){
@@ -62,8 +82,10 @@ public class DownloadFile {
                     Environment.DIRECTORY_DOWNLOADS,    //Download folder
                     URLUtil.guessFileName(link, null, null));  //Name of file
             assert downloadManager != null;
-            if (!is_dvget) Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_LONG).show();
-            if (!is_dvget) downloadManager.enqueue(request);
+            if ((!is_dvget) && (!is_idm)) {
+                Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_LONG).show();
+                downloadManager.enqueue(request);
+            }
         } catch (Throwable ignored) {
         }
     }

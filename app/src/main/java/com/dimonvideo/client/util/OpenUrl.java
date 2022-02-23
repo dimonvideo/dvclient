@@ -10,8 +10,9 @@ import com.dimonvideo.client.model.Feed;
 public class OpenUrl {
     public static void open_url(String url, boolean is_open_link, boolean is_vuploader_play_listtext, Context context) {
         if (!is_open_link) {
+            Log.e("URL-on", "---  " + url);
+
             try {
-                url = url.replace("/go/?", "");
                 url = url.replace("https://m.dimonvideo.ru/go/?", "");
                 url = url.replace("https://m.dimonvideo.ru/go?", "");
                 url = url.replace("https://dimonvideo.ru/go/?", "");

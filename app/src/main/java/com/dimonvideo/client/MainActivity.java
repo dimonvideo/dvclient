@@ -146,15 +146,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
-
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        NavController navController = null;
-        if (navHostFragment != null) {
-            navController = navHostFragment.getNavController();
-        }
-
-        NavGraph navGraph = navController.getNavInflater().inflate(R.navigation.mobile_navigation);
-
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home,
                 R.id.nav_forum,
@@ -176,11 +167,19 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 R.id.nav_blog
         ).setOpenableLayout(drawer).build();
 
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        NavController navController = null;
+        if (navHostFragment != null) {
+            navController = navHostFragment.getNavController();
+            navController.popBackStack(R.id.home, true);
 
-        if (navController != null) {
-            NavigationUI.setupActionBarWithNavController(MainActivity.this, navController, mAppBarConfiguration);
-            NavigationUI.setupWithNavController(navigationView, navController);
         }
+
+        assert navController != null;
+        NavGraph navGraph = navController.getNavInflater().inflate(R.navigation.mobile_navigation);
+
+        NavigationUI.setupActionBarWithNavController(MainActivity.this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
 
         // main razdel
         assert main_razdel != null;
@@ -353,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             Fragment PmFragment = new PmFragment();
 
             fragmentManager.beginTransaction()
-                    .add(R.id.nav_host_fragment, PmFragment)
+                    .replace(R.id.nav_host_fragment, PmFragment)
                     .addToBackStack(null)
                     .commit();
         });

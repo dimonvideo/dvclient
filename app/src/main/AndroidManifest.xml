@@ -15,6 +15,9 @@
         <package android:name="com.dv.get.AEditor" />
         <package android:name="com.dv.get" />
         <package android:name="com.dv.adm" />
+        <package android:name="idm.internet.download.manager" />
+        <package android:name="idm.internet.download.manager.plus" />
+        <package android:name="idm.internet.download.manager.adm.lite" />
     </queries>
     <application
         android:allowBackup="true"

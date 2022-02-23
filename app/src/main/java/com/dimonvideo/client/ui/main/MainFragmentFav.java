@@ -64,6 +64,18 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         // Required empty public constructor
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        story = event.story;
+        if (TextUtils.isEmpty(story)) story = null;
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
+        if (razdel == 10) {
+            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
+        }
+    }
+
     @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -115,17 +127,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         return root;
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
-        story = event.story;
-        if (TextUtils.isEmpty(story)) story = null;
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        if (razdel == 10) {
-            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
-        }
-    }
+
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
@@ -271,5 +273,16 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 }

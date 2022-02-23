@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -31,6 +33,8 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.OpenUrl;
+import com.dimonvideo.client.util.TextViewClickMovement;
 
 import java.util.List;
 
@@ -62,6 +66,10 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
+
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
+        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
 
         //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(position);
@@ -98,7 +106,13 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         holder.textViewText.setOnClickListener(v -> {
 
             holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+                @Override
+                public void onLinkClick(String url) {
+                    // open links from listtext
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
+                }
+            });
             holder.btns.setVisibility(View.VISIBLE);
             NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);

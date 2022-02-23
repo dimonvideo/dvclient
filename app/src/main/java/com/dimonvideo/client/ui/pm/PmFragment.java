@@ -78,6 +78,11 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         // Required empty public constructor
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        razdel = event.razdel;
+    }
+
     @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -85,6 +90,10 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         requestCount = 1;
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
+        }
+        if (this.getArguments() != null) {
+            razdel = getArguments().getInt(Config.TAG_CATEGORY);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
         }
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
@@ -322,11 +331,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         return super.onOptionsItemSelected(item);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event) {
-        razdel = event.razdel;
-    }
-
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext().getApplicationContext());
@@ -406,6 +410,17 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 
 }

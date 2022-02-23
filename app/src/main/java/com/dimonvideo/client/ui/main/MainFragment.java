@@ -66,7 +66,13 @@ public class MainFragment extends Fragment  {
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
         }
-
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+        if (this.getArguments() != null) {
+            razdel = getArguments().getInt(Config.TAG_CATEGORY);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+        }
         final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
         final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
         final boolean is_favor = sharedPrefs.getBoolean("dvc_favor", false);
@@ -141,7 +147,6 @@ public class MainFragment extends Fragment  {
     @Override
     public void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
     }
 
     @Override

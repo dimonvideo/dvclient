@@ -78,6 +78,13 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         requestCount = 1;
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+        if (this.getArguments() != null) {
+            razdel = getArguments().getInt(Config.TAG_CATEGORY);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+        }
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -238,7 +245,6 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
     @Override
     public void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
     }
 
     @Override

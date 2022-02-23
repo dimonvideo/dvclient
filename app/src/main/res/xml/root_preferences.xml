@@ -57,6 +57,12 @@
             android:summary="@string/dvget"
             app:useSimpleSummaryProvider="true"
             app:title="@string/dvget" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_idm"
+            android:summary="@string/idm"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/idm" />
         <Preference
             android:key="dvc_export"
             android:title="@string/export" />

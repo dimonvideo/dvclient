@@ -31,6 +31,8 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreference;
+import androidx.preference.SwitchPreferenceCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
@@ -202,7 +204,21 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
-
+            SwitchPreferenceCompat dvc_dvget = findPreference("dvc_dvget");
+            SwitchPreferenceCompat dvc_idm = findPreference("dvc_idm");
+            assert dvc_idm != null;
+            assert dvc_dvget != null;
+            dvc_idm.setEnabled(!dvc_dvget.isChecked());
+            dvc_dvget.setOnPreferenceChangeListener((preference, newValue) -> {
+                boolean isEnabled = (Boolean) newValue;
+                dvc_idm.setEnabled(!isEnabled);
+                return true;
+            });
+            dvc_idm.setOnPreferenceChangeListener((preference, newValue) -> {
+                boolean isEnabled = (Boolean) newValue;
+                dvc_dvget.setEnabled(!isEnabled);
+                return true;
+            });
 
 
         }
