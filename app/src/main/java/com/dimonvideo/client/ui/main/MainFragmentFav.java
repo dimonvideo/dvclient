@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -63,6 +64,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         // Required empty public constructor
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -97,9 +99,17 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
 
-        // pull to refresh
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(MainFragmentFav.this)
+                    .attach(MainFragmentFav.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
         recyclerView.setAdapter(adapter);
         return root;
@@ -254,12 +264,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
     // обновление
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(MainFragmentFav.this)
-                .attach(MainFragmentFav.this)
-                .commit();
+
     }
 
     @Override

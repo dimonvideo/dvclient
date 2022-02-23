@@ -101,9 +101,17 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        // pull to refresh
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(MainFragmentComments.this)
+                    .attach(MainFragmentComments.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
         return root;
     }
@@ -219,12 +227,6 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
     // обновление
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(MainFragmentComments.this)
-                .attach(MainFragmentComments.this)
-                .commit();
     }
 
     @Override

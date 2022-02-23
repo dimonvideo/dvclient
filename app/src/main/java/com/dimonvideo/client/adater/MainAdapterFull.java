@@ -94,6 +94,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
+        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -119,7 +120,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
                 @Override
                 public void onLinkClick(String url) {
                     // open links from listtext
-                    OpenUrl.open_url(url, is_open_link, context);
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
                 }
             });
         } catch (Throwable ignored) {
@@ -191,6 +192,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             holder.starButton.setVisibility(View.GONE);
             holder.btn_mp4.setVisibility(View.GONE);
             holder.btn_download.setVisibility(View.GONE);
+            holder.btn_share.setVisibility(View.GONE);
             holder.btn_mod.setVisibility(View.GONE);
         }
 
@@ -341,7 +343,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         // share menu
         try {
-            holder.btn_share.setVisibility(View.VISIBLE);
+            if (!is_share_btn) holder.btn_share.setVisibility(View.VISIBLE);
         } catch (Throwable ignored) {
         }
 

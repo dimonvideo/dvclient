@@ -122,9 +122,13 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        // pull to refresh
+        // обновление
         swipLayout = findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            recreate();
+            swipLayout.setRefreshing(false);
+        });
 
         LinearLayout post_layout = findViewById(R.id.post);
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);

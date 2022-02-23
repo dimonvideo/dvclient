@@ -42,6 +42,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.snackbar.Snackbar;
@@ -77,6 +78,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         // Required empty public constructor
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -108,9 +110,17 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
 
 
 
-        // pull to refresh
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(PmFragment.this)
+                    .attach(PmFragment.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
@@ -390,12 +400,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     // обновление
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(PmFragment.this)
-                .attach(PmFragment.this)
-                .commit();
     }
 
     @Override

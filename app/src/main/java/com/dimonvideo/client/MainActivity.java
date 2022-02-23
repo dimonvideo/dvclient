@@ -1,5 +1,6 @@
 package com.dimonvideo.client;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.SearchManager;
@@ -73,6 +74,7 @@ import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.dimonvideo.client.util.Security;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
     static int razdel = 10;
+    private RequestPermissionHandler mRequestPermissionHandler;
 
 
     // ---------- billing ----------------
@@ -209,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (auth_state > 0)
             avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
 
-        // shortcuts
+        // быстрые ярлыки
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
 
@@ -340,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (!is_blog) navigationView.getMenu().removeItem(R.id.nav_blog);
 
 
-        // open PM
+        // открытие личных сообщений
         FloatingActionButton fab = findViewById(R.id.fab);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(view -> {
@@ -377,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
 
 
 
-        // ---- billing init --------
+        // ---- billing --------
         billingClient = BillingClient.newBuilder(MainActivity.this).enablePendingPurchases().setListener((billingResult, list) -> {
             if(list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK)
             {
@@ -406,6 +409,9 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         });
 
         // -------------------
+        mRequestPermissionHandler = new RequestPermissionHandler();
+        handlePerm();
+
     }
 
     private boolean isSignatureValid(Purchase purchase) {
@@ -466,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     };
 
 
-    // scale font
+    // масштабирование шрифтов
     private void adjustFontScale(Configuration configuration) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale", "1.0f"));
@@ -478,6 +484,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         getBaseContext().getResources().updateConfiguration(configuration, metrics);
     }
 
+    // счетчик сообщений
     public BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -567,10 +574,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         if (id == R.id.action_refresh) {
             FragmentManager fragmentManager = getSupportFragmentManager();
 
-            homeFrag = new MainFragmentContent();
+            homeFrag = new MainFragment();
 
-            if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
+            if (razdel == 8) homeFrag = new ForumFragment(); // forum
             if (razdel == 13) homeFrag = new PmFragment(); // pm
+
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
@@ -709,5 +718,18 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         return false;
     }
 
+    private void handlePerm() {
+        mRequestPermissionHandler.requestPermission(this, new String[]{
+                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
+        }, 123, new RequestPermissionHandler.RequestPermissionListener() {
+            @Override
+            public void onSuccess() {
+            }
 
+            @Override
+            public void onFailed() {
+                Toast.makeText(MainActivity.this, getString(R.string.perm_invalid), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

@@ -1,5 +1,6 @@
 package com.dimonvideo.client.util;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 import androidx.preference.PreferenceManager;
 
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 
@@ -23,6 +25,7 @@ public class DownloadFile {
     public static void download(Context context, String link, String razdel) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean is_dvget = sharedPrefs.getBoolean("dvc_dvget", false);
+
 
         DownloadManager downloadManager;
 

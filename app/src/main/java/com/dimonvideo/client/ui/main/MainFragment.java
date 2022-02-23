@@ -28,12 +28,14 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 
 public class MainFragment extends Fragment  {
 
-    int razdel = 10;
+    static int razdel = 10;
     String story = null;
     ViewPager2 viewPager;
     TabsAdapter adapt;
@@ -43,6 +45,12 @@ public class MainFragment extends Fragment  {
 
     public MainFragment() {
 
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        story = event.story;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -109,7 +117,7 @@ public class MainFragment extends Fragment  {
                 } else {
                     Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
                     toolbar.setTitle(getString(R.string.menu_home));
-                    requireActivity().onBackPressed();
+                    requireActivity().finish();
 
                 }
                 return true;
@@ -124,4 +132,21 @@ public class MainFragment extends Fragment  {
         return root;
     }
 
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
 }

@@ -37,6 +37,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.RequestPermissionHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,8 +57,7 @@ import static androidx.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
-    private static final String WRITE_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +89,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements
             SharedPreferences.OnSharedPreferenceChangeListener {
+
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -188,9 +189,9 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
+
             assert dvc_export != null;
             dvc_export.setOnPreferenceClickListener(preference -> {
-                if (!isPermissionGranted()) requestPermission();
                 saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
                 return true;
             });
@@ -206,38 +207,12 @@ public class SettingsActivity extends AppCompatActivity {
 
         }
 
-        private boolean isPermissionGranted() {
-            int permissionCheck = ActivityCompat.checkSelfPermission(requireActivity(), SettingsActivity.WRITE_EXTERNAL_STORAGE_PERMISSION);
-            return permissionCheck == requireActivity().getPackageManager().PERMISSION_GRANTED;
-        }
 
-        private void requestPermission() {
-            ActivityCompat.requestPermissions(requireActivity(), new String[]{SettingsActivity.WRITE_EXTERNAL_STORAGE_PERMISSION}, SettingsActivity.REQUEST_WRITE_EXTERNAL_STORAGE);
-        }
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
         }
-
-        @Override
-        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                               @NonNull int[] grantResults) {
-            if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE) {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    Toast.makeText(requireActivity(), "Разрешения получены", Toast.LENGTH_LONG).show();
-
-
-                } else {
-                    Toast.makeText(requireActivity(), "Разрешения не получены", Toast.LENGTH_LONG).show();
-                }
-            } else {
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            }
-        }
-
-
 
         private void alertForClearData() {
 

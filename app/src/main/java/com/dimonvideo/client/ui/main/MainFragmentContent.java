@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -75,6 +76,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         story = event.story;
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -109,11 +111,18 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        // pull to refresh
+
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
-
-
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(MainFragmentContent.this)
+                    .attach(MainFragmentContent.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
 
 
@@ -272,12 +281,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     // обновление
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(MainFragmentContent.this)
-                .attach(MainFragmentContent.this)
-                .commit();
+
     }
 
     @Override

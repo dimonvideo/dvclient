@@ -215,6 +215,12 @@
             app:title="@string/vuploader_play_behavior" />
         <SwitchPreferenceCompat
             android:dependency="dvc_vuploader"
+            app:defaultValue="true"
+            app:key="dvc_vuploader_play_listtext"
+            app:summary="@string/vuploader_play_listtext"
+            app:title="@string/vuploader_play_listtext" />
+        <SwitchPreferenceCompat
+            android:dependency="dvc_vuploader"
             app:defaultValue="false"
             app:key="dvc_vuploader_aspect"
             app:summary="@string/vuploader_video_behavior"

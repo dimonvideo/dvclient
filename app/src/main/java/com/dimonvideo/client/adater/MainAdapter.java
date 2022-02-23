@@ -32,6 +32,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.Comments;
@@ -171,6 +172,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.likeButton.setVisibility(View.GONE);
             holder.starButton.setVisibility(View.GONE);
             holder.btn_mp4.setVisibility(View.GONE);
+            holder.btn_share.setVisibility(View.GONE);
             holder.btn_download.setVisibility(View.GONE);
             holder.btn_mod.setVisibility(View.GONE);
         }
@@ -273,6 +275,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
+        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
         try {
             URLImageParser parser = new URLImageParser(holder.textViewText, context);
             Spanned spanned = Html.fromHtml(Feed.getFull_text(), parser, new TagHandler());
@@ -281,7 +284,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                 @Override
                 public void onLinkClick(String url) {
                     // open links from listtext
-                    OpenUrl.open_url(url, is_open_link, context);
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
                 }
             });
 
@@ -331,7 +334,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         // share menu
         try {
-            holder.btn_share.setVisibility(View.VISIBLE);
+            if (!is_share_btn) holder.btn_share.setVisibility(View.VISIBLE);
         } catch (Throwable ignored) {
         }
 

@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.pm;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -64,6 +66,7 @@ public class PmIshFragment extends Fragment implements RecyclerView.OnScrollChan
         // Required empty public constructor
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -95,9 +98,17 @@ public class PmIshFragment extends Fragment implements RecyclerView.OnScrollChan
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        // pull to refresh
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(PmIshFragment.this)
+                    .attach(PmIshFragment.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_ish));
         setHasOptionsMenu(true);
@@ -242,12 +253,7 @@ public class PmIshFragment extends Fragment implements RecyclerView.OnScrollChan
     // обновление
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(PmIshFragment.this)
-                .attach(PmIshFragment.this)
-                .commit();
+
     }
 
     @Override

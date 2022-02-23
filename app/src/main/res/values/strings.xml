@@ -150,4 +150,6 @@
     <string name="pm_read">Mark read</string>
     <string name="is_favor">Disable Favorites tab</string>
     <string name="is_comment">Disable Comments tab</string>
+    <string name="perm_invalid">Permission not given</string>
+    <string name="vuploader_play_listtext">Play video in description</string>
 </resources>

@@ -84,9 +84,16 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
-        // pull to refresh
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(MainFragmentCats.this)
+                    .attach(MainFragmentCats.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
         return root;
     }
@@ -147,11 +154,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     // обновление
     @Override
     public void onRefresh() {
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(MainFragmentCats.this)
-                .attach(MainFragmentCats.this)
-                .commit();
+
     }
 
     @Override
