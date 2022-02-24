@@ -86,14 +86,12 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
         }
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-        if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_CATEGORY);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
-        }
+
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -140,9 +138,6 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-
-
-
 
         if (razdel == 1) {
             url = Config.GALLERY_URL;
@@ -206,6 +201,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             category_string = TextUtils.join(",", selected);
         }
 
+
         if (cid > 0) s_url = "&where=" + cid;
 
         if (!TextUtils.isEmpty(story)) {
@@ -218,6 +214,8 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             }
             s_url = "&story=" + story;
         }
+
+        Log.e("tagURL--->>>>", url + requestCount + "&c=placeholder," + category_string + s_url);
 
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {

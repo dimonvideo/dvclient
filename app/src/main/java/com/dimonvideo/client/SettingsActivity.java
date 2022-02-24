@@ -40,6 +40,7 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.RequestPermissionHandler;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -111,38 +112,27 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                this.startActivity(intent);
-                requireActivity().finish();
-
-                        return true;
-                    });
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
+                return true;
+            });
             assert dvc_scale != null;
             dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                this.startActivity(intent);
-                requireActivity().finish();
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
             assert dvc_favor != null;
             dvc_favor.setOnPreferenceChangeListener((preference, newValue) -> {
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                this.startActivity(intent);
-                requireActivity().finish();
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
             assert dvc_more != null;
             dvc_more.setOnPreferenceChangeListener((preference, newValue) -> {
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                this.startActivity(intent);
-                requireActivity().finish();
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
             assert dvc_comment != null;
             dvc_comment.setOnPreferenceChangeListener((preference, newValue) -> {
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                this.startActivity(intent);
-                requireActivity().finish();
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
             assert dvc_password != null;
@@ -150,9 +140,7 @@ public class SettingsActivity extends AppCompatActivity {
                 String listValue = (String) newValue;
                 View view = getView();
                 NetworkUtils.checkPassword(getContext(), view, listValue);
-                Intent intent = new Intent(getContext(), MainActivity.class);
-                this.startActivity(intent);
-                requireActivity().finish();
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
             EditTextPreference PasPreference = findPreference("dvc_password");
@@ -174,6 +162,7 @@ public class SettingsActivity extends AppCompatActivity {
                 final String password = sharedPrefs.getString("dvc_password", "null");
                 View view = getView();
                 NetworkUtils.checkPassword(getContext(), view, password);
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
 
@@ -181,6 +170,7 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_clear_login.setOnPreferenceClickListener(preference -> {
                 alertForClearData();
 
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
 
@@ -212,11 +202,13 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_dvget.setOnPreferenceChangeListener((preference, newValue) -> {
                 boolean isEnabled = (Boolean) newValue;
                 dvc_idm.setEnabled(!isEnabled);
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
             dvc_idm.setOnPreferenceChangeListener((preference, newValue) -> {
                 boolean isEnabled = (Boolean) newValue;
                 dvc_dvget.setEnabled(!isEnabled);
+                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
 

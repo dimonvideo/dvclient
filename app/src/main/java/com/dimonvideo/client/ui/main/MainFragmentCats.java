@@ -3,6 +3,7 @@ package com.dimonvideo.client.ui.main;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +56,10 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     public MainFragmentCats() {
         // Required empty public constructor
     }
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -62,6 +67,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -98,10 +104,6 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         return root;
     }
 
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
-    }
 
     // запрос к серверу апи
     private JsonArrayRequest getDataFromServer() {
@@ -118,6 +120,10 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         if (razdel == 14) key = Config.TRACKER_RAZDEL;
         if (razdel == 15) key = Config.BLOG_RAZDEL;
 
+        Log.e("mainFragmentCats", ""+url+key);
+        if (this.getArguments() != null) {
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+        }
         return new JsonArrayRequest(url + key,
                 response -> {
                     progressBar.setVisibility(View.GONE);
@@ -161,5 +167,16 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 }

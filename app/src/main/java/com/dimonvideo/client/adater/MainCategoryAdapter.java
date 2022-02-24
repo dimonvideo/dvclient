@@ -59,7 +59,7 @@ public class MainCategoryAdapter extends RecyclerView.Adapter<MainCategoryAdapte
         holder.textViewCategory.setText(String.valueOf(Feed.getCount()));
         holder.itemView.setOnClickListener(v -> {
 
-            Log.d("tagCid", String.valueOf(Feed.getCid()));
+            Log.d("tagCid--->>>>", String.valueOf(Feed.getCid()));
 
             Fragment fragment = new MainFragmentContent();
             Bundle bundle = new Bundle();

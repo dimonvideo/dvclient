@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -198,6 +199,9 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
+
+        Log.e("mainFragmentFav", ""+url + requestCount + s_url+"&fav=1&login_name="+ login_name);
+
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {
                     progressBar.setVisibility(View.GONE);
