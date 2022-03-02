@@ -8,15 +8,15 @@ try {
     logger.warn("No Local Properties File Found!")
 }
 android {
-    compileSdkVersion 31
+    compileSdkVersion 32
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.dimonvideo.client"
         minSdkVersion 22
-        targetSdkVersion 31
-        versionCode 3009228
-        versionName "2.18"
+        targetSdkVersion 32
+        versionCode 3009229
+        versionName "2.19"
         if (!localProperties['base64EncodedPublicKey']) {
             logger.warn('base64EncodedPublicKey must be set for signature verification. ' +
                     'You can add it to local.properties once you have gotten it from Play. ' +
@@ -75,8 +75,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics:18.2.8'
     implementation 'com.google.firebase:firebase-messaging:23.0.0'
     implementation 'com.google.android.material:material:1.5.0'
-    implementation 'com.android.billingclient:billing:4.0.0'
-    implementation 'com.google.android.exoplayer:exoplayer:2.16.1'
+    implementation 'com.android.billingclient:billing:4.1.0'
+    implementation 'com.google.android.exoplayer:exoplayer:2.16.0' // error
     implementation 'com.github.HamidrezaAmz:MagicalExoPlayer:2.0.6'
     implementation 'androidx.webkit:webkit:1.4.0'
     implementation 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'

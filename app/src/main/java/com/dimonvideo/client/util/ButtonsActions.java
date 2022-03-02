@@ -166,6 +166,7 @@ public class ButtonsActions {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
+
             if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
             else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
 
