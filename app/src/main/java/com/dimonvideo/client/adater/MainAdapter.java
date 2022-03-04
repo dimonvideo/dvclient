@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -101,11 +102,12 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         } catch (Exception ignored) {
         }
         //Loading image from url
-        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
+        Glide.with(context)
+                .load(Feed.getImageUrl())
+                .into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
-        holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new TagHandler()));
-        holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+        holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
 
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewCategory.setText(Feed.getCategory());
@@ -266,6 +268,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     }
 
     // подробный вывод файла
+    @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void open_content(ViewHolder holder, final int position, Context context, Boolean is_share_btn) {
         final Feed Feed = jsonFeed.get(position);
@@ -420,8 +423,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.name.setVisibility(View.GONE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
         } catch (Throwable ignored) {
         }
         holder.btn_download.setVisibility(View.GONE);
@@ -437,6 +439,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     }
 
     // swipe to remove favorites
+    @SuppressLint("NotifyDataSetChanged")
     public void removeFav(int position) {
         final Feed Feed = jsonFeed.get(position);
         jsonFeed.remove(position);

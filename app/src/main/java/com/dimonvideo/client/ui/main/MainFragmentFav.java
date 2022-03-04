@@ -214,6 +214,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
                             jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                            jsonFeed.setFull_text(json.getString(Config.TAG_FULL_TEXT));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
                             jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
                             jsonFeed.setHits(json.getInt(Config.TAG_HITS));

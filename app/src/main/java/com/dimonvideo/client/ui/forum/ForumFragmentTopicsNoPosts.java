@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.forum;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -54,6 +55,7 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
         // Required empty public constructor
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -86,8 +88,17 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
 
         recyclerView.setAdapter(adapter);
 
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(ForumFragmentTopicsNoPosts.this)
+                    .attach(ForumFragmentTopicsNoPosts.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
 
         return root;

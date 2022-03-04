@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.forum;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,7 +24,12 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumCategoryAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.util.MessageEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,10 +56,22 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
         // Required empty public constructor
     }
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = 8;
+    }
+
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
+        EventBus.getDefault().postSticky(new MessageEvent(8, null));
 
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -80,8 +98,17 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
 
         recyclerView.setAdapter(adapter);
 
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(ForumFragmentForums.this)
+                    .attach(ForumFragmentForums.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
         return root;
     }
@@ -151,14 +178,31 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
     }
 
     // обновление
+    @SuppressLint("DetachAndAttachSameFragment")
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(ForumFragmentForums.this)
-                .attach(ForumFragmentForums.this)
-                .commit();
+
     }
 
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
 }

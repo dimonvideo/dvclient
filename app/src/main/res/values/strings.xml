@@ -154,4 +154,6 @@
     <string name="vuploader_play_listtext">Play video in description</string>
     <string name="idm">IDM / IDM+ integration.</string>
     <string name="idm_not_found">IDM / IDM+ not installed!</string>
+    <string name="exit_toast">Press Back to exit</string>
+    <string name="exit_menu">Exit app</string>
 </resources>

@@ -2,10 +2,12 @@ package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +15,16 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,10 +34,15 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -65,6 +79,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     String key = "comments";
     SharedPreferences sharedPrefs;
     static String story;
+    String f_name;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -81,11 +96,13 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         requestCount = 1;
-
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
 
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
+            f_name = getArguments().getString(Config.TAG_RAZDEL);
             EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
         }
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -116,6 +133,40 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
         recyclerView.setAdapter(adapter);
 
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        if (!TextUtils.isEmpty(f_name)) toolbar.setSubtitle(f_name); else toolbar.setSubtitle(null);
+
+        if (cid > 0) {
+            toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+
+            toolbar.setNavigationOnClickListener(v -> {
+                toolbar.setSubtitle(null);
+                requireActivity().onBackPressed();
+            });
+
+        } else {
+            Glide.with(this)
+                    .asDrawable()
+                    .load(image_url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .into(new CustomTarget<Drawable>() {
+
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
+                            try {
+                                toolbar.setNavigationIcon(resource);
+                            } catch (Throwable ignored) {
+                            }
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                        }
+                    });
+        }
+
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
@@ -136,6 +187,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
 
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
@@ -304,4 +356,5 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         super.onStop();
         EventBus.getDefault().unregister(this);
     }
+
 }

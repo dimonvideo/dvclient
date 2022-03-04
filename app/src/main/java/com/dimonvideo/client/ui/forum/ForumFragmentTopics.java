@@ -1,5 +1,8 @@
 package com.dimonvideo.client.ui.forum;
 
+import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,11 +14,13 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,6 +29,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
@@ -46,6 +54,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
+    SharedPreferences sharedPrefs;
 
     private RequestQueue requestQueue;
 
@@ -63,11 +72,14 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         // Required empty public constructor
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         if (this.getArguments() != null) {
@@ -76,6 +88,9 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
             f_name = getArguments().getString(Config.TAG_CATEGORY);
         }
 
+        EventBus.getDefault().postSticky(new MessageEvent(8, story));
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -102,24 +117,53 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
 
         recyclerView.setAdapter(adapter);
 
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(ForumFragmentTopics.this)
+                    .attach(ForumFragmentTopics.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        if (!TextUtils.isEmpty(f_name)) toolbar.setTitle(f_name);
-        else toolbar.setTitle(getString(R.string.menu_forum));
+        if (!TextUtils.isEmpty(f_name)) toolbar.setSubtitle(f_name);
+        else toolbar.setSubtitle(null);
+        Glide.with(this)
+                .asDrawable()
+                .load(image_url)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
+                .into(new CustomTarget<Drawable>() {
 
+                    @Override
+                    public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
+                        try {
+                            toolbar.setNavigationIcon(resource);
+                        } catch (Throwable ignored) {
+                        }
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                    }
+                });
         return root;
     }
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
-        razdel = event.razdel;
+        razdel = 8;
         story = event.story;
     }
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         if (!TextUtils.isEmpty(story)) {
@@ -189,14 +233,10 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     }
 
     // обновление
+    @SuppressLint("DetachAndAttachSameFragment")
     @Override
     public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(ForumFragmentTopics.this)
-                .attach(ForumFragmentTopics.this)
-                .commit();
+
     }
 
     @Override
@@ -205,5 +245,19 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         super.onDestroy();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
 }

@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -36,6 +37,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -53,6 +55,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
+import androidx.transition.Transition;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
@@ -65,7 +68,9 @@ import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
@@ -78,6 +83,7 @@ import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.dimonvideo.client.util.Security;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -96,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     SharedPreferences sharedPrefs;
     static int razdel = 10;
     private RequestPermissionHandler mRequestPermissionHandler;
+    private int backpress = 0;
 
 
     // ---------- billing ----------------
@@ -136,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         setContentView(R.layout.activity_main);
-
         adjustFontScale(getResources().getConfiguration());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -206,10 +212,38 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         TextView app_version = navigationView.getHeaderView(0).findViewById(R.id.app_version);
         app_version.append(": " + BuildConfig.VERSION_NAME);
 
-        Glide.with(this).load(image_url).apply(RequestOptions.circleCropTransform()).into(avatar);
+        Glide.with(this)
+                .load(image_url)
+                .apply(RequestOptions.circleCropTransform())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
+                .into(avatar);
 
-        if (auth_state > 0)
+        // home icon
+        if (auth_state > 0) {
             avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
+            Glide.with(this)
+                    .asDrawable()
+                    .load(image_url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .into(new CustomTarget<Drawable>() {
+
+                @Override
+                public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
+                    try {
+                        toolbar.setNavigationIcon(resource);
+                    } catch (Throwable ignored) {
+                    }
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                }
+            });
+
+        }
 
         // быстрые ярлыки
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
@@ -263,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                         PmFragment = new ForumFragment();
                     }
                     fragmentManager.beginTransaction()
-                            .add(R.id.nav_host_fragment, PmFragment)
+                            .replace(R.id.nav_host_fragment, PmFragment)
                             .addToBackStack(null)
                             .commit();
                 } catch (Throwable ignored) {
@@ -667,6 +701,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             } catch (Throwable ignored) {
             }
         }
+
+        // exit
+        if (id == R.id.nav_exit) {
+            finish();
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -690,11 +730,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     }
 
     @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
     }
@@ -702,6 +737,21 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    @Override
+    public void onBackPressed(){
+        Toolbar toolbar = this.findViewById(R.id.toolbar);
+        toolbar.setSubtitle(null);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        setSupportActionBar(toolbar);
+
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.getBackStackEntryCount() > 0) {
+            fm.popBackStack();
+        } else {
+            finish();
+        }
     }
 
     // is new version
@@ -731,4 +781,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             }
         });
     }
+
+
 }

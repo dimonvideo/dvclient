@@ -102,7 +102,7 @@
     <string name="dialog_no_result">Ничего не найдено</string>
     <string name="pm_delete">Удалить</string>
     <string name="no_data_available">Новых сообщений нет</string>
-    <string name="is_more">Отключить Подробно в разделах</string>
+    <string name="is_more">Включить Подробно в разделах</string>
     <string name="download_started">Загрузка файла начата, ожидайте…</string>
     <string name="added_by">"Добавил: "</string>
     <string name="disable_open_links">Открывать ссылки в браузере</string>
@@ -124,11 +124,14 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - изменен алгоритм получения разрешений.\n
-        - в личных сообщениях картинки и видео открываются в окне (настройка Открывать ссылки в браузере должна быть выключена).\n
-        - интеграция с IDM (включается в настройках).\n
-        - новая опция для Видео в настройках, можно смотреть онлайн прикрепленные в описание файлы.
-
+        - исправлен скрол ленты (плавность).\n
+        - улучшена интеграция с менеджерами загрузок.\n
+        - по умолчанию теперь вкладки Подробно, Избранное и Комментарии скрыты (для экономии трафика).\n
+        - во вкладке Подробно, при нажатии на описание открываются картинки (если есть).\n
+        - улучшена навигация по категориям разделов.\n
+        - в меню добавлен пункт принудительного закрытия приложения.\n
+        - слева сверху теперь видно иконку Вашего аватара (если он установлен на сайте и Вы авторизованы).\n
+        - в Личных сообщениях теперь видно вставленные в текст изображения.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -148,10 +151,12 @@
     <string name="tab_inline_more">Выровнять названия вкладок по центру.</string>
     <string name="btn_share_switch_more">Убрать большую кнопку Поделиться, необходимо перезапустить приложение.</string>
     <string name="pm_read">Прочитано</string>
-    <string name="is_favor">Отключить Избранное в разделах</string>
-    <string name="is_comment">Отключить вкладку Комментарии в разделах</string>
+    <string name="is_favor">Включить Избранное в разделах</string>
+    <string name="is_comment">Включить вкладку Комментарии в разделах</string>
     <string name="perm_invalid">Загрузка файлов невозможна - нет разрешения на доступ к памяти!</string>
     <string name="vuploader_play_listtext">Воспроизводить видео из описания к файлу при нажатии</string>
     <string name="idm">IDM / IDM+ интеграция для загрузки файлов.</string>
     <string name="idm_not_found">IDM / IDM+ не установлены!</string>
+    <string name="exit_toast">Нажмите Назад для выхода</string>
+    <string name="exit_menu">Закрыть программу</string>
 </resources>

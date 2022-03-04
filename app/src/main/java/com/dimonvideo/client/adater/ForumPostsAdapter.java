@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +43,9 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.OpenUrl;
+import com.dimonvideo.client.util.TextViewClickMovement;
+import com.dimonvideo.client.util.URLImageParser;
 
 import java.util.Calendar;
 import java.util.List;
@@ -92,9 +96,9 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
+        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
@@ -117,16 +121,16 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         try {
-            holder.textViewText.getSettings().setJavaScriptEnabled(true);
-            holder.textViewText.loadData(Feed.getText(), "text/html; charset=utf-8", "UTF-8");
-            WebSettings settings = holder.textViewText.getSettings();
-
-            int nightModeFlags = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    settings.setForceDark(WebSettings.FORCE_DARK_ON);
+            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
+            holder.textViewText.setText(spanned);
+            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+                @Override
+                public void onLinkClick(String url) {
+                    // open links from listtext
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
                 }
-            }
+            });
         } catch (Throwable ignored) {
         }
         // цитирование
@@ -215,7 +219,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, imageView;
-        public WebView textViewText;
+        public TextView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
         public EditText textInput;

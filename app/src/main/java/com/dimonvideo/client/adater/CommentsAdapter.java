@@ -105,16 +105,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         });
 
         try {
-            holder.textViewText.getSettings().setJavaScriptEnabled(true);
-            holder.textViewText.loadData(Feed.getText(), "text/html; charset=utf-8", "UTF-8");
-            WebSettings settings = holder.textViewText.getSettings();
-
-            int nightModeFlags = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    settings.setForceDark(WebSettings.FORCE_DARK_ON);
-                }
-            }
+            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
         } catch (Throwable ignored) {
         }
         holder.textViewTitle.setText("#"+ (Feed.getMin() + position + 1) +" ");
@@ -126,7 +117,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
-            if (auth_state > 0) {
+            if ((auth_state > 0) && (Feed.getId() > 0)) {
                 holder.post_layout.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
@@ -136,7 +127,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         });
         holder.itemView.setOnClickListener(view -> {
-            if (auth_state > 0) {
+            if ((auth_state > 0) && (Feed.getId() > 0)) {
                 holder.post_layout.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
@@ -202,7 +193,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView;
-        public WebView textViewText;
+        public TextView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
         public EditText textInput;

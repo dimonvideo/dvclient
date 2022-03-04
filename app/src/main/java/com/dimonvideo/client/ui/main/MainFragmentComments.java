@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -73,6 +74,7 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
         razdel = event.razdel;
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);

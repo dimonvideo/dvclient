@@ -32,6 +32,7 @@
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         tools:replace="android:allowBackup"
+        android:hardwareAccelerated="true"
         tools:targetApi="s"
         android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
@@ -62,7 +63,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:configChanges="screenSize|orientation|uiMode"
+            android:configChanges="screenSize|orientation|uiMode|locale"
             android:resizeableActivity="true"
             android:theme="@style/AppTheme.NoActionBar"
             android:launchMode="singleTop"

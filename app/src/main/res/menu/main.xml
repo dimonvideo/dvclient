@@ -39,4 +39,9 @@
         android:orderInCategory="11"
         android:title="@string/action_vote"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/nav_exit"
+        android:orderInCategory="200"
+        android:title="@string/exit_menu"
+        app:showAsAction="never" />
 </menu>

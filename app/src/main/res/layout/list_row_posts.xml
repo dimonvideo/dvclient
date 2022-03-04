@@ -60,16 +60,15 @@
         tools:ignore="SpUsage" />
 
     <!-- text -->
-    <WebView
+    <TextView
         android:id="@+id/listtext"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textAppearance="@android:style/TextAppearance.Small"
         android:layout_below="@id/category"
-        android:layout_toEndOf="@+id/container"
         android:layout_marginTop="5dp"
-        android:textSize="@dimen/text"
-        tools:ignore="SpUsage,WebViewLayout" />
+        android:layout_toEndOf="@+id/container"
+        android:textAppearance="@android:style/TextAppearance.Small"
+        android:textSize="@dimen/text"/>
 
     <include
         layout="@layout/post"

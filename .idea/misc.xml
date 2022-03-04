@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android/DVClient/app/src/main/res/drawable/ic_back_button.xml" value="0.267" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/activity_main.xml" value="0.484027105517909" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/app_bar_main.xml" value="0.3296875" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/comments_list.xml" value="0.5385416666666667" />
@@ -26,6 +27,7 @@
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/settings_activity.xml" value="0.16875" />
         <entry key="..\:/Android/DVClient/app/src/main/res/layout/video.xml" value="0.5385416666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/menu/activity_main_drawer.xml" value="0.2994791666666667" />
+        <entry key="..\:/Android/DVClient/app/src/main/res/menu/main.xml" value="0.3307291666666667" />
         <entry key="..\:/Android/DVClient/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.3295" />
         <entry key="..\:/Android/DVClient/app/src/main/res/xml/root_preferences.xml" value="0.3614583333333333" />
       </map>

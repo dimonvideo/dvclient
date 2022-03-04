@@ -2,10 +2,14 @@ package com.dimonvideo.client.util;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.text.Html;
 import android.view.View;
+import android.widget.TextView;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -18,7 +22,7 @@ import java.net.MalformedURLException;
 
 public class URLImageParser implements Html.ImageGetter {
     Context c;
-    View container;
+    TextView container;
 
     /***
      * Construct the URLImageParser which will execute AsyncTask and refresh the container
@@ -27,7 +31,7 @@ public class URLImageParser implements Html.ImageGetter {
      */
     public URLImageParser(View t, Context c) {
         this.c = c;
-        this.container = t;
+        this.container = (TextView) t;
     }
 
     public Drawable getDrawable(String source) {
@@ -62,16 +66,13 @@ public class URLImageParser implements Html.ImageGetter {
         protected void onPostExecute(Drawable result) {
 
             if (result != null) {
-                // set the correct bound according to the result from HTTP call
-                urlDrawable.setBounds(0, 0, 0 + result.getIntrinsicWidth(), 0
-                        + result.getIntrinsicHeight());
+                urlDrawable.setBounds(0, 0, 0, 0+result.getIntrinsicHeight());
+                urlDrawable.drawable = result; //change the reference of the current drawable to the result from the HTTP call
+                URLImageParser.this.container.invalidate(); //redraw the image by invalidating the container
+                URLImageParser.this.container.setHeight((URLImageParser.this.container.getHeight()
+                        + result.getIntrinsicHeight()));
 
-                // change the reference of the current drawable to the result
-                // from the HTTP call
-                urlDrawable.drawable = result;
-
-                // redraw the image by invalidating the container
-                URLImageParser.this.container.invalidate();
+                container.setText(container.getText());
             }
         }
 
@@ -83,16 +84,17 @@ public class URLImageParser implements Html.ImageGetter {
         public Drawable fetchDrawable(String urlString) {
             try {
                 InputStream is = fetch(urlString);
-                Drawable drawable = Drawable.createFromStream(is, "src");
-                drawable.setBounds(0, 0, 0 + drawable.getIntrinsicWidth(), 0
-                        + drawable.getIntrinsicHeight());
+                Drawable drawable = new BitmapDrawable(c.getResources(), is);
+                int width = Math.round(drawable.getIntrinsicWidth());
+                int height = Math.round(drawable.getIntrinsicHeight());
+                drawable.setBounds(0, 0, width, height);
                 return drawable;
             } catch (Exception e) {
                 return null;
             }
         }
 
-        private InputStream fetch(String urlString) throws MalformedURLException, IOException {
+        private InputStream fetch(String urlString) throws IOException {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpGet request = new HttpGet(urlString);
             HttpResponse response = httpClient.execute(request);

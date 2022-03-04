@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.forum;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -65,6 +66,7 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
         // Required empty public constructor
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -105,8 +107,17 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
 
         recyclerView.setAdapter(adapter);
 
+        // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getParentFragmentManager()
+                    .beginTransaction()
+                    .detach(ForumFragmentTopicsFav.this)
+                    .attach(ForumFragmentTopicsFav.this)
+                    .commit();
+            swipLayout.setRefreshing(false);
+        });
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         if (!TextUtils.isEmpty(f_name)) toolbar.setTitle(f_name);

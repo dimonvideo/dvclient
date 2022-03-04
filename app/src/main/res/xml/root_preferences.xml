@@ -128,7 +128,7 @@
             app:key="dvc_forum"
             app:title="@string/menu_forum" />
         <SwitchPreferenceCompat
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="dvc_tab_topics_no_posts"
             app:title="@string/tab_topics_no_posts" />
     </PreferenceCategory>

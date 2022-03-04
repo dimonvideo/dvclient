@@ -1,5 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,9 +62,11 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         razdel = event.razdel;
     }
 
+    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -90,6 +93,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
+
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
@@ -106,6 +110,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
 
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
@@ -121,6 +126,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         if (razdel == 15) key = Config.BLOG_RAZDEL;
 
         Log.e("mainFragmentCats", ""+url+key);
+
         if (this.getArguments() != null) {
             EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
         }

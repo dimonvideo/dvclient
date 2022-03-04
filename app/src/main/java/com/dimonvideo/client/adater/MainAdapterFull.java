@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -113,8 +114,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         holder.textViewTitle.setText(Feed.getTitle());
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context);
-            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
+            Spanned spanned = Html.fromHtml(Feed.getText(), null, new MainAdapter.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
@@ -125,6 +125,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             });
         } catch (Throwable ignored) {
         }
+
 
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewCategory.setText(Feed.getCategory());
@@ -170,7 +171,8 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
             if (holder.btn_comms.getVisibility() != View.VISIBLE) {
                 try { open_content(holder, position, context, is_share_btn);
                 } catch (Throwable ignored) {
-                }            }
+                }
+            }
         });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
@@ -284,6 +286,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
     }
 
     // подробный вывод файла
+    @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void open_content(ViewHolder holder, final int position, Context context, Boolean is_share_btn) {
         final Feed Feed = jsonFeed.get(position);
@@ -294,7 +297,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
             URLImageParser parser = new URLImageParser(holder.textViewText, context);
-            Spanned spanned = Html.fromHtml(Feed.getFull_text(), parser, new MainAdapter.TagHandler());
+            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
         } catch (Throwable ignored) {
@@ -420,6 +423,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
     }
 
     // подробный вывод файла - close
+    @SuppressLint("NotifyDataSetChanged")
     private void hide_content(ViewHolder holder, final int position) {
         final Feed Feed = jsonFeed.get(position);
         holder.txt_plus.setVisibility(View.GONE);
@@ -428,8 +432,9 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.name.setVisibility(View.GONE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new TagHandler()));
+            holder.textViewText.setText(Html.fromHtml(Feed.getFull_text(), null,  new TagHandler()));
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            notifyDataSetChanged();
         } catch (Throwable ignored) {
         }
         holder.btn_download.setVisibility(View.GONE);
@@ -445,6 +450,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
     }
 
     // swipe to remove favorites
+    @SuppressLint("NotifyDataSetChanged")
     public void removeFav(int position) {
         final Feed Feed = jsonFeed.get(position);
         jsonFeed.remove(position);

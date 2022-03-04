@@ -64,7 +64,7 @@ public class MainCategoryAdapter extends RecyclerView.Adapter<MainCategoryAdapte
             Fragment fragment = new MainFragmentContent();
             Bundle bundle = new Bundle();
             bundle.putInt(Config.TAG_ID, Feed.getCid());
-            bundle.putString(Config.TAG_RAZDEL, Feed.getRazdel());
+            bundle.putString(Config.TAG_RAZDEL, Feed.getTitle());
             fragment.setArguments(bundle);
             FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();

@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -82,6 +83,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
             Intent intent = new Intent(context, Posts.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
             intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+            intent.putExtra(Config.TAG_RAZDEL, "8");
             context.startActivity(intent);
         });
         if (Feed.getFav() > 0) {
@@ -134,6 +136,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
     }
 
     // swipe to remove favorites
+    @SuppressLint("NotifyDataSetChanged")
     public void removeFav(int position) {
         final FeedForum Feed = jsonFeed.get(position);
         jsonFeed.remove(position);

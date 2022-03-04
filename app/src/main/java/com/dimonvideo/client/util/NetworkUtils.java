@@ -41,7 +41,7 @@ public class NetworkUtils {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String login = sharedPrefs.getString("dvc_login", "null");
         String current_token = sharedPrefs.getString("current_token", "null");
-        if (password == null || password.length() < 5 || password.length() > 71) {
+        if ((password == null || password.length() < 5 || password.length() > 71) && (view != null)) {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
 
@@ -75,9 +75,18 @@ public class NetworkUtils {
                                 rat = jsonObject.getString(Config.TAG_COMMENTS);
                                 posts = jsonObject.getString(Config.TAG_COUNT);
 
-                                Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
-                            } else
-                                Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
+                                try {
+                                    assert view != null;
+                                    Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                                } catch (Throwable ignored) {
+                                }
+                            } else {
+                                assert view != null;
+                                try {
+                                    Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
+                                } catch (Throwable ignored) {
+                                }
+                            }
 
                             SharedPreferences.Editor editor;
                             editor = sharedPrefs.edit();
@@ -97,7 +106,7 @@ public class NetworkUtils {
 
                             if ((!token.equals(current_token)) && (state > 0)) GetToken.getToken(context);
                             //GetToken.getToken(context);
-                            Log.e("auth", response);
+                           // Log.e("auth", response);
 
                         } catch (JSONException e) {
                             e.printStackTrace();

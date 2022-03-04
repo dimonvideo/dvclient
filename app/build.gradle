@@ -15,8 +15,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 22
         targetSdkVersion 32
-        versionCode 3009229
-        versionName "2.19"
+        versionCode 3009230
+        versionName "2.20"
         if (!localProperties['base64EncodedPublicKey']) {
             logger.warn('base64EncodedPublicKey must be set for signature verification. ' +
                     'You can add it to local.properties once you have gotten it from Play. ' +
@@ -26,8 +26,8 @@ android {
 
     }
     compileOptions {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 
@@ -76,8 +76,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:23.0.0'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'com.android.billingclient:billing:4.1.0'
-    implementation 'com.google.android.exoplayer:exoplayer:2.16.0' // error
-    implementation 'com.github.HamidrezaAmz:MagicalExoPlayer:2.0.6'
+    implementation 'com.github.HamidrezaAmz:MagicalExoPlayer:3.0.2'
     implementation 'androidx.webkit:webkit:1.4.0'
     implementation 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     implementation "commons-logging:commons-logging-api:1.1"

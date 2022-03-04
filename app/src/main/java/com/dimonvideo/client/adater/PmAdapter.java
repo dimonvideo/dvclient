@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -9,7 +10,9 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Editable;
 import android.text.Html;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +38,9 @@ import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
+import com.dimonvideo.client.util.URLImageParser;
+
+import org.xml.sax.XMLReader;
 
 import java.util.List;
 
@@ -52,6 +58,19 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         this.jsonFeed = jsonFeed;
         this.context = context;
 
+    }
+
+    public static class TagHandler implements Html.TagHandler {
+        @Override
+        public void handleTag(boolean opening, String tag,
+                              Editable output, XMLReader xmlReader) {
+            if (!opening && tag.equals("ul")) {
+                output.append("\n");
+            }
+            if (opening && tag.equals("li")) {
+                output.append("\n\u2022");
+            }
+        }
     }
 
     @NonNull
@@ -82,11 +101,12 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         holder.textViewNames.setText(Feed.getLast_poster_name());
 
         try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            Spanned spanned = Html.fromHtml(Feed.getFullText(), null, null);
+            holder.textViewText.setText(spanned);
         } catch (Throwable ignored) {
         }
         holder.itemView.setBackgroundColor(0x00000000);
+
         if (Feed.getIs_new() > 0) {
             holder.status_logo.setImageResource(R.drawable.ic_status_green);
             holder.itemView.setBackgroundColor(Color.parseColor("#992301"));
@@ -95,46 +115,36 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
         holder.itemView.setOnClickListener(v -> {
 
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+
             holder.btns.setVisibility(View.VISIBLE);
-            NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             holder.itemView.setBackgroundColor(0x00000000);
 
         });
         holder.textViewText.setOnClickListener(v -> {
 
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
-                @Override
-                public void onLinkClick(String url) {
-                    // open links from listtext
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
-                }
-            });
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+
             holder.btns.setVisibility(View.VISIBLE);
-            NetworkUtils.readPm(context, Feed.getId());
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             holder.itemView.setBackgroundColor(0x00000000);
 
         });
         holder.send.setOnClickListener(v -> {
 
-            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 0, null, 0);
 
         });
         holder.send.setOnLongClickListener(v -> {
 
-            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
-            holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1, null, 0);
             jsonFeed.remove(position);
-            notifyDataSetChanged();
             return true;
         });
         // show dialog
@@ -147,6 +157,26 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
             return true;
         });
     }
+
+    // show full
+    private void showFullText(ViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed) {
+        try {
+            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new TagHandler());
+            holder.textViewText.setText(spanned);
+
+            if (Feed.getIs_new() > 0) NetworkUtils.readPm(context, Feed.getId());
+
+            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+                @Override
+                public void onLinkClick(String url) {
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
+                }
+            });
+        } catch (Throwable ignored) {
+        }
+    }
+
     // dialog
     private void show_dialog(ViewHolder holder, final int position, Context context){
         final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.copy_listtext)};
@@ -184,6 +214,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
     }
 
     // swipe to delete
+    @SuppressLint("NotifyDataSetChanged")
     public void removeItem(int position) {
         final FeedPm Feed =  jsonFeed.get(position);
         jsonFeed.remove(position);
@@ -193,6 +224,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
     }
 
     // swipe to delete
+    @SuppressLint("NotifyDataSetChanged")
     public void restoreItem(int position) {
         final FeedPm Feed =  jsonFeed.get(position);
         jsonFeed.remove(position);

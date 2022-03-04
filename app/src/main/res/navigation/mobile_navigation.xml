@@ -15,6 +15,9 @@
             android:name="category"
             android:defaultValue="10"
             />
+        <action
+            android:id="@+id/action_nav_home_to_nav_forum2"
+            app:destination="@id/nav_forum" />
     </fragment>
 
     <fragment
@@ -27,6 +30,11 @@
             android:name="category"
             android:defaultValue="1"
             />
+        <action
+            android:id="@+id/action_nav_gallery_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
     <fragment
         android:id="@+id/nav_fav"
@@ -38,6 +46,11 @@
             android:name="category"
             android:defaultValue="20"
             />
+        <action
+            android:id="@+id/action_nav_fav_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -53,7 +66,7 @@
         <action
             android:id="@+id/action_nav_uploader_to_nav_home"
             app:destination="@id/nav_home"
-            app:popUpTo="@+id/main_nav_graph"
+            app:popUpTo="@+id/nav_home"
             app:popUpToInclusive="true"/>
     </fragment>
 
@@ -70,7 +83,7 @@
         <action
             android:id="@+id/action_nav_android_to_nav_home"
             app:destination="@id/nav_home"
-            app:popUpTo="@+id/main_nav_graph"
+            app:popUpTo="@+id/nav_home"
             app:popUpToInclusive="true"/>
     </fragment>
 
@@ -84,6 +97,11 @@
             android:name="category"
             android:defaultValue="3"
             />
+        <action
+            android:id="@+id/action_nav_vuploader_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -96,6 +114,11 @@
             android:name="category"
             android:defaultValue="4"
             />
+        <action
+            android:id="@+id/action_nav_news_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -108,6 +131,11 @@
             android:name="category"
             android:defaultValue="5"
             />
+        <action
+            android:id="@+id/action_nav_muzon_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -120,6 +148,11 @@
             android:name="category"
             android:defaultValue="6"
             />
+        <action
+            android:id="@+id/action_nav_books_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -132,6 +165,11 @@
             android:name="category"
             android:defaultValue="7"
             />
+        <action
+            android:id="@+id/action_nav_articles_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -145,10 +183,18 @@
             android:defaultValue="8"
         />
         <action
-            android:id="@+id/action_nav_forum_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/main_nav_graph"
-            app:popUpToInclusive="true"/>
+            android:id="@+id/action_nav_forum_to_nav_forums"
+            app:destination="@id/nav_forums" />
+        <action
+            android:id="@+id/action_nav_forum_to_nav_topics"
+            app:destination="@id/nav_topics" />
+        <action
+            android:id="@+id/action_nav_forum_to_nav_topics_no_posts"
+            app:destination="@id/nav_topics_no_posts" />
+        <action
+            android:id="@+id/action_nav_forum_to_nav_topics_fav"
+            app:destination="@id/nav_topics_fav" />
+
     </fragment>
 
     <fragment
@@ -161,6 +207,11 @@
             android:name="category"
             android:defaultValue="9"
             />
+        <action
+            android:id="@+id/action_nav_forums_to_nav_forum"
+            app:destination="@id/nav_forum"
+            app:popUpTo="@+id/nav_forum"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -173,6 +224,11 @@
             android:name="category"
             android:defaultValue="9"
             />
+        <action
+            android:id="@+id/action_nav_topics_to_nav_forum"
+            app:destination="@id/nav_forum"
+            app:popUpTo="@+id/nav_forum"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -185,6 +241,11 @@
             android:name="category"
             android:defaultValue="9"
             />
+        <action
+            android:id="@+id/action_nav_topics_fav_to_nav_forum"
+            app:destination="@id/nav_forum"
+            app:popUpTo="@+id/nav_forum"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -197,7 +258,11 @@
             android:name="category"
             android:defaultValue="9"
             />
-
+        <action
+            android:id="@+id/action_nav_topics_no_posts_to_nav_forum"
+            app:destination="@id/nav_forum"
+            app:popUpTo="@+id/nav_forum"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -213,7 +278,7 @@
         <action
             android:id="@+id/action_nav_pminbox_to_nav_home"
             app:destination="@id/nav_home"
-            app:popUpTo="@+id/main_nav_graph"
+            app:popUpTo="@+id/nav_home"
             app:popUpToInclusive="true"/>
     </fragment>
 
@@ -228,6 +293,11 @@
             android:defaultValue="10"
             app:destination="@id/nav_home"
             />
+        <action
+            android:id="@+id/action_nav_cats_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -240,6 +310,11 @@
         android:name="category"
         android:defaultValue="14"
         />
+        <action
+            android:id="@+id/action_nav_tracker_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 
     <fragment
@@ -252,5 +327,10 @@
             android:name="category"
             android:defaultValue="15"
             />
+        <action
+            android:id="@+id/action_nav_blog_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
     </fragment>
 </navigation>

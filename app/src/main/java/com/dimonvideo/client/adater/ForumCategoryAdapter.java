@@ -3,6 +3,7 @@ package com.dimonvideo.client.adater;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -81,18 +83,22 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+
         holder.itemView.setOnClickListener(v -> {
+
+            Log.d("tagFid--->>>>", String.valueOf(Feed.getId()));
 
             Fragment fragment = new ForumFragmentTopics();
             Bundle bundle = new Bundle();
             bundle.putInt(Config.TAG_ID, Feed.getId());
             bundle.putString(Config.TAG_CATEGORY, Feed.getTitle());
+            bundle.putString(Config.TAG_RAZDEL, "8");
             fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((MainActivity)context).getSupportFragmentManager();
+            FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.addToBackStack("ForumFragmentForums");
-            ft.add(R.id.nav_host_fragment, fragment);
+            ft.addToBackStack(null);
+            ft.replace(R.id.nav_host_fragment, fragment);
             ft.commit();
         });
 

@@ -211,6 +211,7 @@ public class Posts extends AppCompatActivity  implements RecyclerView.OnScrollCh
     }
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         if (!TextUtils.isEmpty(tid)) {

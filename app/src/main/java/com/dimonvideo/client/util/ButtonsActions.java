@@ -1,9 +1,10 @@
 package com.dimonvideo.client.util;
 
+import static com.dimonvideo.client.util.NetworkUtils.showErrorToast;
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -39,21 +40,20 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Objects;
-
-import static com.dimonvideo.client.util.NetworkUtils.showErrorToast;
 
 public class ButtonsActions {
 
     // загрузить скриншот в окне
-    public static void loadScreen(Context mContext, String image_url) {
+    public static void loadScreen(Context context, String image_url) {
 
-        final Dialog dialog = new Dialog(mContext);
+        final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.screen);
         ImageView image = dialog.findViewById(R.id.screenshot);
         image.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
-        Glide.with(mContext).load(image_url).apply(RequestOptions.bitmapTransform(new RoundedCorners(24))).into(image);
+        Glide.with(context).load(image_url).apply(RequestOptions.bitmapTransform(new RoundedCorners(24))).into(image);
 
         dialog.show();
 
@@ -66,19 +66,19 @@ public class ButtonsActions {
     }
 
     // оценка плюс или отмена плюса
-    public static void like_file(Context mContext, String razdel, int id, int type){
-        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(mContext.getContentResolver(),
+    public static void like_file(Context context, String razdel, int id, int type){
+        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         android_id = "DVClient_" + android_id;
         final String is_name = sharedPrefs.getString("dvc_login",android_id);
-        RequestQueue queue = Volley.newRequestQueue(mContext);
+        RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
-                    Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
 
-                }, error -> showErrorToast(mContext, error)
+                }, error -> showErrorToast(context, error)
         );
 
         queue.add(stringRequest);
@@ -86,19 +86,19 @@ public class ButtonsActions {
     }
 
     // оценка плюс или отмена плюса
-    public static void like_forum_post(Context mContext, int id, int type){
-        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(mContext.getContentResolver(),
+    public static void like_forum_post(Context context, int id, int type){
+        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         android_id = "DVClient_" + android_id;
         final String is_name = sharedPrefs.getString("dvc_login",android_id);
-        RequestQueue queue = Volley.newRequestQueue(mContext);
+        RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_POST_URL + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
-                    Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
 
-                }, error -> showErrorToast(mContext, error)
+                }, error -> showErrorToast(context, error)
         );
 
         queue.add(stringRequest);
@@ -106,8 +106,8 @@ public class ButtonsActions {
     }
 
     // добавление или удаление файла из избранного
-    public static void add_to_fav_file(Context mContext, String razdel, int id, int type){
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+    public static void add_to_fav_file(Context context, String razdel, int id, int type){
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String login = sharedPrefs.getString("dvc_login", "null");
         final String password = sharedPrefs.getString("dvc_password", "null");
         String pass = password;
@@ -118,7 +118,7 @@ public class ButtonsActions {
             e.printStackTrace();
         }
 
-        RequestQueue queue = Volley.newRequestQueue(mContext);
+        RequestQueue queue = Volley.newRequestQueue(context);
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
         Log.d("tag", url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -129,15 +129,15 @@ public class ButtonsActions {
 
                         if (state == 1) {
                             if (type == 1)
-                                Toast.makeText(mContext, mContext.getString(R.string.favorites_btn), Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, context.getString(R.string.favorites_btn), Toast.LENGTH_LONG).show();
                             else
-                                Toast.makeText(mContext, mContext.getString(R.string.unfavorites_btn), Toast.LENGTH_LONG).show();
-                        } else Toast.makeText(mContext, mContext.getString(R.string.nav_header_title), Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, context.getString(R.string.unfavorites_btn), Toast.LENGTH_LONG).show();
+                        } else Toast.makeText(context, context.getString(R.string.nav_header_title), Toast.LENGTH_LONG).show();
 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }, error -> showErrorToast(mContext, error)
+                }, error -> showErrorToast(context, error)
         );
 
         queue.add(stringRequest);
@@ -149,8 +149,12 @@ public class ButtonsActions {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_aspect = sharedPrefs.getBoolean("dvc_vuploader_aspect",false);
         final boolean is_external_video = sharedPrefs.getBoolean("dvc_external_video",false);
-        link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
-        if (is_external_video) {
+        try {
+            link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
+        } catch (Throwable ignored) {
+        }
+
+        if ((is_external_video) && (!link.equals(""))) {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse(link), "video/*");
             try {
@@ -165,24 +169,27 @@ public class ButtonsActions {
             dialog.setContentView(R.layout.video);
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
             AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
 
             if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
             else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
 
-            andExoPlayerView.setSource(link);
-            dialog.show();
-            dialog.setOnKeyListener((arg0, keyCode, event) -> {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    andExoPlayerView.stopPlayer();
-                    dialog.dismiss();
-                }
-                return true;
-            });
-
+            if (!link.equals("")) {
+                HashMap<String, String> map = new HashMap<>();
+                map.put("link", link);
+                andExoPlayerView.setSource(link, map);
+                dialog.show();
+                dialog.setOnKeyListener((arg0, keyCode, event) -> {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        andExoPlayerView.stopPlayer();
+                        dialog.dismiss();
+                    }
+                    return true;
+                });
+            }
         }
     }
-
     public static void loadProfile(Context context, String login_name, String image_url) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);

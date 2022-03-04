@@ -118,7 +118,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         adapter = new PmAdapter(listFeed, getContext());
 
 
-
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
@@ -210,6 +209,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_pm));
         setHasOptionsMenu(true);
+        toolbar.setSubtitle(null);
 
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -238,23 +238,9 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         super.onResume();
         @SuppressLint("StaticFieldLeak")
         class AsyncCountPm extends AsyncTask<String, String, String> {
-            SharedPreferences sharedPrefs;
 
             @Override
             protected String doInBackground(String... params) {
-                Context context = getContext();
-                if (context != null) {
-                    try {
-                        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                        // check is logged
-                        final String password = sharedPrefs.getString("dvc_password", "null");
-                        View view = requireActivity().getWindow().getDecorView().getRootView();
-                        NetworkUtils.checkPassword(context, view, password);
-                        return null;
-                    } catch (Exception e) {
-                        return null;
-                    }
-                }
                 return null;
             }
 
@@ -332,6 +318,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
     }
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext().getApplicationContext());
         String login = sharedPrefs.getString("dvc_login", "null");
@@ -366,15 +353,16 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        adapter.notifyDataSetChanged();
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
 
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                 });
+
     }
 
     // получение данных и увеличение номера страницы

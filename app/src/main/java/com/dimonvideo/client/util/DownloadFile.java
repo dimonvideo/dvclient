@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.preference.PreferenceManager;
 
+import com.dimonvideo.client.BuildConfig;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
@@ -34,33 +35,59 @@ public class DownloadFile {
 
         // adm - dvget
         Intent intent = new Intent("android.intent.action.MAIN");
-        if (isPackageInstalled("com.dv.adm", context.getPackageManager()))
-            intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
-        else if (isPackageInstalled("com.dv.get", context.getPackageManager()))
-            intent.setClassName("com.dv.get", "com.dv.get.AEditor");
+
+        if (is_dvget) {
+            if (isPackageInstalled("com.dv.adm", context.getPackageManager()))
+                intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
+            else if (isPackageInstalled("com.dv.get", context.getPackageManager()))
+                intent.setClassName("com.dv.get", "com.dv.get.AEditor");
+        }
 
         intent.putExtra("android.intent.extra.TEXT", link);
         try {
             if ((is_dvget) && ((isPackageInstalled("com.dv.adm", context.getPackageManager())) ||
                     (isPackageInstalled("com.dv.get", context.getPackageManager())))) context.startActivity(intent);
-            else if (is_dvget) Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
+            else if (is_dvget) {
+                Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
+                String url = "https://play.google.com/store/apps/details?id=com.dv.adm";
+
+                if (BuildConfig.FLAVOR.equals("DVClientSamsung"))
+                    url = "https://dimonvideo.ru/android/368661";
+
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                        url));
+
+                context.startActivity(browserIntent);
+            }
         } catch (Throwable ignored) {
         }
 
         // IDM
-        if (isPackageInstalled("idm.internet.download.manager.adm.lite", context.getPackageManager()))
-            intent.setClassName("idm.internet.download.manager.adm.lite", "idm.internet.download.manager.Downloader");
-        else if (isPackageInstalled("idm.internet.download.manager.plus", context.getPackageManager()))
-            intent.setClassName("idm.internet.download.manager.plus", "idm.internet.download.manager.Downloader");
-        else if (isPackageInstalled("idm.internet.download.manager", context.getPackageManager()))
-            intent.setClassName("idm.internet.download.manager", "idm.internet.download.manager.Downloader");
+        if (is_idm) {
+            if (isPackageInstalled("idm.internet.download.manager.adm.lite", context.getPackageManager()))
+                intent.setClassName("idm.internet.download.manager.adm.lite", "idm.internet.download.manager.Downloader");
+            else if (isPackageInstalled("idm.internet.download.manager.plus", context.getPackageManager()))
+                intent.setClassName("idm.internet.download.manager.plus", "idm.internet.download.manager.Downloader");
+            else if (isPackageInstalled("idm.internet.download.manager", context.getPackageManager()))
+                intent.setClassName("idm.internet.download.manager", "idm.internet.download.manager.Downloader");
 
-        intent.putExtra("secure_uri", link);
-        intent.setData(Uri.parse(link));
+            intent.putExtra("secure_uri", link);
+            intent.setData(Uri.parse(link));
+        }
+
         try {
             if (is_idm) context.startActivity(intent);
         } catch (Throwable ignored) {
             Toast.makeText(context, context.getString(R.string.idm_not_found), Toast.LENGTH_LONG).show();
+            String url = "https://play.google.com/store/apps/details?id=idm.internet.download.manager";
+
+            if (BuildConfig.FLAVOR.equals("DVClientSamsung"))
+                url = "https://dimonvideo.ru/android/381954";
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                    url));
+
+            context.startActivity(browserIntent);
         }
 
         if ((razdel != null) && ((razdel.equals(Config.TRACKER_RAZDEL)))){
