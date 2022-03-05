@@ -2,8 +2,10 @@ package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,7 +18,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +35,7 @@ import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -74,7 +79,7 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
         razdel = event.razdel;
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
+    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -87,12 +92,7 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
         }
-        recyclerView = root.findViewById(R.id.recycler_view);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
         emptyLayout = root.findViewById(R.id.linearEmpty);
@@ -104,22 +104,35 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
         // получение данных
         getData();
         adapter = new CommentsAdapter(listFeed, getContext());
-        // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
+        recyclerView = root.findViewById(R.id.recycler_view);
 
+        // разделитель позиций
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
+
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(MainFragmentComments.this)
-                    .attach(MainFragmentComments.this)
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, new MainFragmentComments())
+                    .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
         });
 
         return root;
@@ -128,6 +141,7 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
 
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
@@ -200,7 +214,7 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
+                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
 
                 },
                 error -> {
@@ -229,7 +243,7 @@ public class MainFragmentComments extends Fragment implements RecyclerView.OnScr
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+            new Handler().postDelayed(this::getData, 100);
         }
     }
 

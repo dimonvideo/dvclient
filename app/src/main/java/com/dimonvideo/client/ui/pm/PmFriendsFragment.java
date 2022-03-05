@@ -32,6 +32,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.FriendsAdapter;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -66,7 +67,7 @@ public class PmFriendsFragment extends Fragment implements RecyclerView.OnScroll
         // Required empty public constructor
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
+    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -101,13 +102,13 @@ public class PmFriendsFragment extends Fragment implements RecyclerView.OnScroll
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
-            requestCount = 1;
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(PmFriendsFragment.this)
-                    .attach(PmFriendsFragment.this)
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, new PmFriendsFragment())
+                    .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
         });
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.tab_friends));

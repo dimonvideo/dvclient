@@ -222,27 +222,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         // home icon
         if (auth_state > 0) {
             avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
-            Glide.with(this)
-                    .asDrawable()
-                    .load(image_url)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .centerCrop()
-                    .into(new CustomTarget<Drawable>() {
-
-                @Override
-                public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
-                    try {
-                        toolbar.setNavigationIcon(resource);
-                    } catch (Throwable ignored) {
-                    }
-                }
-
-                @Override
-                public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                }
-            });
-
         }
 
         // быстрые ярлыки

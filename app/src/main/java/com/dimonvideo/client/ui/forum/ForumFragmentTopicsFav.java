@@ -2,11 +2,12 @@ package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,6 +51,7 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
+    SwipeRefreshLayout swipLayout;
 
     private RequestQueue requestQueue;
 
@@ -60,13 +63,12 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
     String f_name;
     int id = 0;
     int razdel = 8; // forum fragment
-    SwipeRefreshLayout swipLayout;
 
     public ForumFragmentTopicsFav() {
         // Required empty public constructor
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
+    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -80,13 +82,6 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
             f_name = getArguments().getString(Config.TAG_CATEGORY);
         }
 
-        recyclerView = root.findViewById(R.id.recycler_view);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
-
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
 
@@ -98,25 +93,33 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
         getData();
         adapter = new ForumAdapter(listFeed, getContext());
 
-
+        recyclerView = root.findViewById(R.id.recycler_view);
 
         // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
 
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
-
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
-            requestCount = 1;
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(ForumFragmentTopicsFav.this)
-                    .attach(ForumFragmentTopicsFav.this)
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, new ForumFragmentTopicsFav())
+                    .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
         });
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
@@ -132,6 +135,7 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
     }
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
@@ -172,7 +176,7 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
+                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 300);
 
                 },
                 error -> {
@@ -201,11 +205,12 @@ public class ForumFragmentTopicsFav extends Fragment implements RecyclerView.OnS
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+            new Handler().postDelayed(this::getData, 300);
         }
     }
 
     // обновление
+    @SuppressLint("DetachAndAttachSameFragment")
     @Override
     public void onRefresh() {
         requestCount = 1;

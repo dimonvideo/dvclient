@@ -81,7 +81,7 @@
         android:layout_below="@id/name_layout"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="4dp"
-        android:adjustViewBounds="true"
+        android:layout_centerInParent="true"
         android:layout_gravity="center_horizontal|center"
         android:contentDescription="@string/action_screen"
         android:layout_height="wrap_content" />

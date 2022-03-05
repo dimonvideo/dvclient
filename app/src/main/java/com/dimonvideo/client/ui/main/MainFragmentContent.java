@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,6 +27,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,6 +38,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
@@ -43,6 +46,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.forum.ForumFragment;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -91,13 +95,14 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         story = event.story;
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
+    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         requestCount = 1;
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
 
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
@@ -109,12 +114,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
             EventBus.getDefault().register(this);
         }
 
-        recyclerView = root.findViewById(R.id.recycler_view);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
         emptyLayout = root.findViewById(R.id.linearEmpty);
@@ -126,11 +126,23 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         // получение данных
         getData();
         adapter = new MainAdapter(listFeed, getContext());
-        // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
 
+        recyclerView = root.findViewById(R.id.recycler_view);
+
+        // разделитель позиций
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
@@ -144,12 +156,13 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
                 requireActivity().onBackPressed();
             });
 
-        } else {
+        } else if (auth_state > 0) {
             Glide.with(this)
                     .asDrawable()
                     .load(image_url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .centerCrop()
+                    .centerInside()
+                    .apply(RequestOptions.circleCropTransform())
                     .into(new CustomTarget<Drawable>() {
 
                         @Override
@@ -171,12 +184,13 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(MainFragmentContent.this)
-                    .attach(MainFragmentContent.this)
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, new MainFragmentContent())
+                    .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
         });
 
 
@@ -301,8 +315,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
-
+                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
@@ -330,7 +343,7 @@ public class MainFragmentContent extends Fragment implements RecyclerView.OnScro
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+            new Handler().postDelayed(this::getData, 100);
         }
     }
 

@@ -1,8 +1,10 @@
 package com.dimonvideo.client.ui.main;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -94,6 +96,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         story = event.story;
     }
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
@@ -197,7 +200,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
                             }
                             listFeed.add(jsonFeed);
                         }
-                    adapter.notifyDataSetChanged();
+                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
 
                 },
                 error -> {});
@@ -222,7 +225,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+            new Handler().postDelayed(this::getData, 100);
         }
     }
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,6 +30,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -77,7 +80,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         }
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
+    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
@@ -115,13 +118,13 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
-            requestCount = 1;
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(MainFragmentFav.this)
-                    .attach(MainFragmentFav.this)
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, new MainFragmentFav())
+                    .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
         });
 
         recyclerView.setAdapter(adapter);
@@ -131,6 +134,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
 
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
@@ -235,7 +239,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
+                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
 
                 },
                 error -> {
@@ -264,7 +268,7 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+            new Handler().postDelayed(this::getData, 100);
         }
     }
 

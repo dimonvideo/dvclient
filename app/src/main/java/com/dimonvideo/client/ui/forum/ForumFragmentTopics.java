@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,11 +33,13 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -72,7 +76,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         // Required empty public constructor
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
+    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -91,12 +95,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         EventBus.getDefault().postSticky(new MessageEvent(8, story));
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        recyclerView = root.findViewById(R.id.recycler_view);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
@@ -110,48 +109,63 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
         adapter = new ForumAdapter(listFeed, getContext());
 
 
-        // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
+        recyclerView = root.findViewById(R.id.recycler_view);
 
+        // разделитель позиций
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(ForumFragmentTopics.this)
-                    .attach(ForumFragmentTopics.this)
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, new ForumFragmentTopics())
+                    .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
         });
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         if (!TextUtils.isEmpty(f_name)) toolbar.setSubtitle(f_name);
         else toolbar.setSubtitle(null);
-        Glide.with(this)
-                .asDrawable()
-                .load(image_url)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .centerCrop()
-                .into(new CustomTarget<Drawable>() {
 
-                    @Override
-                    public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
-                        try {
-                            toolbar.setNavigationIcon(resource);
-                        } catch (Throwable ignored) {
+        if (auth_state > 0) {
+            Glide.with(this)
+                    .asDrawable()
+                    .load(image_url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .apply(new RequestOptions().circleCrop())
+                    .into(new CustomTarget<Drawable>() {
+
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
+                            try {
+                                toolbar.setNavigationIcon(resource);
+                            } catch (Throwable ignored) {
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
 
-                    }
-                });
+                        }
+                    });
+        }
         return root;
     }
 
@@ -199,7 +213,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
+                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 300);
 
                 },
                 error -> {
@@ -228,7 +242,7 @@ public class ForumFragmentTopics extends Fragment implements RecyclerView.OnScro
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
         if (isLastItemDisplaying(recyclerView)) {
-            getData();
+            new Handler().postDelayed(this::getData, 300);
         }
     }
 

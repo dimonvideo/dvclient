@@ -30,6 +30,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
@@ -104,6 +105,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         //Loading image from url
         Glide.with(context)
                 .load(Feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
