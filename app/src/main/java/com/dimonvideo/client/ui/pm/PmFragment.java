@@ -44,6 +44,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.SwipeController;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
@@ -115,8 +116,38 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         getData();
         adapter = new PmAdapter(listFeed, getContext());
 
+        // обновление
+        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout.setOnRefreshListener(() -> {
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, new PmFragment())
+                    .addToBackStack(null)
+                    .commit();
+            swipLayout.setRefreshing(false);
+            adapter.notifyDataSetChanged();
+        });
+
+        recyclerView = root.findViewById(R.id.recycler_view);
+
+        // разделитель позиций
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(adapter);
+
         // swipe to delete
-        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             private final Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete);
             private final ColorDrawable background = new ColorDrawable(Color.RED);
 
@@ -162,7 +193,6 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
                 deleteIcon.draw(c);
             }
 
-
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAbsoluteAdapterPosition();
@@ -206,35 +236,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
             }
         });
 
-        // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(() -> {
-            FragmentManager fragmentManager = getParentFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, new PmFragment())
-                    .addToBackStack(null)
-                    .commit();
-            swipLayout.setRefreshing(false);
-            adapter.notifyDataSetChanged();
-        });
 
-        recyclerView = root.findViewById(R.id.recycler_view);
-
-        // разделитель позиций
-        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
-        assert horizontalDivider != null;
-        horizontalDecoration.setDrawable(horizontalDivider);
-        recyclerView.addItemDecoration(horizontalDecoration);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setOnScrollChangeListener(this);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(30);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(adapter);
         return root;
     }
 

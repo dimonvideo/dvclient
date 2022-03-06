@@ -18,6 +18,7 @@
                 android:paddingBottom="50dp"
                 android:background="@color/colorList"
                 android:clipToPadding="false"
+                android:overScrollMode="never"
                 android:scrollbars="vertical" />
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
