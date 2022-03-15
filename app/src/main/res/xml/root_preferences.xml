@@ -272,7 +272,7 @@
             app:dialogTitle="@string/category_title"
             app:entries="@array/news_entries"
             app:entryValues="@array/news_values"
-            app:key="dvc_news_cat"
+            app:key="dvc_usernews_cat"
             app:summary="@string/menu_news"
             app:title="@string/category_title" />
     </PreferenceCategory>
