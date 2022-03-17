@@ -124,7 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - исправлен выбор категорий в настройках Новостей.
+        - исправлен выбор категорий в настройках Новостей.\n
+        - на форуме при просмотре тем добавлена опция Жалобы на тему.
+
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -152,4 +154,6 @@
     <string name="idm_not_found">IDM / IDM+ не установлены!</string>
     <string name="exit_toast">Нажмите Назад для выхода</string>
     <string name="exit_menu">Закрыть программу</string>
+    <string name="action_abuse">Пожаловаться на тему</string>
+    <string name="share_no_email_handler_found">No Email App found!</string>
 </resources>

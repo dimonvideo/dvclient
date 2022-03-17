@@ -39,4 +39,9 @@
         android:orderInCategory="11"
         android:title="@string/action_vote"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_abuse"
+        android:orderInCategory="12"
+        android:title="@string/action_abuse"
+        app:showAsAction="never" />
 </menu>

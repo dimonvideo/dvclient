@@ -619,14 +619,18 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         // feedback
         if (id == R.id.action_feedback) {
 
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.fromParts("mailto", getString(R.string.app_mail), null));
-            intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Intent selectorIntent = new Intent(Intent.ACTION_SENDTO);
+            selectorIntent.setData(Uri.parse("mailto:"));
+
+            final Intent emailIntent = new Intent(Intent.ACTION_SEND);
+            emailIntent.putExtra(Intent.EXTRA_EMAIL,  new String[]{getString(R.string.app_mail)});
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
+            emailIntent.setSelector(selectorIntent);
 
             try {
-                startActivity(intent);
-            } catch (Throwable ignored) {
+                startActivity(Intent.createChooser(emailIntent, getString(R.string.app_name)));
+            } catch (android.content.ActivityNotFoundException e) {
+                Toast.makeText(this, getString(R.string.share_no_email_handler_found), Toast.LENGTH_SHORT).show();
             }
         }
 

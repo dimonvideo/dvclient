@@ -156,4 +156,6 @@
     <string name="idm_not_found">IDM / IDM+ not installed!</string>
     <string name="exit_toast">Press Back to exit</string>
     <string name="exit_menu">Exit app</string>
+    <string name="action_abuse">Abuse to moderator</string>
+    <string name="share_no_email_handler_found">No Email App found!</string>
 </resources>
