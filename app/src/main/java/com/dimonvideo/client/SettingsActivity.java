@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -257,6 +258,9 @@ public class SettingsActivity extends AppCompatActivity {
             dialog.show();
 
             Button btnLogin = dialog.findViewById(R.id.btnLogin);
+            CheckBox regCheckBox = dialog.findViewById(R.id.regCheckBox);
+
+            regCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> btnLogin.setEnabled(true));
 
             btnLogin.setOnClickListener(view -> {
 
