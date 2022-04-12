@@ -68,16 +68,10 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         // Required empty public constructor
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
         story = event.story;
-        if (TextUtils.isEmpty(story)) story = null;
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        if (razdel == 10) {
-            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
-        }
     }
 
     @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
@@ -114,20 +108,21 @@ public class MainFragmentFav extends Fragment implements RecyclerView.OnScrollCh
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
         recyclerView.addItemDecoration(dividerItemDecoration);
+        recyclerView.setAdapter(adapter);
 
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
-            FragmentManager fragmentManager = getParentFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container, new MainFragmentFav())
-                    .addToBackStack(null)
-                    .commit();
+            requestCount = 1;
+            progressBar.setVisibility(View.VISIBLE);
+            listFeed = new ArrayList<>();
+            requestQueue = Volley.newRequestQueue(requireActivity());
+            getData();
+            adapter = new MainAdapter(listFeed, getContext());
+            recyclerView.setAdapter(adapter);
             swipLayout.setRefreshing(false);
-            adapter.notifyDataSetChanged();
         });
 
-        recyclerView.setAdapter(adapter);
         return root;
     }
 

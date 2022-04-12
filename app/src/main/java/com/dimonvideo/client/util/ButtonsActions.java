@@ -232,9 +232,25 @@ public class ButtonsActions {
 
         Button bt_close = dialog.findViewById(R.id.btn_close);
         Button bt_go = dialog.findViewById(R.id.btn_go);
+        Button bt_sett = dialog.findViewById(R.id.btn_setting);
+
         bt_close.setOnClickListener(v -> dialog.dismiss());
+
+        // переход в профиль
         bt_go.setOnClickListener(view -> {
             String url = Config.BASE_URL + "/0/name/"+login_name;
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+
+            try {
+                context.startActivity(browserIntent);
+            } catch (Throwable ignored) {
+            }
+        });
+
+        // переход в настройки сайта
+        bt_sett.setOnClickListener(view -> {
+            String url = Config.BASE_URL + "/set";
 
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 

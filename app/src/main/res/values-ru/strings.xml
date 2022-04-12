@@ -124,8 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - исправлен выбор категорий в настройках Новостей.\n
-        - на форуме при просмотре тем добавлена опция Жалобы на тему.
+        - исправлено обновление Избранного.\n
+        - в информацию о пользователе добавлена кнопка перехода в Настройки сайта.\n
+        - добавлен свайп для обновления в Подробном просмотре.
 
     </string>
     <string name="export">Экспорт настроек на SD</string>
@@ -157,5 +158,6 @@
     <string name="action_abuse">Пожаловаться на тему</string>
     <string name="share_no_email_handler_found">Приложение для электронной почты не найдено!</string>
     <string name="rules">ВЯ принимаю <a href="https://dimonvideo.ru/apps/dvclient_privacy_policy.htm">политку безопасности</a> и <a href="https://dimonvideo.ru/forum/topic_2397">правила для посететилей сайта</a> перед регистрацией.</string>
+    <string name="btn_sett">Настройки сайта</string>
 
 </resources>

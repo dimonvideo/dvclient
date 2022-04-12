@@ -18,12 +18,14 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.adater.MainAdapterFull;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.MessageEvent;
@@ -42,13 +44,15 @@ import java.util.Objects;
 import java.util.Set;
 
 @RequiresApi(api = Build.VERSION_CODES.M)
-public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnScrollChangeListener  {
+public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
 
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
+    SwipeRefreshLayout swipLayout;
 
     private RequestQueue requestQueue;
+    private ProgressBar progressBar, ProgressBarBottom;
 
     private int requestCount = 1;
     static int razdel = 10;
@@ -65,7 +69,7 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-        View root = inflater.inflate(R.layout.fragment_home_horizontal, container, false);
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         recyclerView = root.findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager
@@ -79,7 +83,10 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
-
+        progressBar = root.findViewById(R.id.progressbar);
+        progressBar.setVisibility(View.VISIBLE);
+        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
 
@@ -87,6 +94,17 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
 
         recyclerView.setAdapter(adapter);
 
+        // обновление
+        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            listFeed = new ArrayList<>();
+            requestQueue = Volley.newRequestQueue(requireActivity());
+            getData();
+            adapter = new MainAdapter(listFeed, getContext());
+            recyclerView.setAdapter(adapter);
+            swipLayout.setRefreshing(false);
+        });
 
         return root;
     }
@@ -173,6 +191,8 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         }
         return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
                 response -> {
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {
                             Feed jsonFeed = new Feed();
                             JSONObject json;
@@ -203,11 +223,15 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
                     new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
 
                 },
-                error -> {});
+                error -> {
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
+                });
     }
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        ProgressBarBottom.setVisibility(View.VISIBLE);
         requestQueue.add(getDataFromServer(requestCount));
         requestCount++;
     }
@@ -229,7 +253,11 @@ public class MainFragmentHorizontal extends Fragment implements RecyclerView.OnS
         }
     }
 
+    // обновление
+    @Override
+    public void onRefresh() {
 
+    }
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);

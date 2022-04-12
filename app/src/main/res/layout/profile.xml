@@ -119,6 +119,18 @@
                     android:textStyle="bold" />
 
                 <Button
+                    android:id="@+id/btn_setting"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_margin="10dp"
+                    android:background="@color/colorPrimary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center|center_horizontal"
+                    android:text="@string/btn_sett"
+                    android:textStyle="bold" />
+
+                <Button
                     android:id="@+id/btn_close"
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
