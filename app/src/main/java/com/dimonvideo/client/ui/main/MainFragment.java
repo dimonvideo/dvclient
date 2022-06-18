@@ -98,7 +98,7 @@ public class MainFragment extends Fragment  {
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,true);
-        viewPager.setOffscreenPageLimit(4);
+        viewPager.setOffscreenPageLimit(1);
 
         tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
             //position of the current tab and the tab

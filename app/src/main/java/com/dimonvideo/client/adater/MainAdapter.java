@@ -283,7 +283,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
             Spanned spanned = Html.fromHtml(Feed.getFull_text(), parser, new TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {

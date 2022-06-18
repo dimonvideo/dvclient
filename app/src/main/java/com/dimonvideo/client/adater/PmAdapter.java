@@ -115,7 +115,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
         holder.itemView.setOnClickListener(v -> {
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
 
             holder.btns.setVisibility(View.VISIBLE);
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
@@ -124,7 +124,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         });
         holder.textViewText.setOnClickListener(v -> {
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
 
             holder.btns.setVisibility(View.VISIBLE);
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
@@ -133,14 +133,14 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
         });
         holder.send.setOnClickListener(v -> {
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 0, null, 0);
 
         });
         holder.send.setOnLongClickListener(v -> {
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
 
             holder.btns.setVisibility(View.GONE);
             NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 1, null, 0);
@@ -159,9 +159,9 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
     }
 
     // show full
-    private void showFullText(ViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed) {
+    private void showFullText(ViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed, int position) {
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new TagHandler());
             holder.textViewText.setText(spanned);
 

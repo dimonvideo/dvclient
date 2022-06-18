@@ -121,7 +121,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {

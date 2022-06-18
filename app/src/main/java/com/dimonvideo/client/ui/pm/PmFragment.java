@@ -142,7 +142,7 @@ public class PmFragment extends Fragment implements RecyclerView.OnScrollChangeL
         recyclerView.setOnScrollChangeListener(this);
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemViewCacheSize(2);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 

@@ -244,7 +244,7 @@
     <PreferenceCategory app:title="@string/books_pref_tab">
 
         <SwitchPreferenceCompat
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="dvc_books"
             app:title="@string/books" />
         <MultiSelectListPreference

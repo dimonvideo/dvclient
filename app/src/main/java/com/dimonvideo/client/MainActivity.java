@@ -21,6 +21,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.LocaleList;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.text.TextUtils;
@@ -93,6 +94,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements PurchasesUpdatedListener {
@@ -127,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         final boolean is_news = sharedPrefs.getBoolean("dvc_news", true);
         final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery", true);
         final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon", true);
-        final boolean is_books = sharedPrefs.getBoolean("dvc_books", true);
+        final boolean is_books = sharedPrefs.getBoolean("dvc_books", false);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
         final boolean is_forum = sharedPrefs.getBoolean("dvc_forum", true);
         final boolean is_tracker = sharedPrefs.getBoolean("dvc_tracker", true);
@@ -650,24 +652,31 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 }
             } else
             {
-               try{
+                if (getCurrentLanguage().equals("ru")) {
+                    try {
+                        startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                } else {
+                    try {
 
-                   skuList.add(product);
-                   final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-                   params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
-                   billingClient.querySkuDetailsAsync(params.build(), (billingResult, list) -> {
-                       if (list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                           for (final SkuDetails skuDetails : list) {
-                               BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                                       .setSkuDetails(skuDetails)
-                                       .build();
-                               billingClient.launchBillingFlow(MainActivity.this, flowParams);
-                           }
-                       }
-                   });
+                        skuList.add(product);
+                        final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+                        params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
+                        billingClient.querySkuDetailsAsync(params.build(), (billingResult, list) -> {
+                            if (list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                                for (final SkuDetails skuDetails : list) {
+                                    BillingFlowParams flowParams = BillingFlowParams.newBuilder()
+                                            .setSkuDetails(skuDetails)
+                                            .build();
+                                    billingClient.launchBillingFlow(MainActivity.this, flowParams);
+                                }
+                            }
+                        });
 
-               } catch (Throwable ignored) {
-               }
+                    } catch (Throwable ignored) {
+                    }
+                }
             }
         }
 
@@ -765,5 +774,11 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         });
     }
 
-
+    private String getCurrentLanguage(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            return LocaleList.getDefault().get(0).getLanguage();
+        } else{
+            return Locale.getDefault().getLanguage();
+        }
+    }
 }

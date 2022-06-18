@@ -40,15 +40,16 @@
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
+
     <!-- author -->
     <LinearLayout
         android:id="@+id/name_layout"
         android:layout_width="wrap_content"
-        android:layout_below="@id/category"
+        android:layout_below="@id/title"
+        android:layout_toEndOf="@+id/category"
+        android:layout_marginStart="10dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="5dp"
-        android:layout_gravity="center_horizontal|center"
         tools:ignore="ExtraText">
 
         <!-- Added by -->
@@ -76,7 +77,7 @@
     <!-- Thumbnail Image -->
     <ImageView
         android:id="@+id/thumbnail"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:minHeight="200dp"
         android:layout_below="@id/name_layout"
         android:layout_marginEnd="8dp"

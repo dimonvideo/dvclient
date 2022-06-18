@@ -296,7 +296,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.name.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context);
+            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());

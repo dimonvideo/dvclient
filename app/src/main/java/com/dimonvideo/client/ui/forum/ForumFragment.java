@@ -102,7 +102,7 @@ public class ForumFragment extends Fragment  {
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,true);
-        viewPager.setOffscreenPageLimit(4);
+        viewPager.setOffscreenPageLimit(1);
 
         tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
             tab.setText(tabTiles.get(position));
