@@ -11,8 +11,6 @@ import android.os.Build;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,10 +29,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.Comments;
@@ -43,6 +39,7 @@ import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
@@ -88,7 +85,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
-        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -106,7 +102,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         Glide.with(context)
                 .load(Feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(holder.imageView);
+                .apply(new
+                        RequestOptions()
+                        .override(300, 300))
+                .centerCrop()                .into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
@@ -117,6 +116,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         holder.textViewComments.setVisibility(View.VISIBLE);
         holder.rating_logo.setVisibility(View.VISIBLE);
         holder.textViewName.setText(Feed.getUser());
+
+        // комментарии
         holder.textViewComments.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + com.dimonvideo.client.model.Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
             Intent intent = new Intent(context, Comments.class);
@@ -131,32 +132,24 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
+
+        // избранное
         if (Feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);
             holder.fav_star.setOnClickListener(v -> removeFav(position));
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
+        // открытие подробной информации
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            if (holder.btn_comms.getVisibility() == View.VISIBLE) {
-                hide_content(holder, position);
-            } else {
-
-                try { open_content(holder, position, context, is_share_btn);
-                } catch (Throwable ignored) {
-                }
-            }
-
+            openBottomSheet(view, position);
         });
 
+        // открытие подробной информации
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            if (holder.btn_comms.getVisibility() != View.VISIBLE) {
-                try { open_content(holder, position, context, is_share_btn);
-                } catch (Throwable ignored) {
-                }
-            }
+            openBottomSheet(view, position);
         });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
@@ -170,16 +163,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.MUZON_RAZDEL) && is_muzon_play))
                 holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
         } catch (Exception ignored) {
-        }
-        if (Feed.getMin() > 0) {
-            holder.btn_comms.setVisibility(View.GONE);
-            holder.txt_plus.setVisibility(View.GONE);
-            holder.likeButton.setVisibility(View.GONE);
-            holder.starButton.setVisibility(View.GONE);
-            holder.btn_mp4.setVisibility(View.GONE);
-            holder.btn_share.setVisibility(View.GONE);
-            holder.btn_download.setVisibility(View.GONE);
-            holder.btn_mod.setVisibility(View.GONE);
         }
 
         // dialog menu
@@ -212,7 +195,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
     }
 
-    // dialog
+    // диалог по долгому нажатию
     private void show_dialog(ViewHolder holder, final int position, Context context) {
         final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open),
                 context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen),
@@ -270,33 +253,85 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     }
 
     // подробный вывод файла
-    @SuppressLint("NotifyDataSetChanged")
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void open_content(ViewHolder holder, final int position, Context context, Boolean is_share_btn) {
+    private void openBottomSheet(View v, int position) {
+
         final Feed Feed = jsonFeed.get(position);
-        holder.txt_plus.setVisibility(View.VISIBLE);
-        holder.likeButton.setVisibility(View.VISIBLE);
-        holder.starButton.setVisibility(View.VISIBLE);
-        holder.name.setVisibility(View.VISIBLE);
-        holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
+
+        Context context=v.getContext();
+        final BottomSheetDialog dialog;
+        View views = LayoutInflater.from(context).inflate(R.layout.bottom_detail, null);
+
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
+        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
+
+        TextView textViewTitle = views.findViewById(R.id.title);
+        textViewTitle.setText(Feed.getTitle());
+        TextView textViewDate = views.findViewById(R.id.date);
+        textViewDate.setText(Feed.getDate());
+        TextView textViewCategory = views.findViewById(R.id.category);
+        textViewCategory.setText(Feed.getCategory());
+        TextView txt_plus = views.findViewById(R.id.txt_plus);
+        txt_plus.setText(String.valueOf(Feed.getPlus()));
+        TextView textViewAuthor = views.findViewById(R.id.by_name);
+        textViewAuthor.setText(String.valueOf(Feed.getUser()));
+
+        Button dismiss2 = views.findViewById(R.id.dismiss2);
+        Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share;
+
+        LikeButton likeButton, starButton;
+        likeButton = views.findViewById(R.id.thumb_button);
+
+        starButton = views.findViewById(R.id.star_button);
+
+        btn_comms = views.findViewById(R.id.btn_comment);
+        btn_download = views.findViewById(R.id.btn_download);
+        btn_mod = views.findViewById(R.id.btn_mod);
+        btn_share = views.findViewById(R.id.btn_share);
+        btn_mp4 = views.findViewById(R.id.btn_mp4);
+
+        // html textview
+        TextView textViewText = views.findViewById(R.id.text);
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
+            URLImageParser parser = new URLImageParser(textViewText, context, position);
             Spanned spanned = Html.fromHtml(Feed.getFull_text(), parser, new TagHandler());
-            holder.textViewText.setText(spanned);
-            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+            textViewText.setText(spanned);
+            textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
-                    // open links from listtext
                     OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
                 }
             });
-
         } catch (Throwable ignored) {
         }
-        holder.btn_comms.setOnClickListener(view -> {
+
+        ImageView imageView = views.findViewById(R.id.logo);
+        ImageView imageDismiss = views.findViewById(R.id.dismiss);
+
+        Glide.with(context).load(Feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .fitCenter()
+                .into(imageView);
+
+        imageView.setOnClickListener(view -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
+
+        dialog = new BottomSheetDialog(context);
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.setContentView(views);
+        dialog.show();
+
+        imageDismiss.setOnClickListener(view -> {
+            dialog.dismiss();
+        });
+        dismiss2.setOnClickListener(view -> {
+            dialog.dismiss();
+        });
+
+
+        btn_comms.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + com.dimonvideo.client.model.Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
             Intent intent = new Intent(context, Comments.class);
             intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
@@ -306,53 +341,54 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             context.startActivity(intent);
 
         });
+        // комментарии
         if (Feed.getComments() > 0) {
             String comText = context.getResources().getString(R.string.Comments) + " " + Feed.getComments();
-            holder.btn_comms.setText(comText);
+            btn_comms.setText(comText);
         } else {
             String comText = context.getResources().getString(R.string.Comments) + " " + 0;
-            holder.btn_comms.setText(comText);
+            btn_comms.setText(comText);
         }
         // смотреть онлайн
         if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL))) {
-            holder.btn_mp4.setVisibility(View.VISIBLE);
-            holder.btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+            btn_mp4.setVisibility(View.VISIBLE);
+            btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
         }
         // слушать онлайн
         if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.MUZON_RAZDEL))) {
-            holder.btn_mp4.setVisibility(View.VISIBLE);
-            holder.btn_mp4.setText(R.string.listen_online);
-            holder.btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+            btn_mp4.setVisibility(View.VISIBLE);
+            btn_mp4.setText(R.string.listen_online);
+            btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, Feed.getLink()));
         }
         // если нет размера файла
         if ((Feed.getSize() == null) || (Feed.getSize().startsWith("0"))) {
-            holder.btn_download.setVisibility(View.GONE);
-            holder.btn_mod.setVisibility(View.GONE);
+            btn_download.setVisibility(View.GONE);
+            btn_mod.setVisibility(View.GONE);
         } else {
-            holder.btn_download.setText(context.getString(R.string.download) + " " + Feed.getSize());
-            holder.btn_download.setVisibility(View.VISIBLE);
+            btn_download.setText(context.getString(R.string.download) + " " + Feed.getSize());
+            btn_download.setVisibility(View.VISIBLE);
         }
         // если нет mod
         if ((Feed.getMod() != null) && (!Feed.getMod().startsWith("null"))) {
-            holder.btn_mod.setVisibility(View.VISIBLE);
-            holder.btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod(), com.dimonvideo.client.model.Feed.getRazdel()));
+            btn_mod.setVisibility(View.VISIBLE);
+            btn_mod.setOnClickListener(view -> DownloadFile.download(context, Feed.getMod(), com.dimonvideo.client.model.Feed.getRazdel()));
         }
 
-        // share menu
+        // поделится
         try {
-            if (!is_share_btn) holder.btn_share.setVisibility(View.VISIBLE);
+            if (!is_share_btn) btn_share.setVisibility(View.VISIBLE);
         } catch (Throwable ignored) {
         }
 
-        holder.btn_share.setOnClickListener(view -> {
+        btn_share.setOnClickListener(view -> {
 
-            holder.url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getId();
+            String url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getId();
             if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
-                holder.url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
+                url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
 
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, url);
             sendIntent.setType("text/plain");
             Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
 
@@ -363,76 +399,47 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         });
 
-        // download
-        holder.btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel()));
+        // скачать
+        btn_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel()));
 
-        // like and favorites
-        holder.starButton.setOnLikeListener(new OnLikeListener() {
+        // лайк и избранное
+        starButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton starButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+                Snackbar.make(views, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
                 ButtonsActions.add_to_fav_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 1); // в избранное
             }
 
             @Override
             public void unLiked(LikeButton starButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
+                Snackbar.make(views, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
                 ButtonsActions.add_to_fav_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 2); // из избранного
             }
         });
 
-        holder.likeButton.setOnLikeListener(new OnLikeListener() {
+        likeButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton likeButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
+                Snackbar.make(views, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
                 ButtonsActions.like_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 1);
-                holder.txt_plus.setText(String.valueOf(Feed.getPlus() + 1));
+                txt_plus.setText(String.valueOf(Feed.getPlus() + 1));
 
             }
 
             @Override
             public void unLiked(LikeButton likeButton) {
-                Snackbar.make(holder.itemView, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
+                Snackbar.make(views, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
                 ButtonsActions.like_file(context, com.dimonvideo.client.model.Feed.getRazdel(), Feed.getId(), 2);
-                holder.txt_plus.setText(String.valueOf(Feed.getPlus() - 1));
+                txt_plus.setText(String.valueOf(Feed.getPlus() - 1));
             }
         });
 
-        // comments
-        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.TRACKER_RAZDEL))) holder.btn_comms.setVisibility(View.GONE); else holder.btn_comms.setVisibility(View.VISIBLE);
-        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.TRACKER_RAZDEL))) holder.btn_share.setVisibility(View.GONE); else holder.btn_share.setVisibility(View.VISIBLE);
+        // скрытие лишнего
+        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.TRACKER_RAZDEL))) btn_comms.setVisibility(View.GONE); else btn_comms.setVisibility(View.VISIBLE);
+        if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.TRACKER_RAZDEL))) btn_share.setVisibility(View.GONE); else btn_share.setVisibility(View.VISIBLE);
 
-        if (is_share_btn) holder.btn_share.setVisibility(View.GONE);
+        if (is_share_btn) btn_share.setVisibility(View.GONE);
 
-        holder.textViewText.setOnClickListener(view -> {
-            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            if (holder.btn_comms.getVisibility() == View.VISIBLE) {
-                hide_content(holder, position);
-            } else {
-                open_content(holder, position, context, is_share_btn);
-            }
-
-        });
-
-    }
-
-    // подробный вывод файла - close
-    private void hide_content(ViewHolder holder, final int position) {
-        final Feed Feed = jsonFeed.get(position);
-        holder.txt_plus.setVisibility(View.GONE);
-        holder.likeButton.setVisibility(View.GONE);
-        holder.starButton.setVisibility(View.GONE);
-        holder.name.setVisibility(View.GONE);
-        holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
-        try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
-        } catch (Throwable ignored) {
-        }
-        holder.btn_download.setVisibility(View.GONE);
-        holder.btn_mod.setVisibility(View.GONE);
-        holder.btn_mp4.setVisibility(View.GONE);
-        holder.btn_share.setVisibility(View.GONE);
-        holder.btn_comms.setVisibility(View.GONE);
     }
 
     @Override
@@ -451,13 +458,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, txt_plus, textViewName;
+        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewName;
         public ImageView imageView, rating_logo, status_logo, fav_star;
         public TextView textViewText;
         public String url;
-        public Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share;
         public ProgressBar progressBar;
-        public LikeButton likeButton, starButton;
         public LinearLayout name;
         public ClipboardManager myClipboard;
         public ClipData myClip;
@@ -476,15 +481,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             textViewComments = itemView.findViewById(R.id.rating);
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
-            btn_comms = itemView.findViewById(R.id.btn_comment);
-            btn_download = itemView.findViewById(R.id.btn_download);
-            btn_mod = itemView.findViewById(R.id.btn_mod);
-            btn_share = itemView.findViewById(R.id.btn_share);
-            btn_mp4 = itemView.findViewById(R.id.btn_mp4);
             progressBar = itemView.findViewById(R.id.progressBar);
-            likeButton = itemView.findViewById(R.id.thumb_button);
-            starButton = itemView.findViewById(R.id.star_button);
-            txt_plus = itemView.findViewById(R.id.txt_plus);
             name = itemView.findViewById(R.id.name_layout);
         }
 

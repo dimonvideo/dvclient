@@ -124,7 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - исправлены некоторые ошибки и улучшена производительность.
+        - изменен полный просмотр файла по нажатию, теперь он выезжает снизу и не мешает просмотру скринов в описании.
 
     </string>
     <string name="export">Экспорт настроек на SD</string>
