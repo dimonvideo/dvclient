@@ -89,5 +89,13 @@ public class Config {
     public static final String TAG_REG = "reg_date";
     public static final String TAG_POST_ID = "post_id";
 
+    // Public store url
+    public static final String GOOGLE_PLAY_URL = "https://play.google.com/store/apps/dev?id=6091758746633814135";
+    public static final String DIMONVIDEO_URL = "https://dimonvideo.ru/android/14/dimonvideo/0/0";
+
+    public static final String GOOGLE_PLAY_RATE_URL = "https://play.google.com/store/apps/details?id=com.dimonvideo.client";
+    public static final String SAMSUNG_RATE_URL = "https://galaxystore.samsung.com/detail/com.dimonvideo.client";
+    public static final String HUAWEI_RATE_URL = "https://appgallery.huawei.com/#/app/C102637431";
+    public static final String NASHSTORE_RATE_URL = "https://store.nashstore.ru/store/628255144891a569645ea5f2";
 }
 

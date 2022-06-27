@@ -39,14 +39,40 @@ android {
 
     flavorDimensions 'dimonvideo'
     productFlavors {
-        DVClientSamsung {
+        DVClient_NashStore {
             dimension = 'dimonvideo'
+            buildConfigField "boolean", "HUAWEI", "false"
+            buildConfigField "boolean", "SAMSUNG", "false"
+            buildConfigField "boolean", "NASHSTORE", "true"
+            buildConfigField "boolean", "GOOGLE", "false"
+            versionNameSuffix "-nashstore"
+        }
+
+        DVClient_Samsung {
+            dimension = 'dimonvideo'
+            buildConfigField "boolean", "HUAWEI", "false"
+            buildConfigField "boolean", "SAMSUNG", "true"
+            buildConfigField "boolean", "NASHSTORE", "false"
+            buildConfigField "boolean", "GOOGLE", "false"
             versionNameSuffix "-samsung"
         }
-        DVClientGoogle {
-            dimension = 'dimonvideo'
-            versionNameSuffix "-release"
 
+        DVClient_Huawei {
+            dimension = 'dimonvideo'
+            buildConfigField "boolean", "HUAWEI", "true"
+            buildConfigField "boolean", "SAMSUNG", "false"
+            buildConfigField "boolean", "NASHSTORE", "false"
+            buildConfigField "boolean", "GOOGLE", "false"
+            versionNameSuffix "-huawei"
+        }
+
+        DVClient_Google {
+            dimension = 'dimonvideo'
+            buildConfigField "boolean", "HUAWEI", "false"
+            buildConfigField "boolean", "SAMSUNG", "false"
+            buildConfigField "boolean", "NASHSTORE", "false"
+            buildConfigField "boolean", "GOOGLE", "true"
+            versionNameSuffix "-google"
         }
     }
     lint {

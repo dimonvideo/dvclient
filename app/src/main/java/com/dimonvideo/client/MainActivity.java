@@ -81,6 +81,7 @@ import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.PurchaseHelper;
 import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.dimonvideo.client.util.Security;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -98,7 +99,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements PurchasesUpdatedListener {
+public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     Fragment homeFrag;
@@ -106,13 +107,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     static int razdel = 10;
     private RequestPermissionHandler mRequestPermissionHandler;
     private int backpress = 0;
-
-
-    // ---------- billing ----------------
-    BillingClient billingClient;
-    List<String> skuList = new ArrayList<>();
-    String product = "com.dimonvideo.client_1";
-    // ------------------------------------
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -397,99 +391,13 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 e.printStackTrace();
         }
 
+        // billing init
+        PurchaseHelper.init(this, MainActivity.this);
 
-
-
-        // ---- billing --------
-        billingClient = BillingClient.newBuilder(MainActivity.this).enablePendingPurchases().setListener((billingResult, list) -> {
-            if(list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK)
-            {
-                for(Purchase purchase : list)
-                {
-                    handlePurchase(purchase);
-                }
-            }
-        }).build();
-        billingClient.startConnection(new BillingClientStateListener() {
-            @Override
-            public void onBillingSetupFinished(BillingResult billingResult) {
-                if(billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK)
-                {
-                    Toast.makeText(MainActivity.this, "Successfully connected to Billing Client", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    Toast.makeText(MainActivity.this, "Failed to connect to Google Services", Toast.LENGTH_SHORT).show();
-                }
-            }
-            @Override
-            public void onBillingServiceDisconnected() {
-                Toast.makeText(MainActivity.this, "Disconnected from the Billing Client", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // -------------------
         mRequestPermissionHandler = new RequestPermissionHandler();
         handlePerm();
 
     }
-
-    private boolean isSignatureValid(Purchase purchase) {
-        return Security.verifyPurchase(Security.BASE_64_ENCODED_PUBLIC_KEY, purchase.getOriginalJson(), purchase.getSignature());
-    }
-
-    public void handlePurchase(Purchase purchase) {
-        try {
-            if ((purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) && isSignatureValid(purchase)) {
-                if (purchase.getSkus().get(0).equals(product)) {
-
-                    ConsumeParams.Builder param = ConsumeParams.newBuilder();
-                    param.setPurchaseToken(purchase.getPurchaseToken());
-                    billingClient.consumeAsync(param.build(), (billingResult1, s) ->
-                            (new Handler(Looper.getMainLooper())).post(()->
-                                    Toast.makeText(this, getString(R.string.thanks), Toast.LENGTH_SHORT).show()));
-                    if (billingClient!= null) {
-                        billingClient.endConnection();
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-
-
-        }
-    }
-    @Override
-    public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
-        int responseCode = billingResult.getResponseCode();
-        if (responseCode == BillingClient.BillingResponseCode.OK && purchases != null)
-        {
-            for (Purchase purchase : purchases) {
-                handlePurchase(purchase);
-            }
-        }
-    }
-
-    private final PurchasesUpdatedListener purchasesUpdatedListener = (billingResult, purchases) -> {
-        if(billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases!=null && purchases.size()>0) {
-            for(Purchase purchase: purchases) {
-                if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-                    ConsumeParams.Builder param = ConsumeParams.newBuilder();
-                    param.setPurchaseToken(purchase.getPurchaseToken());
-                    billingClient.consumeAsync(param.build(), new ConsumeResponseListener() {
-                        @Override
-                        public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String s) {
-
-                            (new Handler(Looper.getMainLooper())).post(()->
-                                    Toast.makeText(MainActivity.this, getString(R.string.thanks), Toast.LENGTH_SHORT).show());
-                        }
-                    });
-                }
-            }
-        }
-    };
 
 
     // масштабирование шрифтов
@@ -624,6 +532,24 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             } catch (Throwable ignored) {
             }
         }
+
+        // rate app
+        if (id == R.id.action_rate) {
+
+            String url = Config.GOOGLE_PLAY_RATE_URL;
+            if (BuildConfig.SAMSUNG) url = Config.SAMSUNG_RATE_URL;
+            if (BuildConfig.HUAWEI) url = Config.HUAWEI_RATE_URL;
+            if (BuildConfig.NASHSTORE) url = Config.NASHSTORE_RATE_URL;
+
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
+                    url));
+
+            try {
+                startActivity(browserIntent);
+            } catch (Throwable ignored) {
+            }
+        }
+
         // feedback
         if (id == R.id.action_feedback) {
 
@@ -660,7 +586,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                     url));
 
 
-            if (BuildConfig.FLAVOR.equals("DVClientSamsung")) {
+            if (!BuildConfig.GOOGLE) {
                 try {
                     startActivity(browserIntent);
                 } catch (Throwable ignored) {
@@ -675,19 +601,7 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
                 } else {
                     try {
 
-                        skuList.add(product);
-                        final SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-                        params.setSkusList(skuList).setType(BillingClient.SkuType.INAPP);
-                        billingClient.querySkuDetailsAsync(params.build(), (billingResult, list) -> {
-                            if (list != null && billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                                for (final SkuDetails skuDetails : list) {
-                                    BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                                            .setSkuDetails(skuDetails)
-                                            .build();
-                                    billingClient.launchBillingFlow(MainActivity.this, flowParams);
-                                }
-                            }
-                        });
+                        PurchaseHelper.doPurchase(MainActivity.this);
 
                     } catch (Throwable ignored) {
                     }
@@ -723,9 +637,6 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         try {
             unregisterReceiver(receiver);
         } catch (Throwable ignored) {
-        }
-        if(billingClient!=null){
-            billingClient.endConnection();
         }
         super.onDestroy();
     }

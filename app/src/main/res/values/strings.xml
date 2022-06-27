@@ -160,6 +160,9 @@
     <string name="share_no_email_handler_found">No Email App found!</string>
     <string name="rules">Accept our <a href="https://dimonvideo.ru/apps/dvclient_privacy_policy.htm">app’s terms of user/user policy</a> and <a href="https://dimonvideo.ru/forum/topic_2397">site rules</a> before sign up.</string>
     <string name="btn_sett">Site settings</string>
-    <string name="clear_cache">Cleare cache</string>
+    <string name="clear_cache">Clear cache</string>
     <string name="clear_cache_success">Cache cleared!</string>
+    <string name="action_rate">Rate app</string>
+    <string name="no_bp">Billing not available</string>
+    <string name="purchase_cancelled">Purchase was cancelled</string>
 </resources>

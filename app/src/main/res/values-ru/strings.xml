@@ -161,5 +161,7 @@
     <string name="btn_sett">Настройки сайта</string>
     <string name="clear_cache">Очистить кэш</string>
     <string name="clear_cache_success">Кэш очищен!</string>
-
+    <string name="action_rate">Оценить программу</string>
+    <string name="no_bp">Биллинг недоступен</string>
+    <string name="purchase_cancelled">Покупка отменена</string>
 </resources>
