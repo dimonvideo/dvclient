@@ -2,6 +2,8 @@ package com.dimonvideo.client.util;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,6 +14,7 @@ import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchaseHistoryResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
@@ -27,7 +30,7 @@ public class PurchaseHelper implements PurchasesUpdatedListener {
     public static BillingClient billingClient;
     static String product = "com.dimonvideo.client_1";
 
-    public static void init(Context mContext, Activity activity) {
+    public static void init(Context mContext) {
 
         // ---- billing init --------
         billingClient = BillingClient.newBuilder(mContext).enablePendingPurchases().setListener((billingResult, list) -> {
@@ -79,16 +82,11 @@ public class PurchaseHelper implements PurchasesUpdatedListener {
         try {
             if ((purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) && isSignatureValid(purchase)) {
 
-                if (!purchase.isAcknowledged()) {
-                    AcknowledgePurchaseParams acknowledgePurchaseParams =
-                            AcknowledgePurchaseParams.newBuilder()
-                                    .setPurchaseToken(purchase.getPurchaseToken())
-                                    .build();
-                    billingClient.acknowledgePurchase(acknowledgePurchaseParams, billingResult -> Log.d("----", "success"));
-
-                    if (billingClient!= null) {
-                        billingClient.endConnection();
-                    }
+                ConsumeParams.Builder param = ConsumeParams.newBuilder();
+                param.setPurchaseToken(purchase.getPurchaseToken());
+                billingClient.consumeAsync(param.build(), (billingResult1, s) -> Log.e("----", "Success"));
+                if (billingClient!= null) {
+                    billingClient.endConnection();
                 }
 
             }
@@ -119,7 +117,6 @@ public class PurchaseHelper implements PurchasesUpdatedListener {
             billingClient.queryProductDetailsAsync(
                     params,
                     (billingResult, productDetailsList) -> {
-                        // Process the result
 
                         ImmutableList<BillingFlowParams.ProductDetailsParams> productDetailsParamsList =
                                 ImmutableList.of(
