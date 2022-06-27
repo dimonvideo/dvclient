@@ -6,11 +6,13 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +34,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.Comments;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -85,19 +88,22 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
+        holder.status_logo.setImageResource(R.drawable.ic_status_green);
         try {
-            if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
-                holder.status_logo.setImageResource(R.drawable.ic_status_green);
+            int status;
+            Cursor cursor = Provider.getOneData(String.valueOf(Feed.getId()), com.dimonvideo.client.model.Feed.getRazdel());
+            if (cursor != null) {
+                status = cursor.getInt(2);
+                if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+                Log.i("---", "select: " + String.valueOf(cursor.getInt(0)));
+                cursor.close();
             }
-        } catch (Exception ignored) {
+
+        } catch (Throwable ignored) {
         }
+
+
         //Loading image from url
         Glide.with(context)
                 .load(Feed.getImageUrl())
@@ -140,28 +146,43 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
+        int lid = Feed.getId();
+
         // открытие подробной информации
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            openBottomSheet(view, position);
+            openBottomSheet(view, position, lid);
         });
 
         // открытие подробной информации
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            openBottomSheet(view, position);
+            openBottomSheet(view, position, lid);
         });
 
-        holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
+        holder.imageView.setOnClickListener(view -> {
+            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+            Provider.updateStatus(lid, com.dimonvideo.client.model.Feed.getRazdel(), 1);
+            ButtonsActions.loadScreen(context, Feed.getImageUrl());
+        });
 
         try {
             if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play))
-                holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+                holder.imageView.setOnClickListener(view -> {
+                    Provider.updateStatus(lid, com.dimonvideo.client.model.Feed.getRazdel(), 1);
+                    holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+                    ButtonsActions.PlayVideo(context, Feed.getLink());
+                });
         } catch (Exception ignored) {
         }
+
         try {
             if ((com.dimonvideo.client.model.Feed.getRazdel() != null) && (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.MUZON_RAZDEL) && is_muzon_play))
-                holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, Feed.getLink()));
+                holder.imageView.setOnClickListener(view -> {
+                    Provider.updateStatus(lid, com.dimonvideo.client.model.Feed.getRazdel(), 1);
+                    holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+                    ButtonsActions.PlayVideo(context, Feed.getLink());
+                });
         } catch (Exception ignored) {
         }
 
@@ -254,9 +275,12 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     // подробный вывод файла
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void openBottomSheet(View v, int position) {
+    private void openBottomSheet(View v, int position, int lid) {
 
         final Feed Feed = jsonFeed.get(position);
+
+        String razdel = com.dimonvideo.client.model.Feed.getRazdel();
+        Provider.updateStatus(lid, razdel, 1);
 
         Context context=v.getContext();
         final BottomSheetDialog dialog;

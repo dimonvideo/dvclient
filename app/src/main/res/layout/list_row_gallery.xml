@@ -78,14 +78,14 @@
     <ImageView
         android:id="@+id/thumbnail"
         android:layout_width="match_parent"
-        android:minHeight="200dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/name_layout"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="4dp"
-        android:layout_centerInParent="true"
         android:layout_gravity="center_horizontal|center"
-        android:contentDescription="@string/action_screen"
-        android:layout_height="wrap_content" />
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/action_screen"/>
 
     <!-- favorites -->
     <ImageView

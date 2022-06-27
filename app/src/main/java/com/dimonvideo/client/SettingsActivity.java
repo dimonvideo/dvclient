@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
@@ -111,31 +112,42 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_more = findPreference("dvc_more");
             Preference dvc_comment = findPreference("dvc_comment");
 
+            // переключение темы на лету
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
+
+                if (newValue.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                else if (newValue.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
+
+            // изменение размера шрифтов
             assert dvc_scale != null;
             dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
+
             assert dvc_favor != null;
             dvc_favor.setOnPreferenceChangeListener((preference, newValue) -> {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
+
             assert dvc_more != null;
             dvc_more.setOnPreferenceChangeListener((preference, newValue) -> {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
+
             assert dvc_comment != null;
             dvc_comment.setOnPreferenceChangeListener((preference, newValue) -> {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
+
             assert dvc_password != null;
             dvc_password.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
@@ -144,11 +156,13 @@ public class SettingsActivity extends AppCompatActivity {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
+
             EditTextPreference PasPreference = findPreference("dvc_password");
             if (PasPreference!= null) {
                 PasPreference.setOnBindEditTextListener(
                         editText -> editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD));
             }
+
             assert dvc_login != null;
             dvc_login.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
@@ -156,8 +170,8 @@ public class SettingsActivity extends AppCompatActivity {
                 NetworkUtils.checkLogin(getContext(), view, listValue);
                 return true;
             });
-            assert dvc_pm != null;
 
+            assert dvc_pm != null;
             dvc_pm.setOnPreferenceChangeListener((preference, newValue) -> {
                 SharedPreferences sharedPrefs = getDefaultSharedPreferences(requireContext());
                 final String password = sharedPrefs.getString("dvc_password", "null");
@@ -182,7 +196,6 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
-
             assert dvc_export != null;
             dvc_export.setOnPreferenceClickListener(preference -> {
                 saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
@@ -195,6 +208,7 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
+            // интеграция с DVGet
             SwitchPreferenceCompat dvc_dvget = findPreference("dvc_dvget");
             SwitchPreferenceCompat dvc_idm = findPreference("dvc_idm");
             assert dvc_idm != null;

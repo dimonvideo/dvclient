@@ -53,6 +53,7 @@ public class ButtonsActions {
         dialog.setContentView(R.layout.screen);
         ImageView image = dialog.findViewById(R.id.screenshot);
         image.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+
         Glide.with(context).load(image_url).apply(RequestOptions.bitmapTransform(new RoundedCorners(24))).into(image);
 
         dialog.show();

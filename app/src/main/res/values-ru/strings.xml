@@ -124,7 +124,9 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - изменен полный просмотр файла по нажатию, теперь он выезжает снизу и не мешает просмотру скринов в описании.
+        - программа теперь запоминает просмотренные материалы;\n
+        - новая опция в Меню - Очистить кэш;\n
+        - поправлена разметка при просмотре Галерии и Видео.
 
     </string>
     <string name="export">Экспорт настроек на SD</string>
@@ -155,7 +157,9 @@
     <string name="exit_menu">Закрыть программу</string>
     <string name="action_abuse">Пожаловаться на тему</string>
     <string name="share_no_email_handler_found">Приложение для электронной почты не найдено!</string>
-    <string name="rules">ВЯ принимаю <a href="https://dimonvideo.ru/apps/dvclient_privacy_policy.htm">политку безопасности</a> и <a href="https://dimonvideo.ru/forum/topic_2397">правила для посететилей сайта</a> перед регистрацией.</string>
+    <string name="rules">Я принимаю <a href="https://dimonvideo.ru/apps/dvclient_privacy_policy.htm">политку безопасности</a> и <a href="https://dimonvideo.ru/forum/topic_2397">правила для посететилей сайта</a> перед регистрацией.</string>
     <string name="btn_sett">Настройки сайта</string>
+    <string name="clear_cache">Очистить кэш</string>
+    <string name="clear_cache_success">Кэш очищен!</string>
 
 </resources>

@@ -40,6 +40,11 @@
         android:title="@string/action_vote"
         app:showAsAction="never" />
     <item
+        android:id="@+id/nav_clear_cache"
+        android:orderInCategory="101"
+        android:title="@string/clear_cache"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/nav_exit"
         android:orderInCategory="200"
         android:title="@string/exit_menu"

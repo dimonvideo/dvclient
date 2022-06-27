@@ -72,6 +72,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
+import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
@@ -116,11 +117,13 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
+        // очистка старых записей
+        Provider.clearDB_OLD();
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
@@ -140,9 +143,12 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
         final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+
         if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
+        super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
         adjustFontScale(getResources().getConfiguration());
@@ -634,6 +640,15 @@ public class MainActivity extends AppCompatActivity implements PurchasesUpdatedL
             } catch (android.content.ActivityNotFoundException e) {
                 Toast.makeText(this, getString(R.string.share_no_email_handler_found), Toast.LENGTH_SHORT).show();
             }
+        }
+
+        // clear cache
+        if (id == R.id.nav_clear_cache) {
+            new Thread(() -> Glide.get(MainActivity.this).clearDiskCache()).start();
+            Provider.clearDB();
+            Toast.makeText(this, this.getString(R.string.clear_cache_success), Toast.LENGTH_LONG).show();
+            return true;
+
         }
 
         // donate
