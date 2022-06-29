@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.LocaleList;
 import android.os.StrictMode;
 import android.text.TextUtils;
@@ -96,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // очистка старых записей
-        Provider.clearDB_OLD();
+        new Handler().postDelayed(Provider::clearDB_OLD, 3000);
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);

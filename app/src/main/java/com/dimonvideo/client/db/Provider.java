@@ -161,7 +161,7 @@ public class Provider extends ContentProvider {
     public static void clearDB_OLD(){
         SQLiteDatabase sqlDB = database.getWritableDatabase();
 
-        String selectQuery = "DELETE FROM "+Table.TABLE_NAME+" WHERE "+Table.COLUMN_TIMESTAMP+" >= date('now','-150 day')";
+        String selectQuery = "DELETE FROM "+Table.TABLE_NAME+" WHERE "+Table.COLUMN_TIMESTAMP+" >= date('now','-100 day')";
         sqlDB.execSQL(selectQuery);
     }
 
