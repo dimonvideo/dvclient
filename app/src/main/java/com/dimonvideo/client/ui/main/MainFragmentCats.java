@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
 
     private List<FeedCats> listFeed;

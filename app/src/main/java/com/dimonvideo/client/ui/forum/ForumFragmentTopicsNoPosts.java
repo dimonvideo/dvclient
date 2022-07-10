@@ -40,8 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
-public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
+public class ForumFragmentTopicsNoPosts extends Fragment implements SwipeRefreshLayout.OnRefreshListener   {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -87,7 +86,17 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+
+            }
+        });
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         recyclerView.setItemViewCacheSize(30);
@@ -165,14 +174,6 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements RecyclerView
             return lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1;
         }
         return false;
-    }
-
-    // получение следующей страницы при скролле
-    @Override
-    public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-        if (isLastItemDisplaying(recyclerView)) {
-            new Handler().postDelayed(this::getData, 300);
-        }
     }
 
     // обновление

@@ -26,6 +26,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -35,12 +36,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.MenuProvider;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -88,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
     private RequestPermissionHandler mRequestPermissionHandler;
     private int backpress = 0;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -340,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
         // открытие личных сообщений
         FloatingActionButton fab = findViewById(R.id.fab);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
+
         fab.setOnClickListener(view -> {
 
             FragmentManager fragmentManager = getSupportFragmentManager();
@@ -419,7 +422,6 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -466,7 +468,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     // menu
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -640,6 +641,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed(){
         Toolbar toolbar = this.findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.menu_home);
         toolbar.setSubtitle(null);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         setSupportActionBar(toolbar);

@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -58,8 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
-public class PostsSearch extends AppCompatActivity  implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
+public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -103,8 +103,17 @@ public class PostsSearch extends AppCompatActivity  implements RecyclerView.OnSc
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
 
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+
+            }
+        });
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(this);
         progressBar = findViewById(R.id.progressbar);
@@ -270,14 +279,6 @@ public class PostsSearch extends AppCompatActivity  implements RecyclerView.OnSc
         return false;
     }
 
-    // получение следующей страницы при скролле
-    @Override
-    public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-        if (isLastItemDisplaying(recyclerView)) {
-            getData();
-        }
-    }
-
     // обновление
     @Override
     public void onRefresh() {
@@ -295,7 +296,7 @@ public class PostsSearch extends AppCompatActivity  implements RecyclerView.OnSc
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.menu_topics, menu);
         return true;
     }

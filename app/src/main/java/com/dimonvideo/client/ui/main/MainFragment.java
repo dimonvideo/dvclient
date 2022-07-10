@@ -50,7 +50,6 @@ public class MainFragment extends Fragment  {
         story = event.story;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 

@@ -179,7 +179,7 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
 
     // dialog
     private void show_dialog(ViewHolder holder, final int position, Context context){
-        final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.copy_listtext)};
+        final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.copy_listtext), context.getString(R.string.pm_delete)};
         final FeedPm Feed =  jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -204,7 +204,15 @@ public class PmAdapter extends RecyclerView.Adapter<PmAdapter.ViewHolder> {
                 }
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
+            if (item == 2) { // delete
+                try {
+                    removeItem(position);
+                    Toast.makeText(context, context.getString(R.string.msg_removed), Toast.LENGTH_SHORT).show();
 
+                } catch (Throwable ignored) {
+                }
+                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+            }
         });
         builder.show();
     }

@@ -47,8 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
-public class PmOutboxFragment extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener  {
+public class PmOutboxFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
@@ -80,7 +79,17 @@ public class PmOutboxFragment extends Fragment implements RecyclerView.OnScrollC
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+
+            }
+        });
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
 
@@ -101,85 +110,22 @@ public class PmOutboxFragment extends Fragment implements RecyclerView.OnScrollC
         // обновление
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
-            FragmentManager fragmentManager = getParentFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, new PmOutboxFragment())
-                    .addToBackStack(null)
-                    .commit();
+            requestCount = 1;
+            getData();
             swipLayout.setRefreshing(false);
-            adapter.notifyDataSetChanged();
         });
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.tab_outbox));
-        setHasOptionsMenu(true);
 
         return root;
     }
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_pm_inbox, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        FragmentManager fragmentManager = getParentFragmentManager();
-        if (item.getItemId() == R.id.action_inbox) {
-            Fragment homeFrag = new PmFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
-            return true;
-        }
-        if (item.getItemId() == R.id.action_friends) {
-            Fragment homeFrag = new PmFriendsFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
-            return true;
-        }
-        if (item.getItemId() == R.id.action_outbox) {
-            Fragment homeFrag = new PmOutboxFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
-            return true;
-        }
-        if (item.getItemId() == R.id.action_ish) {
-            Fragment homeFrag = new PmIshFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
-            return true;
-        }
-        if (item.getItemId() == R.id.action_arh) {
-            Fragment homeFrag = new PmArhivFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
-            return true;
-        }
-        if (item.getItemId() == R.id.action_trash) {
-            Fragment homeFrag = new PmTrashFragment();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
     }
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
         String login = sharedPrefs.getString("dvc_login","null");
@@ -239,14 +185,6 @@ public class PmOutboxFragment extends Fragment implements RecyclerView.OnScrollC
             return lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1;
         }
         return false;
-    }
-
-    // получение следующей страницы при скролле
-    @Override
-    public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-        if (isLastItemDisplaying(recyclerView)) {
-            getData();
-        }
     }
 
     // обновление

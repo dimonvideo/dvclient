@@ -37,8 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
-public class ForumFragmentForums extends Fragment implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener   {
+public class ForumFragmentForums extends Fragment implements SwipeRefreshLayout.OnRefreshListener   {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -78,8 +77,17 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setOnScrollChangeListener(this);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
 
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+
+            }
+        });
         listFeed = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(requireActivity());
 
@@ -167,14 +175,6 @@ public class ForumFragmentForums extends Fragment implements RecyclerView.OnScro
             return lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1;
         }
         return false;
-    }
-
-    // получение следующей страницы при скролле
-    @Override
-    public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-        if (isLastItemDisplaying(recyclerView)) {
-            getData();
-        }
     }
 
     // обновление
