@@ -36,6 +36,7 @@ import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -154,48 +155,7 @@ public class MainFragmentComments extends Fragment implements SwipeRefreshLayout
     private JsonArrayRequest getDataFromServer(int requestCount) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
-
-
-
-        if (razdel == 1) {
-            key = Config.GALLERY_RAZDEL;
-        }
-        if (razdel == 2) {
-            key = Config.UPLOADER_RAZDEL;
-
-        }
-        if (razdel == 3) {
-            key = Config.VUPLOADER_RAZDEL;
-
-        }
-        if (razdel == 4) {
-            key = Config.NEWS_RAZDEL;
-
-        }
-        if (razdel == 5) {
-            key = Config.MUZON_RAZDEL;
-
-        }
-        if (razdel == 6) {
-            key = Config.BOOKS_RAZDEL;
-
-        }
-        if (razdel == 7) {
-            key = Config.ARTICLES_RAZDEL;
-        }
-        if (razdel == 11) {
-            key = Config.ANDROID_RAZDEL;
-        }
-        if (razdel == 14) {
-            key = Config.TRACKER_RAZDEL;
-        }
-        if (razdel == 15) {
-            key = Config.BLOG_RAZDEL;
-        }
-
-
-
-
+        key = GetRazdelName.getRazdelName(razdel, 0);
 
         return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {

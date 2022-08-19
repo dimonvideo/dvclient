@@ -66,6 +66,7 @@ import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.ButtonsActions;
+import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.PurchaseHelper;
@@ -479,6 +480,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(i);
             return true;
         }
+
         // refresh
         if (id == R.id.action_refresh) {
             FragmentManager fragmentManager = getSupportFragmentManager();
@@ -495,6 +497,30 @@ public class MainActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .commit();
 
+        }
+
+        // mark all read
+        if (id == R.id.action_mark) {
+
+            String key = GetRazdelName.getRazdelName(razdel, 0);
+
+            Provider.markAllRead(key);
+            Toast.makeText(this, this.getString(R.string.success), Toast.LENGTH_LONG).show();
+
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
+
+            homeFrag = new MainFragment();
+
+            if (razdel == 8) homeFrag = new ForumFragment(); // forum
+            if (razdel == 13) homeFrag = new PmFragment(); // pm
+
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+
+            fragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, homeFrag)
+                    .addToBackStack(null)
+                    .commit();
         }
 
         // other apps

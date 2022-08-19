@@ -6,6 +6,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -18,6 +19,7 @@ import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +41,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.Comments;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -96,19 +99,21 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
         final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
+        holder.status_logo.setImageResource(R.drawable.ic_status_green);
         try {
-            if (Feed.getTime() > cal.getTimeInMillis() / 1000L) {
-                holder.status_logo.setImageResource(R.drawable.ic_status_green);
+            int status;
+            Cursor cursor = Provider.getOneData(String.valueOf(Feed.getId()), com.dimonvideo.client.model.Feed.getRazdel());
+            if (cursor != null) {
+                status = cursor.getInt(2);
+                if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+                Log.i("---", "select: " + String.valueOf(cursor.getInt(0)));
+                cursor.close();
             }
-        } catch (Exception ignored) {
+
+        } catch (Throwable ignored) {
         }
+
         //Loading image from url
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
 

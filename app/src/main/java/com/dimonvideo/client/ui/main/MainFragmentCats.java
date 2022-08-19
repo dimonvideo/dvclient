@@ -27,6 +27,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainCategoryAdapter;
 import com.dimonvideo.client.model.FeedCats;
+import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -113,16 +114,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     private JsonArrayRequest getDataFromServer() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
-        if (razdel == 1) key = Config.GALLERY_RAZDEL;
-        if (razdel == 2) key = Config.UPLOADER_RAZDEL;
-        if (razdel == 3) key = Config.VUPLOADER_RAZDEL;
-        if (razdel == 4) key = Config.NEWS_RAZDEL;
-        if (razdel == 5) key = Config.MUZON_RAZDEL;
-        if (razdel == 6) key = Config.BOOKS_RAZDEL;
-        if (razdel == 7) key = Config.ARTICLES_RAZDEL;
-        if (razdel == 11) key = Config.ANDROID_RAZDEL;
-        if (razdel == 14) key = Config.TRACKER_RAZDEL;
-        if (razdel == 15) key = Config.BLOG_RAZDEL;
+        key = GetRazdelName.getRazdelName(razdel, 0);
 
         Log.e("mainFragmentCats", ""+url+key);
 

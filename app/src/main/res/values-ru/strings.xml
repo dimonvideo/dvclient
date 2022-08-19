@@ -124,8 +124,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - программа теперь запоминает просмотренные материалы;\n
-        - исправлены вылеты на андроид 5.
+        - новая опция в меню - Отметить просмотренным;\n
+        - исправлены некоторые ошибки.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -162,4 +162,5 @@
     <string name="action_rate">Оценить программу</string>
     <string name="no_bp">Биллинг недоступен</string>
     <string name="purchase_cancelled">Покупка отменена</string>
+    <string name="mark">Отметить просмотренным</string>
 </resources>

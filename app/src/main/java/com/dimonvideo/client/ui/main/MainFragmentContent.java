@@ -2,6 +2,7 @@ package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -51,6 +52,7 @@ import com.dimonvideo.client.db.Table;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -73,6 +75,7 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
+    private static Context mContext;
 
     private RequestQueue requestQueue;
 
@@ -101,8 +104,11 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+
+        mContext = requireContext();
+
         requestCount = 1;
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
 
@@ -116,7 +122,9 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
             EventBus.getDefault().register(this);
         }
 
-        getRazdelName();
+        key = GetRazdelName.getRazdelName(razdel, 0);
+        search_url = GetRazdelName.getRazdelName(razdel, 1);
+        url = GetRazdelName.getRazdelName(razdel, 2);
 
         listFeed = new ArrayList<>();
 
@@ -150,7 +158,7 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         } catch (Throwable ignored) {
         }
 
-        requestQueue = Volley.newRequestQueue(requireActivity());
+        requestQueue = Volley.newRequestQueue(mContext);
         emptyLayout = root.findViewById(R.id.linearEmpty);
 
         progressBar = root.findViewById(R.id.progressbar);
@@ -159,18 +167,18 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new MainAdapter(listFeed, getContext());
+        adapter = new MainAdapter(listFeed, mContext);
 
         recyclerView = root.findViewById(R.id.recycler_view);
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        Drawable horizontalDivider = ContextCompat.getDrawable(mContext, R.drawable.divider);
         assert horizontalDivider != null;
         horizontalDecoration.setDrawable(horizontalDivider);
         recyclerView.addItemDecoration(horizontalDecoration);
 
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(mContext);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -242,7 +250,7 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
 
 
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
@@ -320,7 +328,11 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
                             values.put(Table.COLUMN_RAZDEL, json.getString(Config.TAG_RAZDEL));
                             values.put(Table.COLUMN_SIZE, json.getString(Config.TAG_SIZE));
                             values.put(Table.COLUMN_URL, json.getString(Config.TAG_LINK));
-                            requireContext().getContentResolver().insert(Provider.CONTENT_URI, values);
+
+                            try{
+                                mContext.getContentResolver().insert(Provider.CONTENT_URI, values);
+                            } catch (Throwable ignored) {
+                            }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -337,64 +349,7 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
                 });
     }
 
-    // получение данных по номеру раздела
-    private void getRazdelName() {
-        if (razdel == 1) {
-            url = Config.GALLERY_URL;
-            search_url = Config.GALLERY_SEARCH_URL;
-            key = Config.GALLERY_RAZDEL;
-        }
-        if (razdel == 2) {
-            url = Config.UPLOADER_URL;
-            search_url = Config.UPLOADER_SEARCH_URL;
-            key = Config.UPLOADER_RAZDEL;
 
-        }
-        if (razdel == 3) {
-            url = Config.VUPLOADER_URL;
-            search_url = Config.VUPLOADER_SEARCH_URL;
-            key = Config.VUPLOADER_RAZDEL;
-
-        }
-        if (razdel == 4) {
-            url = Config.NEWS_URL;
-            search_url = Config.NEWS_SEARCH_URL;
-            key = Config.NEWS_RAZDEL;
-
-        }
-        if (razdel == 5) {
-            url = Config.MUZON_URL;
-            search_url = Config.MUZON_SEARCH_URL;
-            key = Config.MUZON_RAZDEL;
-
-        }
-        if (razdel == 6) {
-            url = Config.BOOKS_URL;
-            search_url = Config.BOOKS_SEARCH_URL;
-            key = Config.BOOKS_RAZDEL;
-
-        }
-        if (razdel == 7) {
-            url = Config.ARTICLES_URL;
-            search_url = Config.ARTICLES_SEARCH_URL;
-            key = Config.ARTICLES_RAZDEL;
-        }
-        if (razdel == 11) {
-            url = Config.ANDROID_URL;
-            search_url = Config.ANDROID_SEARCH_URL;
-            key = Config.ANDROID_RAZDEL;
-        }
-        if (razdel == 14) {
-            url = Config.TRACKER_URL;
-            search_url = Config.TRACKER_SEARCH_URL;
-            key = Config.TRACKER_RAZDEL;
-        }
-        if (razdel == 15) {
-            url = Config.BLOG_URL;
-            search_url = Config.BLOG_SEARCH_URL;
-            key = Config.BLOG_RAZDEL;
-        }
-    }
 
     // получение данных и увеличение номера страницы
     private void getData() {

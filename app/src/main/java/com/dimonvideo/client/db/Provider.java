@@ -157,6 +157,17 @@ public class Provider extends ContentProvider {
         c.close();
     }
 
+    public static void markAllRead(String razdel)
+    {
+        SQLiteDatabase sqlDB = database.getWritableDatabase();
+
+        String query="UPDATE "+Table.TABLE_NAME+" SET "+Table.COLUMN_STATUS+" = ? WHERE " + Table.COLUMN_RAZDEL+" = ?";
+        String[] selections={String.valueOf(1), razdel};
+        Cursor c =sqlDB.rawQuery(query, selections);
+        c.moveToFirst();
+        c.close();
+    }
+
     // очистка базы старше полугода
     public static void clearDB_OLD(){
         SQLiteDatabase sqlDB = database.getWritableDatabase();
