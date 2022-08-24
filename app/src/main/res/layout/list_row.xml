@@ -246,19 +246,19 @@
         android:layout_marginEnd="3dip"
         android:layout_toEndOf="@+id/thumbnail"
         android:contentDescription="@string/Comments"
-        android:tint="@color/colorAccent"
-        app:srcCompat="@android:drawable/ic_menu_view"
-        tools:src="@android:drawable/ic_menu_view"
-        tools:srcCompat="@android:drawable/ic_menu_view" />
+        app:srcCompat="@drawable/baseline_visibility_24"
+        tools:src="@drawable/baseline_visibility_24"
+        tools:srcCompat="@drawable/baseline_visibility_24" />
+
     <TextView
         android:id="@+id/views_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/btn_share"
         android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/views_logo"
-        android:layout_below="@id/btn_share"
-        android:textSize="@dimen/date"
         android:textColor="@color/colorAccent"
+        android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
 
     <!-- comments -->
@@ -266,16 +266,15 @@
         android:id="@+id/rating_logo"
         android:layout_width="@dimen/text"
         android:layout_height="@dimen/text"
-        android:layout_marginEnd="3dip"
-        android:layout_marginTop="6dip"
-        android:layout_marginStart="15dip"
         android:layout_below="@id/btn_share"
-        android:tint="@color/colorAccent"
+        android:layout_marginStart="15dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginEnd="3dip"
         android:layout_toEndOf="@+id/views_count"
         android:contentDescription="@string/Comments"
-        app:srcCompat="@android:drawable/sym_action_chat"
-        tools:src="@android:drawable/sym_action_chat"
-        tools:srcCompat="@android:drawable/sym_action_chat" />
+        app:srcCompat="@drawable/baseline_chat_24"
+        tools:src="@drawable/baseline_chat_24"
+        tools:srcCompat="@drawable/baseline_chat_24" />
 
     <TextView
         android:id="@+id/rating"
@@ -289,6 +288,35 @@
         android:textStyle="bold"
         tools:ignore="SpUsage" />
 
+    <!-- share -->
+    <ImageView
+        android:id="@+id/small_share"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_below="@id/btn_share"
+        android:layout_marginStart="15dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginEnd="3dip"
+        android:layout_toEndOf="@+id/rating"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@drawable/baseline_share_24"
+        tools:src="@drawable/baseline_share_24"
+        tools:srcCompat="@drawable/baseline_share_24" />
+
+    <!-- download -->
+    <ImageView
+        android:id="@+id/small_download"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_below="@id/btn_share"
+        android:layout_marginStart="15dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginEnd="3dip"
+        android:layout_toEndOf="@+id/small_share"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@drawable/baseline_file_download_24"
+        tools:src="@drawable/baseline_file_download_24"
+        tools:srcCompat="@drawable/baseline_file_download_24" />
     <!-- Date -->
     <TextView
         android:id="@+id/date"

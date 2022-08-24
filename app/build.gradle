@@ -15,8 +15,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 3009257
-        versionName "2.27"
+        versionCode 3009258
+        versionName "2.28"
         if (!localProperties['base64EncodedPublicKey']) {
             logger.warn('base64EncodedPublicKey must be set for signature verification. ' +
                     'You can add it to local.properties once you have gotten it from Play. ' +

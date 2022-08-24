@@ -233,7 +233,6 @@
         android:layout_marginEnd="3dip"
         android:layout_marginTop="3dip"
         android:layout_below="@id/btn_mp4"
-        android:tint="@color/colorAccent"
         android:contentDescription="@string/Comments"
         android:visibility="gone"
         app:srcCompat="@android:drawable/ic_menu_view"
@@ -261,7 +260,6 @@
         android:layout_marginStart="15dip"
         android:layout_below="@id/btn_mp4"
         android:visibility="gone"
-        android:tint="@color/colorAccent"
         android:layout_toEndOf="@+id/views_count"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/sym_action_chat"
@@ -279,7 +277,35 @@
         android:layout_toEndOf="@+id/rating_logo"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
+    <!-- share -->
+    <ImageView
+        android:id="@+id/small_share"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_below="@id/btn_share"
+        android:layout_marginStart="15dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginEnd="3dip"
+        android:layout_toEndOf="@+id/rating"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@drawable/baseline_share_24"
+        tools:src="@drawable/baseline_share_24"
+        tools:srcCompat="@drawable/baseline_share_24" />
 
+    <!-- download -->
+    <ImageView
+        android:id="@+id/small_download"
+        android:layout_width="@dimen/text"
+        android:layout_height="@dimen/text"
+        android:layout_below="@id/btn_share"
+        android:layout_marginStart="15dip"
+        android:layout_marginTop="6dip"
+        android:layout_marginEnd="3dip"
+        android:layout_toEndOf="@+id/small_share"
+        android:contentDescription="@string/Comments"
+        app:srcCompat="@drawable/baseline_file_download_24"
+        tools:src="@drawable/baseline_file_download_24"
+        tools:srcCompat="@drawable/baseline_file_download_24" />
     <!-- Date -->
     <TextView
         android:id="@+id/date"

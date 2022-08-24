@@ -88,6 +88,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
+        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
 
         holder.status_logo.setImageResource(R.drawable.ic_status_green);
         try {
@@ -200,6 +201,38 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             return true;
         });
 
+        // скачать
+        holder.small_download.setOnClickListener(view -> DownloadFile.download(context, Feed.getLink(), com.dimonvideo.client.model.Feed.getRazdel()));
+        // если нет размера файла
+        if ((Feed.getSize() == null) || (Feed.getSize().startsWith("0"))) {
+            holder.small_download.setVisibility(View.GONE);
+        } else {
+            holder.small_download.setVisibility(View.VISIBLE);
+        }
+        // поделится
+        try {
+            if (!is_share_btn) holder.small_share.setVisibility(View.VISIBLE);
+        } catch (Throwable ignored) {
+        }
+
+        holder.small_share.setOnClickListener(view -> {
+
+            String url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getId();
+            if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+                url = Config.BASE_URL + "/" + Feed.getId() + "-news.html";
+
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, url);
+            sendIntent.setType("text/plain");
+            Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+
+            try {
+                context.startActivity(shareIntent);
+            } catch (Throwable ignored) {
+            }
+
+        });
 
 
     }
@@ -483,7 +516,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewName;
-        public ImageView imageView, rating_logo, status_logo, fav_star;
+        public ImageView imageView, rating_logo, status_logo, fav_star, small_share, small_download;
         public TextView textViewText;
         public String url;
         public ProgressBar progressBar;
@@ -507,6 +540,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             textViewHits = itemView.findViewById(R.id.views_count);
             progressBar = itemView.findViewById(R.id.progressBar);
             name = itemView.findViewById(R.id.name_layout);
+            small_share = itemView.findViewById(R.id.small_share);
+            small_download = itemView.findViewById(R.id.small_download);
         }
 
     }
