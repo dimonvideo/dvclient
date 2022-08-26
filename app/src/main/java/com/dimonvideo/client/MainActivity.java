@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
-        final boolean is_android = sharedPrefs.getBoolean("dvc_android", true);
+        final boolean is_android = sharedPrefs.getBoolean("dvc_android", false);
         final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader", true);
         final boolean is_news = sharedPrefs.getBoolean("dvc_news", true);
         final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery", true);
