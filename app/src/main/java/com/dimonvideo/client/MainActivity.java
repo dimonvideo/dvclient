@@ -547,6 +547,7 @@ public class MainActivity extends AppCompatActivity {
             if (BuildConfig.SAMSUNG) url = Config.SAMSUNG_RATE_URL;
             if (BuildConfig.HUAWEI) url = Config.HUAWEI_RATE_URL;
             if (BuildConfig.NASHSTORE) url = Config.NASHSTORE_RATE_URL;
+            if (BuildConfig.RUSTORE) url = Config.RUSTORE_RATE_URL;
 
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                     url));
