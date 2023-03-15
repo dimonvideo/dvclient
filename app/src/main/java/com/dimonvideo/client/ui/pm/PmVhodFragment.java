@@ -36,6 +36,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -46,6 +48,7 @@ import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -72,6 +75,7 @@ public class PmVhodFragment extends Fragment implements SwipeRefreshLayout.OnRef
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 13;
+    TabLayout tabs;
 
     public PmVhodFragment() {
         // Required empty public constructor
@@ -120,6 +124,7 @@ public class PmVhodFragment extends Fragment implements SwipeRefreshLayout.OnRef
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
+            listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });
@@ -204,6 +209,13 @@ public class PmVhodFragment extends Fragment implements SwipeRefreshLayout.OnRef
                 int position = viewHolder.getAbsoluteAdapterPosition();
                 ((PmAdapter) adapter).removeItem(position);
                 Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_removed), Snackbar.LENGTH_LONG);
+                snackbar.setAction(getString(R.string.tab_trash), view -> {
+                    assert getParentFragment() != null;
+                    ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
+                    viewPager.setCurrentItem(5);
+                });
+
+                snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();
             }
         };

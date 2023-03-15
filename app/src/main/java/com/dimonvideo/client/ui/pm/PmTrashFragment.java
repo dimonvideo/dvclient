@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -164,6 +165,13 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
                 int position = viewHolder.getAbsoluteAdapterPosition();
                 ((PmAdapter) adapter).restoreItem(position);
                 Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
+                snackbar.setAction(getString(R.string.tab_inbox), view -> {
+                    assert getParentFragment() != null;
+                    ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
+                    viewPager.setCurrentItem(0);
+                });
+
+                snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();
             }
         };
@@ -175,6 +183,7 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
+            listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });

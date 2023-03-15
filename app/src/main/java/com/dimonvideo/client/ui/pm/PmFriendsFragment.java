@@ -112,6 +112,7 @@ public class PmFriendsFragment extends Fragment implements SwipeRefreshLayout.On
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
+            listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });

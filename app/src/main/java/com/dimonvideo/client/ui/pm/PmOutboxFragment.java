@@ -111,6 +111,7 @@ public class PmOutboxFragment extends Fragment implements SwipeRefreshLayout.OnR
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
+            listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });

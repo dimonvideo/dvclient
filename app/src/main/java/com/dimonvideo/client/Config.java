@@ -98,5 +98,7 @@ public class Config {
     public static final String HUAWEI_RATE_URL = "https://appgallery.huawei.com/#/app/C102637431";
     public static final String NASHSTORE_RATE_URL = "https://store.nashstore.ru/store/628255144891a569645ea5f2";
     public static final String RUSTORE_RATE_URL = "https://apps.rustore.ru/app/com.dimonvideo.client";
+    public static final String OPDS_URL = "https://dimonvideo.ru/lib.xml";
+
 }
 

@@ -111,6 +111,7 @@ public class PmArhivFragment extends Fragment implements SwipeRefreshLayout.OnRe
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
+            listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });

@@ -135,7 +135,8 @@ public class PmFragment extends Fragment {
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,false);
-        viewPager.setOffscreenPageLimit(2);
+        viewPager.setOffscreenPageLimit(1);
+        viewPager.setUserInputEnabled(false);
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.tab_pm);
         tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {

@@ -238,12 +238,18 @@ public class MainActivity extends AppCompatActivity {
                     .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.BASE_URL)))
                     .build();
 
+            ShortcutInfo opdsShortcut = new ShortcutInfo.Builder(this, "shortcut_opds")
+                    .setShortLabel(getString(R.string.action_opds))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.OPDS_URL)))
+                    .build();
+
             assert shortcutManager != null;
 
             if (auth_state > 0)
-                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut))).start();
+                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
             else
-                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut))).start();
+                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
 
             // открываем лс из уведомления
             Intent intent_pm = getIntent();
