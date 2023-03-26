@@ -36,6 +36,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -439,9 +440,10 @@ public class MainActivity extends AppCompatActivity {
         // billing init
         PurchaseHelper.init(this);
 
-//        mRequestPermissionHandler = new RequestPermissionHandler();
-//        handlePerm();
-
+        if ((Build.VERSION.SDK_INT >= 33) && ((is_pm.equals("on")) || (auth_state == 1))) {
+            mRequestPermissionHandler = new RequestPermissionHandler();
+            handlePerm();
+        }
     }
 
 
@@ -760,9 +762,10 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void handlePerm() {
         mRequestPermissionHandler.requestPermission(this, new String[]{
-                Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.POST_NOTIFICATIONS
         }, 123, new RequestPermissionHandler.RequestPermissionListener() {
             @Override
             public void onSuccess() {
