@@ -45,7 +45,7 @@ public class NetworkUtils {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
 
-            RequestQueue queue = Volley.newRequestQueue(context);
+            RequestQueue queue = AppController.getInstance().getRequestQueue();
             String pass = password;
             try {
                 pass = URLEncoder.encode(password, "utf-8");
@@ -78,6 +78,9 @@ public class NetworkUtils {
                                 try {
                                     assert view != null;
                                     Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                                    Intent local = new Intent();
+                                    local.setAction(Config.INTENT_AUTH);
+                                    context.sendBroadcast(local);
                                 } catch (Throwable ignored) {
                                 }
                             } else {
@@ -128,7 +131,7 @@ public class NetworkUtils {
         } else {
             if (password.length() > 5) {
 
-                RequestQueue queue = Volley.newRequestQueue(context);
+                RequestQueue queue = AppController.getInstance().getRequestQueue();
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
@@ -143,8 +146,12 @@ public class NetworkUtils {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 int state = jsonObject.getInt(Config.TAG_STATE);
-                                if (state > 0)
+                                if (state > 0) {
                                     Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                                    Intent local = new Intent();
+                                    local.setAction(Config.INTENT_AUTH);
+                                    context.sendBroadcast(local);
+                                }
                                 else
                                     Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
 
@@ -179,7 +186,7 @@ public class NetworkUtils {
         } else {
             if (password.length() > 5) {
 
-                RequestQueue queue = Volley.newRequestQueue(context);
+                RequestQueue queue = AppController.getInstance().getRequestQueue();
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
@@ -228,7 +235,7 @@ public class NetworkUtils {
         } else {
             if (password.length() > 5) {
 
-                RequestQueue queue = Volley.newRequestQueue(context);
+                RequestQueue queue = AppController.getInstance().getRequestQueue();
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");

@@ -74,12 +74,8 @@ public class PmFragment extends Fragment {
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
-    SwipeRefreshLayout swipLayout;
-    LinearLayout emptyLayout;
 
-    private RequestQueue requestQueue;
 
-    private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 13;
     ViewPager2 viewPager;
@@ -102,7 +98,7 @@ public class PmFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_tabs, container, false);
-        requestCount = 1;
+        int requestCount = 1;
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }

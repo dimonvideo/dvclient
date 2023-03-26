@@ -157,7 +157,7 @@
     <PreferenceCategory app:title="@string/android_pref_tab">
 
         <SwitchPreferenceCompat
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:key="dvc_android"
             app:title="@string/menu_android" />
         <MultiSelectListPreference
@@ -322,7 +322,7 @@
     <PreferenceCategory app:title="@string/tracker">
 
         <SwitchPreferenceCompat
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="dvc_tracker"
             app:title="@string/tracker" />
 
@@ -333,9 +333,20 @@
     <PreferenceCategory app:title="@string/blog">
 
         <SwitchPreferenceCompat
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="dvc_blog"
             app:title="@string/blog" />
+
+    </PreferenceCategory>
+
+    <!-- sUploader Preference -->
+
+    <PreferenceCategory app:title="@string/suploader">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_suploader"
+            app:title="@string/suploader" />
 
     </PreferenceCategory>
 </PreferenceScreen>

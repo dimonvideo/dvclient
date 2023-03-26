@@ -27,6 +27,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainCategoryAdapter;
 import com.dimonvideo.client.model.FeedCats;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -47,9 +48,6 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
     SharedPreferences sharedPrefs;
-
-    private RequestQueue requestQueue;
-
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
     String url = Config.CATEGORY_URL;
@@ -77,7 +75,6 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(requireActivity());
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
@@ -150,8 +147,9 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer());
+        queue.add(getDataFromServer());
     }
 
     // обновление

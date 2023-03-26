@@ -27,6 +27,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MainFragment extends Fragment  {
 
@@ -38,7 +39,7 @@ public class MainFragment extends Fragment  {
     TabLayout tabs;
     String f_name;
 
-    private ArrayList<String> tabTiles = new ArrayList<>();
+    private final ArrayList<String> tabTiles = new ArrayList<>();
 
     public MainFragment() {
 
@@ -85,13 +86,13 @@ public class MainFragment extends Fragment  {
         tabTiles.add(getString(R.string.tab_last));
         if (is_more)  tabTiles.add(getString(R.string.tab_details));
         tabTiles.add(getString(R.string.tab_categories));
-        if ((login != null) && (login.length() > 2) && (is_favor)) tabTiles.add(getString(R.string.tab_favorites));
+        if (login.length() > 2 && is_favor) tabTiles.add(getString(R.string.tab_favorites));
         if (is_comment)  tabTiles.add(getString(R.string.Comments));
         adapt.clearList();
         adapt.addFragment(new MainFragmentContent());
         if (is_more) adapt.addFragment(new MainFragmentHorizontal());
         adapt.addFragment(new MainFragmentCats());
-        if ((login != null) && (login.length() > 2) && (is_favor)) adapt.addFragment(new MainFragmentFav());
+        if (login.length() > 2 && is_favor) adapt.addFragment(new MainFragmentFav());
         if (is_comment) adapt.addFragment(new MainFragmentComments());
 
 
@@ -105,6 +106,7 @@ public class MainFragment extends Fragment  {
         });
 
         tabLayoutMediator.attach();
+
         EventBus.getDefault().post(new MessageEvent(razdel, null));
 
         // override back pressed

@@ -45,6 +45,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.SettingsActivity;
 import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -64,7 +65,6 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
     String comm_url, file_title, razdel, lid;
-    private RequestQueue requestQueue;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     SharedPreferences sharedPrefs;
@@ -106,7 +106,6 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(this);
         emptyLayout = findViewById(R.id.linearEmpty);
 
         progressBar = findViewById(R.id.progressbar);
@@ -257,8 +256,9 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

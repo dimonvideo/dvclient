@@ -31,6 +31,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -50,9 +51,6 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
-
-    private RequestQueue requestQueue;
-
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
@@ -104,7 +102,6 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
             }
         });
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(requireActivity());
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
@@ -126,7 +123,6 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
             requestCount = 1;
             progressBar.setVisibility(View.VISIBLE);
             listFeed = new ArrayList<>();
-            requestQueue = Volley.newRequestQueue(requireActivity());
             getData();
             adapter = new MainAdapter(listFeed, getContext());
             recyclerView.setAdapter(adapter);
@@ -206,8 +202,9 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

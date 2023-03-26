@@ -46,6 +46,7 @@ import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumPostsAdapter;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -64,7 +65,6 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
-    private RequestQueue requestQueue;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_POSTS_URL;
@@ -115,7 +115,6 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
             }
         });
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(this);
         progressBar = findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
         ProgressBarBottom = findViewById(R.id.ProgressBarBottom);
@@ -265,8 +264,9 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
     };
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

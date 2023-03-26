@@ -45,6 +45,8 @@
         <item>@string/books</item>
         <item>@string/articles</item>
         <item>@string/tracker</item>
+        <item>@string/blog</item>
+        <item>@string/suploader</item>
     </string-array>
 
     <string-array name="razdel_list_values">
@@ -58,6 +60,8 @@
         <item>6</item>
         <item>7</item>
         <item>14</item>
+        <item>15</item>
+        <item>16</item>
     </string-array>
 
     <!-- Theme Preference -->

@@ -15,6 +15,7 @@ public class Config {
     public static final String ANDROID_RAZDEL = "android";
     public static final String TRACKER_RAZDEL = "tracker";
     public static final String BLOG_RAZDEL = "blog";
+    public static final String SUPLOADER_RAZDEL = "suploader";
 
     //Data URL
     public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+COMMENTS_RAZDEL+"&min=";
@@ -39,7 +40,8 @@ public class Config {
     public static final String TRACKER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+TRACKER_RAZDEL+"&min=";
     public static final String BLOG_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+BLOG_RAZDEL+"&min=";
     public static final String BLOG_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+BLOG_RAZDEL+"&min=";
-
+    public static final String SUPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+SUPLOADER_RAZDEL+"&min=";
+    public static final String SUPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+SUPLOADER_RAZDEL+"&min=";
     public static final String FORUM_FEED_URL = BASE_URL + "/apps/dvclient.php?op=5&min=";
     public static final String FORUM_FEED_NO_POSTS_URL = BASE_URL + "/apps/dvclient.php?op=5&id=-1&min=";
     public static final String FORUM_CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=6&min=";
@@ -99,6 +101,11 @@ public class Config {
     public static final String NASHSTORE_RATE_URL = "https://store.nashstore.ru/store/628255144891a569645ea5f2";
     public static final String RUSTORE_RATE_URL = "https://apps.rustore.ru/app/com.dimonvideo.client";
     public static final String OPDS_URL = "https://dimonvideo.ru/lib.xml";
+
+    // intents
+    public static final String INTENT_AUTH = "com.dimonvideo.client.AUTH";
+    public static final String INTENT_NEW_PM = "com.dimonvideo.client.NEW_PM";
+    public static final String INTENT_THEME = "com.dimonvideo.client.THEME";
 
 }
 

@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
@@ -62,12 +63,9 @@ import static androidx.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class SettingsActivity extends AppCompatActivity {
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adjustFontScale(getResources().getConfiguration());
         setContentView(R.layout.settings_activity);
         if (savedInstanceState == null) {
             getSupportFragmentManager()
@@ -79,22 +77,14 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-    }
+        final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = sharedPrefs.getString("dvc_scale", "1.0f");
+        adjustFontScale(getResources().getConfiguration(), this, value);
 
-    private void adjustFontScale(Configuration configuration) {
-        SharedPreferences sharedPrefs = getDefaultSharedPreferences(this);
-        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale", "1.0f"));
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-        assert wm != null;
-        wm.getDefaultDisplay().getMetrics(metrics);
-        metrics.scaledDensity = configuration.fontScale * metrics.density;
-        getBaseContext().getResources().updateConfiguration(configuration, metrics);
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements
             SharedPreferences.OnSharedPreferenceChangeListener {
-
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -115,7 +105,6 @@ public class SettingsActivity extends AppCompatActivity {
             // переключение темы на лету
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
-
                 if (newValue.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 else if (newValue.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                 else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -127,6 +116,7 @@ public class SettingsActivity extends AppCompatActivity {
             assert dvc_scale != null;
             dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
+                adjustFontScale(getResources().getConfiguration(), requireContext(), (String) newValue);
                 return true;
             });
 
@@ -412,10 +402,15 @@ public class SettingsActivity extends AppCompatActivity {
     public void onPause() {
         super.onPause();
     }
-
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finishAffinity();
     }
 
     @Override
@@ -427,6 +422,15 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onKeyLongPress(keycode, event);
     }
 
-
-
+    // масштабирование шрифтов
+    static void adjustFontScale(Configuration configuration, Context context, String value) {
+        configuration.fontScale = Float.parseFloat(value);
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        WindowManager wm = (WindowManager) context.getSystemService(WINDOW_SERVICE);
+        assert wm != null;
+        wm.getDefaultDisplay().getMetrics(metrics);
+        metrics.scaledDensity = configuration.fontScale * metrics.density;
+        context.getResources().updateConfiguration(configuration, metrics);
+        Log.e("---", value);
+    }
 }

@@ -4,7 +4,8 @@
     package="com.dimonvideo.client">
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
@@ -29,10 +30,10 @@
         android:supportsRtl="true"
         android:resizeableActivity="false"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         tools:replace="android:allowBackup"
         android:hardwareAccelerated="true"
+        android:name=".util.AppController"
         tools:targetApi="s"
         android:dataExtractionRules="@xml/data_extraction_rules">
         <activity

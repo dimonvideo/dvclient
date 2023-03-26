@@ -40,6 +40,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -58,8 +59,6 @@ public class ForumFragmentTopics extends Fragment implements SwipeRefreshLayout.
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SharedPreferences sharedPrefs;
-
-    private RequestQueue requestQueue;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -97,7 +96,6 @@ public class ForumFragmentTopics extends Fragment implements SwipeRefreshLayout.
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
 
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(requireActivity());
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
@@ -233,8 +231,9 @@ public class ForumFragmentTopics extends Fragment implements SwipeRefreshLayout.
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

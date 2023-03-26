@@ -52,6 +52,7 @@ import com.dimonvideo.client.db.Table;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -76,9 +77,6 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
     private static Context mContext;
-
-    private RequestQueue requestQueue;
-
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
@@ -158,7 +156,6 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         } catch (Throwable ignored) {
         }
 
-        requestQueue = Volley.newRequestQueue(mContext);
         emptyLayout = root.findViewById(R.id.linearEmpty);
 
         progressBar = root.findViewById(R.id.progressbar);
@@ -198,7 +195,12 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         recyclerView.setAdapter(adapter);
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        if (!TextUtils.isEmpty(f_name)) toolbar.setSubtitle(f_name); else toolbar.setSubtitle(null);
+
+        if (!TextUtils.isEmpty(f_name)) {
+            toolbar.setSubtitle(f_name);
+        } else {
+            toolbar.setSubtitle(null);
+        }
 
         if (cid > 0) {
             toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
@@ -353,8 +355,9 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

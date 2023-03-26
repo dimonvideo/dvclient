@@ -66,7 +66,11 @@ public class GetRazdelName {
             search_url = Config.BLOG_SEARCH_URL;
             key = Config.BLOG_RAZDEL;
         }
-
+        if (razdel == 16) {
+            url = Config.SUPLOADER_URL;
+            search_url = Config.SUPLOADER_SEARCH_URL;
+            key = Config.SUPLOADER_RAZDEL;
+        }
         switch (op) {
             case 1:
                 return search_url;

@@ -16,11 +16,12 @@
     <EditText
         android:layout_weight="1"
         android:id="@+id/textInput"
-        android:layout_height="45dp"
+        android:layout_height="wrap_content"
         android:layout_width="0dip"
+        android:minLines="2"
         android:autofillHints=""
         android:labelFor="@id/listtext"
-        android:inputType="text"
+        android:inputType="textMultiLine"
         tools:ignore="LabelFor">
     </EditText>
 

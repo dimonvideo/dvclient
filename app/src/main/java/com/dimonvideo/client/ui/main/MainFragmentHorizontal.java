@@ -28,6 +28,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.adater.MainAdapterFull;
 import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -50,8 +51,6 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     public RecyclerView recyclerView;
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
-
-    private RequestQueue requestQueue;
     private ProgressBar progressBar, ProgressBarBottom;
 
     private int requestCount = 1;
@@ -92,7 +91,6 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(requireActivity());
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
         ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
@@ -109,7 +107,6 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             listFeed = new ArrayList<>();
-            requestQueue = Volley.newRequestQueue(requireActivity());
             getData();
             adapter = new MainAdapter(listFeed, getContext());
             recyclerView.setAdapter(adapter);
@@ -190,8 +187,9 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

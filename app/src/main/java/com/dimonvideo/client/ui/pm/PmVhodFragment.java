@@ -46,6 +46,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
@@ -69,9 +70,6 @@ public class PmVhodFragment extends Fragment implements SwipeRefreshLayout.OnRef
     public RecyclerView.Adapter adapter;
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
-
-    private RequestQueue requestQueue;
-
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 13;
@@ -110,7 +108,6 @@ public class PmVhodFragment extends Fragment implements SwipeRefreshLayout.OnRef
         emptyLayout.setVisibility(View.VISIBLE);
 
         listFeed = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(requireActivity());
 
         progressBar = root.findViewById(R.id.progressbar);
         progressBar.setVisibility(View.VISIBLE);
@@ -312,8 +309,9 @@ public class PmVhodFragment extends Fragment implements SwipeRefreshLayout.OnRef
 
     // получение данных и увеличение номера страницы
     private void getData() {
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        requestQueue.add(getDataFromServer(requestCount));
+        queue.add(getDataFromServer(requestCount));
         requestCount++;
     }
 

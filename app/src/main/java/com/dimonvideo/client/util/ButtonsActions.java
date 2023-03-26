@@ -73,7 +73,7 @@ public class ButtonsActions {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         android_id = "DVClient_" + android_id;
         final String is_name = sharedPrefs.getString("dvc_login",android_id);
-        RequestQueue queue = Volley.newRequestQueue(context);
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
@@ -93,7 +93,7 @@ public class ButtonsActions {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         android_id = "DVClient_" + android_id;
         final String is_name = sharedPrefs.getString("dvc_login",android_id);
-        RequestQueue queue = Volley.newRequestQueue(context);
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_POST_URL + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
 
@@ -119,7 +119,7 @@ public class ButtonsActions {
             e.printStackTrace();
         }
 
-        RequestQueue queue = Volley.newRequestQueue(context);
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
         Log.d("tag", url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,

@@ -333,4 +333,20 @@
             app:popUpTo="@+id/nav_home"
             app:popUpToInclusive="true"/>
     </fragment>
+    <fragment
+        android:id="@+id/nav_suploader"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
+        android:label="@string/suploader"
+        android:tag="suploader"
+        tools:layout="@layout/fragment_tabs">
+        <argument
+            android:name="category"
+            android:defaultValue="16"
+            />
+        <action
+            android:id="@+id/action_nav_blog_to_nav_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@+id/nav_home"
+            app:popUpToInclusive="true"/>
+    </fragment>
 </navigation>

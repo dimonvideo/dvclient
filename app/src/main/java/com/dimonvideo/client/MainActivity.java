@@ -26,7 +26,6 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -37,13 +36,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.MenuProvider;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -90,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPrefs;
     static int razdel = 10;
     private RequestPermissionHandler mRequestPermissionHandler;
-    private int backpress = 0;
+    FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
-        final boolean is_android = sharedPrefs.getBoolean("dvc_android", false);
+        final boolean is_android = sharedPrefs.getBoolean("dvc_android", true);
         final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader", true);
         final boolean is_news = sharedPrefs.getBoolean("dvc_news", true);
         final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery", true);
@@ -112,15 +109,15 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_books = sharedPrefs.getBoolean("dvc_books", false);
         final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
         final boolean is_forum = sharedPrefs.getBoolean("dvc_forum", true);
-        final boolean is_tracker = sharedPrefs.getBoolean("dvc_tracker", true);
-        final boolean is_blog = sharedPrefs.getBoolean("dvc_blog", true);
-        final String is_pm = sharedPrefs.getString("dvc_pm", "off");
-        final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
-        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        final boolean is_tracker = sharedPrefs.getBoolean("dvc_tracker", false);
+        final boolean is_blog = sharedPrefs.getBoolean("dvc_blog", false);
+        final boolean is_suploader = sharedPrefs.getBoolean("dvc_suploader", false);
+        String is_pm = sharedPrefs.getString("dvc_pm", "off");
+        String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+        String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+        int auth_state = sharedPrefs.getInt("auth_state", 0);
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
-
+        String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
         if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -128,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
         adjustFontScale(getResources().getConfiguration());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -155,7 +153,8 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_topics_no_posts,
                 R.id.nav_fav,
                 R.id.nav_articles,
-                R.id.nav_blog
+                R.id.nav_blog,
+                R.id.nav_suploader
         ).setOpenableLayout(drawer).build();
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
@@ -163,7 +162,6 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             navController.popBackStack(R.id.home, true);
-
         }
 
         assert navController != null;
@@ -173,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
         // main razdel
-        assert main_razdel != null;
         if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
         if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
         if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
@@ -184,6 +181,8 @@ public class MainActivity extends AppCompatActivity {
         if (Integer.parseInt(main_razdel) == 11) navGraph.setStartDestination(R.id.nav_android);
         if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
         if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
+        if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
+        if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
 
         navController.setGraph(navGraph);
 
@@ -194,9 +193,12 @@ public class MainActivity extends AppCompatActivity {
         status.setImageResource(R.drawable.ic_status_gray);
         TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
         ImageView avatar = navigationView.getHeaderView(0).findViewById(R.id.avatar);
+        ImageView setting_icon = navigationView.getHeaderView(0).findViewById(R.id.settings_icon);
+        ImageView theme_icon = navigationView.getHeaderView(0).findViewById(R.id.theme_icon);
         TextView app_version = navigationView.getHeaderView(0).findViewById(R.id.app_version);
         app_version.append(": " + BuildConfig.VERSION_NAME);
 
+        // загрузка автара пользователя
         Glide.with(this)
                 .load(image_url)
                 .apply(RequestOptions.circleCropTransform())
@@ -204,7 +206,24 @@ public class MainActivity extends AppCompatActivity {
                 .centerCrop()
                 .into(avatar);
 
-        // home icon
+        // иконка настроек
+        setting_icon.setOnClickListener(view -> {
+            Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(i);
+        });
+
+        // иконка темы
+        theme_icon.setOnClickListener(view -> {
+            SharedPreferences.Editor editor;
+            editor = sharedPrefs.edit();
+            if (is_dark.equals("true")) editor.putString("dvc_theme_list", "false"); else editor.putString("dvc_theme_list", "true");
+            editor.apply();
+            finishAffinity();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        });
+
+        // иконка меню
         if (auth_state > 0) {
             avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
         }
@@ -246,10 +265,19 @@ public class MainActivity extends AppCompatActivity {
 
             assert shortcutManager != null;
 
-            if (auth_state > 0)
-                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
-            else
-                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
+            if (auth_state > 0) {
+                try {
+                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
+                } catch (Throwable ignored) {
+                }
+            }
+            else {
+                try{
+                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
+                } catch (Throwable ignored) {
+                }
+            }
+
 
             // открываем лс из уведомления
             Intent intent_pm = getIntent();
@@ -332,6 +360,32 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        // обновление личных данных после авторизации
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Config.INTENT_AUTH);
+        filter.addAction(Config.INTENT_THEME);
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                String auth_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+                String is_pm = sharedPrefs.getString("dvc_pm", "off");
+                String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+                Glide.with(context)
+                        .load(image_url)
+                        .apply(RequestOptions.circleCropTransform())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .centerCrop()
+                        .into(avatar);
+                status.setImageResource(R.drawable.ic_status_green);
+                Login_Name.setText(getString(R.string.sign_as));
+                Login_Name.append(auth_name);
+                avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
+                if (!is_pm.equals("off")) fab.setVisibility(View.VISIBLE);
+            }
+        };
+        registerReceiver(receiver, filter);
+
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);
         if (!is_android) navigationView.getMenu().removeItem(R.id.nav_android);
@@ -344,10 +398,11 @@ public class MainActivity extends AppCompatActivity {
         if (!is_forum) navigationView.getMenu().removeItem(R.id.nav_forum);
         if (!is_tracker) navigationView.getMenu().removeItem(R.id.nav_tracker);
         if (!is_blog) navigationView.getMenu().removeItem(R.id.nav_blog);
+        if (!is_suploader) navigationView.getMenu().removeItem(R.id.nav_suploader);
 
 
         // открытие личных сообщений
-        FloatingActionButton fab = findViewById(R.id.fab);
+        fab = findViewById(R.id.fab);
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
 
         fab.setOnClickListener(view -> {
@@ -364,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
+        lbm.registerReceiver(receiver, new IntentFilter(Config.INTENT_NEW_PM));
 
 
         try {
@@ -384,8 +439,8 @@ public class MainActivity extends AppCompatActivity {
         // billing init
         PurchaseHelper.init(this);
 
-        mRequestPermissionHandler = new RequestPermissionHandler();
-        handlePerm();
+//        mRequestPermissionHandler = new RequestPermissionHandler();
+//        handlePerm();
 
     }
 
@@ -664,6 +719,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -715,6 +775,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     private String getCurrentLanguage(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
             return LocaleList.getDefault().get(0).getLanguage();
@@ -722,4 +783,5 @@ public class MainActivity extends AppCompatActivity {
             return Locale.getDefault().getLanguage();
         }
     }
+
 }

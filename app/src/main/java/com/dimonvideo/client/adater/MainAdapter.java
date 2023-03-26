@@ -31,6 +31,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.FitCenter;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
@@ -109,10 +112,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         Glide.with(context)
                 .load(Feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .apply(new
-                        RequestOptions()
-                        .override(300, 300))
-                .centerCrop()                .into(holder.imageView);
+                .apply(new RequestOptions().override(300, 300))
+                .transform(new CenterCrop(),new RoundedCorners(15))
+                .into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
@@ -369,7 +371,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         Glide.with(context).load(Feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .fitCenter()
+                .transform(new FitCenter(),new RoundedCorners(15))
                 .into(imageView);
 
         imageView.setOnClickListener(view -> ButtonsActions.loadScreen(context, Feed.getImageUrl()));
