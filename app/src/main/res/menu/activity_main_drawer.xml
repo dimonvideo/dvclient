@@ -18,6 +18,12 @@
             android:checkable="true"
             android:icon="@drawable/baseline_forum_24"
             android:title="@string/menu_forum" />
+        <item
+            android:id="@+id/nav_pm"
+            android:checkable="true"
+            android:visible="false"
+            android:icon="@drawable/baseline_mail_24"
+            android:title="@string/tab_pm" />
     </group>
     <group
         android:id="@+id/menu_top"
@@ -77,5 +83,6 @@
             android:checkable="true"
             android:icon="@drawable/baseline_download_for_offline_24"
             android:title="@string/suploader" />
+
     </group>
 </menu>

@@ -2,139 +2,141 @@ package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.MenuHost;
-import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.adater.TabsAdapter;
-import com.dimonvideo.client.model.FeedPm;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.util.MessageEvent;
-import com.dimonvideo.client.util.SwipeController;
-import com.google.android.material.snackbar.Snackbar;
+import com.dimonvideo.client.util.UpdatePm;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class PmFragment extends Fragment {
 
-    private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
-
-
-    private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 13;
+    public PmAdapter adapter;
     ViewPager2 viewPager;
     TabsAdapter adapt;
     TabLayoutMediator tabLayoutMediator;
     TabLayout tabs;
-    private ArrayList<String> tabTiles = new ArrayList<>();
+    private final ArrayList<String> tabTiles = new ArrayList<>();
+    private FragmentTabsBinding binding;
+    static int razdel = 13;
 
     public PmFragment() {
         // Required empty public constructor
     }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event) {
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
     }
 
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_tabs, container, false);
-        int requestCount = 1;
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
-        if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_CATEGORY);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
-        }
+        binding = FragmentTabsBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
-        EventBus.getDefault().post(new MessageEvent(razdel, ""));
 
-        tabs = root.findViewById(R.id.tabLayout);
-        viewPager = root.findViewById(R.id.view_pager);
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        final boolean is_outbox = sharedPrefs.getBoolean("dvc_pm_outbox", true);
+        final boolean is_arc = sharedPrefs.getBoolean("dvc_pm_arc", true);
+
+        tabs = binding.tabLayout;
+        viewPager = binding.viewPager;
         adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
 
         tabTiles.add(getString(R.string.tab_inbox));
-        tabTiles.add(getString(R.string.tab_outbox));
-        tabTiles.add(getString(R.string.tab_arhiv));
+        tabTiles.add(getString(R.string.tab_members));
         tabTiles.add(getString(R.string.tab_friends));
-        tabTiles.add(getString(R.string.tab_ish));
+        tabTiles.add(getString(R.string.tab_ignore));
         tabTiles.add(getString(R.string.tab_trash));
+        if (!is_outbox) tabTiles.add(getString(R.string.tab_outbox));
+        if (!is_outbox) tabTiles.add(getString(R.string.tab_ish));
+        if (!is_arc) tabTiles.add(getString(R.string.tab_arhiv));
 
         adapt.clearList();
         adapt.addFragment(new PmVhodFragment());
-        adapt.addFragment(new PmOutboxFragment());
-        adapt.addFragment(new PmArhivFragment());
+        adapt.addFragment(new PmMembersFragment());
         adapt.addFragment(new PmFriendsFragment());
-        adapt.addFragment(new PmIshFragment());
+        adapt.addFragment(new PmIgnorFragment());
         adapt.addFragment(new PmTrashFragment());
+        if (!is_outbox) adapt.addFragment(new PmOutboxFragment());
+        if (!is_outbox) adapt.addFragment(new PmIshFragment());
+        if (!is_arc) adapt.addFragment(new PmArhivFragment());
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,false);
-        viewPager.setOffscreenPageLimit(1);
+        viewPager.setOffscreenPageLimit(4);
         viewPager.setUserInputEnabled(false);
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         toolbar.setTitle(R.string.tab_pm);
+
+        SearchView searchView = toolbar.findViewById(R.id.action_search);
+        if (searchView != null) searchView.setVisibility(View.INVISIBLE);
+
+        // прячем поиск и кнопку где не используется
+        tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int pos = tab.getPosition();
+
+                if (pos == 1) {
+                    if (searchView != null) searchView.setVisibility(View.VISIBLE);
+
+                } else {
+                    if (searchView != null) searchView.setVisibility(View.INVISIBLE);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
+
+
         tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
             //position of the current tab and the tab
             tab.setText(tabTiles.get(position));
@@ -149,7 +151,7 @@ public class PmFragment extends Fragment {
             if( keyCode == KeyEvent.KEYCODE_BACK  && event.getAction() == KeyEvent.ACTION_DOWN )
             {
                 if (viewPager.getCurrentItem() != 0) {
-                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                    viewPager.setCurrentItem(0,false);
                 } else {
                     requireActivity().onBackPressed();
                 }
@@ -159,6 +161,8 @@ public class PmFragment extends Fragment {
             }
         });
 
+        View view = MainActivity.binding.getRoot();
+        UpdatePm.update(requireContext(), view);
 
 
 
@@ -167,19 +171,32 @@ public class PmFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
+
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
 }

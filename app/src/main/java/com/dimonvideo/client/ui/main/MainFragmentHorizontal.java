@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
 import com.dimonvideo.client.adater.MainAdapterFull;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
@@ -49,7 +51,7 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
 
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public MainAdapterFull adapter;
     SwipeRefreshLayout swipLayout;
     private ProgressBar progressBar, ProgressBarBottom;
 
@@ -61,16 +63,19 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     String key = "comments";
     SharedPreferences sharedPrefs;
     String s_url = "";
+    private FragmentHomeBinding binding;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
-        recyclerView = root.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
         LinearLayoutManager layoutManager
                 = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
@@ -91,9 +96,9 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         listFeed = new ArrayList<>();
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
@@ -103,12 +108,11 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         recyclerView.setAdapter(adapter);
 
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
-            listFeed = new ArrayList<>();
+            listFeed.clear();
             getData();
-            adapter = new MainAdapter(listFeed, getContext());
             recyclerView.setAdapter(adapter);
             swipLayout.setRefreshing(false);
         });
@@ -201,7 +205,13 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         }
         return false;
     }
-
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
     // обновление
     @Override
     public void onRefresh() {
@@ -209,7 +219,8 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     }
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
     }
 }

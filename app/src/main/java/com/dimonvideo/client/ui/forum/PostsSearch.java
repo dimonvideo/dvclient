@@ -1,20 +1,12 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,15 +15,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,7 +29,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
@@ -54,17 +42,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayout.OnRefreshListener {
+public class PostsSearch extends AppCompatActivity {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public ForumPostsAdapter adapter;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_POSTS_URL;
@@ -74,7 +61,6 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
 
     SharedPreferences sharedPrefs;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -102,7 +88,6 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
 
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -130,8 +115,11 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
 
         recyclerView.setAdapter(adapter);
         swipLayout = findViewById(R.id.swipe_layout);
-        swipLayout.setOnRefreshListener(this);
-
+        swipLayout.setOnRefreshListener(() -> {
+            requestCount = 1;
+            getData();
+            swipLayout.setRefreshing(false);
+        });
         LinearLayout post_layout = findViewById(R.id.post);
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
@@ -153,58 +141,12 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
             startActivity(notificationIntent);
 
         });
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
-        if (auth_state > 0) {
 
-            // обновляем счетчик лс
-            @SuppressLint("StaticFieldLeak")
-            class AsyncCountPm extends AsyncTask<String, String, String> {
-                SharedPreferences sharedPrefs;
-                private final WeakReference<Context> contextRef;
 
-                public AsyncCountPm(Context context) {
-                    this.contextRef = new WeakReference<>(context);
-                }
-
-                @Override
-                protected String doInBackground(String... params) {
-                    Context context = contextRef.get();
-                    if (context != null) {
-                        try {
-                            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                            // check is logged
-                            final String password = sharedPrefs.getString("dvc_password", "null");
-                            View view = ((Activity) context).getWindow().getDecorView().getRootView();
-
-                            NetworkUtils.checkPassword(context, view, password);
-
-                            return null;
-                        } catch (Exception e) {
-                            return null;
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(String result) {
-                    super.onPostExecute(result);
-                    final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
-                    if (pm_unread > 0) {
-                        TextView fab_badge = findViewById(R.id.fab_badge);
-                        fab_badge.setVisibility(View.VISIBLE);
-                        fab_badge.setText(String.valueOf(pm_unread));
-                    }
-                }
-            }
-            AsyncCountPm task = new AsyncCountPm(this);
-            task.execute();
-
-        }
     }
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         try {
             t_name = URLEncoder.encode(t_name, "utf-8");
@@ -250,18 +192,6 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
                 });
     }
 
-    public BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent != null) {
-                String str = intent.getStringExtra("count");
-                TextView fab_badge = findViewById(R.id.fab_badge);
-                fab_badge.setVisibility(View.VISIBLE);
-                fab_badge.setText(str);
-                if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
-            }
-        }
-    };
     // получение данных и увеличение номера страницы
     private void getData() {
         RequestQueue queue = AppController.getInstance().getRequestQueue();
@@ -279,19 +209,8 @@ public class PostsSearch extends AppCompatActivity  implements SwipeRefreshLayou
         return false;
     }
 
-    // обновление
-    @Override
-    public void onRefresh() {
-        requestCount = 1;
-        recreate();
-    }
-
     @Override
     public void onDestroy() {
-        try {
-            unregisterReceiver(receiver);
-        } catch (Throwable ignored) {
-        }
         super.onDestroy();
     }
 

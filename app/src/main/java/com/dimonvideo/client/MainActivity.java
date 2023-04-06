@@ -1,8 +1,6 @@
 package com.dimonvideo.client;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,7 +14,6 @@ import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,21 +32,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
@@ -57,16 +52,17 @@ import androidx.preference.PreferenceManager;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.dimonvideo.client.databinding.ActivityMainBinding;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
+import com.dimonvideo.client.ui.pm.PmMembersFragment;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
-import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.PurchaseHelper;
 import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -76,19 +72,22 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration mAppBarConfiguration;
     Fragment homeFrag;
     SharedPreferences sharedPrefs;
     static int razdel = 10;
     private RequestPermissionHandler mRequestPermissionHandler;
-    FloatingActionButton fab;
+    int auth_state;
+    String is_pm, password, login_name, image_url, is_dark, main_razdel;
+    private AppBarConfiguration mAppBarConfiguration;
+    public static ActivityMainBinding binding;
+    NavigationView navigationView;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,82 +112,67 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_tracker = sharedPrefs.getBoolean("dvc_tracker", false);
         final boolean is_blog = sharedPrefs.getBoolean("dvc_blog", false);
         final boolean is_suploader = sharedPrefs.getBoolean("dvc_suploader", false);
-        String is_pm = sharedPrefs.getString("dvc_pm", "off");
-        String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
-        String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        int auth_state = sharedPrefs.getInt("auth_state", 0);
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
-        if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+
+        is_pm = sharedPrefs.getString("dvc_pm", "off");
+        auth_state = sharedPrefs.getInt("auth_state", 0);
+        login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+        password = sharedPrefs.getString("dvc_password", "null");
+        image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+        main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
+        is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+
+        if (is_dark.equals("true"))
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        else if (is_dark.equals("system"))
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         adjustFontScale(getResources().getConfiguration());
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setSupportActionBar(binding.appBarMain.toolbar);
+
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        DrawerLayout drawerLayout = binding.drawerLayout;
+        navigationView = binding.navView;
+
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home,
-                R.id.nav_forum,
-                R.id.nav_news,
-                R.id.nav_gallery,
-                R.id.nav_vuploader,
-                R.id.nav_muzon,
-                R.id.nav_books,
-                R.id.nav_uploader,
-                R.id.nav_tracker,
-                R.id.nav_cats,
-                R.id.nav_android,
-                R.id.nav_pminbox,
-                R.id.nav_topics,
-                R.id.nav_topics_fav,
-                R.id.nav_topics_no_posts,
-                R.id.nav_fav,
-                R.id.nav_articles,
-                R.id.nav_blog,
-                R.id.nav_suploader
-        ).setOpenableLayout(drawer).build();
-
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        NavController navController = null;
-        if (navHostFragment != null) {
-            navController = navHostFragment.getNavController();
-            navController.popBackStack(R.id.home, true);
-        }
-
-        assert navController != null;
-        NavGraph navGraph = navController.getNavInflater().inflate(R.navigation.mobile_navigation);
-
-        NavigationUI.setupActionBarWithNavController(MainActivity.this, navController, mAppBarConfiguration);
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_forum, R.id.nav_news,
+                R.id.nav_vuploader, R.id.nav_muzon, R.id.nav_books, R.id.nav_uploader,
+                R.id.nav_android, R.id.nav_articles, R.id.nav_tracker, R.id.nav_blog, R.id.nav_suploader)
+                .setOpenableLayout(drawerLayout)
+                .build();
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // main razdel
-        if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
-        if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
-        if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
-        if (Integer.parseInt(main_razdel) == 3) navGraph.setStartDestination(R.id.nav_vuploader);
-        if (Integer.parseInt(main_razdel) == 5) navGraph.setStartDestination(R.id.nav_muzon);
-        if (Integer.parseInt(main_razdel) == 6) navGraph.setStartDestination(R.id.nav_books);
-        if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
-        if (Integer.parseInt(main_razdel) == 11) navGraph.setStartDestination(R.id.nav_android);
-        if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
-        if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
-        if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
-        if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
+        navigationView.post(() -> {
 
-        navController.setGraph(navGraph);
+            NavGraph navGraph = navController.getNavInflater().inflate(R.navigation.mobile_navigation);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+            // выбор главного раздела
+            if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
+            if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
+            if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
+            if (Integer.parseInt(main_razdel) == 3) navGraph.setStartDestination(R.id.nav_vuploader);
+            if (Integer.parseInt(main_razdel) == 5) navGraph.setStartDestination(R.id.nav_muzon);
+            if (Integer.parseInt(main_razdel) == 6) navGraph.setStartDestination(R.id.nav_books);
+            if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
+            if (Integer.parseInt(main_razdel) == 11) navGraph.setStartDestination(R.id.nav_android);
+            if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
+            if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
+            if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
+            if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
+
+            navController.setGraph(navGraph);
+
+        });
 
         ImageView status = navigationView.getHeaderView(0).findViewById(R.id.status);
         status.setImageResource(R.drawable.ic_status_gray);
@@ -199,17 +183,10 @@ public class MainActivity extends AppCompatActivity {
         TextView app_version = navigationView.getHeaderView(0).findViewById(R.id.app_version);
         app_version.append(": " + BuildConfig.VERSION_NAME);
 
-        // загрузка автара пользователя
-        Glide.with(this)
-                .load(image_url)
-                .apply(RequestOptions.circleCropTransform())
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .centerCrop()
-                .into(avatar);
-
         // иконка настроек
         setting_icon.setOnClickListener(view -> {
             Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
         });
 
@@ -217,15 +194,25 @@ public class MainActivity extends AppCompatActivity {
         theme_icon.setOnClickListener(view -> {
             SharedPreferences.Editor editor;
             editor = sharedPrefs.edit();
-            if (is_dark.equals("true")) editor.putString("dvc_theme_list", "false"); else editor.putString("dvc_theme_list", "true");
+            if (is_dark.equals("true")) editor.putString("dvc_theme_list", "false");
+            else editor.putString("dvc_theme_list", "true");
             editor.apply();
             finishAffinity();
             Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
 
         // иконка меню
         if (auth_state > 0) {
+            // загрузка аватара пользователя
+            Glide.with(getApplicationContext())
+                    .load(image_url)
+                    .apply(RequestOptions.circleCropTransform())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .into(avatar);
+
             avatar.setOnClickListener(v -> ButtonsActions.loadProfile(this, login_name, image_url));
         }
 
@@ -271,38 +258,12 @@ public class MainActivity extends AppCompatActivity {
                     new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
                 } catch (Throwable ignored) {
                 }
-            }
-            else {
-                try{
+            } else {
+                try {
                     new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
                 } catch (Throwable ignored) {
                 }
             }
-
-
-            // открываем лс из уведомления
-            Intent intent_pm = getIntent();
-            if (intent_pm != null) {
-                Log.e("mainContent", ""+intent_pm.getStringExtra("action"));
-
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                Fragment PmFragment = new MainFragment();
-
-                try {
-                    if (Objects.equals(intent_pm.getStringExtra("action"), "PmFragment")) {
-                        PmFragment = new PmFragment();
-                    }
-                    if (Objects.equals(intent_pm.getStringExtra("action"), "ForumFragment")) {
-                        PmFragment = new ForumFragment();
-                    }
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.nav_host_fragment, PmFragment)
-                            .addToBackStack(null)
-                            .commit();
-                } catch (Throwable ignored) {
-                }
-            }
-
         }
 
         if (auth_state > 0) {
@@ -311,52 +272,13 @@ public class MainActivity extends AppCompatActivity {
             status.setImageResource(R.drawable.ic_status_green);
             Login_Name.setText(getString(R.string.sign_as));
             Login_Name.append(login_name);
-            @SuppressLint("StaticFieldLeak")
-            class AsyncCountPm extends AsyncTask<String, String, String> {
-                SharedPreferences sharedPrefs;
-                private final WeakReference<Context> contextRef;
-
-                public AsyncCountPm(Context context) {
-                    this.contextRef = new WeakReference<>(context);
-                }
-
-                @Override
-                protected String doInBackground(String... params) {
-                    Context context = contextRef.get();
-                    if (context != null) {
-                        try {
-                            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                            // check is logged
-                            final String password = sharedPrefs.getString("dvc_password", "null");
-                            View view = ((Activity) context).getWindow().getDecorView().getRootView();
-
-                            NetworkUtils.checkPassword(context, view, password);
-
-                            return null;
-                        } catch (Exception e) {
-                            return null;
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(String result) {
-                    super.onPostExecute(result);
-                    final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
-                    if (pm_unread > 0) {
-                        TextView fab_badge = findViewById(R.id.fab_badge);
-                        fab_badge.setVisibility(View.VISIBLE);
-                        fab_badge.setText(String.valueOf(pm_unread));
-                    }
-                }
-            }
-            AsyncCountPm task = new AsyncCountPm(this);
-            task.execute();
+            View view = this.getWindow().getDecorView().getRootView();
+          //  UpdatePm.update(this, view);
 
         } else {
             Login_Name.setOnClickListener(v -> {
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
             });
         }
@@ -364,28 +286,45 @@ public class MainActivity extends AppCompatActivity {
         // обновление личных данных после авторизации
         IntentFilter filter = new IntentFilter();
         filter.addAction(Config.INTENT_AUTH);
-        filter.addAction(Config.INTENT_THEME);
-        receiver = new BroadcastReceiver() {
+        filter.addAction(Config.INTENT_NEW_PM);
+        filter.addAction(Config.INTENT_READ_PM);
+        filter.addAction(Config.INTENT_DELETE_PM);
+
+        registerReceiver(new BroadcastReceiver(){
             @Override
             public void onReceive(Context context, Intent intent) {
-                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                String auth_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
-                String is_pm = sharedPrefs.getString("dvc_pm", "off");
-                String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-                Glide.with(context)
-                        .load(image_url)
-                        .apply(RequestOptions.circleCropTransform())
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .centerCrop()
-                        .into(avatar);
-                status.setImageResource(R.drawable.ic_status_green);
-                Login_Name.setText(getString(R.string.sign_as));
-                Login_Name.append(auth_name);
-                avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
-                if (!is_pm.equals("off")) fab.setVisibility(View.VISIBLE);
+
+
+                if ((intent != null)) {
+
+                    String str = intent.getStringExtra("pm_unread");
+                    TextView fab_badge = binding.appBarMain.fabBadge;
+                    fab_badge.setVisibility(View.VISIBLE);
+                    fab_badge.setText(str);
+                    Log.e(Config.TAG, "Receive PM: "+ str);
+                    if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
+                }
+
+                if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
+                    Log.e(Config.TAG, "Auth broadcast");
+                    SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                    String auth_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+                    String is_pm = sharedPrefs.getString("dvc_pm", "off");
+                    String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+                    Glide.with(getApplicationContext())
+                            .load(image_url)
+                            .apply(RequestOptions.circleCropTransform())
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .centerCrop()
+                            .into(avatar);
+                    status.setImageResource(R.drawable.ic_status_green);
+                    Login_Name.setText(getString(R.string.sign_as));
+                    Login_Name.append(auth_name);
+                    avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
+                    if ((!is_pm.equals("off")) && (binding != null)) binding.appBarMain.fab.setVisibility(View.VISIBLE);
+                }
             }
-        };
-        registerReceiver(receiver, filter);
+        }, filter);
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);
@@ -400,52 +339,76 @@ public class MainActivity extends AppCompatActivity {
         if (!is_tracker) navigationView.getMenu().removeItem(R.id.nav_tracker);
         if (!is_blog) navigationView.getMenu().removeItem(R.id.nav_blog);
         if (!is_suploader) navigationView.getMenu().removeItem(R.id.nav_suploader);
-
+        if ((is_pm.equals("off")) || (auth_state != 1)) navigationView.getMenu().removeItem(R.id.nav_pm);
 
         // открытие личных сообщений
-        fab = findViewById(R.id.fab);
-        if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
-
-        fab.setOnClickListener(view -> {
-
-            FragmentManager fragmentManager = getSupportFragmentManager();
-
-            Fragment PmFragment = new PmFragment();
-
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, PmFragment)
-                    .addToBackStack(null)
-                    .commit();
-        });
+        if ((is_pm.equals("off")) || (auth_state != 1)) binding.appBarMain.fab.setVisibility(View.GONE);
 
 
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(receiver, new IntentFilter(Config.INTENT_NEW_PM));
-
-
+        // информация об обновлении
         try {
 
             if (appWasUpdated(this)) {
 
-                    new AlertDialog.Builder(this)
-                            .setTitle(getString(R.string.whats_new_title))
-                            .setMessage(getString(R.string.whats_new_text))
-                            .setNegativeButton(android.R.string.ok,
-                                    (dialog, which) -> dialog.dismiss()).setIcon(R.mipmap.ic_launcher_round).show();
-                }
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.whats_new_title))
+                        .setMessage(getString(R.string.whats_new_text))
+                        .setNegativeButton(android.R.string.ok,
+                                (dialog, which) -> dialog.dismiss()).setIcon(R.mipmap.ic_launcher_round).show();
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
 
         // billing init
-        PurchaseHelper.init(this);
+        if (!getCurrentLanguage().equals("ru"))  PurchaseHelper.init(this);
 
         if ((Build.VERSION.SDK_INT >= 33) && ((is_pm.equals("on")) || (auth_state == 1))) {
             mRequestPermissionHandler = new RequestPermissionHandler();
             handlePerm();
         }
+
+        // открываем лс из уведомления
+        Intent intent_pm = getIntent();
+        if (intent_pm != null) {
+
+            String action = intent_pm.getStringExtra("action");
+
+            Log.e(Config.TAG, "Main intent: "+ action);
+
+            if (action != null) {
+                if (Objects.equals(action, "PmFragment")) {
+                    navigationView.post(() -> navController.navigate(R.id.nav_pm));
+                }
+                if (Objects.equals(action, "ForumFragment")) {
+                    navigationView.post(() -> navController.navigate(R.id.nav_forum));
+                }
+            }
+        }
+        // написание личных сообщений
+        FloatingActionButton fab = MainActivity.binding.appBarMain.fab;
+        TextView fabBage = MainActivity.binding.appBarMain.fabBadge;
+        fab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.baseline_mail_24));
+        fab.setOnClickListener(view -> {
+            fabClick();
+        });
+        fabBage.setOnClickListener(view -> {
+            fabClick();
+        });
+
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+                || super.onSupportNavigateUp();
     }
 
+    // вызов личных сообщений по кнопке
+    public void fabClick() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navigationView.post(() -> navController.navigate(R.id.nav_pm));
+
+    }
 
     // масштабирование шрифтов
     private void adjustFontScale(Configuration configuration) {
@@ -459,31 +422,10 @@ public class MainActivity extends AppCompatActivity {
         getBaseContext().getResources().updateConfiguration(configuration, metrics);
     }
 
-    // счетчик сообщений
-    public BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent != null) {
-                String str = intent.getStringExtra("count");
-                TextView fab_badge = findViewById(R.id.fab_badge);
-                fab_badge.setVisibility(View.VISIBLE);
-                fab_badge.setText(str);
-                if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
-            }
-        }
-    };
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         razdel = event.razdel;
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-                || super.onSupportNavigateUp();
     }
 
     @Override
@@ -493,6 +435,7 @@ public class MainActivity extends AppCompatActivity {
         // search
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        assert searchView != null;
         final EditText searchEditText = searchView.findViewById(R.id.search_src_text);
 
         searchEditText.setHint(getString(R.string.search));
@@ -510,7 +453,8 @@ public class MainActivity extends AppCompatActivity {
                 homeFrag = new MainFragmentContent();
 
                 if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel == 13) homeFrag = new PmFragment(); // pm
+                if (razdel == 13) homeFrag = new PmMembersFragment(); // pm
+
 
                 Bundle bundle = new Bundle();
                 String story = searchEditText.getText().toString().trim();
@@ -540,6 +484,7 @@ public class MainActivity extends AppCompatActivity {
         // settings
         if (id == R.id.action_settings) {
             Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
             return true;
         }
@@ -553,7 +498,7 @@ public class MainActivity extends AppCompatActivity {
             if (razdel == 8) homeFrag = new ForumFragment(); // forum
             if (razdel == 13) homeFrag = new PmFragment(); // pm
 
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
@@ -578,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
             if (razdel == 8) homeFrag = new ForumFragment(); // forum
             if (razdel == 13) homeFrag = new PmFragment(); // pm
 
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
@@ -628,7 +573,7 @@ public class MainActivity extends AppCompatActivity {
             selectorIntent.setData(Uri.parse("mailto:"));
 
             final Intent emailIntent = new Intent(Intent.ACTION_SEND);
-            emailIntent.putExtra(Intent.EXTRA_EMAIL,  new String[]{getString(R.string.app_mail)});
+            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{getString(R.string.app_mail)});
             emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
             emailIntent.setSelector(selectorIntent);
 
@@ -662,8 +607,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(browserIntent);
                 } catch (Throwable ignored) {
                 }
-            } else
-            {
+            } else {
                 if (getCurrentLanguage().equals("ru")) {
                     try {
                         startActivity(browserIntent);
@@ -704,28 +648,25 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        try {
-            unregisterReceiver(receiver);
-        } catch (Throwable ignored) {
-        }
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        this.finishActivity(0);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
     }
+
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
     }
 
     @Override
@@ -734,7 +675,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
         Toolbar toolbar = this.findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.menu_home);
         toolbar.setSubtitle(null);
@@ -757,7 +698,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         if (prefs.getInt("last_version_code", 1) != versionCode) {
             prefs.edit().putInt("last_version_code", versionCode).apply();
-               return true;
+            return true;
         }
         return false;
     }
@@ -778,11 +719,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-    private String getCurrentLanguage(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+    private String getCurrentLanguage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             return LocaleList.getDefault().get(0).getLanguage();
-        } else{
+        } else {
             return Locale.getDefault().getLanguage();
         }
     }

@@ -3,21 +3,45 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@id/nav_home">
+    app:startDestination="@+id/nav_home">
 
     <fragment
         android:id="@+id/nav_home"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_home"
         android:tag="comments"
+        tools:layout="@layout/fragment_home">
+        <argument
+            android:name="category"
+            android:defaultValue="10" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_pm"
+        android:name="com.dimonvideo.client.ui.pm.PmFragment"
+        android:label="@string/tab_pm"
+        android:tag="pm"
         tools:layout="@layout/fragment_tabs">
         <argument
             android:name="category"
-            android:defaultValue="10"
+            android:defaultValue="13"
             />
         <action
-            android:id="@+id/action_nav_home_to_nav_forum2"
-            app:destination="@id/nav_forum" />
+            android:id="@+id/action_nav_pm_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_forum"
+        android:name="com.dimonvideo.client.ui.forum.ForumFragment"
+        android:label="@string/menu_forum"
+        android:tag="forum"
+        tools:layout="@layout/fragment_tabs">
+        <argument
+            android:name="category"
+            android:defaultValue="8"
+            />
+        <action
+            android:id="@+id/action_nav_forum_to_nav_home"
+            app:destination="@id/nav_home" />
     </fragment>
 
     <fragment
@@ -25,328 +49,154 @@
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_gallery"
         android:tag="gallery"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="1"
             />
         <action
             android:id="@+id/action_nav_gallery_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-    <fragment
-        android:id="@+id/nav_fav"
-        android:name="com.dimonvideo.client.ui.main.MainFragmentFav"
-        android:label="@string/tab_favorites"
-        android:tag="fav"
-        tools:layout="@layout/fragment_tabs">
-        <argument
-            android:name="category"
-            android:defaultValue="20"
-            />
-        <action
-            android:id="@+id/action_nav_fav_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
     <fragment
         android:id="@+id/nav_uploader"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
-        android:label="@string/menu_slideshow"
+        android:label="@string/uploader"
         android:tag="uploader"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="2"
             />
         <action
             android:id="@+id/action_nav_uploader_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_android"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_android"
         android:tag="android"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="11"
             />
         <action
             android:id="@+id/action_nav_android_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_vuploader"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/vuploader"
         android:tag="vuploader"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="3"
             />
         <action
             android:id="@+id/action_nav_vuploader_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_news"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/menu_news"
-        android:tag="usernews"
-        tools:layout="@layout/fragment_tabs">
+        android:tag="news"
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="4"
             />
         <action
             android:id="@+id/action_nav_news_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_muzon"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/muzon"
         android:tag="muzon"
-       tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="5"
             />
         <action
-            android:id="@+id/action_nav_muzon_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            android:id="@+id/action_nav_muzon_to_nav_home2"
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_books"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/books"
         android:tag="books"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="6"
             />
         <action
             android:id="@+id/action_nav_books_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_articles"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/articles"
         android:tag="articles"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="7"
             />
         <action
             android:id="@+id/action_nav_articles_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
-        android:id="@+id/nav_forum"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragment"
-        android:label="@string/menu_forum"
-        android:tag="topics"
-        tools:layout="@layout/fragment_tabs">
-        <argument
-            android:name="category"
-            android:defaultValue="8"
-        />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_forums"
-            app:destination="@id/nav_forums" />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_topics"
-            app:destination="@id/nav_topics" />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_topics_no_posts"
-            app:destination="@id/nav_topics_no_posts" />
-        <action
-            android:id="@+id/action_nav_forum_to_nav_topics_fav"
-            app:destination="@id/nav_topics_fav" />
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_forums"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentForums"
-        android:label="@string/tab_forums"
-        android:tag="posts"
+        android:id="@+id/nav_tracker"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
+        android:label="@string/tracker"
+        android:tag="tracker"
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
-            android:defaultValue="9"
+            android:defaultValue="14"
             />
-        <action
-            android:id="@+id/action_nav_forums_to_nav_forum"
-            app:destination="@id/nav_forum"
-            app:popUpTo="@+id/nav_forum"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_topics"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopics"
-        android:label="@string/tab_topics"
-        android:tag="posts"
-        tools:layout="@layout/fragment_home">
-        <argument
-            android:name="category"
-            android:defaultValue="9"
-            />
-        <action
-            android:id="@+id/action_nav_topics_to_nav_forum"
-            app:destination="@id/nav_forum"
-            app:popUpTo="@+id/nav_forum"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_topics_fav"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav"
-        android:label="@string/tab_topics_no_posts"
-        android:tag="posts"
-        tools:layout="@layout/fragment_home">
-        <argument
-            android:name="category"
-            android:defaultValue="9"
-            />
-        <action
-            android:id="@+id/action_nav_topics_fav_to_nav_forum"
-            app:destination="@id/nav_forum"
-            app:popUpTo="@+id/nav_forum"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_topics_no_posts"
-        android:name="com.dimonvideo.client.ui.forum.ForumFragmentTopicsNoPosts"
-        android:label="@string/tab_topics_no_posts"
-        android:tag="posts"
-        tools:layout="@layout/fragment_home">
-        <argument
-            android:name="category"
-            android:defaultValue="9"
-            />
-        <action
-            android:id="@+id/action_nav_topics_no_posts_to_nav_forum"
-            app:destination="@id/nav_forum"
-            app:popUpTo="@+id/nav_forum"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_pminbox"
-        android:name="com.dimonvideo.client.ui.pm.PmFragment"
-        android:label="@string/tab_inbox"
-        android:tag="pm"
-        tools:layout="@layout/fragment_home">
-        <argument
-            android:name="category"
-            android:defaultValue="13"
-            />
-        <action
-            android:id="@+id/action_nav_pminbox_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_cats"
-        android:name="com.dimonvideo.client.ui.main.MainFragmentCats"
-        android:label="@string/cats_text"
-        android:tag="category"
-        tools:layout="@layout/fragment_tabs">
-        <argument
-            android:name="category"
-            android:defaultValue="10"
-            app:destination="@id/nav_home"
-            />
-        <action
-            android:id="@+id/action_nav_cats_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
-    </fragment>
-
-    <fragment
-    android:id="@+id/nav_tracker"
-    android:name="com.dimonvideo.client.ui.main.MainFragment"
-    android:label="@string/tracker"
-    android:tag="tracker"
-    tools:layout="@layout/fragment_tabs">
-    <argument
-        android:name="category"
-        android:defaultValue="14"
-        />
         <action
             android:id="@+id/action_nav_tracker_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_blog"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/blog"
         android:tag="blog"
-        tools:layout="@layout/fragment_tabs">
+        tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
             android:defaultValue="15"
             />
         <action
             android:id="@+id/action_nav_blog_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_suploader"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
         android:label="@string/suploader"
         android:tag="suploader"
-        tools:layout="@layout/fragment_tabs">
-        <argument
-            android:name="category"
-            android:defaultValue="16"
-            />
+        tools:layout="@layout/fragment_home">
+    <argument
+        android:name="category"
+        android:defaultValue="16"
+        />
         <action
-            android:id="@+id/action_nav_blog_to_nav_home"
-            app:destination="@id/nav_home"
-            app:popUpTo="@+id/nav_home"
-            app:popUpToInclusive="true"/>
+            android:id="@+id/action_nav_suploader_to_nav_home"
+            app:destination="@id/nav_home" />
     </fragment>
+
 </navigation>

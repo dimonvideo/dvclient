@@ -124,12 +124,11 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - уменьшено потребление оперативной памяти.\n
-        - добавлен раздел Второй Обменник (включается в настройках).\n
-        - после авторизации не нужно перезагружать приложение.\n
-        - улучшена форма написания ответов и комментариев.\n
-        - добавлена возможность смены тем на лету.\n
-        - исправлены некоторые ошибки.
+        - уменьшено количество сетевых запросов.\n
+        - переработан раздел Личных сообщений.\n
+        - Новый раздел Участники - теперь любому пользователю можно отправлять сообщения, там работает поиск по участникам.\n
+        - Новые настройки и пункты меню.\n
+
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -169,4 +168,16 @@
     <string name="mark">Отметить просмотренным</string>
     <string name="action_opds">OPDS</string>
     <string name="suploader">Второй Обменник</string>
+    <string name="tab_members">Участники</string>
+    <string name="tab_ignore">Список игнора</string>
+    <string name="copy_name">Копировать ник</string>
+    <string name="action_like_member">Поблагодарить</string>
+    <string name="disable_pm_outbox">Скрыть отправленные и исходящие</string>
+    <string name="disable_pm_arc">Скрыть папку Архив</string>
+    <string name="web">Сайт</string>
+    <string name="app_functions">Функции</string>
+    <string name="msg_archived">Архивировано</string>
+    <string name="add_friend">Добавить в друзья</string>
+    <string name="add_ignor">Внести в игнор</string>
+    <string name="remove_all">Удалить из всех списков</string>
 </resources>

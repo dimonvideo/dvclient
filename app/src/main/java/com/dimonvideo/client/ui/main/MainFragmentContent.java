@@ -6,29 +6,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -38,7 +30,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
@@ -47,14 +38,15 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.db.Table;
 import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.ui.forum.ForumFragment;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.UpdatePm;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -69,25 +61,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentContent extends Fragment {
 
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public MainAdapter adapter;
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
-    private static Context mContext;
+    private Context mContext;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 10;
+    int razdel = 10;
     int cid = 0;
     String url = Config.COMMENTS_URL;
     String search_url = Config.COMMENTS_SEARCH_URL;
-    String s_url = "";
     String key = "comments";
     SharedPreferences sharedPrefs;
-    static String story;
-    String f_name;
+    String story, f_name, s_url = "";
+    private FragmentHomeBinding binding;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -101,8 +92,14 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
+        Log.e(Config.TAG, "MainFragmentContent razdel: " + razdel);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
         mContext = requireContext();
 
         requestCount = 1;
@@ -114,11 +111,9 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
             cid = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_RAZDEL);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
         }
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+
 
         key = GetRazdelName.getRazdelName(razdel, 0);
         search_url = GetRazdelName.getRazdelName(razdel, 1);
@@ -156,17 +151,17 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         } catch (Throwable ignored) {
         }
 
-        emptyLayout = root.findViewById(R.id.linearEmpty);
+        emptyLayout = binding.linearEmpty;
+        emptyLayout.setVisibility(View.GONE);
+        recyclerView = binding.recyclerView;
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
         adapter = new MainAdapter(listFeed, mContext);
-
-        recyclerView = root.findViewById(R.id.recycler_view);
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -174,7 +169,7 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         assert horizontalDivider != null;
         horizontalDecoration.setDrawable(horizontalDivider);
         recyclerView.addItemDecoration(horizontalDecoration);
-
+        recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(mContext);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -190,11 +185,11 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         });
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemViewCacheSize(10);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
 
         if (!TextUtils.isEmpty(f_name)) {
             toolbar.setSubtitle(f_name);
@@ -235,15 +230,17 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         }
 
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
+            listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });
 
 
-
+        View view = MainActivity.binding.getRoot();
+        UpdatePm.update(requireActivity(), view);
         return root;
     }
 
@@ -252,6 +249,7 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
+
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
 
 
@@ -276,8 +274,11 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
             s_url = "&story=" + story;
         }
 
+        url = url + requestCount + "&c=placeholder," + category_string + s_url;
 
-        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
+        Log.e(Config.TAG, "MainFragmentContent url: " + url);
+
+        return new JsonArrayRequest(url,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -370,27 +371,26 @@ public class MainFragmentContent extends Fragment implements SwipeRefreshLayout.
         return false;
     }
 
-    // обновление
-    @Override
-    public void onRefresh() {
-
-    }
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
 }

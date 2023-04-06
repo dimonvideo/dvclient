@@ -168,4 +168,16 @@
     <string name="mark">Mark all read</string>
     <string name="action_opds">OPDS</string>
     <string name="suploader">sUploader</string>
+    <string name="tab_members">Members</string>
+    <string name="tab_ignore">Ignor</string>
+    <string name="copy_name">Copy name</string>
+    <string name="action_like_member">Like</string>
+    <string name="disable_pm_outbox">Hide outbox folder</string>
+    <string name="disable_pm_arc">Hide Arhive folder</string>
+    <string name="web">Site</string>
+    <string name="app_functions">App functions</string>
+    <string name="msg_archived">Archivied</string>
+    <string name="add_friend">Add to friends</string>
+    <string name="add_ignor">Add to ignor</string>
+    <string name="remove_all">Remove from all lists</string>
 </resources>

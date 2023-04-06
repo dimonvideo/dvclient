@@ -118,7 +118,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             if ((auth_state > 0) && (Feed.getId() > 0)) {
-                holder.post_layout.setVisibility(View.VISIBLE);
+                if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
                 holder.textInput.setFocusableInTouchMode(true);
@@ -128,7 +128,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         });
         holder.itemView.setOnClickListener(view -> {
             if ((auth_state > 0) && (Feed.getId() > 0)) {
-                holder.post_layout.setVisibility(View.VISIBLE);
+                if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
                 holder.textInput.requestFocus();

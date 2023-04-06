@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -104,8 +103,6 @@ public class Provider extends ContentProvider {
         SQLiteDatabase sqlDB = database.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
         contentValues.put(Table.COLUMN_STATUS,status);
-
-        Log.i("---", "put: "+lid+" - "+status+ " "+razdel);
 
         sqlDB.update(Table.TABLE_NAME, contentValues,
                 Table.COLUMN_LID + " = ? AND " + Table.COLUMN_RAZDEL + " = ?",

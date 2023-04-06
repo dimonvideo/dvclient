@@ -29,6 +29,7 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
 import com.dimonvideo.client.util.AppController;
@@ -45,11 +46,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentFav extends Fragment  {
 
     private List<Feed> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public MainAdapter adapter;
     SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -61,6 +62,7 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
     String s_url = "";
     String key = "comments";
     SharedPreferences sharedPrefs;
+    private FragmentHomeBinding binding;
 
     public MainFragmentFav() {
         // Required empty public constructor
@@ -75,7 +77,9 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
     @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
         requestCount = 1;
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
@@ -85,11 +89,10 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
             cid = getArguments().getInt(Config.TAG_ID);
         }
 
-        recyclerView = root.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-
-        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -103,9 +106,9 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
         });
         listFeed = new ArrayList<>();
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
@@ -118,7 +121,7 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
         recyclerView.setAdapter(adapter);
 
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             progressBar.setVisibility(View.VISIBLE);
@@ -217,26 +220,25 @@ public class MainFragmentFav extends Fragment implements SwipeRefreshLayout.OnRe
         return false;
     }
 
-    // обновление
-    @Override
-    public void onRefresh() {
-
-    }
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 }

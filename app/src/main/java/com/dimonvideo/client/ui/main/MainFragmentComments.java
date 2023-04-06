@@ -33,6 +33,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.pm.PmFragment;
@@ -53,11 +54,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class MainFragmentComments extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentComments extends Fragment {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public CommentsAdapter adapter;
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
     private int requestCount = 1;
@@ -66,7 +67,7 @@ public class MainFragmentComments extends Fragment implements SwipeRefreshLayout
     String url = Config.COMMENTS_READS_URL;
     String key = "comments";
     SharedPreferences sharedPrefs;
-    static String story;
+    private FragmentHomeBinding binding;
 
     public MainFragmentComments() {
         // Required empty public constructor
@@ -80,7 +81,9 @@ public class MainFragmentComments extends Fragment implements SwipeRefreshLayout
     @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+
         requestCount = 1;
 
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -88,20 +91,20 @@ public class MainFragmentComments extends Fragment implements SwipeRefreshLayout
         }
         if (this.getArguments() != null) {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
         }
 
         listFeed = new ArrayList<>();
-        emptyLayout = root.findViewById(R.id.linearEmpty);
+        emptyLayout = binding.linearEmpty;
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
         adapter = new CommentsAdapter(listFeed, getContext());
-        recyclerView = root.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -125,17 +128,17 @@ public class MainFragmentComments extends Fragment implements SwipeRefreshLayout
         });
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemViewCacheSize(3);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             FragmentManager fragmentManager = getParentFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.container, new MainFragmentComments())
+                    .replace(R.id.container_frag, new MainFragmentComments())
                     .addToBackStack(null)
                     .commit();
             swipLayout.setRefreshing(false);
@@ -206,25 +209,24 @@ public class MainFragmentComments extends Fragment implements SwipeRefreshLayout
         return false;
     }
 
-    // обновление
-    @Override
-    public void onRefresh() {
-    }
-
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 }

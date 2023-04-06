@@ -6,23 +6,17 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TabHost;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -33,13 +27,11 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
-import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.snackbar.Snackbar;
@@ -56,30 +48,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
+public class PmTrashFragment extends Fragment {
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public PmAdapter adapter;
     SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 13;
-    String url = Config.PM_URL;
+    String url = Config.PM_URL, pm;
+    private FragmentHomeBinding binding;
+    LinearLayout emptyLayout;
+    TextView emptyView;
+    protected EventBus eventBus;
 
     public PmTrashFragment() {
         // Required empty public constructor
     }
-
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        pm = event.pm;
+    }
+    @SuppressLint({"NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
         requestCount = 1;
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+        emptyView = binding.emptyView;
+        emptyLayout = binding.linearEmpty;
 
+        emptyView.setVisibility(View.VISIBLE);
+        emptyLayout.setVisibility(View.VISIBLE);
         recyclerView = root.findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -98,13 +98,13 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
         });
         listFeed = new ArrayList<>();
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed, getContext());
+        adapter = new PmAdapter(listFeed);
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -132,7 +132,7 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
 
                 View itemView = viewHolder.itemView;
 
-                int iconMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
+                int iconMargin = (itemView.getHeight() - Objects.requireNonNull(deleteIcon).getIntrinsicHeight()) / 2;
                 int iconTop = itemView.getTop() + (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
                 int iconBottom = iconTop + deleteIcon.getIntrinsicHeight();
 
@@ -165,7 +165,9 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
                 snackbar.setAction(getString(R.string.tab_inbox), view -> {
                     assert getParentFragment() != null;
                     ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
-                    viewPager.setCurrentItem(0);
+                    viewPager.setCurrentItem(0, true);
+                    EventBus.getDefault().post(new MessageEvent(13, null, "deleted"));
+
                 });
 
                 snackbar.setActionTextColor(Color.YELLOW);
@@ -176,8 +178,24 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
         new ItemTouchHelper(itemTouchHelper).attachToRecyclerView(recyclerView);
 
         recyclerView.setAdapter(adapter);
+
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                if (adapter.getItemCount() == 0) {
+                    emptyLayout.setVisibility(View.VISIBLE);
+                    emptyView.setVisibility(View.VISIBLE);
+                } else {
+                    emptyLayout.setVisibility(View.GONE);
+                    emptyView.setVisibility(View.GONE);
+                }
+            }
+        });
+
+
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             listFeed.clear();
@@ -188,16 +206,10 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
         return root;
     }
 
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
-    }
-
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext().getApplicationContext());
         String login = sharedPrefs.getString("dvc_login","null");
         String pass = sharedPrefs.getString("dvc_password","null");
         try {
@@ -213,6 +225,11 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.scrollToPosition(0);
+                    }
                     for (int i = 0; i < response.length(); i++) {
                         FeedPm jsonFeed = new FeedPm();
                         JSONObject json;
@@ -233,7 +250,13 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
                         listFeed.add(jsonFeed);
                     }
                     adapter.notifyDataSetChanged();
-
+                    if (adapter.getItemCount() == 0) {
+                        emptyLayout.setVisibility(View.VISIBLE);
+                        emptyView.setVisibility(View.VISIBLE);
+                    } else {
+                        emptyLayout.setVisibility(View.GONE);
+                        emptyView.setVisibility(View.GONE);
+                    }
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
@@ -258,16 +281,23 @@ public class PmTrashFragment extends Fragment implements SwipeRefreshLayout.OnRe
         return false;
     }
 
-    // обновление
     @Override
-    public void onRefresh() {
-
+    public void onDestroy() {
+        super.onDestroy();
+        binding = null;
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
-    public void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
 }

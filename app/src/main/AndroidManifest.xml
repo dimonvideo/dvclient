@@ -40,24 +40,28 @@
         <activity
             android:name=".ui.main.Comments"
             android:launchMode="singleTop"
+            android:excludeFromRecents="true"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".ui.forum.Posts"
             android:launchMode="singleTop"
+            android:excludeFromRecents="true"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".ui.forum.PostsSearch"
             android:launchMode="singleTop"
+            android:excludeFromRecents="true"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
+            android:excludeFromRecents="true"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -68,7 +72,6 @@
             android:configChanges="screenSize|orientation|uiMode|locale"
             android:resizeableActivity="true"
             android:theme="@style/AppTheme.NoActionBar"
-            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

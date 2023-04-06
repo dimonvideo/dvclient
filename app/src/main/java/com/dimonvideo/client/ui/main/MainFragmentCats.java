@@ -26,6 +26,8 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.MainCategoryAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
+import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.model.FeedCats;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
@@ -45,13 +47,15 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
 
     private List<FeedCats> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public MainCategoryAdapter adapter;
     SwipeRefreshLayout swipLayout;
     SharedPreferences sharedPrefs;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
     String url = Config.CATEGORY_URL;
     String key = "comments";
+    private FragmentHomeBinding binding;
+
     public MainFragmentCats() {
         // Required empty public constructor
     }
@@ -63,22 +67,24 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
-        recyclerView = root.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         listFeed = new ArrayList<>();
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
@@ -116,7 +122,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         Log.e("mainFragmentCats", ""+url+key);
 
         if (this.getArguments() != null) {
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
         }
         return new JsonArrayRequest(url + key,
                 response -> {
@@ -160,18 +166,23 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
+
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 }

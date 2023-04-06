@@ -8,7 +8,7 @@
     android:padding="8dp" >
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/container"
+        android:id="@+id/container_post"
         android:layout_width="40dp"
         android:layout_height="40dp"
         app:cardCornerRadius="20dp"
@@ -30,9 +30,9 @@
         android:layout_marginEnd="5dip"
         android:layout_marginTop="5dip"
         android:layout_marginStart="1dip"
-        android:layout_alignTop="@+id/container"
+        android:layout_alignTop="@+id/container_post"
         android:layout_below="@id/listtext"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_post"
         android:contentDescription="@string/Comments"
         android:src="@drawable/ic_status_green" />
 
@@ -42,7 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/status"
-        android:layout_alignTop="@+id/container"
+        android:layout_alignTop="@+id/container_post"
         android:textSize="@dimen/title"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_post"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
@@ -66,7 +66,7 @@
         android:layout_height="match_parent"
         android:layout_below="@id/category"
         android:layout_marginTop="5dp"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_post"
         android:textAppearance="@android:style/TextAppearance.Small"
         android:textSize="@dimen/text"/>
 
@@ -96,7 +96,7 @@
         android:layout_marginEnd="3dip"
         android:layout_marginTop="3dip"
         android:layout_below="@id/names"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_post"
         app:tint="@color/colorAccent"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/ic_menu_view"

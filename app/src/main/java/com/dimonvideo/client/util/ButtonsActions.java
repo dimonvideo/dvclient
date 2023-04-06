@@ -86,6 +86,23 @@ public class ButtonsActions {
 
     }
 
+    public static void like_member(Context context, int to_uid, String to_name, int type){
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        final String is_name = sharedPrefs.getString("dvc_login","dvclient");
+        final int from_id = sharedPrefs.getInt("user_id",0);
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ "name" + "&id="+ to_uid +"&u=" + is_name + "&from_id="+ from_id +"&t=" + type,
+                response -> {
+
+                    Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
+
+                }, error -> showErrorToast(context, error)
+        );
+
+        queue.add(stringRequest);
+
+    }
+
     // оценка плюс или отмена плюса
     public static void like_forum_post(Context context, int id, int type){
         @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(context.getContentResolver(),
@@ -144,6 +161,43 @@ public class ButtonsActions {
         queue.add(stringRequest);
 
     }
+
+    // добавление или удаление user из избранного
+    public static void add_to_fav_user(Context context, int id, int type){
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String login = sharedPrefs.getString("dvc_login", "null");
+        final String password = sharedPrefs.getString("dvc_password", "null");
+        String pass = password;
+        try {
+            pass = URLEncoder.encode(password, "utf-8");
+            login = URLEncoder.encode(login, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        RequestQueue queue = AppController.getInstance().getRequestQueue();
+        String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=members&id=" + id + "&addfav=" + type;
+        Log.e(Config.TAG, url);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                response -> {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        int state = jsonObject.getInt(Config.TAG_STATE);
+
+                        if (state == 1) {
+                            Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
+                        } else Toast.makeText(context, context.getString(R.string.nav_header_title), Toast.LENGTH_LONG).show();
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }, error -> showErrorToast(context, error)
+        );
+
+        queue.add(stringRequest);
+
+    }
+
 
     // проиграть видео в окне диалога
     public static void PlayVideo(Context context, String link) {

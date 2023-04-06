@@ -3,6 +3,7 @@
     <words>
       <w>addfav</w>
       <w>addfrg</w>
+      <w>addmembers</w>
       <w>arhiv</w>
       <w>backpress</w>
       <w>btns</w>
@@ -24,6 +25,7 @@
       <w>razdel</w>
       <w>regdate</w>
       <w>requestcount</w>
+      <w>suploader</w>
       <w>swip</w>
       <w>symbian</w>
       <w>tabview</w>

@@ -16,6 +16,7 @@ public class Config {
     public static final String TRACKER_RAZDEL = "tracker";
     public static final String BLOG_RAZDEL = "blog";
     public static final String SUPLOADER_RAZDEL = "suploader";
+    public static final String MEMBERS_RAZDEL = "members";
 
     //Data URL
     public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+COMMENTS_RAZDEL+"&min=";
@@ -42,6 +43,8 @@ public class Config {
     public static final String BLOG_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+BLOG_RAZDEL+"&min=";
     public static final String SUPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+SUPLOADER_RAZDEL+"&min=";
     public static final String SUPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+SUPLOADER_RAZDEL+"&min=";
+    public static final String MEMBERS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+MEMBERS_RAZDEL+"&min=";
+    public static final String MEMBERS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+MEMBERS_RAZDEL+"&min=";
     public static final String FORUM_FEED_URL = BASE_URL + "/apps/dvclient.php?op=5&min=";
     public static final String FORUM_FEED_NO_POSTS_URL = BASE_URL + "/apps/dvclient.php?op=5&id=-1&min=";
     public static final String FORUM_CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=6&min=";
@@ -60,6 +63,7 @@ public class Config {
 
     //JSON TAGS
     public static final String TAG_ID = "lid";
+    public static final String TAG_UID = "user_id";
     public static final String TAG_IMAGE_URL = "image";
     public static final String TAG_FAV = "fav";
     public static final String TAG_TITLE = "title";
@@ -105,7 +109,11 @@ public class Config {
     // intents
     public static final String INTENT_AUTH = "com.dimonvideo.client.AUTH";
     public static final String INTENT_NEW_PM = "com.dimonvideo.client.NEW_PM";
+    public static final String INTENT_DELETE_PM = "com.dimonvideo.client.DELETE_PM";
+    public static final String INTENT_READ_PM = "com.dimonvideo.client.READ_PM";
     public static final String INTENT_THEME = "com.dimonvideo.client.THEME";
+
+    public static final String TAG = "---";
 
 }
 

@@ -3,22 +3,30 @@ package com.dimonvideo.client.ui.main;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
+import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -38,8 +46,8 @@ public class MainFragment extends Fragment  {
     TabLayoutMediator tabLayoutMediator;
     TabLayout tabs;
     String f_name;
-
     private final ArrayList<String> tabTiles = new ArrayList<>();
+    private FragmentTabsBinding binding;
 
     public MainFragment() {
 
@@ -55,7 +63,8 @@ public class MainFragment extends Fragment  {
                              ViewGroup container, Bundle savedInstanceState) {
 
 
-        View root = inflater.inflate(R.layout.fragment_tabs, container, false);
+        binding = FragmentTabsBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
@@ -67,7 +76,7 @@ public class MainFragment extends Fragment  {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_RAZDEL);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
         }
 
         final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
@@ -77,9 +86,9 @@ public class MainFragment extends Fragment  {
         String login = sharedPrefs.getString("dvc_password", "");
 
 
-        tabs = root.findViewById(R.id.tabLayout);
+        tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
-        viewPager = root.findViewById(R.id.view_pager);
+        viewPager = binding.viewPager;
         adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
 
         // вкладки
@@ -98,7 +107,7 @@ public class MainFragment extends Fragment  {
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,true);
-        viewPager.setOffscreenPageLimit(1);
+        viewPager.setOffscreenPageLimit(2);
 
         tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
             //position of the current tab and the tab
@@ -107,7 +116,7 @@ public class MainFragment extends Fragment  {
 
         tabLayoutMediator.attach();
 
-        EventBus.getDefault().post(new MessageEvent(razdel, null));
+        EventBus.getDefault().post(new MessageEvent(razdel, null, null));
 
         // override back pressed
         root.setFocusableInTouchMode(true);
@@ -135,19 +144,23 @@ public class MainFragment extends Fragment  {
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
     @Override

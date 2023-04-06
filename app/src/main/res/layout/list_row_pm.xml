@@ -10,7 +10,7 @@
     android:focusable="true">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/container"
+        android:id="@+id/container_card"
         android:layout_width="50dp"
         android:layout_height="50dp"
         app:cardCornerRadius="25dp"
@@ -32,9 +32,9 @@
         android:layout_marginEnd="5dip"
         android:layout_marginTop="5dip"
         android:layout_marginStart="1dip"
-        android:layout_alignTop="@+id/container"
+        android:layout_alignTop="@+id/container_card"
         android:layout_below="@id/listtext"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_card"
         android:contentDescription="@string/Comments"
         android:src="@drawable/ic_status_green" />
 
@@ -44,7 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/status"
-        android:layout_alignTop="@+id/container"
+        android:layout_alignTop="@+id/container_card"
         android:textSize="@dimen/title"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
@@ -56,7 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_card"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
@@ -65,7 +65,7 @@
     <TextView
         android:id="@+id/date"
         android:layout_width="wrap_content"
-        android:layout_toEndOf="@+id/container"
+        android:layout_toEndOf="@+id/container_card"
         android:layout_height="wrap_content"
         android:layout_below="@id/name"
         android:textColor="@color/colorAccent"

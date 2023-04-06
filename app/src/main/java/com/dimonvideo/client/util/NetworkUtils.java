@@ -62,7 +62,7 @@ public class NetworkUtils {
                             int state = jsonObject.getInt(Config.TAG_STATE);
 
                             String image = "0", status = "0", lastdate = "0", token = "0", rep = "0", reg = "0", rat = "0", posts = "0";
-                            int pm_unread = 0;
+                            int pm_unread = 0, uid = 0;
 
                             if (state > 0) {
                                 pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
@@ -74,12 +74,15 @@ public class NetworkUtils {
                                 reg = jsonObject.getString(Config.TAG_REG);
                                 rat = jsonObject.getString(Config.TAG_COMMENTS);
                                 posts = jsonObject.getString(Config.TAG_COUNT);
+                                uid = jsonObject.getInt(Config.TAG_UID);
 
                                 try {
                                     assert view != null;
                                     Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                                     Intent local = new Intent();
                                     local.setAction(Config.INTENT_AUTH);
+                                    local.putExtra("pm_unread", String.valueOf(pm_unread));
+                                    Log.e(Config.TAG, "NetworkUtils send intent pm_unread: "+ pm_unread);
                                     context.sendBroadcast(local);
                                 } catch (Throwable ignored) {
                                 }
@@ -104,11 +107,12 @@ public class NetworkUtils {
                                 editor.putString("auth_rat", rat);
                                 editor.putString("auth_posts", posts);
                                 editor.putInt("pm_unread", pm_unread);
+                                editor.putInt("user_id", uid);
                             }
                             editor.apply();
 
                             if ((!token.equals(current_token)) && (state > 0)) GetToken.getToken(context);
-                            //GetToken.getToken(context);
+
                            // Log.e("auth", response);
 
                         } catch (JSONException e) {
@@ -181,7 +185,7 @@ public class NetworkUtils {
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
         final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
-        if (login == null || login.length() < 2 || login.length() > 71) {
+        if (login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
             if (password.length() > 5) {
@@ -196,6 +200,7 @@ public class NetworkUtils {
                 }
 
                 String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete=" + delete;
+                Log.e(Config.TAG, url);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         response -> {
 
@@ -208,11 +213,11 @@ public class NetworkUtils {
                                 String count = "0";
                                 if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
                                 if (Integer.parseInt(count) < 1) count = "0";
-                                Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
-                                intent.putExtra("count", count);
-                                intent.putExtra("action", "deleted");
-                                intent.putExtra("id", 0);
-                                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                                Intent local = new Intent();
+                                local.setAction(Config.INTENT_DELETE_PM);
+                                local.putExtra("pm_unread", count);
+                                local.putExtra("action", "deletePm");
+                                context.sendBroadcast(local);
                             }
                         }, error -> showErrorToast(context, error)
                 );
@@ -230,7 +235,7 @@ public class NetworkUtils {
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
         final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
-        if (login == null || login.length() < 2 || login.length() > 71) {
+        if (login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
             if (password.length() > 5) {
@@ -250,11 +255,11 @@ public class NetworkUtils {
                             String count = "0";
                             if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
                             if (Integer.parseInt(count) < 1) count = "0";
-                            Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
-                            intent.putExtra("count", count);
-                            intent.putExtra("action", "reading");
-                            intent.putExtra("id", 0);
-                            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                            Intent local = new Intent();
+                            local.setAction(Config.INTENT_READ_PM);
+                            local.putExtra("pm_unread", count);
+                            local.putExtra("action", "readPm");
+                            context.sendBroadcast(local);
                         }, error -> showErrorToast(context, error)
                 );
 
@@ -281,11 +286,12 @@ public class NetworkUtils {
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
+                RequestQueue queue = AppController.getInstance().getRequestQueue();
+
                 String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
                     Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
-                    Log.e("pm", response + url);
                     GetToken.getToken(context);
                 }, Throwable::printStackTrace) {
 
@@ -297,7 +303,7 @@ public class NetworkUtils {
                     }
                 };
 
-                Volley.newRequestQueue(context).add(stringRequest);
+                queue.add(stringRequest);
 
             }
         }

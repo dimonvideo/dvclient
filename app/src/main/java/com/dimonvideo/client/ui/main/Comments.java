@@ -44,9 +44,11 @@ import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.SettingsActivity;
 import com.dimonvideo.client.adater.CommentsAdapter;
+import com.dimonvideo.client.databinding.ActivityMainBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.UpdatePm;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONException;
@@ -61,15 +63,15 @@ import java.util.Objects;
 public class Comments extends AppCompatActivity  implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public CommentsAdapter adapter;
     SwipeRefreshLayout swipLayout;
     LinearLayout emptyLayout;
     String comm_url, file_title, razdel, lid;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     SharedPreferences sharedPrefs;
+    public static ActivityMainBinding binding;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -77,7 +79,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
-        assert is_dark != null;
+        final String password = sharedPrefs.getString("dvc_password", "null");
         if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -151,57 +153,8 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
             startActivity(notificationIntent);
 
         });
-        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
-        lbm.registerReceiver(receiver, new IntentFilter("com.dimonvideo.client.NEW_PM"));
-
-        if (auth_state > 0) {
-
-            // обновляем счетчик лс
-            @SuppressLint("StaticFieldLeak")
-            class AsyncCountPm extends AsyncTask<String, String, String> {
-                SharedPreferences sharedPrefs;
-                private final WeakReference<Context> contextRef;
-
-                public AsyncCountPm(Context context) {
-                    this.contextRef = new WeakReference<>(context);
-                }
-
-                @Override
-                protected String doInBackground(String... params) {
-                    Context context = contextRef.get();
-                    if (context != null) {
-                        try {
-                            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                            // check is logged
-                            final String password = sharedPrefs.getString("dvc_password", "null");
-                            View view = ((Activity) context).getWindow().getDecorView().getRootView();
-
-                            NetworkUtils.checkPassword(context, view, password);
-
-                            return null;
-                        } catch (Exception e) {
-                            return null;
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(String result) {
-                    super.onPostExecute(result);
-                    final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
-                    if (pm_unread > 0) {
-                        TextView fab_badge = findViewById(R.id.fab_badge);
-                        fab_badge.setVisibility(View.VISIBLE);
-                        fab_badge.setText(String.valueOf(pm_unread));
-                    }
-                }
-            }
-            AsyncCountPm task = new AsyncCountPm(this);
-            task.execute();
-            Log.e("URL", "---  " + comm_url);
-
-        }
+        View view = MainActivity.binding.getRoot();
+        UpdatePm.update(getApplicationContext(), view);
     }
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")

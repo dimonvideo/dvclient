@@ -41,7 +41,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             int id = Integer.parseInt(Objects.requireNonNull(remoteMessage.getData().get("id")));
 
             assert action != null;
-            if (!action.isEmpty() && action.equals("new_pm")) {
+            if (action.equals("new_pm")) {
                 SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
                 final boolean dvc_pm_notify = sharedPrefs.getBoolean("dvc_pm_notify", false);
                 final String is_pm = sharedPrefs.getString("dvc_pm", "off");
@@ -53,22 +53,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                 if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify) && (is_pm.equals("on"))) {
 
-                    Intent intent = new Intent("com.dimonvideo.client.NEW_PM");
-                    intent.putExtra("count", count_pm);
-                    intent.putExtra("action", "new_pm");
-                    intent.putExtra("id", id);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+
+                    Intent local = new Intent();
+                    local.setAction(Config.INTENT_NEW_PM);
+                    local.putExtra("pm_unread", count_pm);
+                    local.putExtra("id", id);
+                    getApplicationContext().sendBroadcast(local);
+
+                    Log.e(Config.TAG, "Send broadcast to PM #" + id);
 
                     getBitmapAsync(getApplicationContext(),
                             Objects.requireNonNull(remoteMessage.getData().get("subj")),
                             Objects.requireNonNull(remoteMessage.getData().get("text")), id,
                             Objects.requireNonNull(remoteMessage.getData().get("image")));
                 }
-            }
-
-            if (!action.isEmpty() && action.equals("new")) {
-
-
             }
 
         }
@@ -119,7 +118,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
 
-        Log.e("PMID-on", "---  " + id);
+        Log.e(Config.TAG, "Notify new PM #" + id);
 
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
         notificationIntent.putExtra("action", "PmFragment");

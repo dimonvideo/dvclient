@@ -30,10 +30,12 @@ import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
+import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,17 +43,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ForumFragmentTopicsNoPosts extends Fragment implements SwipeRefreshLayout.OnRefreshListener   {
+public class ForumFragmentTopicsNoPosts extends Fragment   {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
-    public RecyclerView.Adapter adapter;
+    public ForumAdapter adapter;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_FEED_NO_POSTS_URL;
     int razdel = 8; // forum fragment
     SwipeRefreshLayout swipLayout;
+    private FragmentHomeBinding binding;
 
     public ForumFragmentTopicsNoPosts() {
         // Required empty public constructor
@@ -61,19 +64,20 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements SwipeRefresh
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_home, container, false);
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
         listFeed = new ArrayList<>();
 
-        progressBar = root.findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = root.findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
         adapter = new ForumAdapter(listFeed, getContext());
 
-        recyclerView = root.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -97,7 +101,8 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements SwipeRefresh
         });
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setItemViewCacheSize(10);
+        recyclerView.setHasFixedSize(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
@@ -105,13 +110,9 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements SwipeRefresh
         swipLayout = root.findViewById(R.id.swipe_layout);
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
-            FragmentManager fragmentManager = getParentFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container, new ForumFragmentTopicsNoPosts())
-                    .addToBackStack(null)
-                    .commit();
+            listFeed.clear();
+            getData();
             swipLayout.setRefreshing(false);
-            adapter.notifyDataSetChanged();
         });
 
 
@@ -174,17 +175,25 @@ public class ForumFragmentTopicsNoPosts extends Fragment implements SwipeRefresh
         }
         return false;
     }
-
-    // обновление
-    @SuppressLint("DetachAndAttachSameFragment")
     @Override
-    public void onRefresh() {
-        requestCount = 1;
-        getParentFragmentManager()
-                .beginTransaction()
-                .detach(ForumFragmentTopicsNoPosts.this)
-                .attach(ForumFragmentTopicsNoPosts.this)
-                .commit();
+    public void onDestroy() {
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+        super.onDestroy();
+        binding = null;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
 }

@@ -1,37 +1,30 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.ui.main.MainFragment;
-import com.dimonvideo.client.ui.main.MainFragmentCats;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.ui.main.MainFragmentFav;
-import com.dimonvideo.client.ui.main.MainFragmentHorizontal;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.UpdatePm;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -40,7 +33,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class ForumFragment extends Fragment  {
 
@@ -50,7 +42,9 @@ public class ForumFragment extends Fragment  {
     TabsAdapter adapt;
     TabLayoutMediator tabLayoutMediator;
     TabLayout tabs;
-    private ArrayList<String> tabTiles = new ArrayList<>();
+    private final ArrayList<String> tabTiles = new ArrayList<>();
+    FloatingActionButton fab;
+    private FragmentTabsBinding binding;
 
     public ForumFragment() {
         // Required empty public constructor
@@ -65,14 +59,11 @@ public class ForumFragment extends Fragment  {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_tabs, container, false);
-
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+        binding = FragmentTabsBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
         razdel = 8;
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, story));
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
 
 
 
@@ -82,21 +73,21 @@ public class ForumFragment extends Fragment  {
         final boolean tab_topics_no_posts = sharedPrefs.getBoolean("dvc_tab_topics_no_posts", false);
         final boolean is_favor = sharedPrefs.getBoolean("dvc_favor", false);
 
-        tabs = root.findViewById(R.id.tabLayout);
+        tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
-        viewPager = root.findViewById(R.id.view_pager);
+        viewPager = binding.viewPager;
         adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
 
         // вкладки
         tabTiles.add(getString(R.string.tab_topics));
         tabTiles.add(getString(R.string.tab_forums));
         if (tab_topics_no_posts) tabTiles.add(getString(R.string.tab_topics_no_posts));
-        if ((login != null) && (login.length() > 2) && (is_favor)) tabTiles.add(getString(R.string.tab_favorites));
+        if (login.length() > 2 && is_favor) tabTiles.add(getString(R.string.tab_favorites));
         adapt.clearList();
         adapt.addFragment(new ForumFragmentTopics());
         adapt.addFragment(new ForumFragmentForums());
         if (tab_topics_no_posts) adapt.addFragment(new ForumFragmentTopicsNoPosts());
-        if ((login != null) && (login.length() > 2) && (is_favor))adapt.addFragment(new ForumFragmentTopicsFav());
+        if (login.length() > 2 && is_favor)adapt.addFragment(new ForumFragmentTopicsFav());
 
 
         viewPager.setAdapter(adapt);
@@ -110,10 +101,10 @@ public class ForumFragment extends Fragment  {
         tabLayoutMediator.attach();
 
         // set default title
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         toolbar.setTitle(getString(R.string.menu_forum));
         toolbar.setSubtitle(null);
-        EventBus.getDefault().post(new MessageEvent(razdel, null));
+        EventBus.getDefault().post(new MessageEvent(razdel, null, null));
 
         // override back pressed
         root.setFocusableInTouchMode(true);
@@ -125,49 +116,46 @@ public class ForumFragment extends Fragment  {
                 if (viewPager.getCurrentItem() != 0) {
                     viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
                 } else {
-
-
-                    toolbar.setSubtitle(null);
-                    FragmentManager fm = getParentFragmentManager();
-                    if (fm.getBackStackEntryCount() == 1) {
-                        Fragment fragment = new ForumFragment();
-                        FragmentTransaction ft = ((FragmentActivity) requireContext()).getSupportFragmentManager().beginTransaction();
-                        ft.add(R.id.nav_host_fragment, fragment);
-                        ft.addToBackStack("ForumFragment");
-                        ft.commit();
-                    } else if (fm.getBackStackEntryCount() == 0){
-                        toolbar.setTitle(R.string.menu_home);
-                        Fragment fragment = new MainFragment();
-                        FragmentTransaction ft = ((FragmentActivity) requireContext()).getSupportFragmentManager().beginTransaction();
-                        ft.add(R.id.nav_host_fragment, fragment);
-                        ft.addToBackStack(null);
-                        ft.commit();
-                    } else requireActivity().finish();
-
+                    requireActivity().onBackPressed();
                 }
                 return true;
             } else {
                 return false;
             }
         });
+
+        // написание личных сообщений
+        fab = MainActivity.binding.appBarMain.fab;
+        fab.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.baseline_mail_24));
+        fab.setOnClickListener(view -> {
+            ((MainActivity) requireContext()).fabClick();
+        });
+        View view = MainActivity.binding.getRoot();
+        UpdatePm.update(requireActivity(), view);
         return root;
     }
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
+        binding = null;
+
     }
 
     @Override
     public void onStart() {
+
         super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
     @Override

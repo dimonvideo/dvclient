@@ -57,7 +57,7 @@ import java.util.List;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
-    private final Context context;
+    private Context context;
 
     //List to store all
     List<Feed> jsonFeed;
@@ -75,14 +75,15 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if ((Feed.getRazdel() != null) && ((Feed.getRazdel().equals(Config.GALLERY_RAZDEL)) || (Feed.getRazdel().equals(Config.VUPLOADER_RAZDEL)))) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_gallery, parent, false);
+            context = parent.getContext();
             return new ViewHolder(v);
        } else {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
+            context = parent.getContext();
             return new ViewHolder(v);
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -100,7 +101,6 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             if (cursor != null) {
                 status = cursor.getInt(2);
                 if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-                Log.i("---", "select: " + String.valueOf(cursor.getInt(0)));
                 cursor.close();
             }
 
@@ -129,13 +129,15 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         // комментарии
         holder.textViewComments.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + com.dimonvideo.client.model.Feed.getRazdel() + "&lid=" + Feed.getId() + "&min=";
-            Intent intent = new Intent(context, Comments.class);
-            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-            intent.putExtra(Config.TAG_LINK, comm_url);
-            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-            intent.putExtra(Config.TAG_RAZDEL, com.dimonvideo.client.model.Feed.getRazdel());
-            context.startActivity(intent);
-
+            Intent intent = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                intent = new Intent(context, Comments.class);
+                intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+                intent.putExtra(Config.TAG_LINK, comm_url);
+                intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+                intent.putExtra(Config.TAG_RAZDEL, com.dimonvideo.client.model.Feed.getRazdel());
+                context.startActivity(intent);
+        }
         });
         if (Feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
@@ -154,13 +156,17 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         // открытие подробной информации
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            openBottomSheet(view, position, lid);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                openBottomSheet(view, position, lid);
+            }
         });
 
         // открытие подробной информации
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            openBottomSheet(view, position, lid);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                openBottomSheet(view, position, lid);
+            }
         });
 
         holder.imageView.setOnClickListener(view -> {
