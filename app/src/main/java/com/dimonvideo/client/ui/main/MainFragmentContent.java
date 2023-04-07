@@ -79,6 +79,7 @@ public class MainFragmentContent extends Fragment {
     SharedPreferences sharedPrefs;
     String story, f_name, s_url = "";
     private FragmentHomeBinding binding;
+    RequestQueue queue;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -102,7 +103,8 @@ public class MainFragmentContent extends Fragment {
         View root = binding.getRoot();
         mContext = requireContext();
 
-        requestCount = 1;
+        queue = AppController.getInstance().getRequestQueue();
+
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
@@ -274,11 +276,9 @@ public class MainFragmentContent extends Fragment {
             s_url = "&story=" + story;
         }
 
-        url = url + requestCount + "&c=placeholder," + category_string + s_url;
+        String url_final = url + requestCount + "&c=placeholder," + category_string + s_url;
 
-        Log.e(Config.TAG, "MainFragmentContent url: " + url);
-
-        return new JsonArrayRequest(url,
+        return new JsonArrayRequest(url_final,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -356,10 +356,10 @@ public class MainFragmentContent extends Fragment {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
         queue.add(getDataFromServer(requestCount));
         requestCount++;
+
     }
 
     // опредление последнего элемента

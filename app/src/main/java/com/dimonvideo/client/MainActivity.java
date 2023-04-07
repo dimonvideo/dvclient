@@ -139,6 +139,21 @@ public class MainActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        // информация об обновлении
+        try {
+
+            if (appWasUpdated(this)) {
+
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.whats_new_title))
+                        .setMessage(getString(R.string.whats_new_text))
+                        .setNegativeButton(android.R.string.ok,
+                                (dialog, which) -> dialog.dismiss()).setIcon(R.mipmap.ic_launcher_round).show();
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
         DrawerLayout drawerLayout = binding.drawerLayout;
         navigationView = binding.navView;
 
@@ -345,20 +360,7 @@ public class MainActivity extends AppCompatActivity {
         if ((is_pm.equals("off")) || (auth_state != 1)) binding.appBarMain.fab.setVisibility(View.GONE);
 
 
-        // информация об обновлении
-        try {
 
-            if (appWasUpdated(this)) {
-
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.whats_new_title))
-                        .setMessage(getString(R.string.whats_new_text))
-                        .setNegativeButton(android.R.string.ok,
-                                (dialog, which) -> dialog.dismiss()).setIcon(R.mipmap.ic_launcher_round).show();
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
 
         // billing init
         if (!getCurrentLanguage().equals("ru"))  PurchaseHelper.init(this);
