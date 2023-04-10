@@ -75,7 +75,7 @@ public class PmFragment extends Fragment {
 
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         final boolean is_outbox = sharedPrefs.getBoolean("dvc_pm_outbox", true);
-        final boolean is_arc = sharedPrefs.getBoolean("dvc_pm_arc", true);
+        final boolean is_arc = sharedPrefs.getBoolean("dvc_pm_arc", false);
 
         tabs = binding.tabLayout;
         viewPager = binding.viewPager;

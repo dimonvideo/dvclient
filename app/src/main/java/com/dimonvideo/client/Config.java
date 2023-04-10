@@ -111,7 +111,6 @@ public class Config {
     public static final String INTENT_NEW_PM = "com.dimonvideo.client.NEW_PM";
     public static final String INTENT_DELETE_PM = "com.dimonvideo.client.DELETE_PM";
     public static final String INTENT_READ_PM = "com.dimonvideo.client.READ_PM";
-    public static final String INTENT_THEME = "com.dimonvideo.client.THEME";
 
     public static final String TAG = "---";
 

@@ -43,6 +43,7 @@
         <SwitchPreferenceCompat
             android:dependency="dvc_password"
             app:key="dvc_pm_arc"
+            app:defaultValue="false"
             android:summary="@string/disable_pm_arc"
             app:useSimpleSummaryProvider="true"
             app:title="@string/disable_pm_arc" />
