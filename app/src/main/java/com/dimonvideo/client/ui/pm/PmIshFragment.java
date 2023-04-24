@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -56,7 +57,12 @@ public class PmIshFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -99,8 +105,6 @@ public class PmIshFragment extends Fragment implements SwipeRefreshLayout.OnRefr
             getData();
             swipLayout.setRefreshing(false);
         });
-
-        return root;
     }
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")

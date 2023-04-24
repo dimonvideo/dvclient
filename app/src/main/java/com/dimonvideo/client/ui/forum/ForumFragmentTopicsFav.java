@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -74,7 +75,12 @@ public class ForumFragmentTopicsFav extends Fragment  {
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         if (this.getArguments() != null) {
             id = getArguments().getInt(Config.TAG_ID);
@@ -122,18 +128,13 @@ public class ForumFragmentTopicsFav extends Fragment  {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });
-
-        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
-        if (!TextUtils.isEmpty(f_name)) toolbar.setTitle(f_name);
-
-        return root;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

@@ -234,7 +234,6 @@
         android:layout_marginTop="3dip"
         android:layout_below="@id/btn_mp4"
         android:contentDescription="@string/Comments"
-        android:visibility="gone"
         app:srcCompat="@android:drawable/ic_menu_view"
         tools:src="@android:drawable/ic_menu_view"
         tools:srcCompat="@android:drawable/ic_menu_view" />
@@ -245,7 +244,6 @@
         android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/views_logo"
         android:layout_below="@id/btn_mp4"
-        android:visibility="gone"
         android:textSize="@dimen/date"
         android:textColor="@color/colorAccent"
         tools:ignore="SpUsage" />
@@ -259,7 +257,6 @@
         android:layout_marginTop="6dip"
         android:layout_marginStart="15dip"
         android:layout_below="@id/btn_mp4"
-        android:visibility="gone"
         android:layout_toEndOf="@+id/views_count"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/sym_action_chat"
@@ -270,7 +267,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_mp4"
-        android:visibility="gone"
         android:textColor="@color/colorAccent"
         android:textStyle="bold"
         android:layout_marginTop="3dip"

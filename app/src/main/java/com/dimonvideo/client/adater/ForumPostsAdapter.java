@@ -30,6 +30,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
@@ -84,7 +85,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         }
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
@@ -103,12 +104,15 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         holder.textViewComments.setText(String.valueOf(Feed.getComments()));
         holder.textViewComments.setVisibility(View.VISIBLE);
         holder.rating_logo.setVisibility(View.VISIBLE);
+
         if (Feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
 
-        holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+        holder.textViewHits.setVisibility(View.INVISIBLE);
+        holder.views_logo.setVisibility(View.INVISIBLE);
+
         try {
             URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
@@ -207,7 +211,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
-        public ImageView rating_logo, status_logo, imageView;
+        public ImageView rating_logo, status_logo, imageView, views_logo;
         public TextView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
@@ -222,6 +226,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             imageView = itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
             status_logo = itemView.findViewById(R.id.status);
+            views_logo = itemView.findViewById(R.id.views_logo);
             textViewNames = itemView.findViewById(R.id.title);
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);

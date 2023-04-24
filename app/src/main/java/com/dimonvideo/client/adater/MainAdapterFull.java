@@ -44,6 +44,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.Comments;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.OpenUrl;
@@ -87,13 +88,12 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
         //Getting the particular item from the list
         final Feed Feed = jsonFeed.get(position);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
         final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
         final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
@@ -292,7 +292,6 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
     // подробный вывод файла
     @SuppressLint("NotifyDataSetChanged")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void open_content(ViewHolder holder, final int position, Context context, Boolean is_share_btn) {
         final Feed Feed = jsonFeed.get(position);
         holder.txt_plus.setVisibility(View.VISIBLE);

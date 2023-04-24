@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -78,7 +79,12 @@ public class MainFragmentFav extends Fragment  {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         requestCount = 1;
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -88,6 +94,7 @@ public class MainFragmentFav extends Fragment  {
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
         }
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -131,8 +138,6 @@ public class MainFragmentFav extends Fragment  {
             recyclerView.setAdapter(adapter);
             swipLayout.setRefreshing(false);
         });
-
-        return root;
     }
 
 
@@ -140,7 +145,7 @@ public class MainFragmentFav extends Fragment  {
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+
         String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
         final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
 

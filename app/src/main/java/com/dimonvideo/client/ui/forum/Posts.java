@@ -55,10 +55,13 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -80,13 +83,14 @@ public class Posts extends AppCompatActivity {
     String tid = "1728146606";
     String t_name;
     SwipeRefreshLayout swipLayout;
+    int razdel = 8; // forum fragment
 
     SharedPreferences sharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
@@ -104,6 +108,7 @@ public class Posts extends AppCompatActivity {
             tid = (String) getIntent().getSerializableExtra(Config.TAG_ID);
             t_name = (String) getIntent().getSerializableExtra(Config.TAG_TITLE);
         }
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
 
         Objects.requireNonNull(getSupportActionBar()).setTitle(t_name);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
@@ -250,11 +255,26 @@ public class Posts extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         try {
             unregisterReceiver(receiver);
         } catch (Throwable ignored) {
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -415,5 +435,11 @@ public class Posts extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        story = event.story;
     }
 }

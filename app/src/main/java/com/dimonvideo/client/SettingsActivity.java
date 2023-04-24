@@ -40,6 +40,7 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.RequestPermissionHandler;
@@ -142,7 +143,7 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_password.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
                 View view = getView();
-                NetworkUtils.checkPassword(getContext(), view, listValue);
+                NetworkUtils.checkPassword(getContext(), listValue);
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
@@ -157,7 +158,7 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_login.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
                 View view = getView();
-                NetworkUtils.checkLogin(getContext(), view, listValue);
+                NetworkUtils.checkLogin(getContext(), listValue);
                 return true;
             });
 
@@ -166,7 +167,7 @@ public class SettingsActivity extends AppCompatActivity {
                 SharedPreferences sharedPrefs = getDefaultSharedPreferences(requireContext());
                 final String password = sharedPrefs.getString("dvc_password", "null");
                 View view = getView();
-                NetworkUtils.checkPassword(getContext(), view, password);
+                NetworkUtils.checkPassword(getContext(), password);
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });

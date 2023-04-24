@@ -19,10 +19,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.dimonvideo.client.util.ActionReceiver;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -42,7 +44,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             assert action != null;
             if (action.equals("new_pm")) {
-                SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
                 final boolean dvc_pm_notify = sharedPrefs.getBoolean("dvc_pm_notify", false);
                 final String is_pm = sharedPrefs.getString("dvc_pm", "off");
                 SharedPreferences.Editor editor;
@@ -85,6 +87,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Glide.with(getApplicationContext())
                 .asBitmap()
                 .load(imageUrl)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .apply(RequestOptions.circleCropTransform())
                 .into(new CustomTarget<Bitmap>() {
                     @Override

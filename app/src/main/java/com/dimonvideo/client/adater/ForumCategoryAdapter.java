@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 
 import java.util.Calendar;
@@ -46,12 +48,9 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_topics, parent, false);
-
-
         return new ViewHolder(v);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -85,9 +84,6 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
 
         holder.itemView.setOnClickListener(v -> {
-
-            Log.d("tagFid--->>>>", String.valueOf(Feed.getId()));
-
             Fragment fragment = new ForumFragmentTopics();
             Bundle bundle = new Bundle();
             bundle.putInt(Config.TAG_ID, Feed.getId());
@@ -96,9 +92,9 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
             fragment.setArguments(bundle);
             FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.addToBackStack(null);
-            ft.replace(R.id.nav_host_fragment, fragment);
+            ft.addToBackStack(fragment.toString());
+            ft.add(R.id.container_frag, fragment);
+            ForumFragment.viewPager.setCurrentItem(0, true);
             ft.commit();
         });
 

@@ -3,6 +3,7 @@ package com.dimonvideo.client.adater;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.ui.forum.Posts;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 
 import java.util.Calendar;
@@ -49,7 +51,6 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
         return new ViewHolder(v);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 

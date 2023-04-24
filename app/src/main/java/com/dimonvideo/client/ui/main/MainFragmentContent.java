@@ -45,6 +45,7 @@ import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.UpdatePm;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -80,6 +81,7 @@ public class MainFragmentContent extends Fragment {
     String story, f_name, s_url = "";
     private FragmentHomeBinding binding;
     RequestQueue queue;
+    Toolbar toolbar;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -93,21 +95,25 @@ public class MainFragmentContent extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentHomeBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
         Log.e(Config.TAG, "MainFragmentContent razdel: " + razdel);
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+
         mContext = requireContext();
 
         queue = AppController.getInstance().getRequestQueue();
 
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
@@ -191,44 +197,18 @@ public class MainFragmentContent extends Fragment {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
-        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
+        toolbar = MainActivity.binding.appBarMain.toolbar;
 
-        if (!TextUtils.isEmpty(f_name)) {
+        NetworkUtils.loadAvatar(requireContext(), toolbar);
+
+        if ((!TextUtils.isEmpty(f_name)) && (toolbar != null)) {
             toolbar.setSubtitle(f_name);
-        } else {
+        } else if (toolbar != null) {
             toolbar.setSubtitle(null);
         }
 
-        if (cid > 0) {
+        if ((cid > 0) && (toolbar != null)) {
             toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
-
-            toolbar.setNavigationOnClickListener(v -> {
-                toolbar.setSubtitle(null);
-                requireActivity().onBackPressed();
-            });
-
-        } else if (auth_state > 0) {
-            Glide.with(this)
-                    .asDrawable()
-                    .load(image_url)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .centerInside()
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(new CustomTarget<Drawable>() {
-
-                        @Override
-                        public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
-                            try {
-                                toolbar.setNavigationIcon(resource);
-                            } catch (Throwable ignored) {
-                            }
-                        }
-
-                        @Override
-                        public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                        }
-                    });
         }
 
         // обновление
@@ -241,9 +221,7 @@ public class MainFragmentContent extends Fragment {
         });
 
 
-        View view = MainActivity.binding.getRoot();
-        UpdatePm.update(requireActivity(), view);
-        return root;
+        UpdatePm.update(requireActivity());
     }
 
 
@@ -251,9 +229,6 @@ public class MainFragmentContent extends Fragment {
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-
 
         Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
         String category_string = "all";
@@ -393,4 +368,8 @@ public class MainFragmentContent extends Fragment {
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
 }

@@ -10,15 +10,17 @@ import android.widget.TextView;
 
 import androidx.preference.PreferenceManager;
 
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 
 import java.util.concurrent.Executors;
 
 public class UpdatePm {
 
-    public static void update(Context context, View view) {
+    public static void update(Context context) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
+        View view = MainActivity.binding.getRoot();
 
         String is_pm = sharedPrefs.getString("dvc_pm", "off");
         int auth_state = sharedPrefs.getInt("auth_state", 0);
@@ -34,7 +36,7 @@ public class UpdatePm {
                 Handler mainHandler = new Handler(Looper.getMainLooper());
 
                 mainHandler.post(() -> {
-                    if (!is_pm.equals("off")) NetworkUtils.checkPassword(context, view, password);
+                    if (!is_pm.equals("off")) NetworkUtils.checkPassword(context, password);
                 });
 
                 mainHandler.post(() -> {

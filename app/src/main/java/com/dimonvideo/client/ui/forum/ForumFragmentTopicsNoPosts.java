@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -34,8 +35,11 @@ import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,17 +59,28 @@ public class ForumFragmentTopicsNoPosts extends Fragment   {
     int razdel = 8; // forum fragment
     SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
+    String story = null;
+    String s_url = "";
 
     public ForumFragmentTopicsNoPosts() {
         // Required empty public constructor
     }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        razdel = 8;
+        story = event.story;
+    }
     @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         listFeed = new ArrayList<>();
 
@@ -107,16 +122,13 @@ public class ForumFragmentTopicsNoPosts extends Fragment   {
         recyclerView.setAdapter(adapter);
 
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             listFeed.clear();
             getData();
             swipLayout.setRefreshing(false);
         });
-
-
-        return root;
     }
 
 

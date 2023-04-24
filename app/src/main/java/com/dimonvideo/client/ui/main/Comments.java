@@ -39,14 +39,19 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.SettingsActivity;
 import com.dimonvideo.client.adater.CommentsAdapter;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
+import com.dimonvideo.client.databinding.CommentsListBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.UpdatePm;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -59,7 +64,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class Comments extends AppCompatActivity  implements RecyclerView.OnScrollChangeListener, SwipeRefreshLayout.OnRefreshListener {
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
@@ -70,12 +74,13 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     SharedPreferences sharedPrefs;
-    public static ActivityMainBinding binding;
+    public CommentsListBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
+
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");
         final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
@@ -86,8 +91,11 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
         super.onCreate(savedInstanceState);
         adjustFontScale( getResources().getConfiguration());
-        setContentView(R.layout.comments_list);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+
+        binding = CommentsListBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        Toolbar toolbar = binding.toolbar;
         setSupportActionBar(toolbar);
 
         if (getIntent()!=null) {
@@ -101,18 +109,17 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
 
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
         recyclerView.setOnScrollChangeListener(this);
         listFeed = new ArrayList<>();
-        emptyLayout = findViewById(R.id.linearEmpty);
+        emptyLayout = binding.linearEmpty;
 
-        progressBar = findViewById(R.id.progressbar);
+        progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = findViewById(R.id.ProgressBarBottom);
+        ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
@@ -124,18 +131,18 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
         recyclerView.setAdapter(adapter);
         // обновление
-        swipLayout = findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
             recreate();
             swipLayout.setRefreshing(false);
         });
 
-        LinearLayout post_layout = findViewById(R.id.post);
+        LinearLayout post_layout = binding.post.linearLayout1;
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
-        Button btnSend = findViewById(R.id.btnSend);
-        EditText textInput = findViewById(R.id.textInput);
+        Button btnSend = binding.post.btnSend;
+        EditText textInput = binding.post.textInput;
 
         btnSend.setOnClickListener(v -> {
             NetworkUtils.sendPm(this, Integer.parseInt(lid), textInput.getText().toString(), 20, razdel, 0);
@@ -144,7 +151,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         });
 
         // open PM
-        FloatingActionButton fab = findViewById(R.id.fab);
+        FloatingActionButton fab = binding.fab;
         if ((is_pm.equals("off")) || (auth_state != 1)) fab.setVisibility(View.GONE);
         fab.setOnClickListener(view -> {
             Intent notificationIntent = new Intent(getBaseContext(), MainActivity.class);
@@ -153,8 +160,36 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
             startActivity(notificationIntent);
 
         });
-        View view = MainActivity.binding.getRoot();
-        UpdatePm.update(getApplicationContext(), view);
+
+        // обновление личных данных после авторизации
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Config.INTENT_AUTH);
+        filter.addAction(Config.INTENT_NEW_PM);
+        filter.addAction(Config.INTENT_READ_PM);
+        filter.addAction(Config.INTENT_DELETE_PM);
+
+        registerReceiver(new BroadcastReceiver(){
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+
+                if ((intent != null)) {
+
+                    String str = intent.getStringExtra("pm_unread");
+                    TextView fab_badge = binding.fabBadge;
+                    fab_badge.setVisibility(View.VISIBLE);
+                    fab_badge.setText(str);
+                    Log.e(Config.TAG, "Receive PM: "+ str);
+                    if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
+                }
+
+                if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
+                    if ((!is_pm.equals("off")) && (binding != null)) binding.fab.setVisibility(View.VISIBLE);
+                }
+            }
+        }, filter);
+
+        UpdatePm.update(getApplicationContext());
     }
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
@@ -170,12 +205,13 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
                         try {
                             json = response.getJSONObject(i);
                             jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                            jsonFeed.setTitle(file_title);
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
                             jsonFeed.setUser(json.getString(Config.TAG_USER));
                             jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
                             jsonFeed.setState(json.getString(Config.TAG_RAZDEL));
+                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setPost_id(json.getInt(Config.TAG_POST_ID));
@@ -267,7 +303,8 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
         // settings
         if (id == R.id.action_settings) {
             Intent i = new Intent(Comments.this, SettingsActivity.class);
-            startActivityForResult(i, 1);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
             return true;
         }
         // refresh
@@ -289,7 +326,7 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
     // scale font
     private void adjustFontScale(Configuration configuration) {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
         configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);

@@ -124,11 +124,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - уменьшено количество сетевых запросов.\n
-        - переработан раздел Личных сообщений.\n
-        - Новый раздел Участники - теперь любому пользователю можно отправлять сообщения, там работает поиск по участникам.\n
-        - Новые настройки и пункты меню.\n
-
+        - улучшена работа с Комментариями к файлам.\n
+        - Новая настройка - Иконки вкладок.\n
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -180,4 +177,6 @@
     <string name="add_friend">Добавить в друзья</string>
     <string name="add_ignor">Внести в игнор</string>
     <string name="remove_all">Удалить из всех списков</string>
+    <string name="tab_icons">Иконки вкладок</string>
+    <string name="tab_icons_more">покажет иконки вместо названий вкладок</string>
 </resources>

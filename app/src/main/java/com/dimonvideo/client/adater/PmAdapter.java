@@ -127,7 +127,7 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void populateItemRows(ItemViewHolder holder, int position) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
         final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
         final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
 

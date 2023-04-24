@@ -1,39 +1,30 @@
 package com.dimonvideo.client.ui.pm;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.PmAdapter;
 import com.dimonvideo.client.adater.TabsAdapter;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.UpdatePm;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -42,7 +33,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class PmFragment extends Fragment {
 
@@ -53,6 +43,7 @@ public class PmFragment extends Fragment {
     TabLayoutMediator tabLayoutMediator;
     TabLayout tabs;
     private final ArrayList<String> tabTiles = new ArrayList<>();
+    private final ArrayList<Integer> tabIcons = new ArrayList<>();
     private FragmentTabsBinding binding;
     static int razdel = 13;
 
@@ -68,27 +59,47 @@ public class PmFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentTabsBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
         final boolean is_outbox = sharedPrefs.getBoolean("dvc_pm_outbox", true);
         final boolean is_arc = sharedPrefs.getBoolean("dvc_pm_arc", false);
+        final boolean dvc_tab_icons = sharedPrefs.getBoolean("dvc_tab_icons", true);
 
         tabs = binding.tabLayout;
         viewPager = binding.viewPager;
         adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
 
         tabTiles.add(getString(R.string.tab_inbox));
+        tabIcons.add(R.drawable.outline_inbox_24);
         tabTiles.add(getString(R.string.tab_members));
+        tabIcons.add(R.drawable.outline_people_24);
         tabTiles.add(getString(R.string.tab_friends));
+        tabIcons.add(R.drawable.outline_group_add_24);
         tabTiles.add(getString(R.string.tab_ignore));
+        tabIcons.add(R.drawable.outline_group_remove_24);
         tabTiles.add(getString(R.string.tab_trash));
-        if (!is_outbox) tabTiles.add(getString(R.string.tab_outbox));
-        if (!is_outbox) tabTiles.add(getString(R.string.tab_ish));
-        if (!is_arc) tabTiles.add(getString(R.string.tab_arhiv));
+        tabIcons.add(R.drawable.outline_delete_24);
+        if (!is_outbox) {
+            tabTiles.add(getString(R.string.tab_outbox));
+            tabIcons.add(R.drawable.outline_outbox_24);
+        }
+        if (!is_outbox) {
+            tabTiles.add(getString(R.string.tab_ish));
+            tabIcons.add(R.drawable.outline_call_missed_outgoing_24);
+        }
+        if (!is_arc) {
+            tabTiles.add(getString(R.string.tab_arhiv));
+            tabIcons.add(R.drawable.outline_archive_24);
+        }
 
         adapt.clearList();
         adapt.addFragment(new PmVhodFragment());
@@ -115,6 +126,7 @@ public class PmFragment extends Fragment {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 int pos = tab.getPosition();
+                toolbar.setSubtitle(tabTiles.get(pos));
 
                 if (pos == 1) {
                     if (searchView != null) searchView.setVisibility(View.VISIBLE);
@@ -138,35 +150,18 @@ public class PmFragment extends Fragment {
 
 
         tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
-            //position of the current tab and the tab
-            tab.setText(tabTiles.get(position));
-        });
 
-        tabLayoutMediator.attach();
-        // override back pressed
-        root.setFocusableInTouchMode(true);
-        root.requestFocus();
-        root.setOnKeyListener((v, keyCode, event) -> {
 
-            if( keyCode == KeyEvent.KEYCODE_BACK  && event.getAction() == KeyEvent.ACTION_DOWN )
-            {
-                if (viewPager.getCurrentItem() != 0) {
-                    viewPager.setCurrentItem(0,false);
-                } else {
-                    requireActivity().onBackPressed();
-                }
-                return true;
+            if (dvc_tab_icons) {
+                tab.setIcon(tabIcons.get(position));
             } else {
-                return false;
+                tab.setText(tabTiles.get(position));
             }
         });
 
-        View view = MainActivity.binding.getRoot();
-        UpdatePm.update(requireContext(), view);
+        tabLayoutMediator.attach();
 
-
-
-        return root;
+        UpdatePm.update(requireContext());
     }
 
     @Override

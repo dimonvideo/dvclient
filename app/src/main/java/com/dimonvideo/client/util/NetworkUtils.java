@@ -3,13 +3,15 @@ package com.dimonvideo.client.util;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.preference.PreferenceManager;
+import androidx.appcompat.widget.Toolbar;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
@@ -21,8 +23,12 @@ import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -35,13 +41,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NetworkUtils {
+    private static final SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
 
-
-    public static void checkPassword(Context context, View view, String password) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+    public static void checkPassword(Context context, String password) {
+        View view = MainActivity.binding.getRoot();
         String login = sharedPrefs.getString("dvc_login", "null");
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
         String current_token = sharedPrefs.getString("current_token", "null");
-        if ((password == null || password.length() < 5 || password.length() > 71) && (view != null)) {
+        if (password == null || password.length() < 5 || password.length() > 71) {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
 
@@ -77,17 +84,14 @@ public class NetworkUtils {
                                 uid = jsonObject.getInt(Config.TAG_UID);
 
                                 try {
-                                    assert view != null;
-                                    Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                                    if (auth_state == 0) Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
                                     Intent local = new Intent();
                                     local.setAction(Config.INTENT_AUTH);
                                     local.putExtra("pm_unread", String.valueOf(pm_unread));
-                                    Log.e(Config.TAG, "NetworkUtils send intent pm_unread: "+ pm_unread);
                                     context.sendBroadcast(local);
                                 } catch (Throwable ignored) {
                                 }
                             } else {
-                                assert view != null;
                                 try {
                                     Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
                                 } catch (Throwable ignored) {
@@ -113,7 +117,7 @@ public class NetworkUtils {
 
                             if ((!token.equals(current_token)) && (state > 0)) GetToken.getToken(context);
 
-                           // Log.e("auth", response);
+                            // Log.e("auth", response);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -126,9 +130,8 @@ public class NetworkUtils {
 
     }
 
-    public static void checkLogin(Context context, View view, String login) {
-
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+    public static void checkLogin(Context context, String login) {
+        View view = MainActivity.binding.getRoot();
         final String password = sharedPrefs.getString("dvc_password", "null");
         if (login == null || login.length() < 2 || login.length() > 71) {
             Snackbar.make(view, context.getString(R.string.login_invalid), Snackbar.LENGTH_LONG).show();
@@ -178,10 +181,33 @@ public class NetworkUtils {
         }
 
     }
+    static void showErrorToast(Context context, VolleyError error) {
+        @StringRes int errorTextRes = getErrorTextResId(error);
+
+        if (errorTextRes != 0) {
+            Toast.makeText(context, context.getString(errorTextRes), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @StringRes
+    private static int getErrorTextResId(VolleyError error) {
+        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
+            return R.string.error_network_timeout;
+        } else if (error instanceof AuthFailureError) {
+            return R.string.unsuccess_auth;
+        } else if (error instanceof ServerError) {
+            return R.string.error_server;
+        } else if (error instanceof NetworkError) {
+            return R.string.error_network;
+        } else if (error instanceof ParseError) {
+            return R.string.error_server;
+        }
+
+        return 0;
+    }
 
     public static void deletePm(Context context, int pm_id, int delete) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
         final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
@@ -231,7 +257,6 @@ public class NetworkUtils {
 
     public static void readPm(Context context, int pm_id) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
         final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
@@ -272,7 +297,6 @@ public class NetworkUtils {
 
     public static void sendPm(Context context, int pm_id, String text, int delete, String razdel, int uid) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String password = sharedPrefs.getString("dvc_password", "null");
         String login = sharedPrefs.getString("dvc_login", "null");
         String pass = password;
@@ -311,28 +335,32 @@ public class NetworkUtils {
         GetToken.getToken(context);
     }
 
-    static void showErrorToast(Context context, VolleyError error) {
-        @StringRes int errorTextRes = getErrorTextResId(error);
+    public static void loadAvatar(Context context, Toolbar toolbar){
 
-        if (errorTextRes != 0) {
-            Toast.makeText(context, context.getString(errorTextRes), Toast.LENGTH_LONG).show();
+        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        if (auth_state > 0) {
+            Glide.with(context)
+                    .asDrawable()
+                    .load(image_url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerInside()
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(new CustomTarget<Drawable>() {
+
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
+                            try {
+                                toolbar.setNavigationIcon(resource);
+                            } catch (Throwable ignored) {
+                            }
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                        }
+                    });
         }
-    }
-
-    @StringRes
-    private static int getErrorTextResId(VolleyError error) {
-        if (error instanceof TimeoutError || error instanceof NoConnectionError) {
-            return R.string.error_network_timeout;
-        } else if (error instanceof AuthFailureError) {
-            return R.string.unsuccess_auth;
-        } else if (error instanceof ServerError) {
-            return R.string.error_server;
-        } else if (error instanceof NetworkError) {
-            return R.string.error_network;
-        } else if (error instanceof ParseError) {
-            return R.string.error_server;
-        }
-
-        return 0;
     }
 }

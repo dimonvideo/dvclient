@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedCats;
+import com.dimonvideo.client.ui.forum.ForumFragment;
+import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 
 import java.util.List;
@@ -48,7 +50,6 @@ public class MainCategoryAdapter extends RecyclerView.Adapter<MainCategoryAdapte
         return new ViewHolder(v);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -58,9 +59,6 @@ public class MainCategoryAdapter extends RecyclerView.Adapter<MainCategoryAdapte
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewCategory.setText(String.valueOf(Feed.getCount()));
         holder.itemView.setOnClickListener(v -> {
-
-            Log.d("tagCid--->>>>", String.valueOf(Feed.getCid()));
-
             Fragment fragment = new MainFragmentContent();
             Bundle bundle = new Bundle();
             bundle.putInt(Config.TAG_ID, Feed.getCid());
@@ -68,9 +66,9 @@ public class MainCategoryAdapter extends RecyclerView.Adapter<MainCategoryAdapte
             fragment.setArguments(bundle);
             FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
             FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.addToBackStack(null);
-            ft.replace(R.id.nav_host_fragment, fragment);
+            ft.addToBackStack(fragment.toString());
+            ft.add(R.id.container_frag, fragment);
+            MainFragment.viewPager.setCurrentItem(0, true);
             ft.commit();
         });
 

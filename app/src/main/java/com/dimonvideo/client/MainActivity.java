@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
@@ -32,6 +33,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,6 +55,7 @@ import androidx.preference.PreferenceManager;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.ui.forum.ForumFragment;
@@ -60,9 +64,11 @@ import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.ui.pm.PmMembersFragment;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.PurchaseHelper;
 import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -99,7 +105,8 @@ public class MainActivity extends AppCompatActivity {
         // очистка старых записей
         new Handler().postDelayed(Provider::clearDB_OLD, 3000);
 
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
+
         final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
         final boolean is_android = sharedPrefs.getBoolean("dvc_android", true);
         final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader", true);
@@ -266,16 +273,14 @@ public class MainActivity extends AppCompatActivity {
                     .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.OPDS_URL)))
                     .build();
 
-            assert shortcutManager != null;
-
             if (auth_state > 0) {
                 try {
-                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
+                    if (shortcutManager != null) new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
                 } catch (Throwable ignored) {
                 }
             } else {
                 try {
-                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
+                    if (shortcutManager != null) new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
                 } catch (Throwable ignored) {
                 }
             }
@@ -398,6 +403,9 @@ public class MainActivity extends AppCompatActivity {
             fabClick();
         });
 
+        Toolbar toolbar = binding.appBarMain.toolbar;
+        NetworkUtils.loadAvatar(this, toolbar);
+
     }
     @Override
     public boolean onSupportNavigateUp() {
@@ -414,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
 
     // масштабирование шрифтов
     private void adjustFontScale(Configuration configuration) {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
         configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale", "1.0f"));
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -674,22 +682,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-    }
-
-    @Override
-    public void onBackPressed() {
-        Toolbar toolbar = this.findViewById(R.id.toolbar);
-        toolbar.setTitle(R.string.menu_home);
-        toolbar.setSubtitle(null);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        setSupportActionBar(toolbar);
-
-        FragmentManager fm = getSupportFragmentManager();
-        if (fm.getBackStackEntryCount() > 0) {
-            fm.popBackStack();
-        } else {
-            finish();
-        }
     }
 
     // is new version

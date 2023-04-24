@@ -128,6 +128,12 @@
             app:key="dvc_tab_inline"
             app:title="@string/tab_inline" />
         <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:useSimpleSummaryProvider="true"
+            android:summary="@string/tab_icons_more"
+            app:key="dvc_tab_icons"
+            app:title="@string/tab_icons" />
+        <SwitchPreferenceCompat
             app:defaultValue="false"
             app:useSimpleSummaryProvider="true"
             android:summary="@string/btn_share_switch_more"

@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -64,16 +65,22 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         razdel = event.razdel;
     }
 
-    @SuppressLint("DetachAndAttachSameFragment")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -98,24 +105,16 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         recyclerView.setAdapter(adapter);
 
         // обновление
-        swipLayout = root.findViewById(R.id.swipe_layout);
+        swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
-            getParentFragmentManager()
-                    .beginTransaction()
-                    .detach(MainFragmentCats.this)
-                    .attach(MainFragmentCats.this)
-                    .commit();
             swipLayout.setRefreshing(false);
         });
-
-        return root;
     }
 
 
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer() {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         key = GetRazdelName.getRazdelName(razdel, 0);
 

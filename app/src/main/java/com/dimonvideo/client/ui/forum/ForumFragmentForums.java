@@ -3,15 +3,20 @@ package com.dimonvideo.client.ui.forum;
 import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +26,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumCategoryAdapter;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
@@ -28,6 +34,7 @@ import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.navigation.NavigationView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -44,11 +51,11 @@ public class ForumFragmentForums extends Fragment   {
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public ForumCategoryAdapter adapter;
+    int razdel = 8; // forum fragment
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     String url = Config.FORUM_CATEGORY_URL;
-    int razdel = 8; // forum fragment
     SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
 
@@ -58,7 +65,7 @@ public class ForumFragmentForums extends Fragment   {
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        razdel = 8;
+        razdel = event.razdel;
     }
 
     @SuppressLint("DetachAndAttachSameFragment")
@@ -66,7 +73,12 @@ public class ForumFragmentForums extends Fragment   {
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         EventBus.getDefault().postSticky(new MessageEvent(8, null, null));
 
@@ -111,8 +123,6 @@ public class ForumFragmentForums extends Fragment   {
             getData();
             swipLayout.setRefreshing(false);
         });
-
-        return root;
     }
 
 
@@ -179,6 +189,7 @@ public class ForumFragmentForums extends Fragment   {
         super.onDestroy();
         binding = null;
     }
+
 
     @Override
     public void onStart() {

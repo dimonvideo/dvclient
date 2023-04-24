@@ -64,7 +64,7 @@ public class PostsSearch extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
         final boolean is_dark = sharedPrefs.getBoolean("dvc_theme",false);
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
         final String is_pm = sharedPrefs.getString("dvc_pm", "off");

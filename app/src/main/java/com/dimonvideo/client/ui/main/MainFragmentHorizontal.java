@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -65,15 +66,20 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     String s_url = "";
     private FragmentHomeBinding binding;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         recyclerView = binding.recyclerView;
         LinearLayoutManager layoutManager
@@ -116,8 +122,6 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
             recyclerView.setAdapter(adapter);
             swipLayout.setRefreshing(false);
         });
-
-        return root;
     }
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
@@ -127,7 +131,6 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         key = GetRazdelName.getRazdelName(razdel, 0);
         search_url = GetRazdelName.getRazdelName(razdel, 1);

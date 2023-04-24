@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -73,14 +74,19 @@ public class PmTrashFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         requestCount = 1;
         emptyView = binding.emptyView;
         emptyLayout = binding.linearEmpty;
 
         emptyView.setVisibility(View.VISIBLE);
         emptyLayout.setVisibility(View.VISIBLE);
-        recyclerView = root.findViewById(R.id.recycler_view);
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -202,8 +208,6 @@ public class PmTrashFragment extends Fragment {
             getData();
             swipLayout.setRefreshing(false);
         });
-
-        return root;
     }
 
     // запрос к серверу апи

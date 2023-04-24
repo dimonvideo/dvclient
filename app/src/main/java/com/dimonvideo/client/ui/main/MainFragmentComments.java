@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -78,11 +79,15 @@ public class MainFragmentComments extends Fragment {
         razdel = event.razdel;
     }
 
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         requestCount = 1;
 
@@ -93,6 +98,8 @@ public class MainFragmentComments extends Fragment {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
         }
+
+        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         listFeed = new ArrayList<>();
         emptyLayout = binding.linearEmpty;
@@ -129,6 +136,7 @@ public class MainFragmentComments extends Fragment {
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         recyclerView.setItemViewCacheSize(3);
+        recyclerView.hasFixedSize();
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
@@ -136,16 +144,10 @@ public class MainFragmentComments extends Fragment {
         swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
             requestCount = 1;
-            FragmentManager fragmentManager = getParentFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container_frag, new MainFragmentComments())
-                    .addToBackStack(null)
-                    .commit();
+            listFeed.clear();
+            getData();
             swipLayout.setRefreshing(false);
-            adapter.notifyDataSetChanged();
         });
-
-        return root;
     }
 
 
@@ -153,7 +155,6 @@ public class MainFragmentComments extends Fragment {
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         key = GetRazdelName.getRazdelName(razdel, 0);
 
@@ -185,6 +186,7 @@ public class MainFragmentComments extends Fragment {
                     }
                     new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
 
+                    Log.e("---", String.valueOf(response));
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);

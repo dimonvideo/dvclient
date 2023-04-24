@@ -21,6 +21,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -36,6 +38,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.ForumAdapter;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
@@ -43,6 +46,8 @@ import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
+import com.google.android.material.navigation.NavigationView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -76,23 +81,30 @@ public class ForumFragmentTopics extends Fragment {
         // Required empty public constructor
     }
 
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        return binding.getRoot();
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
 
         if (this.getArguments() != null) {
             id = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_CATEGORY);
-        }
+            toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+            toolbar.setSubtitle(f_name);
+        } else NetworkUtils.loadAvatar(requireContext(), toolbar);
+
 
         EventBus.getDefault().postSticky(new MessageEvent(8, story, null));
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+
 
         listFeed = new ArrayList<>();
 
@@ -142,42 +154,14 @@ public class ForumFragmentTopics extends Fragment {
             getData();
             swipLayout.setRefreshing(false);
         });
-
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
-        if (!TextUtils.isEmpty(f_name)) toolbar.setSubtitle(f_name);
-        else toolbar.setSubtitle(null);
-
-        if (auth_state > 0) {
-            Glide.with(this)
-                    .asDrawable()
-                    .load(image_url)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .apply(new RequestOptions().circleCrop())
-                    .into(new CustomTarget<Drawable>() {
-
-                        @Override
-                        public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
-                            try {
-                                toolbar.setNavigationIcon(resource);
-                            } catch (Throwable ignored) {
-                            }
-                        }
-
-                        @Override
-                        public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                        }
-                    });
-        }
-        return root;
     }
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event) {
-        razdel = 8;
-        story = event.story;
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
     }
+
 
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
@@ -266,5 +250,10 @@ public class ForumFragmentTopics extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 }

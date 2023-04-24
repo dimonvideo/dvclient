@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,10 +31,13 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.main.Comments;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
@@ -66,7 +70,6 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "NotifyDataSetChanged"})
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
@@ -85,11 +88,11 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         } catch (Throwable ignored) {
 
         }
-        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
+        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
         final String password = sharedPrefs.getString("dvc_password", "null");
         final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
+
         holder.textViewCategory.setText(Feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);
 
@@ -113,26 +116,23 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewComments.setVisibility(View.GONE);
         holder.rating_logo.setVisibility(View.GONE);
-        holder.textViewHits.setText(String.valueOf(Feed.getTitle()));
+        holder.textViewHits.setText(Feed.getTitle());
+
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             if ((auth_state > 0) && (Feed.getId() > 0)) {
-                if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
-                holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
-                holder.textInput.setSelection(holder.textInput.getText().length());
-                holder.textInput.setFocusableInTouchMode(true);
-                holder.textInput.requestFocus();
+                postComment(holder, Feed);
+            } else {
+                openComments(Feed);
             }
 
         });
         holder.itemView.setOnClickListener(view -> {
             if ((auth_state > 0) && (Feed.getId() > 0)) {
-                if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
-                holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
-                holder.textInput.setSelection(holder.textInput.getText().length());
-                holder.textInput.requestFocus();
-                holder.textInput.setFocusableInTouchMode(true);
+                postComment(holder, Feed);
+            } else {
+                openComments(Feed);
             }
 
         });
@@ -153,11 +153,29 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         });
     }
 
+    private static void postComment(ViewHolder holder, FeedForum Feed) {
+        if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
+        holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
+        holder.textInput.setSelection(holder.textInput.getText().length());
+        holder.textInput.setFocusableInTouchMode(true);
+        holder.textInput.requestFocus();
+    }
+
+    private void openComments(FeedForum Feed) {
+        String comm_url = Config.COMMENTS_READS_URL + Feed.getState() + "&lid=" + Feed.getPost_id() + "&min=";
+        Intent intent = new Intent(context, Comments.class);
+        intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
+        intent.putExtra(Config.TAG_LINK, comm_url);
+        intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
+        intent.putExtra(Config.TAG_RAZDEL, Feed.getState());
+        context.startActivity(intent);
+    }
+
 
     // dialog
     private void show_dialog(ViewHolder holder, final int position, Context context){
         final CharSequence[] items = {context.getString(R.string.copy_listtext), context.getString(R.string.action_open)};
-        final FeedForum Feed = jsonFeed.get(position);
+        FeedForum Feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -192,7 +210,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
-        public ImageView rating_logo, status_logo, imageView;
+        public ImageView rating_logo, status_logo, imageView, views_logo;
         public TextView textViewText;
         public LinearLayout post_layout;
         public Button btnSend;
@@ -206,11 +224,12 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             super(itemView);
             imageView = itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
+            views_logo = itemView.findViewById(R.id.views_logo);
+            textViewHits = itemView.findViewById(R.id.views_count);
             status_logo = itemView.findViewById(R.id.status);
             textViewText = itemView.findViewById(R.id.listtext);
             textViewDate = itemView.findViewById(R.id.date);
             textViewComments = itemView.findViewById(R.id.rating);
-            textViewHits = itemView.findViewById(R.id.views_count);
             textViewTitle = itemView.findViewById(R.id.title);
             post_layout = itemView.findViewById(R.id.post);
             btnSend = itemView.findViewById(R.id.btnSend);
