@@ -147,8 +147,7 @@ public class ForumFragmentTopicsFav extends Fragment  {
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+        final String login_name = AppController.getInstance().userName("");
 
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
@@ -157,7 +156,6 @@ public class ForumFragmentTopicsFav extends Fragment  {
         if (id>0) {
             s_url = "&id=" + id;
         }
-        Log.e("forum", url + requestCount + s_url+"&fav=1&login_name="+ login_name);
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {
                     progressBar.setVisibility(View.GONE);
@@ -196,9 +194,8 @@ public class ForumFragmentTopicsFav extends Fragment  {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

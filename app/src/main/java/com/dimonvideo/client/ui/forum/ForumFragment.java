@@ -82,12 +82,11 @@ public class ForumFragment extends Fragment  {
         razdel = 8;
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
 
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        String login = sharedPrefs.getString("dvc_password", "");
-        final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
-        final boolean tab_topics_no_posts = sharedPrefs.getBoolean("dvc_tab_topics_no_posts", false);
-        final boolean is_favor = sharedPrefs.getBoolean("dvc_favor", false);
-        final boolean dvc_tab_icons = sharedPrefs.getBoolean("dvc_tab_icons", true);
+        String login = AppController.getInstance().userName("");
+        final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
+        final boolean tab_topics_no_posts = AppController.getInstance().isTopicsNoPosts();
+        final boolean is_favor = AppController.getInstance().isTabFavor();
+        final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
 
         tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);

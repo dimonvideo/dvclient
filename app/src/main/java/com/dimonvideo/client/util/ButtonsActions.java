@@ -28,6 +28,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
@@ -70,75 +71,56 @@ public class ButtonsActions {
     public static void like_file(Context context, String razdel, int id, int type){
         @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+
         android_id = "DVClient_" + android_id;
-        final String is_name = sharedPrefs.getString("dvc_login",android_id);
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
+        final String is_name = AppController.getInstance().userName(android_id);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ razdel + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
-
                     Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
-
                 }, error -> showErrorToast(context, error)
         );
 
-        queue.add(stringRequest);
-
+        AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     public static void like_member(Context context, int to_uid, String to_name, int type){
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final String is_name = sharedPrefs.getString("dvc_login","dvclient");
-        final int from_id = sharedPrefs.getInt("user_id",0);
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
+        final String is_name = AppController.getInstance().userName("dvclient");
+        final int from_id = AppController.getInstance().isUserId();
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_URL+ "name" + "&id="+ to_uid +"&u=" + is_name + "&from_id="+ from_id +"&t=" + type,
                 response -> {
-
                     Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
-
                 }, error -> showErrorToast(context, error)
         );
-
-        queue.add(stringRequest);
-
+        AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     // оценка плюс или отмена плюса
     public static void like_forum_post(Context context, int id, int type){
         @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         android_id = "DVClient_" + android_id;
-        final String is_name = sharedPrefs.getString("dvc_login",android_id);
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
+        final String is_name = AppController.getInstance().userName(android_id);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, Config.LIKE_POST_URL + "&id="+id + "&u=" + is_name + "&t=" + type,
                 response -> {
-
                     Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_LONG).show();
-
                 }, error -> showErrorToast(context, error)
         );
-
-        queue.add(stringRequest);
-
+        AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     // добавление или удаление файла из избранного
     public static void add_to_fav_file(Context context, String razdel, int id, int type){
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String login = sharedPrefs.getString("dvc_login", "null");
-        final String password = sharedPrefs.getString("dvc_password", "null");
+        String is_name = AppController.getInstance().userName("null");
+        final String password = AppController.getInstance().userPassword();
         String pass = password;
         try {
             pass = URLEncoder.encode(password, "utf-8");
-            login = URLEncoder.encode(login, "utf-8");
+            is_name = URLEncoder.encode(is_name, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
 
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
-        String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
-        Log.d("tag", url);
+        String url = Config.CHECK_AUTH_URL + "&login_name=" + is_name + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     try {
@@ -158,26 +140,23 @@ public class ButtonsActions {
                 }, error -> showErrorToast(context, error)
         );
 
-        queue.add(stringRequest);
+        AppController.getInstance().addToRequestQueue(stringRequest);
 
     }
 
     // добавление или удаление user из избранного
     public static void add_to_fav_user(Context context, int id, int type){
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String login = sharedPrefs.getString("dvc_login", "null");
-        final String password = sharedPrefs.getString("dvc_password", "null");
+        String is_name = AppController.getInstance().userName("null");
+        final String password = AppController.getInstance().userPassword();
         String pass = password;
         try {
             pass = URLEncoder.encode(password, "utf-8");
-            login = URLEncoder.encode(login, "utf-8");
+            is_name = URLEncoder.encode(is_name, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
 
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
-        String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass + "&razdel=members&id=" + id + "&addfav=" + type;
-        Log.e(Config.TAG, url);
+        String url = Config.CHECK_AUTH_URL + "&login_name=" + is_name + "&login_password=" + pass + "&razdel=members&id=" + id + "&addfav=" + type;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     try {
@@ -194,16 +173,15 @@ public class ButtonsActions {
                 }, error -> showErrorToast(context, error)
         );
 
-        queue.add(stringRequest);
+        AppController.getInstance().addToRequestQueue(stringRequest);
 
     }
 
 
     // проиграть видео в окне диалога
     public static void PlayVideo(Context context, String link) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final boolean is_aspect = sharedPrefs.getBoolean("dvc_vuploader_aspect",false);
-        final boolean is_external_video = sharedPrefs.getBoolean("dvc_external_video",false);
+        final boolean is_aspect = AppController.getInstance().isAspectRatio();
+        final boolean is_external_video = AppController.getInstance().isExternalPlayer();
         try {
             link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","https://");
         } catch (Throwable ignored) {
@@ -247,13 +225,12 @@ public class ButtonsActions {
     }
     public static void loadProfile(Context context, String login_name, String image_url) {
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String rang = sharedPrefs.getString("auth_rang","---");
-        String last_date = sharedPrefs.getString("auth_last","---");
-        String rep = sharedPrefs.getString("auth_rep","0");
-        String reg = sharedPrefs.getString("auth_reg","0");
-        String rat = sharedPrefs.getString("auth_rat","0");
-        String posts = sharedPrefs.getString("auth_posts","0");
+        String rang = AppController.getInstance().isRang();
+        String last_date = AppController.getInstance().isLastDate();
+        String rep = AppController.getInstance().isReputation();
+        String reg = AppController.getInstance().isRegDate();
+        String rat = AppController.getInstance().isRating();
+        String posts = AppController.getInstance().isPosts();
 
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -281,7 +258,7 @@ public class ButtonsActions {
         post.append(posts);
 
         image.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
-        Glide.with(context).load(image_url).apply(RequestOptions.circleCropTransform()).into(image);
+        Glide.with(context).load(image_url).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(image);
 
         dialog.show();
 

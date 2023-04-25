@@ -37,6 +37,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
@@ -93,12 +94,11 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
 
         //Getting the particular item from the list
         final Feed Feed = jsonFeed.get(position);
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
-        final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
-        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
-        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
+        final boolean is_vuploader_play = AppController.getInstance().isVuploaderPlay();
+        final boolean is_muzon_play = AppController.getInstance().isMuzonPlay();
+        final boolean is_open_link = AppController.getInstance().isOpenLinks();
+        final boolean is_share_btn = AppController.getInstance().isShareBtn();
+        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
         holder.status_logo.setImageResource(R.drawable.ic_status_green);
         try {
@@ -115,7 +115,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         }
 
         //Loading image from url
-        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
+        Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         try {
@@ -300,7 +300,7 @@ public class MainAdapterFull extends RecyclerView.Adapter<MainAdapterFull.ViewHo
         holder.name.setVisibility(View.VISIBLE);
         holder.txt_plus.setText(String.valueOf(Feed.getPlus()));
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
+            URLImageParser parser = new URLImageParser(holder.textViewText);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());

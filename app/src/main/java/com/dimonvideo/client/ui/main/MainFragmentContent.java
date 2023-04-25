@@ -80,7 +80,6 @@ public class MainFragmentContent extends Fragment {
     SharedPreferences sharedPrefs;
     String story, f_name, s_url = "";
     private FragmentHomeBinding binding;
-    RequestQueue queue;
     Toolbar toolbar;
 
     public MainFragmentContent() {
@@ -110,8 +109,6 @@ public class MainFragmentContent extends Fragment {
         Log.e(Config.TAG, "MainFragmentContent razdel: " + razdel);
 
         mContext = requireContext();
-
-        queue = AppController.getInstance().getRequestQueue();
 
         sharedPrefs = AppController.getInstance().getSharedPreferences();
 
@@ -332,7 +329,7 @@ public class MainFragmentContent extends Fragment {
     // получение данных и увеличение номера страницы
     private void getData() {
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
 
     }

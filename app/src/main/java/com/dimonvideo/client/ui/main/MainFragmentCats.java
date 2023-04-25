@@ -50,7 +50,6 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     public RecyclerView recyclerView;
     public MainCategoryAdapter adapter;
     SwipeRefreshLayout swipLayout;
-    SharedPreferences sharedPrefs;
     private ProgressBar progressBar, ProgressBarBottom;
     static int razdel = 10;
     String url = Config.CATEGORY_URL;
@@ -79,8 +78,6 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-
-        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -152,9 +149,8 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer());
+        AppController.getInstance().addToRequestQueue(getDataFromServer());
     }
 
     // обновление

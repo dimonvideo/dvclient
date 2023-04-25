@@ -69,10 +69,9 @@ public class PmFragment extends Fragment {
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
 
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        final boolean is_outbox = sharedPrefs.getBoolean("dvc_pm_outbox", true);
-        final boolean is_arc = sharedPrefs.getBoolean("dvc_pm_arc", false);
-        final boolean dvc_tab_icons = sharedPrefs.getBoolean("dvc_tab_icons", true);
+        final boolean is_outbox = AppController.getInstance().isPmOutbox();
+        final boolean is_arc = AppController.getInstance().isPmArchive();
+        final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
 
         tabs = binding.tabLayout;
         viewPager = binding.viewPager;

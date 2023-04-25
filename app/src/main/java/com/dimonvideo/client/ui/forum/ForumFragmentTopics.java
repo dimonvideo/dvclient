@@ -64,7 +64,6 @@ public class ForumFragmentTopics extends Fragment {
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
     public ForumAdapter adapter;
-    SharedPreferences sharedPrefs;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -211,9 +210,8 @@ public class ForumFragmentTopics extends Fragment {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

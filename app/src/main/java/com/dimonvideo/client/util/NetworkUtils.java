@@ -18,7 +18,6 @@ import com.android.volley.NetworkError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
@@ -41,18 +40,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NetworkUtils {
-    private static final SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
 
     public static void checkPassword(Context context, String password) {
         View view = MainActivity.binding.getRoot();
-        String login = sharedPrefs.getString("dvc_login", "null");
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        String current_token = sharedPrefs.getString("current_token", "null");
+        String login = AppController.getInstance().userName("null");
+        final int auth_state = AppController.getInstance().isAuth();
+        String current_token = AppController.getInstance().isToken();
         if (password == null || password.length() < 5 || password.length() > 71) {
             Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
         } else {
 
-            RequestQueue queue = AppController.getInstance().getRequestQueue();
             String pass = password;
             try {
                 pass = URLEncoder.encode(password, "utf-8");
@@ -98,22 +95,20 @@ public class NetworkUtils {
                                 }
                             }
 
-                            SharedPreferences.Editor editor;
-                            editor = sharedPrefs.edit();
-                            editor.putInt("auth_state", state);
+                            AppController.getInstance().putAuthState(state);
+
                             if (state > 0) {
 
-                                editor.putString("auth_foto", image);
-                                editor.putString("auth_rang", status);
-                                editor.putString("auth_last", lastdate);
-                                editor.putString("auth_rep", rep);
-                                editor.putString("auth_reg", reg);
-                                editor.putString("auth_rat", rat);
-                                editor.putString("auth_posts", posts);
-                                editor.putInt("pm_unread", pm_unread);
-                                editor.putInt("user_id", uid);
+                                AppController.getInstance().putImage(image);
+                                AppController.getInstance().putRang(status);
+                                AppController.getInstance().putLastDate(lastdate);
+                                AppController.getInstance().putReputation(rep);
+                                AppController.getInstance().putRegDate(reg);
+                                AppController.getInstance().putRating(rat);
+                                AppController.getInstance().putPosts(posts);
+                                AppController.getInstance().putUserId(uid);
+                                AppController.getInstance().putPmUnread(pm_unread);
                             }
-                            editor.apply();
 
                             if ((!token.equals(current_token)) && (state > 0)) GetToken.getToken(context);
 
@@ -124,7 +119,7 @@ public class NetworkUtils {
                         }
                     }, error -> showErrorToast(context, error)
             );
-            queue.add(stringRequest);
+            AppController.getInstance().addToRequestQueue(stringRequest);
 
         }
 
@@ -132,13 +127,12 @@ public class NetworkUtils {
 
     public static void checkLogin(Context context, String login) {
         View view = MainActivity.binding.getRoot();
-        final String password = sharedPrefs.getString("dvc_password", "null");
+        final String password = AppController.getInstance().userPassword();
         if (login == null || login.length() < 2 || login.length() > 71) {
             Snackbar.make(view, context.getString(R.string.login_invalid), Snackbar.LENGTH_LONG).show();
         } else {
             if (password.length() > 5) {
 
-                RequestQueue queue = AppController.getInstance().getRequestQueue();
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
@@ -162,10 +156,7 @@ public class NetworkUtils {
                                 else
                                     Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
 
-                                SharedPreferences.Editor editor;
-                                editor = sharedPrefs.edit();
-                                editor.putInt("auth_state", state);
-                                editor.apply();
+                                AppController.getInstance().putAuthState(state);
                                 GetToken.getToken(context);
 
 
@@ -175,7 +166,7 @@ public class NetworkUtils {
                         }, error -> showErrorToast(context, error)
                 );
 
-                queue.add(stringRequest);
+                AppController.getInstance().addToRequestQueue(stringRequest);
             }
 
         }
@@ -208,15 +199,14 @@ public class NetworkUtils {
 
     public static void deletePm(Context context, int pm_id, int delete) {
 
-        final String password = sharedPrefs.getString("dvc_password", "null");
-        String login = sharedPrefs.getString("dvc_login", "null");
-        final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
+        final String password = AppController.getInstance().userPassword();
+        String login = AppController.getInstance().userName("null");
+        final int pm_unread = AppController.getInstance().isPmUnread();
         if (login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
             if (password.length() > 5) {
 
-                RequestQueue queue = AppController.getInstance().getRequestQueue();
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
@@ -231,11 +221,7 @@ public class NetworkUtils {
                         response -> {
 
                             if (delete == 0) {
-                                SharedPreferences.Editor editor;
-                                editor = sharedPrefs.edit();
-                                if (pm_unread > 1) editor.putInt("pm_unread", pm_unread - 1);
-                                else editor.putInt("pm_unread", 0);
-                                editor.apply();
+                                if (pm_unread > 1) AppController.getInstance().putPmUnread(pm_unread - 1); else AppController.getInstance().putPmUnread(0);
                                 String count = "0";
                                 if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
                                 if (Integer.parseInt(count) < 1) count = "0";
@@ -248,7 +234,7 @@ public class NetworkUtils {
                         }, error -> showErrorToast(context, error)
                 );
 
-                queue.add(stringRequest);
+                AppController.getInstance().addToRequestQueue(stringRequest);
             }
 
         }
@@ -257,15 +243,14 @@ public class NetworkUtils {
 
     public static void readPm(Context context, int pm_id) {
 
-        final String password = sharedPrefs.getString("dvc_password", "null");
-        String login = sharedPrefs.getString("dvc_login", "null");
-        final int pm_unread = sharedPrefs.getInt("pm_unread", 0);
+        final String password = AppController.getInstance().userPassword();
+        String login = AppController.getInstance().userName("null");
+        final int pm_unread = AppController.getInstance().isPmUnread();
         if (login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
         } else {
             if (password.length() > 5) {
 
-                RequestQueue queue = AppController.getInstance().getRequestQueue();
                 String pass = password;
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
@@ -288,7 +273,7 @@ public class NetworkUtils {
                         }, error -> showErrorToast(context, error)
                 );
 
-                queue.add(stringRequest);
+                AppController.getInstance().addToRequestQueue(stringRequest);
             }
 
         }
@@ -297,8 +282,8 @@ public class NetworkUtils {
 
     public static void sendPm(Context context, int pm_id, String text, int delete, String razdel, int uid) {
 
-        final String password = sharedPrefs.getString("dvc_password", "null");
-        String login = sharedPrefs.getString("dvc_login", "null");
+        final String password = AppController.getInstance().userPassword();
+        String login = AppController.getInstance().userName("null");
         String pass = password;
         if (login.length() < 2 || login.length() > 71) {
             Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
@@ -310,7 +295,6 @@ public class NetworkUtils {
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-                RequestQueue queue = AppController.getInstance().getRequestQueue();
 
                 String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
@@ -327,7 +311,7 @@ public class NetworkUtils {
                     }
                 };
 
-                queue.add(stringRequest);
+                AppController.getInstance().addToRequestQueue(stringRequest);
 
             }
         }
@@ -337,8 +321,8 @@ public class NetworkUtils {
 
     public static void loadAvatar(Context context, Toolbar toolbar){
 
-        final String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        final String image_url = AppController.getInstance().imageUrl();
+        final int auth_state = AppController.getInstance().isAuth();
         if (auth_state > 0) {
             Glide.with(context)
                     .asDrawable()

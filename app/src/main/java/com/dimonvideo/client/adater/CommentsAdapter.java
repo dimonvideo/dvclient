@@ -89,9 +89,8 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
 
         }
         Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        final String password = sharedPrefs.getString("dvc_password", "null");
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
+        final String password = AppController.getInstance().userPassword();
+        final int auth_state = AppController.getInstance().isAuth();
 
         holder.textViewCategory.setText(Feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);

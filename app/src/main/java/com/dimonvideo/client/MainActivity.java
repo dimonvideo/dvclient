@@ -85,7 +85,6 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
 
     Fragment homeFrag;
-    SharedPreferences sharedPrefs;
     static int razdel = 10;
     private RequestPermissionHandler mRequestPermissionHandler;
     int auth_state;
@@ -105,28 +104,27 @@ public class MainActivity extends AppCompatActivity {
         // очистка старых записей
         new Handler().postDelayed(Provider::clearDB_OLD, 3000);
 
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
+        final String is_dark = AppController.getInstance().isDark();
+        final String main_razdel = AppController.getInstance().mainRazdel();
+        final String image_url = AppController.getInstance().imageUrl();
+        final String password = AppController.getInstance().userPassword();
+        final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+        final String is_pm = AppController.getInstance().isPm();
+        final int auth_state = AppController.getInstance().isAuth();
 
-        final boolean is_uploader = sharedPrefs.getBoolean("dvc_uploader", true);
-        final boolean is_android = sharedPrefs.getBoolean("dvc_android", true);
-        final boolean is_vuploader = sharedPrefs.getBoolean("dvc_vuploader", true);
-        final boolean is_news = sharedPrefs.getBoolean("dvc_news", true);
-        final boolean is_gallery = sharedPrefs.getBoolean("dvc_gallery", true);
-        final boolean is_muzon = sharedPrefs.getBoolean("dvc_muzon", true);
-        final boolean is_books = sharedPrefs.getBoolean("dvc_books", false);
-        final boolean is_articles = sharedPrefs.getBoolean("dvc_articles", true);
-        final boolean is_forum = sharedPrefs.getBoolean("dvc_forum", true);
-        final boolean is_tracker = sharedPrefs.getBoolean("dvc_tracker", false);
-        final boolean is_blog = sharedPrefs.getBoolean("dvc_blog", false);
-        final boolean is_suploader = sharedPrefs.getBoolean("dvc_suploader", false);
 
-        is_pm = sharedPrefs.getString("dvc_pm", "off");
-        auth_state = sharedPrefs.getInt("auth_state", 0);
-        login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
-        password = sharedPrefs.getString("dvc_password", "null");
-        image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
-        main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        is_dark = sharedPrefs.getString("dvc_theme_list", "false");
+        final boolean is_uploader = AppController.getInstance().isUploader();
+        final boolean is_android = AppController.getInstance().isAndroid();
+        final boolean is_vuploader = AppController.getInstance().isVuploader();
+        final boolean is_news = AppController.getInstance().isUsernews();
+        final boolean is_gallery = AppController.getInstance().isGallery();
+        final boolean is_muzon = AppController.getInstance().isMuzon();
+        final boolean is_books = AppController.getInstance().isBooks();
+        final boolean is_articles = AppController.getInstance().isArticles();
+        final boolean is_forum = AppController.getInstance().isForum();
+        final boolean is_tracker = AppController.getInstance().isTracker();
+        final boolean is_blog = AppController.getInstance().isBlog();
+        final boolean is_suploader = AppController.getInstance().isSuploader();
 
         if (is_dark.equals("true"))
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -182,7 +180,8 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
             if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
             if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
-            if (Integer.parseInt(main_razdel) == 3) navGraph.setStartDestination(R.id.nav_vuploader);
+            if (Integer.parseInt(main_razdel) == 3)
+                navGraph.setStartDestination(R.id.nav_vuploader);
             if (Integer.parseInt(main_razdel) == 5) navGraph.setStartDestination(R.id.nav_muzon);
             if (Integer.parseInt(main_razdel) == 6) navGraph.setStartDestination(R.id.nav_books);
             if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
@@ -190,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
             if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
             if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
-            if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
+            if (Integer.parseInt(main_razdel) == 16)
+                navGraph.setStartDestination(R.id.nav_suploader);
 
             navController.setGraph(navGraph);
 
@@ -214,11 +214,8 @@ public class MainActivity extends AppCompatActivity {
 
         // иконка темы
         theme_icon.setOnClickListener(view -> {
-            SharedPreferences.Editor editor;
-            editor = sharedPrefs.edit();
-            if (is_dark.equals("true")) editor.putString("dvc_theme_list", "false");
-            else editor.putString("dvc_theme_list", "true");
-            editor.apply();
+            if (is_dark.equals("true")) AppController.getInstance().putThemeLight();
+            else AppController.getInstance().putThemeDark();
             finishAffinity();
             Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -240,49 +237,48 @@ public class MainActivity extends AppCompatActivity {
 
         // быстрые ярлыки
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
 
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            notificationIntent.putExtra("action", "PmFragment");
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            try {
+                ShortcutManager shortcutManager = (ShortcutManager) getSystemService(SHORTCUT_SERVICE);
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                notificationIntent.putExtra("action", "PmFragment");
+                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-            ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
-                    .setShortLabel(getString(R.string.tab_pm))
-                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                    .setIntent(notificationIntent.setAction(Intent.ACTION_VIEW))
-                    .build();
+                ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
+                        .setShortLabel(getString(R.string.tab_pm))
+                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                        .setIntent(notificationIntent.setAction(Intent.ACTION_VIEW))
+                        .build();
 
-            Intent forumIntent = new Intent(this, MainActivity.class);
-            forumIntent.putExtra("action", "ForumFragment");
-            forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            ShortcutInfo forumShortcut = new ShortcutInfo.Builder(this, "shortcut_forum")
-                    .setShortLabel(getString(R.string.tab_forums))
-                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                    .setIntent(forumIntent.setAction(Intent.ACTION_VIEW))
-                    .build();
+                Intent forumIntent = new Intent(this, MainActivity.class);
+                forumIntent.putExtra("action", "ForumFragment");
+                forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                ShortcutInfo forumShortcut = new ShortcutInfo.Builder(this, "shortcut_forum")
+                        .setShortLabel(getString(R.string.tab_forums))
+                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                        .setIntent(forumIntent.setAction(Intent.ACTION_VIEW))
+                        .build();
 
-            ShortcutInfo logShortcut = new ShortcutInfo.Builder(this, "shortcut_visit")
-                    .setShortLabel(getString(R.string.action_page))
-                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                    .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.BASE_URL)))
-                    .build();
+                ShortcutInfo logShortcut = new ShortcutInfo.Builder(this, "shortcut_visit")
+                        .setShortLabel(getString(R.string.action_page))
+                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                        .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.BASE_URL)))
+                        .build();
 
-            ShortcutInfo opdsShortcut = new ShortcutInfo.Builder(this, "shortcut_opds")
-                    .setShortLabel(getString(R.string.action_opds))
-                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                    .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.OPDS_URL)))
-                    .build();
+                ShortcutInfo opdsShortcut = new ShortcutInfo.Builder(this, "shortcut_opds")
+                        .setShortLabel(getString(R.string.action_opds))
+                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                        .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.OPDS_URL)))
+                        .build();
 
-            if (auth_state > 0) {
-                try {
-                    if (shortcutManager != null) new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
-                } catch (Throwable ignored) {
+                if (auth_state > 0) {
+                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
+
+                } else {
+                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
+
                 }
-            } else {
-                try {
-                    if (shortcutManager != null) new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
-                } catch (Throwable ignored) {
-                }
+            } catch (Throwable ignored) {
             }
         }
 
@@ -293,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
             Login_Name.setText(getString(R.string.sign_as));
             Login_Name.append(login_name);
             View view = this.getWindow().getDecorView().getRootView();
-          //  UpdatePm.update(this, view);
+            //  UpdatePm.update(this, view);
 
         } else {
             Login_Name.setOnClickListener(v -> {
@@ -310,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(Config.INTENT_READ_PM);
         filter.addAction(Config.INTENT_DELETE_PM);
 
-        registerReceiver(new BroadcastReceiver(){
+        registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
 
@@ -321,16 +317,15 @@ public class MainActivity extends AppCompatActivity {
                     TextView fab_badge = binding.appBarMain.fabBadge;
                     fab_badge.setVisibility(View.VISIBLE);
                     fab_badge.setText(str);
-                    Log.e(Config.TAG, "Receive PM: "+ str);
+                    Log.e(Config.TAG, "Receive PM: " + str);
                     if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
                 }
 
                 if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
                     Log.e(Config.TAG, "Auth broadcast");
-                    SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-                    String auth_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
-                    String is_pm = sharedPrefs.getString("dvc_pm", "off");
-                    String image_url = sharedPrefs.getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+                    String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+                    String is_pm = AppController.getInstance().isPm();
+                    String image_url = AppController.getInstance().imageUrl();
                     Glide.with(getApplicationContext())
                             .load(image_url)
                             .apply(RequestOptions.circleCropTransform())
@@ -341,7 +336,8 @@ public class MainActivity extends AppCompatActivity {
                     Login_Name.setText(getString(R.string.sign_as));
                     Login_Name.append(auth_name);
                     avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
-                    if ((!is_pm.equals("off")) && (binding != null)) binding.appBarMain.fab.setVisibility(View.VISIBLE);
+                    if ((!is_pm.equals("off")) && (binding != null))
+                        binding.appBarMain.fab.setVisibility(View.VISIBLE);
                 }
             }
         }, filter);
@@ -359,16 +355,16 @@ public class MainActivity extends AppCompatActivity {
         if (!is_tracker) navigationView.getMenu().removeItem(R.id.nav_tracker);
         if (!is_blog) navigationView.getMenu().removeItem(R.id.nav_blog);
         if (!is_suploader) navigationView.getMenu().removeItem(R.id.nav_suploader);
-        if ((is_pm.equals("off")) || (auth_state != 1)) navigationView.getMenu().removeItem(R.id.nav_pm);
+        if ((is_pm.equals("off")) || (auth_state != 1))
+            navigationView.getMenu().removeItem(R.id.nav_pm);
 
         // открытие личных сообщений
-        if ((is_pm.equals("off")) || (auth_state != 1)) binding.appBarMain.fab.setVisibility(View.GONE);
-
-
+        if ((is_pm.equals("off")) || (auth_state != 1))
+            binding.appBarMain.fab.setVisibility(View.GONE);
 
 
         // billing init
-        if (!getCurrentLanguage().equals("ru"))  PurchaseHelper.init(this);
+        if (!getCurrentLanguage().equals("ru")) PurchaseHelper.init(this);
 
         if ((Build.VERSION.SDK_INT >= 33) && ((is_pm.equals("on")) || (auth_state == 1))) {
             mRequestPermissionHandler = new RequestPermissionHandler();
@@ -381,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
 
             String action = intent_pm.getStringExtra("action");
 
-            Log.e(Config.TAG, "Main intent: "+ action);
+            Log.e(Config.TAG, "Main intent: " + action);
 
             if (action != null) {
                 if (Objects.equals(action, "PmFragment")) {
@@ -407,6 +403,7 @@ public class MainActivity extends AppCompatActivity {
         NetworkUtils.loadAvatar(this, toolbar);
 
     }
+
     @Override
     public boolean onSupportNavigateUp() {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
@@ -422,8 +419,8 @@ public class MainActivity extends AppCompatActivity {
 
     // масштабирование шрифтов
     private void adjustFontScale(Configuration configuration) {
-        sharedPrefs = AppController.getInstance().getSharedPreferences();
-        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale", "1.0f"));
+        final String scale = AppController.getInstance().scaleFont();
+        configuration.fontScale = Float.parseFloat(scale);
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         assert wm != null;
@@ -689,9 +686,8 @@ public class MainActivity extends AppCompatActivity {
         PackageManager manager = context.getPackageManager();
         PackageInfo info = manager.getPackageInfo(context.getPackageName(), 0);
         int versionCode = info.versionCode;
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (prefs.getInt("last_version_code", 1) != versionCode) {
-            prefs.edit().putInt("last_version_code", versionCode).apply();
+        if (AppController.getInstance().isVersionCode() != versionCode) {
+            AppController.getInstance().putVersionCode(versionCode);
             return true;
         }
         return false;

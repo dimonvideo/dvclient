@@ -62,7 +62,6 @@ public class MainFragmentFav extends Fragment  {
     static String story = null;
     String s_url = "";
     String key = "comments";
-    SharedPreferences sharedPrefs;
     private FragmentHomeBinding binding;
 
     public MainFragmentFav() {
@@ -94,7 +93,6 @@ public class MainFragmentFav extends Fragment  {
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
         }
-        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -146,8 +144,8 @@ public class MainFragmentFav extends Fragment  {
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        String main_razdel = sharedPrefs.getString("dvc_main_razdel", "10");
-        final String login_name = sharedPrefs.getString("dvc_login", getString(R.string.nav_header_title));
+        String main_razdel = AppController.getInstance().mainRazdel();
+        final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
 
         if (razdel == 10) {
             if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
@@ -210,9 +208,8 @@ public class MainFragmentFav extends Fragment  {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

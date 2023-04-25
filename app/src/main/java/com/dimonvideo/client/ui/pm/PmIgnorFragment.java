@@ -111,17 +111,17 @@ public class PmIgnorFragment extends Fragment implements SwipeRefreshLayout.OnRe
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext().getApplicationContext());
-        String login = sharedPrefs.getString("dvc_login","null");
-        String pass = sharedPrefs.getString("dvc_password","null");
+
+        String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+        String pass = AppController.getInstance().userPassword();
         try {
             pass = URLEncoder.encode(pass, "utf-8");
-            login = URLEncoder.encode(login, "utf-8");
+            login_name = URLEncoder.encode(login_name, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         String finalPass = pass;
-        String finalLogin = login;
+        String finalLogin = login_name;
 
         return new JsonArrayRequest(url + requestCount + "&pm=7&login_name=" + finalLogin + "&login_password=" + finalPass,
                 response -> {
@@ -164,9 +164,8 @@ public class PmIgnorFragment extends Fragment implements SwipeRefreshLayout.OnRe
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

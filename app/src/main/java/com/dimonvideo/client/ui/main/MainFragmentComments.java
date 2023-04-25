@@ -67,7 +67,6 @@ public class MainFragmentComments extends Fragment {
     static int razdel = 10;
     String url = Config.COMMENTS_READS_URL;
     String key = "comments";
-    SharedPreferences sharedPrefs;
     private FragmentHomeBinding binding;
 
     public MainFragmentComments() {
@@ -98,8 +97,6 @@ public class MainFragmentComments extends Fragment {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
         }
-
-        sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         listFeed = new ArrayList<>();
         emptyLayout = binding.linearEmpty;
@@ -196,9 +193,8 @@ public class MainFragmentComments extends Fragment {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

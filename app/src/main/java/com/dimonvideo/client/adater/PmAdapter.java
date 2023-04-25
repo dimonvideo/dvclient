@@ -1,6 +1,5 @@
 package com.dimonvideo.client.adater;
 
-import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -9,11 +8,9 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.Build;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,20 +18,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
@@ -127,16 +121,15 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void populateItemRows(ItemViewHolder holder, int position) {
 
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
-        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
+        final boolean is_open_link = AppController.getInstance().isOpenLinks();
+        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
         //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(position);
 
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
-        Glide.with(mContext).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+        Glide.with(mContext).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewDate.setText(Feed.getDate());
@@ -211,7 +204,7 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     // show full
     private void showFullText(ItemViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed, int position) {
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, mContext, position);
+            URLImageParser parser = new URLImageParser(holder.textViewText);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new TagHandler());
             holder.textViewText.setText(spanned);
 

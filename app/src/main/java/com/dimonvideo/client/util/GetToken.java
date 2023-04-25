@@ -23,44 +23,31 @@ import java.util.Map;
 public class GetToken {
 
     public static void getToken(Context context){
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-        String login = sharedPrefs.getString("dvc_login","null");
-        String pass = sharedPrefs.getString("dvc_password","null");
+        String is_name = AppController.getInstance().userName("null");
+        String password = AppController.getInstance().userPassword();
         try {
-            pass = URLEncoder.encode(pass, "utf-8");
-            login = URLEncoder.encode(login, "utf-8");
+            password = URLEncoder.encode(password, "utf-8");
+            is_name = URLEncoder.encode(is_name, "utf-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
 
         try {
 
-
-            String finalLogin = login;
-            String finalPass = pass;
+            String finalIs_name = is_name;
+            String finalPassword = password;
             FirebaseMessaging.getInstance().getToken()
                     .addOnCompleteListener(task -> {
                         if (!task.isSuccessful()) {
-                            Log.w("TAG", "Fetching FCM registration token failed", task.getException());
                             return;
                         }
-
-                        // Get new FCM registration token
                         String token = task.getResult();
                         Log.w("TAG", "Fetching FCM registration token " + token);
-            // Get new Instance ID token
 
-                SharedPreferences.Editor editor;
-                editor = sharedPrefs.edit();
-                editor.putString("current_token", token);
-                editor.apply();
+                AppController.getInstance().putToken(token);
 
-
-            String url = Config.CHECK_AUTH_URL + "&login_name=" + finalLogin + "&login_password=" + finalPass;
+            String url = Config.CHECK_AUTH_URL + "&login_name=" + finalIs_name + "&login_password=" + finalPassword;
             StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
-
-                Log.e("Get token Result", "curr token: " + token + response);
-
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     String state = jsonObject.getString("state");

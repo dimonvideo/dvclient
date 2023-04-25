@@ -73,18 +73,15 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
     String comm_url, file_title, razdel, lid;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    SharedPreferences sharedPrefs;
     public CommentsListBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
+        final int auth_state = AppController.getInstance().isAuth();
+        final String is_pm = AppController.getInstance().isPm();
+        final String is_dark = AppController.getInstance().isDark();
 
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        final String is_pm = sharedPrefs.getString("dvc_pm", "off");
-        final String is_dark = sharedPrefs.getString("dvc_theme_list", "false");
-        final String password = sharedPrefs.getString("dvc_password", "null");
         if (is_dark.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -245,9 +242,8 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        RequestQueue queue = AppController.getInstance().getRequestQueue();
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        queue.add(getDataFromServer(requestCount));
+        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 
@@ -326,8 +322,8 @@ public class Comments extends AppCompatActivity  implements RecyclerView.OnScrol
 
     // scale font
     private void adjustFontScale(Configuration configuration) {
-        sharedPrefs = AppController.getInstance().getSharedPreferences();
-        configuration.fontScale = Float.parseFloat(sharedPrefs.getString("dvc_scale","1.0f"));
+        final String scale = AppController.getInstance().scaleFont();
+        configuration.fontScale = Float.parseFloat(scale);
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         assert wm != null;

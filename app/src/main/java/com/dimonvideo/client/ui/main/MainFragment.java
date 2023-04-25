@@ -79,21 +79,18 @@ public class MainFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-
         if (this.getArguments() != null) {
             razdel = getArguments().getInt(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_RAZDEL);
         }
 
-        final boolean is_more = sharedPrefs.getBoolean("dvc_more", false);
-        final boolean dvc_tab_inline = sharedPrefs.getBoolean("dvc_tab_inline", false);
-        final boolean dvc_tab_icons = sharedPrefs.getBoolean("dvc_tab_icons", true);
-        final boolean is_favor = sharedPrefs.getBoolean("dvc_favor", false);
-        final boolean is_comment = sharedPrefs.getBoolean("dvc_comment", false);
-        String login = sharedPrefs.getString("dvc_password", "");
-
+        final boolean is_more = AppController.getInstance().isMore();
+        final boolean is_favor = AppController.getInstance().isTabFavor();
+        final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
+        final boolean is_comment = AppController.getInstance().isCommentTab();
+        String login = AppController.getInstance().userName("");
+        final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
 
         tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
@@ -166,7 +163,6 @@ public class MainFragment extends Fragment  {
                     ft.addToBackStack(fragment.toString());
                     ft.replace(R.id.container_frag, fragment);
                     ft.commit();
-                    Log.e("---", "pos: " +razdel);
                 }
 
             }

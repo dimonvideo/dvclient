@@ -6,7 +6,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -15,8 +14,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -33,7 +30,6 @@ import java.util.Objects;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
-
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -44,18 +40,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             assert action != null;
             if (action.equals("new_pm")) {
-                SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-                final boolean dvc_pm_notify = sharedPrefs.getBoolean("dvc_pm_notify", false);
-                final String is_pm = sharedPrefs.getString("dvc_pm", "off");
-                SharedPreferences.Editor editor;
-                editor = sharedPrefs.edit();
-                assert count_pm != null;
-                editor.putInt("pm_unread", Integer.parseInt(count_pm));
-                editor.apply();
+                final boolean dvc_pm_notify = AppController.getInstance().isPmNotify();
+                final String is_pm = AppController.getInstance().isPm();
+                if (count_pm != null) {
+                    AppController.getInstance().putPmUnread(Integer.parseInt(count_pm));
+                }
 
-                if ((Integer.parseInt(count_pm) > 0) && (!dvc_pm_notify) && (is_pm.equals("on"))) {
-
-
+                if ((Integer.parseInt(Objects.requireNonNull(count_pm)) > 0) && (!dvc_pm_notify) && (is_pm.equals("on"))) {
 
                     Intent local = new Intent();
                     local.setAction(Config.INTENT_NEW_PM);
@@ -103,7 +94,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 });
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private void generateNotification(Context context, String msg, String text, int id, Bitmap bitmap) {
 
         NotificationManager notificationManager;
@@ -128,27 +118,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent pendingIntent;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pendingIntent = PendingIntent.getActivity(getApplicationContext(), id - 100, notificationIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-        } else pendingIntent = PendingIntent.getActivity(getApplicationContext(), id - 100, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
+        pendingIntent = PendingIntent.getActivity(getApplicationContext(), id - 100, notificationIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
         Intent intentAction = new Intent(context, ActionReceiver.class);
         intentAction.putExtra("action", "deletePm");
         intentAction.putExtra("id", String.valueOf(id));
 
         PendingIntent pIntentDelete;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
-        } else pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT);
+       pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Intent intentAction2 = new Intent(context, ActionReceiver.class);
         intentAction2.putExtra("action", "replyPm");
         intentAction2.putExtra("id", String.valueOf(id));
 
         PendingIntent pIntentReply;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT  | PendingIntent.FLAG_IMMUTABLE);
-        } else pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT);
+       pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channelId);
 

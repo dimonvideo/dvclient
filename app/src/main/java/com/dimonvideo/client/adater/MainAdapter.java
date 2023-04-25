@@ -90,10 +90,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         //Getting the particular item from the list
         final Feed Feed = jsonFeed.get(position);
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        final boolean is_vuploader_play = sharedPrefs.getBoolean("dvc_vuploader_play", true);
-        final boolean is_muzon_play = sharedPrefs.getBoolean("dvc_muzon_play", true);
-        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
+
+        final boolean is_vuploader_play = AppController.getInstance().isVuploaderPlay();
+        final boolean is_muzon_play = AppController.getInstance().isMuzonPlay();
+        final boolean is_share_btn = AppController.getInstance().isShareBtn();
 
         holder.status_logo.setImageResource(R.drawable.ic_status_green);
         try {
@@ -321,10 +321,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         final BottomSheetDialog dialog;
         View views = LayoutInflater.from(context).inflate(R.layout.bottom_detail, null);
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
-        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
-        final boolean is_share_btn = sharedPrefs.getBoolean("dvc_btn_share", false);
+        final boolean is_open_link = AppController.getInstance().isOpenLinks();
+        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
+        final boolean is_share_btn = AppController.getInstance().isShareBtn();
 
         TextView textViewTitle = views.findViewById(R.id.title);
         textViewTitle.setText(Feed.getTitle());
@@ -354,7 +353,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         // html textview
         TextView textViewText = views.findViewById(R.id.text);
         try {
-            URLImageParser parser = new URLImageParser(textViewText, context, position);
+            URLImageParser parser = new URLImageParser(textViewText);
             Spanned spanned = Html.fromHtml(Feed.getFull_text(), parser, new TagHandler());
             textViewText.setText(spanned);
             textViewText.setMovementMethod(new TextViewClickMovement() {

@@ -85,10 +85,10 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         }
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
-        SharedPreferences sharedPrefs = AppController.getInstance().getSharedPreferences();
-        final int auth_state = sharedPrefs.getInt("auth_state", 0);
-        final boolean is_open_link = sharedPrefs.getBoolean("dvc_open_link", false);
-        final boolean is_vuploader_play_listtext = sharedPrefs.getBoolean("dvc_vuploader_play_listtext", false);
+
+        final int auth_state = AppController.getInstance().isAuth();
+        final boolean is_open_link = AppController.getInstance().isOpenLinks();
+        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
@@ -114,7 +114,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         holder.views_logo.setVisibility(View.INVISIBLE);
 
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText, context, position);
+            URLImageParser parser = new URLImageParser(holder.textViewText);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
