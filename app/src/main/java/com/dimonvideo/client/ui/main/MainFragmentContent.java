@@ -87,7 +87,7 @@ public class MainFragmentContent extends Fragment {
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
+    public void onMessageEvent(MessageEvent event) {
         razdel = event.razdel;
         story = event.story;
     }
@@ -194,10 +194,13 @@ public class MainFragmentContent extends Fragment {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
-        toolbar = MainActivity.binding.appBarMain.toolbar;
 
-        NetworkUtils.loadAvatar(requireContext(), toolbar);
+        try {
+            toolbar = MainActivity.binding.appBarMain.toolbar;
+            NetworkUtils.loadAvatar(requireContext(), toolbar);
+        } catch (Exception ignored) {
 
+        }
         if ((!TextUtils.isEmpty(f_name)) && (toolbar != null)) {
             toolbar.setSubtitle(f_name);
         } else if (toolbar != null) {
@@ -222,12 +225,16 @@ public class MainFragmentContent extends Fragment {
     }
 
 
-
     // запрос к серверу апи
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
+        Set<String> selections = null;
+        try {
+            selections = sharedPrefs.getStringSet("dvc_" + key + "_cat", null);
+        } catch(Exception ignored) {
 
-        Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
+        }
+
         String category_string = "all";
         if (selections != null) {
             String[] selected = selections.toArray(new String[]{});
@@ -288,7 +295,7 @@ public class MainFragmentContent extends Fragment {
 
 
                             // сохраняем в базу результат для оффлайн просмотра
-                            String unique = razdel+String.valueOf(json.getInt(Config.TAG_ID));
+                            String unique = razdel + String.valueOf(json.getInt(Config.TAG_ID));
                             ContentValues values = new ContentValues();
                             values.put(Table.COLUMN_ID, unique);
                             values.put(Table.COLUMN_LID, json.getInt(Config.TAG_ID));
@@ -304,7 +311,7 @@ public class MainFragmentContent extends Fragment {
                             values.put(Table.COLUMN_SIZE, json.getString(Config.TAG_SIZE));
                             values.put(Table.COLUMN_URL, json.getString(Config.TAG_LINK));
 
-                            try{
+                            try {
                                 mContext.getContentResolver().insert(Provider.CONTENT_URI, values);
                             } catch (Throwable ignored) {
                             }
@@ -317,13 +324,12 @@ public class MainFragmentContent extends Fragment {
 
                     }
                     adapter.notifyDataSetChanged();
-                    },
+                },
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                 });
     }
-
 
 
     // получение данных и увеличение номера страницы

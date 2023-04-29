@@ -186,7 +186,7 @@
     <PreferenceCategory app:title="@string/android_pref_tab">
 
         <SwitchPreferenceCompat
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="dvc_android"
             app:title="@string/menu_android" />
         <MultiSelectListPreference

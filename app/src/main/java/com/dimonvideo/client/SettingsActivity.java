@@ -1,11 +1,11 @@
 package com.dimonvideo.client;
 
-import android.Manifest;
+import static androidx.preference.PreferenceManager.getDefaultSharedPreferences;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,37 +13,29 @@ import android.os.Environment;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.NetworkUtils;
-import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
@@ -51,16 +43,14 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import static androidx.preference.PreferenceManager.getDefaultSharedPreferences;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -327,9 +317,13 @@ public class SettingsActivity extends AppCompatActivity {
             ObjectOutputStream output = null;
 
             try {
-                output = new ObjectOutputStream(new FileOutputStream(dst));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    output = new ObjectOutputStream(Files.newOutputStream(dst.toPath()));
+                }
                 SharedPreferences pref = getDefaultSharedPreferences(requireContext());
-                output.writeObject(pref.getAll());
+                if (output != null) {
+                    output.writeObject(pref.getAll());
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -352,24 +346,31 @@ public class SettingsActivity extends AppCompatActivity {
             boolean res = false;
             ObjectInputStream input = null;
             try {
-                input = new ObjectInputStream(new FileInputStream(src));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    input = new ObjectInputStream(Files.newInputStream(src.toPath()));
+                }
                 SharedPreferences.Editor prefEdit = getDefaultSharedPreferences(requireContext()).edit();
                 prefEdit.clear();
-                Map<String, ?> entries = (Map<String, ?>) input.readObject();
-                for (Map.Entry<String, ?> entry : entries.entrySet()) {
-                    Object v = entry.getValue();
-                    String key = entry.getKey();
+                Map<String, ?> entries = null;
+                if (input != null) {
+                    entries = (Map<String, ?>) input.readObject();
+                }
+                if (entries != null) {
+                    for (Map.Entry<String, ?> entry : entries.entrySet()) {
+                        Object v = entry.getValue();
+                        String key = entry.getKey();
 
-                    if (v instanceof Boolean)
-                        prefEdit.putBoolean(key, ((Boolean) v).booleanValue());
-                    else if (v instanceof Float)
-                        prefEdit.putFloat(key, ((Float) v).floatValue());
-                    else if (v instanceof Integer)
-                        prefEdit.putInt(key, ((Integer) v).intValue());
-                    else if (v instanceof Long)
-                        prefEdit.putLong(key, ((Long) v).longValue());
-                    else if (v instanceof String)
-                        prefEdit.putString(key, ((String) v));
+                        if (v instanceof Boolean)
+                            prefEdit.putBoolean(key, (Boolean) v);
+                        else if (v instanceof Float)
+                            prefEdit.putFloat(key, (Float) v);
+                        else if (v instanceof Integer)
+                            prefEdit.putInt(key, (Integer) v);
+                        else if (v instanceof Long)
+                            prefEdit.putLong(key, (Long) v);
+                        else if (v instanceof String)
+                            prefEdit.putString(key, ((String) v));
+                    }
                 }
                 prefEdit.apply();
                 res = true;
@@ -407,21 +408,13 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
     }
-    @Override
+
     public void onBackPressed() {
-        Intent intent = new Intent(this, MainActivity.class);
+
+        Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    @Override
-    public boolean onKeyLongPress(int keycode, KeyEvent event) {
-        if (keycode == KeyEvent.KEYCODE_BACK) {
-            onBackPressed();
-            return true;
-        }
-        return super.onKeyLongPress(keycode, event);
     }
 
     // масштабирование шрифтов
