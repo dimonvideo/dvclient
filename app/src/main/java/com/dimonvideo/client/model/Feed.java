@@ -4,8 +4,7 @@ import com.dimonvideo.client.Config;
 
 public class Feed {
     //Data Variables
-    private String imageUrl, title, text, full_text, date, category, headers, user, size, link, mod;
-    static String razdel;
+    private String imageUrl, title, text, full_text, date, category, headers, user, size, link, mod, razdel;
     private int id, comments, hits, min, plus, fav, post_id;
     private Long time;
 
@@ -101,12 +100,12 @@ public class Feed {
         this.post_id = post_id;
     }
 
-    public static String getRazdel() {
+    public String getRazdel() {
         return razdel;
     }
 
     public void setRazdel(String razdel) {
-        Feed.razdel = razdel;
+        this.razdel = razdel;
     }
 
     public String getCategory() {

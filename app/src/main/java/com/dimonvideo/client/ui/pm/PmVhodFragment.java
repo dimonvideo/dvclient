@@ -2,11 +2,7 @@ package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -24,7 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -33,13 +28,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
-import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
@@ -66,16 +59,20 @@ public class PmVhodFragment extends Fragment {
     TextView emptyView;
     private ProgressBar progressBar, progressBarBottom;
     private FragmentHomeBinding binding;
-    public PmAdapter adapter;
+    public AdapterPm adapter;
     private List<FeedPm> listFeed;
     private int requestCount = 1;
-    String url = Config.PM_URL, pm;
-    BroadcastReceiver localReceiver;
-    IntentFilter filter;
+    String url = Config.PM_URL;
+
     public PmVhodFragment() {
         // Required empty public constructor
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        String pm = event.action;
+        if (pm != null) update();
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -106,7 +103,7 @@ public class PmVhodFragment extends Fragment {
 
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed);
+        adapter = new AdapterPm(listFeed);
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -244,21 +241,6 @@ public class PmVhodFragment extends Fragment {
             }
         });
 
-        // обновление личных данных после авторизации
-        filter = new IntentFilter();
-        filter.addAction(Config.INTENT_READ_PM);
-        filter.addAction(Config.INTENT_NEW_PM);
-        filter.addAction(Config.INTENT_DELETE_PM);
-
-        localReceiver = new BroadcastReceiver(){
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                update();
-            }
-        };
-
-
-
         // обновление
         swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(this::update);
@@ -358,30 +340,17 @@ public class PmVhodFragment extends Fragment {
         binding = null;
     }
     @Override
-    public void onResume() {
-        super.onResume();
-        requireActivity().registerReceiver(localReceiver, filter);
-    }
-    @Override
-    public void onPause() {
-        try{
-            if(localReceiver != null) {
-                requireActivity().unregisterReceiver(localReceiver);
-            }
-        } catch (Exception ignored){
-        }
-        super.onPause();
-    }
-    @Override
     public void onStart() {
         super.onStart();
-
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
-
 
 }

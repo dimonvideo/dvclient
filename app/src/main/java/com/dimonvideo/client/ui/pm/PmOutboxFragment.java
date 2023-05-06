@@ -1,48 +1,29 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
+import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
-import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.AppController;
-import com.dimonvideo.client.util.MessageEvent;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -56,7 +37,7 @@ public class PmOutboxFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
-    public PmAdapter adapter;
+    public AdapterPm adapter;
     SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -104,7 +85,7 @@ public class PmOutboxFragment extends Fragment implements SwipeRefreshLayout.OnR
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed);
+        adapter = new AdapterPm(listFeed);
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);

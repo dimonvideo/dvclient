@@ -1,13 +1,10 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,25 +12,18 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.ForumAdapter;
+import com.dimonvideo.client.adater.AdapterForum;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
@@ -52,18 +42,15 @@ import java.util.Objects;
 public class ForumFragmentTopicsFav extends Fragment  {
 
     private List<FeedForum> listFeed;
-    public RecyclerView recyclerView;
-    public ForumAdapter adapter;
-    SwipeRefreshLayout swipLayout;
+    private AdapterForum adapter;
+    private SwipeRefreshLayout swipLayout;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.FORUM_FEED_URL;
-    String story = null;
-    String s_url = "";
-    String f_name;
-    int id = 0;
-    int razdel = 8; // forum fragment
+    private String story = null;
+    private String s_url = "";
+    private int id = 0;
+    private String razdel = "8"; // forum fragment
     private FragmentHomeBinding binding;
 
     public ForumFragmentTopicsFav() {
@@ -85,7 +72,7 @@ public class ForumFragmentTopicsFav extends Fragment  {
         if (this.getArguments() != null) {
             id = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            f_name = getArguments().getString(Config.TAG_CATEGORY);
+            String f_name = getArguments().getString(Config.TAG_CATEGORY);
         }
 
         listFeed = new ArrayList<>();
@@ -96,9 +83,9 @@ public class ForumFragmentTopicsFav extends Fragment  {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new ForumAdapter(listFeed, getContext());
+        adapter = new AdapterForum(listFeed, getContext());
 
-        recyclerView = binding.recyclerView;
+        RecyclerView recyclerView = binding.recyclerView;
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -156,6 +143,7 @@ public class ForumFragmentTopicsFav extends Fragment  {
         if (id>0) {
             s_url = "&id=" + id;
         }
+        String url = Config.FORUM_FEED_URL;
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {
                     progressBar.setVisibility(View.GONE);

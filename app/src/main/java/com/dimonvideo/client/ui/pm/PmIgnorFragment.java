@@ -1,9 +1,7 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,21 +11,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.FriendsAdapter;
+import com.dimonvideo.client.adater.AdapterPmFriends;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +37,7 @@ public class PmIgnorFragment extends Fragment implements SwipeRefreshLayout.OnRe
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
-    public FriendsAdapter adapter;
+    public AdapterPmFriends adapter;
     SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -90,7 +85,7 @@ public class PmIgnorFragment extends Fragment implements SwipeRefreshLayout.OnRe
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new FriendsAdapter(listFeed, getContext());
+        adapter = new AdapterPmFriends(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);

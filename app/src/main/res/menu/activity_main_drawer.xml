@@ -19,11 +19,10 @@
             android:icon="@drawable/baseline_forum_24"
             android:title="@string/menu_forum" />
         <item
-            android:id="@+id/nav_pm"
+            android:id="@+id/nav_add"
             android:checkable="true"
-            android:visible="false"
-            android:icon="@drawable/baseline_mail_24"
-            android:title="@string/tab_pm" />
+            android:icon="@drawable/baseline_add_comment_24"
+            android:title="@string/menu_add_file" />
     </group>
     <group
         android:id="@+id/menu_top"

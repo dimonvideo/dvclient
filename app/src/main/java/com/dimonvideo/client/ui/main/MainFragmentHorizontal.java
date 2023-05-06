@@ -2,11 +2,9 @@ package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,21 +12,15 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.MainAdapter;
-import com.dimonvideo.client.adater.MainAdapterFull;
+import com.dimonvideo.client.adater.AdapterMainFull;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
@@ -51,19 +43,15 @@ import java.util.Set;
 public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayout.OnRefreshListener   {
 
     private List<Feed> listFeed;
-    public RecyclerView recyclerView;
-    public MainAdapterFull adapter;
-    SwipeRefreshLayout swipLayout;
+    private RecyclerView recyclerView;
+    private AdapterMainFull adapter;
+    private SwipeRefreshLayout swipLayout;
     private ProgressBar progressBar, ProgressBarBottom;
-
     private int requestCount = 1;
-    static int razdel = 10;
-    String url = Config.COMMENTS_URL;
-    String search_url = Config.COMMENTS_SEARCH_URL;
-    static String story = null;
-    String key = "comments";
-    SharedPreferences sharedPrefs;
-    String s_url = "";
+    private String razdel = "10";
+    private String story = null;
+    private SharedPreferences sharedPrefs;
+    private String s_url = "";
     private FragmentHomeBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -79,6 +67,11 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+
+        if (this.getArguments() != null) {
+            razdel = getArguments().getString(Config.TAG_CATEGORY);
+        }
+
         sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         recyclerView = binding.recyclerView;
@@ -109,7 +102,7 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         // получение данных
         getData();
 
-        adapter = new MainAdapterFull(listFeed, getContext());
+        adapter = new AdapterMainFull(listFeed, getContext());
 
         recyclerView.setAdapter(adapter);
 
@@ -132,11 +125,11 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        key = GetRazdelName.getRazdelName(razdel, 0);
-        search_url = GetRazdelName.getRazdelName(razdel, 1);
-        url = GetRazdelName.getRazdelName(razdel, 2);
+        String key = GetRazdelName.getRazdelName(razdel, 0);
+        String search_url = GetRazdelName.getRazdelName(razdel, 1);
+        String url = GetRazdelName.getRazdelName(razdel, 2);
 
-        Set<String> selections = sharedPrefs.getStringSet("dvc_"+key+"_cat", null);
+        Set<String> selections = sharedPrefs.getStringSet("dvc_"+ key +"_cat", null);
         String category_string = "all";
         if (selections != null) {
             String[] selected = selections.toArray(new String[]{});

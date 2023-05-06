@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -13,10 +14,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,28 +28,40 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.util.BBCodes;
 import com.dimonvideo.client.util.ButtonsActions;
+import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Calendar;
 import java.util.List;
 
-public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHolder> {
+public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.ViewHolder> {
 
     private Context context;
+    String image_uploaded;
 
     //List to store all
     List<FeedPm> jsonFeed;
 
     //Constructor of this class
-    public FriendsAdapter(List<FeedPm> jsonFeed, Context context){
+    public AdapterPmFriends(List<FeedPm> jsonFeed, Context context){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
         this.context = context;
+    }
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        image_uploaded = event.image_uploaded;
     }
 
     @NonNull
@@ -58,7 +73,11 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
 
         //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(position);
@@ -101,12 +120,21 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
 
         });
 
-        holder.send.setOnClickListener(v -> {
+        holder.imagePick.setOnClickListener(v -> {
 
-            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new MainAdapter.TagHandler()));
+
+            MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build());
+
+        });
+
+        holder.send.setOnClickListener(v -> {
+            holder.textViewText.setText(Html.fromHtml(Feed.getFullText(), null,  new AdapterMainRazdel.TagHandler()));
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.GONE);
-            NetworkUtils.sendPm(context, 0, holder.textInput.getText().toString(), 0, null, Feed.getId());
+            String text = holder.textInput.getText().toString();
+            NetworkUtils.sendPm(context, 0, BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, Feed.getId());
 
         });
 
@@ -120,9 +148,11 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
             return true;
         });
 
+
     }
 
-    private void show_dialog(FriendsAdapter.ViewHolder holder, final int position, Context context){
+
+    private void show_dialog(AdapterPmFriends.ViewHolder holder, final int position, Context context){
         final CharSequence[] items = {context.getString(R.string.action_open),
                 context.getString(R.string.action_like_member), context.getString(R.string.copy_name), context.getString(R.string.add_friend), context.getString(R.string.add_ignor), context.getString(R.string.remove_all)};
 
@@ -185,17 +215,19 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
     public List<FeedPm> getData() {
         return jsonFeed;
     }
-    static class ViewHolder extends RecyclerView.ViewHolder {
+
+    public static class ViewHolder extends RecyclerView.ViewHolder  {
         //Views
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
         public TextView textViewText;
-        public LinearLayout btns;
+        public RelativeLayout btns;
         public Button send;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
         public ClipData myClip;
+        public static ImageView imagePick;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -209,6 +241,7 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
             btns = itemView.findViewById(R.id.linearLayout1);
             send = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
+            imagePick = itemView.findViewById(R.id.img_btn);
 
         }
 

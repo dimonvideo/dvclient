@@ -8,36 +8,28 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.db.Table;
@@ -47,7 +39,6 @@ import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.UpdatePm;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -65,22 +56,21 @@ import java.util.Set;
 public class MainFragmentContent extends Fragment {
 
     private List<Feed> listFeed;
-    public RecyclerView recyclerView;
-    public MainAdapter adapter;
-    SwipeRefreshLayout swipLayout;
-    LinearLayout emptyLayout;
+    private RecyclerView recyclerView;
+    private AdapterMainRazdel adapter;
+    private SwipeRefreshLayout swipLayout;
     private Context mContext;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    int razdel = 10;
-    int cid = 0;
-    String url = Config.COMMENTS_URL;
-    String search_url = Config.COMMENTS_SEARCH_URL;
-    String key = "comments";
-    SharedPreferences sharedPrefs;
-    String story, f_name, s_url = "";
+    private String razdel;
+    private int cid = 0;
+    private String url = Config.COMMENTS_URL;
+    private String search_url = Config.COMMENTS_SEARCH_URL;
+    private String key = "comments";
+    private SharedPreferences sharedPrefs;
+    private String story, f_name, s_url = "";
     private FragmentHomeBinding binding;
-    Toolbar toolbar;
+    private Toolbar toolbar;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -106,19 +96,15 @@ public class MainFragmentContent extends Fragment {
             EventBus.getDefault().register(this);
         }
 
-        Log.e(Config.TAG, "MainFragmentContent razdel: " + razdel);
-
         mContext = requireContext();
-
         sharedPrefs = AppController.getInstance().getSharedPreferences();
 
         if (this.getArguments() != null) {
             cid = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_RAZDEL);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
         }
-
 
         key = GetRazdelName.getRazdelName(razdel, 0);
         search_url = GetRazdelName.getRazdelName(razdel, 1);
@@ -156,7 +142,7 @@ public class MainFragmentContent extends Fragment {
         } catch (Throwable ignored) {
         }
 
-        emptyLayout = binding.linearEmpty;
+        LinearLayout emptyLayout = binding.linearEmpty;
         emptyLayout.setVisibility(View.GONE);
         recyclerView = binding.recyclerView;
 
@@ -166,7 +152,7 @@ public class MainFragmentContent extends Fragment {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new MainAdapter(listFeed, mContext);
+        adapter = new AdapterMainRazdel(listFeed, mContext);
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -198,18 +184,21 @@ public class MainFragmentContent extends Fragment {
         try {
             toolbar = MainActivity.binding.appBarMain.toolbar;
             NetworkUtils.loadAvatar(requireContext(), toolbar);
+
+            if ((!TextUtils.isEmpty(f_name)) && (toolbar != null)) {
+                toolbar.setSubtitle(f_name);
+            } else if (toolbar != null) {
+                toolbar.setSubtitle(null);
+            }
+
+            if ((cid > 0) && (toolbar != null)) {
+                toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+            }
+
         } catch (Exception ignored) {
 
         }
-        if ((!TextUtils.isEmpty(f_name)) && (toolbar != null)) {
-            toolbar.setSubtitle(f_name);
-        } else if (toolbar != null) {
-            toolbar.setSubtitle(null);
-        }
 
-        if ((cid > 0) && (toolbar != null)) {
-            toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
-        }
 
         // обновление
         swipLayout = binding.swipeLayout;
@@ -221,7 +210,7 @@ public class MainFragmentContent extends Fragment {
         });
 
 
-        UpdatePm.update(requireActivity());
+        UpdatePm.update(requireActivity(), razdel);
     }
 
 
@@ -256,6 +245,7 @@ public class MainFragmentContent extends Fragment {
         }
 
         String url_final = url + requestCount + "&c=placeholder," + category_string + s_url;
+
 
         return new JsonArrayRequest(url_final,
                 response -> {
@@ -295,7 +285,7 @@ public class MainFragmentContent extends Fragment {
 
 
                             // сохраняем в базу результат для оффлайн просмотра
-                            String unique = razdel + String.valueOf(json.getInt(Config.TAG_ID));
+                            int unique = json.getInt(Config.TAG_ID);
                             ContentValues values = new ContentValues();
                             values.put(Table.COLUMN_ID, unique);
                             values.put(Table.COLUMN_LID, json.getInt(Config.TAG_ID));

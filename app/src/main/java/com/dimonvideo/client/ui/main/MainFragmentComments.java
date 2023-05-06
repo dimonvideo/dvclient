@@ -1,43 +1,31 @@
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.CommentsAdapter;
-import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.adater.AdapterComments;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
@@ -48,25 +36,18 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public class MainFragmentComments extends Fragment {
 
     private List<FeedForum> listFeed;
-    public RecyclerView recyclerView;
-    public CommentsAdapter adapter;
-    SwipeRefreshLayout swipLayout;
-    LinearLayout emptyLayout;
+    private AdapterComments adapter;
+    private SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 10;
-    String url = Config.COMMENTS_READS_URL;
-    String key = "comments";
+    private String razdel = "10";
     private FragmentHomeBinding binding;
 
     public MainFragmentComments() {
@@ -94,12 +75,11 @@ public class MainFragmentComments extends Fragment {
             EventBus.getDefault().register(this);
         }
         if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_CATEGORY);
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
+            razdel = getArguments().getString(Config.TAG_CATEGORY);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
         }
 
         listFeed = new ArrayList<>();
-        emptyLayout = binding.linearEmpty;
 
         progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
@@ -107,8 +87,8 @@ public class MainFragmentComments extends Fragment {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new CommentsAdapter(listFeed, getContext());
-        recyclerView = binding.recyclerView;
+        adapter = new AdapterComments(listFeed, getContext());
+        RecyclerView recyclerView = binding.recyclerView;
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -153,8 +133,9 @@ public class MainFragmentComments extends Fragment {
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
-        key = GetRazdelName.getRazdelName(razdel, 0);
+        String key = GetRazdelName.getRazdelName(razdel, 0);
 
+        String url = Config.COMMENTS_READS_URL;
         return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {
                     progressBar.setVisibility(View.GONE);

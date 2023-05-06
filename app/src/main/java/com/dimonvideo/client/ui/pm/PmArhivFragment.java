@@ -3,7 +3,6 @@ package com.dimonvideo.client.ui.pm;
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -20,7 +19,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,13 +26,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
-import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.adater.AdapterPm;
+import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
@@ -58,7 +55,7 @@ public class PmArhivFragment extends Fragment  {
     private ProgressBar progressBar, progressBarBottom;
     String url = Config.PM_URL;
     private FragmentHomeBinding binding;
-    public PmAdapter adapter;
+    public AdapterPm adapter;
     private List<FeedPm> listFeed;
     private int requestCount = 1;
 
@@ -106,7 +103,7 @@ public class PmArhivFragment extends Fragment  {
         progressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed);
+        adapter = new AdapterPm(listFeed);
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -205,7 +202,7 @@ public class PmArhivFragment extends Fragment  {
 
                 if (direction == ItemTouchHelper.RIGHT) {
                     adapter.restoreFromArchiveItem(position);
-                    TabsAdapter adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
+                    AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
                     Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
                     snackbar.setAction(getString(R.string.tab_inbox), view -> {
                         assert getParentFragment() != null;

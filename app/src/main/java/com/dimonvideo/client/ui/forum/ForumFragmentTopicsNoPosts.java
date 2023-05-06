@@ -2,11 +2,8 @@ package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,26 +11,20 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.ForumAdapter;
+import com.dimonvideo.client.adater.AdapterForum;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 
@@ -51,7 +42,7 @@ public class ForumFragmentTopicsNoPosts extends Fragment   {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
-    public ForumAdapter adapter;
+    public AdapterForum adapter;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -90,7 +81,7 @@ public class ForumFragmentTopicsNoPosts extends Fragment   {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new ForumAdapter(listFeed, getContext());
+        adapter = new AdapterForum(listFeed, getContext());
 
         recyclerView = binding.recyclerView;
 

@@ -13,7 +13,22 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="10" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_add"
+        android:name="com.dimonvideo.client.ui.main.MainFragmentAddFile"
+        android:label="@string/menu_add_file"
+        android:tag="comments"
+        tools:layout="@layout/fragment_home">
+        <argument
+            android:name="category"
+            app:argType="string"
+            android:defaultValue="0" />
+        <action
+            android:id="@+id/action_nav_add_file_to_nav_home"
+            app:destination="@id/nav_home" />
     </fragment>
     <fragment
         android:id="@+id/nav_pm"
@@ -23,6 +38,7 @@
         tools:layout="@layout/fragment_tabs">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="13"
             />
         <action
@@ -33,17 +49,17 @@
         android:id="@+id/nav_forum"
         android:name="com.dimonvideo.client.ui.forum.ForumFragment"
         android:label="@string/menu_forum"
-        android:tag="forum"
+        android:tag="ForumFragment"
         tools:layout="@layout/fragment_tabs">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="8"
             />
         <action
             android:id="@+id/action_nav_forum_to_nav_home"
             app:destination="@id/nav_home" />
     </fragment>
-
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.dimonvideo.client.ui.main.MainFragment"
@@ -52,6 +68,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="1"
             />
         <action
@@ -66,6 +83,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="2"
             />
         <action
@@ -80,6 +98,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="11"
             />
         <action
@@ -94,6 +113,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="3"
             />
         <action
@@ -108,6 +128,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="4"
             />
         <action
@@ -122,6 +143,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="5"
             />
         <action
@@ -136,6 +158,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="6"
             />
         <action
@@ -150,6 +173,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="7"
             />
         <action
@@ -164,6 +188,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="14"
             />
         <action
@@ -178,6 +203,7 @@
         tools:layout="@layout/fragment_home">
         <argument
             android:name="category"
+            app:argType="string"
             android:defaultValue="15"
             />
         <action
@@ -192,6 +218,7 @@
         tools:layout="@layout/fragment_home">
     <argument
         android:name="category"
+        app:argType="string"
         android:defaultValue="16"
         />
         <action

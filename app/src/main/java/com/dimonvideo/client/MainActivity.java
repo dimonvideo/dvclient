@@ -1,25 +1,28 @@
 package com.dimonvideo.client;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.LocaleList;
-import android.os.StrictMode;
+import android.os.Looper;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -33,8 +36,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,19 +54,17 @@ import androidx.navigation.NavGraph;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.CustomTarget;
+import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
 import com.dimonvideo.client.db.Provider;
-import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
+import com.dimonvideo.client.ui.main.MainFragmentAddFile;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.ui.pm.PmMembersFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -84,15 +86,18 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    Fragment homeFrag;
-    static int razdel = 10;
+    public static ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+    private Fragment homeFrag;
+    static String razdel = "10";
     private RequestPermissionHandler mRequestPermissionHandler;
-    int auth_state;
-    String is_pm, password, login_name, image_url, is_dark, main_razdel;
     private AppBarConfiguration mAppBarConfiguration;
     public static ActivityMainBinding binding;
-    NavigationView navigationView;
-    private NavController navController;
+    public static NavigationView navigationView;
+    @SuppressLint("StaticFieldLeak")
+    public static NavController navController;
+    private boolean doubleBackToExitPressedOnce = false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_tracker = AppController.getInstance().isTracker();
         final boolean is_blog = AppController.getInstance().isBlog();
         final boolean is_suploader = AppController.getInstance().isSuploader();
+        final boolean is_add_file = AppController.getInstance().isAddFile();
 
         if (is_dark.equals("true"))
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -163,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView = binding.navView;
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_forum, R.id.nav_news,
+                R.id.nav_home, R.id.nav_forum, R.id.nav_news,
                 R.id.nav_vuploader, R.id.nav_muzon, R.id.nav_books, R.id.nav_uploader,
                 R.id.nav_android, R.id.nav_articles, R.id.nav_tracker, R.id.nav_blog, R.id.nav_suploader)
                 .setOpenableLayout(drawerLayout)
@@ -180,8 +186,7 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
             if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
             if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
-            if (Integer.parseInt(main_razdel) == 3)
-                navGraph.setStartDestination(R.id.nav_vuploader);
+            if (Integer.parseInt(main_razdel) == 3) navGraph.setStartDestination(R.id.nav_vuploader);
             if (Integer.parseInt(main_razdel) == 5) navGraph.setStartDestination(R.id.nav_muzon);
             if (Integer.parseInt(main_razdel) == 6) navGraph.setStartDestination(R.id.nav_books);
             if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
@@ -189,8 +194,7 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
             if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
             if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
-            if (Integer.parseInt(main_razdel) == 16)
-                navGraph.setStartDestination(R.id.nav_suploader);
+            if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
 
             navController.setGraph(navGraph);
 
@@ -309,18 +313,6 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
-
-                if ((intent != null)) {
-
-                    String str = intent.getStringExtra("pm_unread");
-                    TextView fab_badge = binding.appBarMain.fabBadge;
-                    fab_badge.setVisibility(View.VISIBLE);
-                    fab_badge.setText(str);
-                    Log.e(Config.TAG, "Receive PM: " + str);
-                    if ((str == null) || (str.equals("0"))) fab_badge.setVisibility(View.GONE);
-                }
-
                 if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
                     Log.e(Config.TAG, "Auth broadcast");
                     String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
@@ -357,6 +349,7 @@ public class MainActivity extends AppCompatActivity {
         if (!is_suploader) navigationView.getMenu().removeItem(R.id.nav_suploader);
         if ((is_pm.equals("off")) || (auth_state != 1))
             navigationView.getMenu().removeItem(R.id.nav_pm);
+        if ((auth_state != 1) || (!is_add_file)) navigationView.getMenu().removeItem(R.id.nav_add);
 
         // открытие личных сообщений
         if ((is_pm.equals("off")) || (auth_state != 1))
@@ -365,11 +358,6 @@ public class MainActivity extends AppCompatActivity {
 
         // billing init
         if (!getCurrentLanguage().equals("ru")) PurchaseHelper.init(this);
-
-        if ((Build.VERSION.SDK_INT >= 33) && ((is_pm.equals("on")) || (auth_state == 1))) {
-            mRequestPermissionHandler = new RequestPermissionHandler();
-            handlePerm();
-        }
 
         // открываем лс из уведомления
         Intent intent_pm = getIntent();
@@ -402,7 +390,30 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = binding.appBarMain.toolbar;
         NetworkUtils.loadAvatar(this, toolbar);
 
+        // проверка разрешений
+        if ((is_pm.equals("on")) || (auth_state == 1)) {
+            mRequestPermissionHandler = new RequestPermissionHandler();
+            handlePerm();
+        }
+
+        // калбэк загрузки изображений
+        pickMedia =
+                registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+                    if (uri != null) {
+                        try {
+                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+                          //  Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 720, 720, false);
+                            Matrix matrix = new Matrix();
+                            matrix .setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(0, 0, 720, 720), Matrix.ScaleToFit.CENTER);
+                            Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                            NetworkUtils.uploadBitmap(scaledBitmap, this, razdel);
+                            Log.e("---", "Main pickMedia: "+razdel);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                });
     }
+
 
     @Override
     public boolean onSupportNavigateUp() {
@@ -430,9 +441,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
+
         razdel = event.razdel;
+        String count_pm = event.count_pm;
+        TextView fab_badge;
+        if ((count_pm != null)) {
+            fab_badge = binding.appBarMain.fabBadge;
+            fab_badge.setVisibility(View.VISIBLE);
+            fab_badge.setText(count_pm);
+        }
+        if ((count_pm == null) || (count_pm.equals("0"))) {
+            fab_badge = binding.appBarMain.fabBadge;
+            fab_badge.setVisibility(View.GONE);
+        }
+
+        Log.e("---", "Main activity pm recieved: "+count_pm);
+        Log.e("---", "Main activity razdel: "+razdel);
+
     }
 
     @Override
@@ -447,32 +474,29 @@ public class MainActivity extends AppCompatActivity {
 
         searchEditText.setHint(getString(R.string.search));
 
-        searchEditText.setHintTextColor(getResources().getColor(R.color.list_row_end_color));
+        searchEditText.setHintTextColor(ContextCompat.getColor(this, R.color.list_row_hover_end_color));
         assert searchManager != null;
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(500);
 
         searchEditText.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                //run query to the server
+
                 FragmentManager fragmentManager = getSupportFragmentManager();
 
                 homeFrag = new MainFragmentContent();
-
-                if (razdel == 8) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel == 13) homeFrag = new PmMembersFragment(); // pm
-
+                if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+                if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
 
                 Bundle bundle = new Bundle();
                 String story = searchEditText.getText().toString().trim();
                 if (TextUtils.isEmpty(story)) story = null;
                 bundle.putSerializable(Config.TAG_STORY, story);
-                bundle.putInt(Config.TAG_CATEGORY, razdel);
+                bundle.putString(Config.TAG_CATEGORY, razdel);
                 homeFrag.setArguments(bundle);
 
                 fragmentManager.beginTransaction()
                         .replace(R.id.nav_host_fragment, homeFrag)
-                        .addToBackStack(null)
                         .commit();
             }
             return false;
@@ -503,15 +527,20 @@ public class MainActivity extends AppCompatActivity {
 
             homeFrag = new MainFragment();
 
-            if (razdel == 8) homeFrag = new ForumFragment(); // forum
-            if (razdel == 13) homeFrag = new PmFragment(); // pm
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
 
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
+            if (razdel != null) {
+                if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+                if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
+                if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
+            }
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
                     .addToBackStack(null)
                     .commit();
+
+
 
         }
 
@@ -527,11 +556,11 @@ public class MainActivity extends AppCompatActivity {
             FragmentManager fragmentManager = getSupportFragmentManager();
 
             homeFrag = new MainFragment();
-
-            if (razdel == 8) homeFrag = new ForumFragment(); // forum
-            if (razdel == 13) homeFrag = new PmFragment(); // pm
-
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
+            if (razdel != null) {
+                if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
+                if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
+            }
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
 
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
@@ -656,6 +685,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
+        AdapterMainRazdel.onDestroy();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
@@ -694,11 +724,8 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void handlePerm() {
-        mRequestPermissionHandler.requestPermission(this, new String[]{
-                Manifest.permission.POST_NOTIFICATIONS
-        }, 123, new RequestPermissionHandler.RequestPermissionListener() {
+        mRequestPermissionHandler.requestPermission(this, permissions(), 123, new RequestPermissionHandler.RequestPermissionListener() {
             @Override
             public void onSuccess() {
             }
@@ -716,6 +743,41 @@ public class MainActivity extends AppCompatActivity {
         } else {
             return Locale.getDefault().getLanguage();
         }
+    }
+
+    public static String[] permissions = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    public static String[] permissions_33 = {
+            Manifest.permission.READ_MEDIA_IMAGES,
+            Manifest.permission.READ_MEDIA_AUDIO,
+            Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.POST_NOTIFICATIONS
+    };
+
+    public static String[] permissions() {
+        String[] p;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            p = permissions_33;
+        } else {
+            p = permissions;
+        }
+        return p;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            finish();
+            return;
+        }
+        navController.navigate(R.id.nav_home);
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce=false, 2000);
     }
 
 }

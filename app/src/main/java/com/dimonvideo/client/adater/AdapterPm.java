@@ -1,12 +1,14 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.Html;
@@ -17,10 +19,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,30 +33,41 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.BBCodes;
+import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.xml.sax.XMLReader;
 
 import java.util.List;
 
-public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
+    String image_uploaded;
 
     //List to store all
     List<FeedPm> jsonFeed;
 
     //Constructor of this class
-    public PmAdapter(List<FeedPm> JsonFeed){
+    public AdapterPm(List<FeedPm> JsonFeed){
         super();
-
         this.jsonFeed = JsonFeed;
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        image_uploaded = event.image_uploaded;
 
     }
 
@@ -98,12 +113,13 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
         public TextView textViewText;
-        public LinearLayout btns;
+        public RelativeLayout btns;
         public Button send;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
         public ClipData myClip;
+        public ImageView imagePick;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -116,15 +132,19 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             btns = itemView.findViewById(R.id.linearLayout1);
             send = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
+            imagePick = itemView.findViewById(R.id.img_btn);
         }
     }
 
     private void populateItemRows(ItemViewHolder holder, int position) {
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(position);
 
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
@@ -168,19 +188,28 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             holder.itemView.setBackgroundColor(0x00000000);
 
         });
+
+        holder.imagePick.setOnClickListener(v -> {
+            MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build());
+
+        });
+
         holder.send.setOnClickListener(v -> {
 
             showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
             holder.btns.setVisibility(View.GONE);
-            NetworkUtils.sendPm(mContext, Feed.getId(), holder.textInput.getText().toString(), 0, null, 0);
+            String text = holder.textInput.getText().toString();
+            NetworkUtils.sendPm(mContext, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
 
         });
         holder.send.setOnLongClickListener(v -> {
 
             showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
-
             holder.btns.setVisibility(View.GONE);
-            NetworkUtils.sendPm(mContext, Feed.getId(), holder.textInput.getText().toString(), 1, null, 0);
+            String text = holder.textInput.getText().toString();
+            NetworkUtils.sendPm(mContext, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
             try {
                 jsonFeed.remove(position);
             } catch (Throwable ignored) {}
@@ -213,7 +242,7 @@ public class PmAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext);
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, "pm");
                 }
             });
         } catch (Throwable ignored) {

@@ -124,7 +124,10 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - исправлены некоторые ошибки.
+        - возможность прикреплять изображения к ответам, комментариям и личным сообщениям.\n
+        - возможность добавлять на сайт Новости, Картинки, Статьи, записи в Блог.\n
+        - улучшена навигация по приложению и поправлена разметка.\n
+        - новые опции в Настройках.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -178,4 +181,23 @@
     <string name="remove_all">Удалить из всех списков</string>
     <string name="tab_icons">Иконки вкладок</string>
     <string name="tab_icons_more">покажет иконки вместо названий вкладок</string>
+    <string name="success_image">Изображение загружено!</string>
+    <string name="press_twice">Нажмите еще раз для выхода</string>
+    <string name="menu_add_file">Добавить файл</string>
+    <string name="file_name">введите название</string>
+    <string name="select_razdel_add">выберите раздел</string>
+    <string name="file_description">введите описание</string>
+    <string name="note">Добавляйте интересные и уникальные материалы, ознакомтесь с <a href="https://dimonvideo.ru/forum/topic_1728123534">правилами добавления на сайт</a></string>
+    <string name="please_wait">Подождите</string>
+    <string name="choose_category">выберите подкатегорию</string>
+    <string name="select_screen">выберите скриншот</string>
+    <string name="save_file">Отправить</string>
+    <string name="warning">Внимание!</string>
+    <string name="warning_message">Закрыть эту страницу?</string>
+    <string name="check_message">Отправить материал на проверку модераторам?</string>
+    <string name="lid">id</string>
+    <string name="success_send_file">Файл отправлен на проверку модераторам!</string>
+    <string name="news_ist">Источник новости</string>
+    <string name="post_description">напишите ответ</string>
+
 </resources>

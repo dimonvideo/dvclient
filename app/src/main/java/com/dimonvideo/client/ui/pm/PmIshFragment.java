@@ -1,7 +1,6 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,17 +11,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
+import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
@@ -45,7 +42,7 @@ public class PmIshFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     private ProgressBar progressBar, progressBarBottom;
     String url = Config.PM_URL;
     private FragmentHomeBinding binding;
-    public PmAdapter adapter;
+    public AdapterPm adapter;
     private int requestCount = 1;
 
 
@@ -88,7 +85,7 @@ public class PmIshFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         progressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed);
+        adapter = new AdapterPm(listFeed);
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);

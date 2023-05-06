@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="com.android.vending.BILLING"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
     <queries>
         <package android:name="com.dv.adm.AEditor" />
         <package android:name="com.dv.get.AEditor" />
@@ -40,30 +42,10 @@
         tools:targetApi="tiramisu"
         android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
-            android:name=".ui.main.Comments"
-            android:launchMode="singleTop"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity
-            android:name=".ui.forum.Posts"
-            android:launchMode="singleTop"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity
-            android:name=".ui.forum.PostsSearch"
-            android:launchMode="singleTop"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:launchMode="singleInstance"
+            android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -73,8 +55,8 @@
             android:name=".MainActivity"
             android:configChanges="screenSize|orientation|uiMode|locale"
             android:resizeableActivity="true"
-            android:theme="@style/AppTheme.NoActionBar"
             android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.NoActionBar"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -51,12 +51,6 @@ public class AppController extends Application {
         return sharedPrefs;
     }
 
-    public void cancelPendingRequests(Object tag) {
-        if (mRequestQueue != null) {
-            mRequestQueue.cancelAll(tag);
-        }
-    }
-
     // ===================================== preferences ========================================================= //
     public String isDark() {
         return getSharedPreferences().getString("dvc_theme_list", "false");
@@ -171,7 +165,7 @@ public class AppController extends Application {
     }
 
     public boolean isBlog() {
-        return getSharedPreferences().getBoolean("dvc_blog", false);
+        return getSharedPreferences().getBoolean("dvc_blog", true);
     }
 
     public boolean isSuploader() {
@@ -249,6 +243,11 @@ public class AppController extends Application {
     public boolean isPmArchive() {
         return getSharedPreferences().getBoolean("dvc_pm_arc", false);
     }
+
+    public boolean isAddFile() {
+        return getSharedPreferences().getBoolean("dvc_add_file", true);
+    }
+
     // =============================================== put preferences ================================================================== //
 
     public void putThemeLight() {

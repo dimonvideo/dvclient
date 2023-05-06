@@ -63,6 +63,9 @@
         android:layout_below="@id/category"
         android:layout_marginTop="5dp"
         android:textColor="@color/category"
+        android:textStyle="italic"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
     <!-- autor -->
@@ -71,7 +74,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:gravity="center_vertical|right"
+        android:gravity="center_vertical|end"
         android:layout_below="@id/listtext"
         android:textSize="@dimen/text"
         android:text="@string/menu_forum"

@@ -5,8 +5,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
+import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
 import android.view.LayoutInflater;
@@ -15,13 +15,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -30,45 +29,76 @@ import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
+import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.xml.sax.XMLReader;
+
 import java.util.Calendar;
 import java.util.List;
 
-public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.ViewHolder> {
+public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private final Context context;
+    private Context mContext;
+    String image_uploaded;
+    int razdel = 8;
 
     //List to store all
     List<FeedForum> jsonFeed;
 
-    //Constructor of this class
-    public ForumPostsAdapter(List<FeedForum> jsonFeed, Context context) {
+    public AdapterForumPosts(List<FeedForum> jsonFeed) {
         super();
-        //Getting all feed
         this.jsonFeed = jsonFeed;
-        this.context = context;
+    }
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        image_uploaded = event.image_uploaded;
+    }
+
+    public static class TagHandler implements Html.TagHandler {
+        @Override
+        public void handleTag(boolean opening, String tag,
+                              Editable output, XMLReader xmlReader) {
+            if (!opening && tag.equals("ul")) {
+                output.append("\n");
+            }
+            if (opening && tag.equals("li")) {
+                output.append("\n\u2022");
+            }
+        }
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_posts, parent, false);
-
-
-        return new ViewHolder(v);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_posts, parent, false);
+        mContext = parent.getContext();
+        return new ItemViewHolder(view);
     }
 
-    @SuppressLint({"SetJavaScriptEnabled", "NotifyDataSetChanged"})
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
-        //Getting the particular item from the list
+        populateItemRows((ItemViewHolder) holder, position);
+
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void populateItemRows(ItemViewHolder holder, int position) {
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         final FeedForum Feed = jsonFeed.get(position);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -83,7 +113,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         } catch (Throwable ignored) {
 
         }
-        Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+        Glide.with(mContext).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
 
         final int auth_state = AppController.getInstance().isAuth();
@@ -92,10 +122,14 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         // отправка ответа на форум
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getTopic_id(), holder.textInput.getText().toString(), 2, null, 0);
-            holder.post_layout.setVisibility(View.GONE);
+            String text = holder.textInput.getText().toString();
+            EventBus.getDefault().post(new MessageEvent("8", null, null, null, null, null));
+            NetworkUtils.sendPm(mContext, Feed.getTopic_id(), text, 2, null, 0);
+            holder.btns.setVisibility(View.GONE);
             notifyDataSetChanged();
         });
+
+        holder.imagePick.setVisibility(View.GONE);
 
 
         holder.textViewDate.setText(Feed.getDate());
@@ -115,13 +149,13 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
         try {
             URLImageParser parser = new URLImageParser(holder.textViewText);
-            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new MainAdapter.TagHandler());
+            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new AdapterMainRazdel.TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
                     // open links from listtext
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context);
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, Feed.getRazdel());
                 }
             });
         } catch (Throwable ignored) {
@@ -129,26 +163,30 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             if (auth_state > 0) {
-                if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
+                if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
+                RelativeLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
+                post_layout.setVisibility(View.GONE);
             }
         });
         holder.itemView.setOnClickListener(view -> {
             if (auth_state > 0) {
-                if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
+                if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
+                RelativeLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
+                post_layout.setVisibility(View.GONE);
             }
         });
 
         // меню по долгому нажатию
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, position);
             return true;
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, position);
             return true;
         });
 
@@ -156,15 +194,15 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
     }
 
     // dialog
-    private void show_dialog(ViewHolder holder, final int position, Context context){
-        final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open),
-                context.getString(R.string.action_like), context.getString(R.string.copy_listtext)};
+    private void show_dialog(ItemViewHolder holder, final int position){
+        final CharSequence[] items = {mContext.getString(R.string.menu_share_title), mContext.getString(R.string.action_open),
+                mContext.getString(R.string.action_like), mContext.getString(R.string.copy_listtext)};
         FeedForum Feed = jsonFeed.get(position);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         holder.url = Config.BASE_URL + "/forum/post_" + Feed.getId();
 
-        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        holder.myClipboard = (ClipboardManager)mContext.getSystemService(Context.CLIPBOARD_SERVICE);
 
         builder.setTitle(Feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
@@ -177,26 +215,26 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
 
                 Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
                 try {
-                    context.startActivity(shareIntent);
+                    mContext.startActivity(shareIntent);
                 } catch (Throwable ignored) {
                 }
             }
             if (item == 1) { // browser
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
                 try {
-                    context.startActivity(browserIntent);
+                    mContext.startActivity(browserIntent);
                 } catch (Throwable ignored) {
                 }
             }
             if (item == 2) { // like
-                ButtonsActions.like_forum_post(context, Feed.getId(), 1);
+                ButtonsActions.like_forum_post(mContext, Feed.getId(), 1);
             }
             if (item == 3) { // copy text
                 try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
                 } catch (Throwable ignored) {
                 }
-                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
 
         });
@@ -208,12 +246,12 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         return jsonFeed.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ItemViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
-        public ImageView rating_logo, status_logo, imageView, views_logo;
+        public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;
         public TextView textViewText;
-        public LinearLayout post_layout;
+        public RelativeLayout btns;
         public Button btnSend;
         public EditText textInput;
         public String url;
@@ -221,7 +259,7 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
         public ClipData myClip;
 
         //Initializing Views
-        public ViewHolder(View itemView) {
+        public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.thumbnail);
             rating_logo = itemView.findViewById(R.id.rating_logo);
@@ -234,9 +272,10 @@ public class ForumPostsAdapter extends RecyclerView.Adapter<ForumPostsAdapter.Vi
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
             textViewTitle = itemView.findViewById(R.id.names);
-            post_layout = itemView.findViewById(R.id.post);
             btnSend = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
+            imagePick = itemView.findViewById(R.id.img_btn);
+            btns = itemView.findViewById(R.id.post);
 
         }
 

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:background="@color/colorList"
+    tools:context=".MainActivity">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:fitsSystemWindows="true"
+        >
+    <RelativeLayout
+        android:id="@+id/wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- note -->
+        <TextView
+            android:id="@+id/note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_alignParentStart="true"
+            android:gravity="center"
+            android:ellipsize="end"
+            android:text="@string/note"
+            android:maxLines="3"
+            android:textStyle="italic"
+            android:textColor="@color/text"
+            android:textSize="@dimen/title" />
+
+        <!-- border -->
+        <View
+            android:id="@+id/border"
+            android:layout_width="match_parent"
+            android:layout_below="@id/note"
+            android:layout_height="3dp"
+            android:background="@color/colorAccent" />
+
+        <!-- title -->
+        <EditText
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/border"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:autofillHints="@string/file_name"
+            android:hint="@string/file_name"
+            android:imeOptions="actionDone"
+            android:inputType="text">
+
+            <requestFocus />
+        </EditText>
+
+        <!-- razdel -->
+        <Spinner
+            android:id="@+id/razdel"
+            android:layout_below="@id/title"
+            android:layout_margin="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- categories -->
+        <Spinner
+            android:id="@+id/categories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/razdel"
+            android:layout_margin="8dp"
+            android:spinnerMode="dialog"
+            android:dropDownVerticalOffset="50dp"
+            />
+
+        <!-- screen -->
+        <FrameLayout
+            android:id="@+id/screen"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:layout_below="@id/categories"
+            android:layout_width="match_parent">
+            <ImageButton
+                android:id="@+id/img_btn"
+                android:scaleType="fitXY"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@drawable/outline_image_24"
+                android:layout_margin="5dp"
+                android:text="@string/download_started"
+                android:contentDescription="@string/download_started"  >
+            </ImageButton>
+
+            <TextView
+                android:id="@+id/screen_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:clickable="false"
+                android:text="@string/select_screen" >
+            </TextView>
+        </FrameLayout>
+
+        <!-- ist -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:id="@+id/ist_layout"
+            android:layout_below="@id/screen"
+            android:orientation="horizontal"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/ist_l"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="8dp"
+                android:layout_centerVertical="true"
+                android:gravity="bottom"
+                android:text="@string/news_ist"
+                android:textStyle="italic"
+                android:textColor="@color/text"
+                android:textSize="@dimen/text" />
+        <EditText
+            android:id="@+id/ist"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toEndOf="@id/ist_l"
+            android:gravity="start"
+            android:layout_margin="8dp"
+            android:autofillHints="@string/news_ist"
+            android:hint="@string/news_ist"
+            android:imeOptions="actionDone"
+            android:inputType="text">
+        </EditText>
+    </RelativeLayout>
+        <!-- desc -->
+        <EditText
+            android:id="@+id/desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ist_layout"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:autofillHints="@string/file_description"
+            android:ems="10"
+            android:gravity="start"
+            android:hint="@string/file_description"
+            android:imeOptions="actionDone"
+            android:inputType="textImeMultiLine|textMultiLine"
+            android:minLines="10">
+
+            <requestFocus />
+        </EditText>
+
+        <!-- catalog -->
+        <EditText
+            android:id="@+id/catalog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/desc"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:autofillHints="@string/lid"
+            android:hint="@string/lid"
+            android:imeOptions="actionDone"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/catalog"
+            android:layout_margin="15dp"
+            android:background="@drawable/btn"
+            android:gravity="center"
+            android:padding="15dp"
+            android:text="@string/save_file"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/dismiss"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/save"
+            android:layout_margin="15dp"
+            android:background="@drawable/btn_red"
+            android:gravity="center"
+            android:padding="15dp"
+            android:text="@string/close"
+            android:textSize="16sp" />
+    </RelativeLayout>
+    </ScrollView >
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

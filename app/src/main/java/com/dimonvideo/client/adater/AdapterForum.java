@@ -3,9 +3,8 @@ package com.dimonvideo.client.adater;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,21 +12,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.ui.forum.Posts;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 
 import java.util.Calendar;
 import java.util.List;
 
-public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> {
+public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> {
 
     private final Context context;
 
@@ -35,7 +33,7 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
     List<FeedForum> jsonFeed;
 
     //Constructor of this class
-    public ForumAdapter(List<FeedForum> jsonFeed, Context context){
+    public AdapterForum(List<FeedForum> jsonFeed, Context context){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
@@ -81,11 +79,14 @@ public class ForumAdapter extends RecyclerView.Adapter<ForumAdapter.ViewHolder> 
         }
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, Posts.class);
-            intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-            intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-            intent.putExtra(Config.TAG_RAZDEL, "8");
-            context.startActivity(intent);
+            ForumFragmentPosts fragment = new ForumFragmentPosts();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_TITLE, Feed.getTitle());
+            bundle.putString(Config.TAG_ID, String.valueOf(Feed.getId()));
+            bundle.putString(Config.TAG_RAZDEL, "8");
+            fragment.setArguments(bundle);
+            fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "ForumFragmentPosts");
+
         });
         if (Feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);

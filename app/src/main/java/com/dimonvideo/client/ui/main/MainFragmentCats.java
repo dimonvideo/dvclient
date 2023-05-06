@@ -1,8 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,23 +10,18 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.MainCategoryAdapter;
+import com.dimonvideo.client.adater.AdapterMainCategories;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
-import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.model.FeedCats;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
@@ -44,16 +37,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnRefreshListener  {
+public class MainFragmentCats extends Fragment {
 
     private List<FeedCats> listFeed;
-    public RecyclerView recyclerView;
-    public MainCategoryAdapter adapter;
-    SwipeRefreshLayout swipLayout;
+    private AdapterMainCategories adapter;
+    private SwipeRefreshLayout swipLayout;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 10;
-    String url = Config.CATEGORY_URL;
-    String key = "comments";
+    private String razdel;
     private FragmentHomeBinding binding;
 
     public MainFragmentCats() {
@@ -79,7 +69,13 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
             EventBus.getDefault().register(this);
         }
 
-        recyclerView = binding.recyclerView;
+        if (this.getArguments() != null) {
+            razdel = getArguments().getString(Config.TAG_CATEGORY);
+        }
+
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
+
+        RecyclerView recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -92,7 +88,7 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new MainCategoryAdapter(listFeed, getContext());
+        adapter = new AdapterMainCategories(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -106,6 +102,8 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
         swipLayout.setOnRefreshListener(() -> {
             swipLayout.setRefreshing(false);
         });
+
+        Log.e("---", "mainFragmentCats: " + razdel);
     }
 
 
@@ -113,13 +111,11 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer() {
 
-        key = GetRazdelName.getRazdelName(razdel, 0);
+        String key = GetRazdelName.getRazdelName(razdel, 0);
 
-        Log.e("mainFragmentCats", ""+url+key);
+        String url = Config.CATEGORY_URL;
 
-        if (this.getArguments() != null) {
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
-        }
+
         return new JsonArrayRequest(url + key,
                 response -> {
                     progressBar.setVisibility(View.GONE);
@@ -151,12 +147,6 @@ public class MainFragmentCats extends Fragment implements SwipeRefreshLayout.OnR
     private void getData() {
         ProgressBarBottom.setVisibility(View.VISIBLE);
         AppController.getInstance().addToRequestQueue(getDataFromServer());
-    }
-
-    // обновление
-    @Override
-    public void onRefresh() {
-
     }
 
     @Override

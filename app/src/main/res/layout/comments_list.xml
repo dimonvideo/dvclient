@@ -1,132 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorList"
     tools:context=".MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
+    <RelativeLayout
+        android:id="@+id/wrapper"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <View
+            android:id="@+id/border"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="4dp">
+            android:layout_height="3dp"
+            android:background="@color/colorAccent" />
 
-        </androidx.appcompat.widget.Toolbar>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_layout"
-        android:layout_marginTop="50dp"
-        android:focusableInTouchMode="true"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <RelativeLayout
-            android:id="@+id/wrapper"
+        <TextView
+            android:id="@+id/title"
             android:layout_width="match_parent"
-            android:layout_below="@id/swipe_layout"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/border"
+            android:layout_alignParentStart="true"
+            android:layout_margin="10dp"
+            android:layout_toStartOf="@id/search_icon"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textStyle="bold"
+            android:textColor="@color/text"
+            android:textSize="@dimen/title" />
+
+        <EditText
+            android:id="@+id/search"
+            android:layout_width="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_height="wrap_content"
+            android:autofillHints="@string/search"
+            android:background="@color/white"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            android:layout_toStartOf="@id/dismiss"
+            android:imeOptions="actionSearch"
+            android:drawableEnd="@android:drawable/ic_menu_search"
+            android:hint="@string/search"
+            android:inputType="text" >
+            <requestFocus/>
+        </EditText>
+        <ImageView
+            android:id="@+id/search_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@id/dismiss"
+            android:background="@android:drawable/ic_menu_search"
+            android:contentDescription="@string/no" />
+        <ImageView
+            android:id="@+id/dismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="@string/no" />
+
+        <View
+            android:id="@+id/border2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_below="@id/title"
+            android:background="@color/colorAccent"/>
+
+        <include
+            android:id="@+id/post"
+            layout="@layout/post"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/border2" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_below="@id/post"
+            android:background="@color/colorList"
+            android:clipToPadding="false"
+            android:focusableInTouchMode="true"
+            android:scrollbars="vertical" />
 
-            <include
-                layout="@layout/post"
-                android:id="@+id/post"
-                android:layout_marginTop="10dp"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/no_data_available"
+            android:visibility="gone" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@id/post"
-                android:background="@color/colorList"
-                android:clipToPadding="false"
-                android:focusableInTouchMode="true"
-                android:layout_marginTop="10dp"
-                android:scrollbars="vertical" />
+        <LinearLayout
+            android:id="@+id/linearEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="30dp"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
-                android:id="@+id/empty_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="@string/no_data_available"
-                android:visibility="gone" />
-
-            <LinearLayout
-                android:id="@+id/linearEmpty"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="30dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/textEmpty"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="30dp"
-                    android:text="@string/dialog_no_result"
-                    android:textColor="@color/colorAccent" />
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/progressbar"
+                android:id="@+id/textEmpty"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:visibility="visible" />
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp"
+                android:text="@string/dialog_no_result"
+                android:textColor="@color/colorAccent" />
+        </LinearLayout>
 
-            <ProgressBar
-                android:id="@+id/ProgressBarBottom"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_alignParentBottom="true"
-                android:layout_centerInParent="true"
-                android:visibility="gone" />
-
-        </RelativeLayout>
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_height="wrap_content">
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab"
+        <ProgressBar
+            android:id="@+id/progressbar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:elevation="0dp"
-            app:elevation="0dp"
-            android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@android:drawable/ic_dialog_email" />
-        <TextView
-            android:id="@+id/fab_badge"
-            android:visibility="gone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="-45dp"
-            android:layout_marginTop="10dp"
-            android:layout_toEndOf="@id/fab"
-            android:background="@drawable/floating_action_button_label"
-            android:paddingBottom="2dp"
-            android:paddingEnd="6dp"
-            android:paddingStart="6dp"
-            android:paddingTop="2dp"
-            android:elevation="7dp"
-            android:textColor="#F44336"
-            android:textStyle="bold" />
+            android:layout_centerInParent="true"
+            android:visibility="visible" />
 
-    </RelativeLayout >
+        <ProgressBar
+            android:id="@+id/ProgressBarBottom"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:visibility="gone" />
+
+
+    </RelativeLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

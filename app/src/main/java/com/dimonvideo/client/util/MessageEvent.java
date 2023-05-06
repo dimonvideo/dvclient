@@ -1,13 +1,21 @@
 package com.dimonvideo.client.util;
 
-public class MessageEvent {
-    public final int razdel;
-    public final String story;
-    public final String pm;
+import android.graphics.Bitmap;
 
-    public MessageEvent(int razdel, String story, String pm) {
+public class MessageEvent {
+    public final String razdel;
+    public final String story;
+    public final String image_uploaded;
+    public String count_pm;
+    public String action;
+    public Bitmap bitmap;
+
+    public MessageEvent(String razdel, String story, String image_uploaded, String count_pm, String action, Bitmap bitmap) {
         this.razdel = razdel;
         this.story = story;
-        this.pm = pm;
+        this.image_uploaded = image_uploaded;
+        this.count_pm = count_pm;
+        this.action = action;
+        this.bitmap = bitmap;
     }
 }

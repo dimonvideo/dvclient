@@ -114,5 +114,10 @@ public class Config {
 
     public static final String TAG = "---";
 
+    public static final String UPLOAD_URL = BASE_URL + "/apps/dvclient.php?op=14&api=upload";
+    public static final String BBCODE_URL = BASE_URL + "/files/uploadslinks/msg/api/";
+    public static final String UPLOAD_FILE_URL = BASE_URL + "/apps/dvclient.php?op=15&api=upload";
+
+    public static final String THUMB_URL = "https://msg.dimonvideo.ru/api/";
 }
 

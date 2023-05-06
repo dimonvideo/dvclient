@@ -362,7 +362,7 @@
     <PreferenceCategory app:title="@string/blog">
 
         <SwitchPreferenceCompat
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:key="dvc_blog"
             app:title="@string/blog" />
 
@@ -376,6 +376,18 @@
             app:defaultValue="false"
             app:key="dvc_suploader"
             app:title="@string/suploader" />
+
+    </PreferenceCategory>
+
+    <!-- addFile Preference -->
+
+    <PreferenceCategory app:title="@string/menu_add_file">
+
+        <SwitchPreferenceCompat
+            android:dependency="dvc_password"
+            app:defaultValue="true"
+            app:key="dvc_add_file"
+            app:title="@string/menu_add_file" />
 
     </PreferenceCategory>
 </PreferenceScreen>

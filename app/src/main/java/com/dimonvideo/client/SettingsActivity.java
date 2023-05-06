@@ -21,6 +21,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,8 +43,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -71,7 +70,16 @@ public class SettingsActivity extends AppCompatActivity {
         final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String value = sharedPrefs.getString("dvc_scale", "1.0f");
         adjustFontScale(getResources().getConfiguration(), this, value);
-
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Log.e("---", "onBackPressed");
+                Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements
@@ -133,7 +141,7 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_password.setOnPreferenceChangeListener((preference, newValue) -> {
                 String listValue = (String) newValue;
                 View view = getView();
-                NetworkUtils.checkPassword(getContext(), listValue);
+                NetworkUtils.checkPassword(getContext(), listValue, "10");
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
@@ -157,7 +165,7 @@ public class SettingsActivity extends AppCompatActivity {
                 SharedPreferences sharedPrefs = getDefaultSharedPreferences(requireContext());
                 final String password = sharedPrefs.getString("dvc_password", "null");
                 View view = getView();
-                NetworkUtils.checkPassword(getContext(), password);
+                NetworkUtils.checkPassword(getContext(), password, "10");
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
@@ -407,14 +415,6 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-    }
-
-    public void onBackPressed() {
-
-        Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
     }
 
     // масштабирование шрифтов

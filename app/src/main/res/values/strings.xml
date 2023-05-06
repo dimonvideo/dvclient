@@ -182,4 +182,22 @@
     <string name="remove_all">Remove from all lists</string>
     <string name="tab_icons">Show tabs icons</string>
     <string name="tab_icons_more">will show tabs icons only</string>
+    <string name="success_image">Image uploaded!</string>
+    <string name="press_twice">Press twice to exit</string>
+    <string name="menu_add_file">Add file</string>
+    <string name="file_name">File name</string>
+    <string name="select_razdel_add">Select razdel…</string>
+    <string name="file_description">description…</string>
+    <string name="note">Please read our <a href="https://dimonvideo.ru/forum/topic_1728123534">FAQ</a> first</string>
+    <string name="please_wait">Please wait</string>
+    <string name="choose_category">choose category…</string>
+    <string name="select_screen">select screenshot</string>
+    <string name="save_file">Send to site</string>
+    <string name="warning">Warning</string>
+    <string name="warning_message">Do you want to leave this page?</string>
+    <string name="check_message">Are you sure?</string>
+    <string name="lid">id</string>
+    <string name="success_send_file">File send succsefully!</string>
+    <string name="news_ist">News source</string>
+    <string name="post_description">post here</string>
 </resources>

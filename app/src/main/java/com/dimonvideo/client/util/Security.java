@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.dimonvideo.client.BuildConfig;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -29,15 +28,6 @@ public class Security {
     //This you will get from Services & API in your application console
     public static String BASE_64_ENCODED_PUBLIC_KEY = BuildConfig.BASE64_ENCODED_PUBLIC_KEY;
 
-    /**
-     * Verifies that the data was signed with the given signature, and returns
-     * the verified purchase. The data is in JSON format and signed
-     * with a private key. The data also contains the {@link Purchase.PurchaseState}
-     * and product ID of the purchase.
-     * @param base64PublicKey the base64-encoded public key to use for verifying.
-     * @param signedData the signed JSON string (signed, not encrypted)
-     * @param signature the signature for the data, signed with the private key
-     */
     public static boolean verifyPurchase(String base64PublicKey, String signedData, String signature) {
         if (TextUtils.isEmpty(signedData) || TextUtils.isEmpty(base64PublicKey) ||
                 TextUtils.isEmpty(signature)) {

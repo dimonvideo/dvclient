@@ -1,14 +1,10 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,38 +12,25 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.ForumAdapter;
+import com.dimonvideo.client.adater.AdapterForum;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
-import com.google.android.material.navigation.NavigationView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -63,17 +46,14 @@ public class ForumFragmentTopics extends Fragment {
 
     private List<FeedForum> listFeed;
     public RecyclerView recyclerView;
-    public ForumAdapter adapter;
+    public AdapterForum adapter;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.FORUM_FEED_URL;
-    String story = null;
-    String s_url = "";
-    String f_name;
-    int id = 0;
-    int razdel = 8; // forum fragment
-    SwipeRefreshLayout swipLayout;
+    private String story = null;
+    private String s_url = "";
+    private int id = 0;
+    private SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
 
     public ForumFragmentTopics() {
@@ -96,13 +76,13 @@ public class ForumFragmentTopics extends Fragment {
         if (this.getArguments() != null) {
             id = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            f_name = getArguments().getString(Config.TAG_CATEGORY);
-            toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
-            toolbar.setSubtitle(f_name);
+            String f_name = getArguments().getString(Config.TAG_CATEGORY);
+            if ((story == null) && (!(f_name != null && f_name.matches("\\d+(?:\\.\\d+)?")))) toolbar.setSubtitle(f_name);
+            if (story != null) toolbar.setSubtitle(story);
         } else NetworkUtils.loadAvatar(requireContext(), toolbar);
 
 
-        EventBus.getDefault().postSticky(new MessageEvent(8, story, null));
+        EventBus.getDefault().postSticky(new MessageEvent("8", story, null, null, null, null));
 
 
         listFeed = new ArrayList<>();
@@ -113,7 +93,7 @@ public class ForumFragmentTopics extends Fragment {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new ForumAdapter(listFeed, getContext());
+        adapter = new AdapterForum(listFeed, getContext());
 
 
         recyclerView = binding.recyclerView;
@@ -158,7 +138,8 @@ public class ForumFragmentTopics extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
+        // forum fragment
+        String razdel = event.razdel;
     }
 
 
@@ -173,6 +154,7 @@ public class ForumFragmentTopics extends Fragment {
         if (id > 0) {
             s_url = "&id=" + id;
         }
+        String url = Config.FORUM_FEED_URL;
         return new JsonArrayRequest(url + requestCount + s_url,
                 response -> {
                     progressBar.setVisibility(View.GONE);

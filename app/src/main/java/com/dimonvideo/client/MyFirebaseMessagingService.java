@@ -1,6 +1,5 @@
 package com.dimonvideo.client;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -23,12 +22,24 @@ import com.bumptech.glide.request.transition.Transition;
 import com.dimonvideo.client.util.ActionReceiver;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
+import com.dimonvideo.client.util.MessageEvent;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Objects;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
+    private String razdel;
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        razdel = event.razdel;
+    }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -38,8 +49,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             String count_pm = remoteMessage.getData().get("count_pm");
             int id = Integer.parseInt(Objects.requireNonNull(remoteMessage.getData().get("id")));
 
-            assert action != null;
-            if (action.equals("new_pm")) {
+            if (!EventBus.getDefault().isRegistered(this)) {
+                EventBus.getDefault().register(this);
+            }
+
+            if (action != null && action.equals("new_pm")) {
                 final boolean dvc_pm_notify = AppController.getInstance().isPmNotify();
                 final String is_pm = AppController.getInstance().isPm();
                 if (count_pm != null) {
@@ -48,12 +62,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                 if ((Integer.parseInt(Objects.requireNonNull(count_pm)) > 0) && (!dvc_pm_notify) && (is_pm.equals("on"))) {
 
-                    Intent local = new Intent();
-                    local.setAction(Config.INTENT_NEW_PM);
-                    local.putExtra("pm_unread", count_pm);
-                    local.putExtra("id", id);
-                    getApplicationContext().sendBroadcast(local);
-
+                    EventBus.getDefault().post(new MessageEvent(razdel, null, null, count_pm, null, null));
+                    Log.e("---", "MyFirebaseMessagingService razdel: "+razdel);
                     Log.e(Config.TAG, "Send broadcast to PM #" + id);
 
                     getBitmapAsync(getApplicationContext(),
@@ -125,14 +135,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         intentAction.putExtra("id", String.valueOf(id));
 
         PendingIntent pIntentDelete;
-       pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        pIntentDelete = PendingIntent.getBroadcast(context, id - 200, intentAction, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Intent intentAction2 = new Intent(context, ActionReceiver.class);
         intentAction2.putExtra("action", "replyPm");
         intentAction2.putExtra("id", String.valueOf(id));
 
         PendingIntent pIntentReply;
-       pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        pIntentReply = PendingIntent.getBroadcast(context, id - 300, intentAction2, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channelId);
 
@@ -152,6 +162,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         assert notificationManager != null;
         notificationManager.notify(id, mBuilder.build());
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+        super.onDestroy();
     }
 
 }

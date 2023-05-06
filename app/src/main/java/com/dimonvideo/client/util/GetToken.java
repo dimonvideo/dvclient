@@ -1,10 +1,7 @@
 package com.dimonvideo.client.util;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
-
-import androidx.preference.PreferenceManager;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;

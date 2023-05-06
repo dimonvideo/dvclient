@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import com.bumptech.glide.request.Request;
 import com.bumptech.glide.request.target.SizeReadyCallback;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
+import com.dimonvideo.client.Config;
 
 import java.lang.ref.WeakReference;
 
@@ -45,15 +47,23 @@ public class URLImageParser implements Html.ImageGetter {
     @Override
     public Drawable getDrawable(String source) {
 
+        String finalUrl;
+
+        if (source.contains("emoticons")) {
+            finalUrl = Config.BASE_URL + source;
+        } else finalUrl = source;
+
         if (imagesHandler != null) {
-            imagesHandler.addImage(source);
+            imagesHandler.addImage(finalUrl);
         }
 
         BitmapDrawablePlaceholder drawable = new BitmapDrawablePlaceholder();
 
+        Log.e("---", "URLImageParser: "+finalUrl);
+
         container.get().post(() -> Glide.with(container.get().getContext())
                 .asBitmap()
-                .load(source)
+                .load(finalUrl)
                 .into(drawable));
 
         return drawable;

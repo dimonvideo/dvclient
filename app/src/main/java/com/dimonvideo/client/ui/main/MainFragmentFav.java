@@ -1,12 +1,9 @@
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,25 +11,19 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.MainAdapter;
+import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
-import com.dimonvideo.client.ui.forum.ForumFragmentTopicsFav;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
@@ -50,18 +41,14 @@ import java.util.Objects;
 public class MainFragmentFav extends Fragment  {
 
     private List<Feed> listFeed;
-    public RecyclerView recyclerView;
-    public MainAdapter adapter;
-    SwipeRefreshLayout swipLayout;
+    private RecyclerView recyclerView;
+    private AdapterMainRazdel adapter;
+    private SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 10;
-    int cid = 0;
-    String url = Config.COMMENTS_URL;
-    String search_url = Config.COMMENTS_SEARCH_URL;
-    static String story = null;
-    String s_url = "";
-    String key = "comments";
+    private String razdel = "10";
+    private String story = null;
+    private String s_url = "";
     private FragmentHomeBinding binding;
 
     public MainFragmentFav() {
@@ -91,7 +78,7 @@ public class MainFragmentFav extends Fragment  {
         }
 
         if (this.getArguments() != null) {
-            cid = getArguments().getInt(Config.TAG_ID);
+            razdel = getArguments().getString(Config.TAG_CATEGORY);
         }
 
         recyclerView = binding.recyclerView;
@@ -117,7 +104,7 @@ public class MainFragmentFav extends Fragment  {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new MainAdapter(listFeed, getContext());
+        adapter = new AdapterMainRazdel(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -132,7 +119,7 @@ public class MainFragmentFav extends Fragment  {
             progressBar.setVisibility(View.VISIBLE);
             listFeed = new ArrayList<>();
             getData();
-            adapter = new MainAdapter(listFeed, getContext());
+            adapter = new AdapterMainRazdel(listFeed, getContext());
             recyclerView.setAdapter(adapter);
             swipLayout.setRefreshing(false);
         });
@@ -147,13 +134,13 @@ public class MainFragmentFav extends Fragment  {
         String main_razdel = AppController.getInstance().mainRazdel();
         final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
 
-        if (razdel == 10) {
-            if (Integer.parseInt(main_razdel) != 10) razdel = Integer.parseInt(main_razdel);
+        if ((razdel != null) && (razdel.equals("10"))) {
+            if (Integer.parseInt(main_razdel) != 10) razdel = main_razdel;
         }
 
-        key = GetRazdelName.getRazdelName(razdel, 0);
-        search_url = GetRazdelName.getRazdelName(razdel, 1);
-        url = GetRazdelName.getRazdelName(razdel, 2);
+        String key = GetRazdelName.getRazdelName(razdel, 0);
+        String search_url = GetRazdelName.getRazdelName(razdel, 1);
+        String url = GetRazdelName.getRazdelName(razdel, 2);
 
         if (!TextUtils.isEmpty(story)) {
             url = search_url;
@@ -161,8 +148,6 @@ public class MainFragmentFav extends Fragment  {
         if (!TextUtils.isEmpty(story)) {
             s_url = "&story=" + story;
         }
-
-        Log.e("mainFragmentFav", ""+url + requestCount + s_url+"&fav=1&login_name="+ login_name);
 
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {

@@ -9,10 +9,10 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TabsAdapter extends FragmentStateAdapter {
+public class AdapterTabs extends FragmentStateAdapter {
     List<Fragment> fragmentList = new ArrayList<>();
 
-    public TabsAdapter(@NonNull FragmentManager fm, @NonNull Lifecycle lifecycle) {
+    public AdapterTabs(@NonNull FragmentManager fm, @NonNull Lifecycle lifecycle) {
         super(fm, lifecycle);
     }
 

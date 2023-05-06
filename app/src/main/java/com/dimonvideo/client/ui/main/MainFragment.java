@@ -1,40 +1,25 @@
 package com.dimonvideo.client.ui.main;
 
-import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.TabsAdapter;
-import com.dimonvideo.client.databinding.FragmentHomeBinding;
+import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
-import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -43,17 +28,12 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class MainFragment extends Fragment  {
 
-    static int razdel = 10;
-    String story = null;
+    private String razdel;
+    private String story = null;
     public static ViewPager2 viewPager;
-    TabsAdapter adapt;
-    TabLayoutMediator tabLayoutMediator;
-    TabLayout tabs;
-    String f_name;
     private final ArrayList<String> tabTiles = new ArrayList<>();
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
     private FragmentTabsBinding binding;
@@ -79,10 +59,14 @@ public class MainFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         if (this.getArguments() != null) {
-            razdel = getArguments().getInt(Config.TAG_CATEGORY);
+            razdel = getArguments().getString(Config.TAG_CATEGORY);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            f_name = getArguments().getString(Config.TAG_RAZDEL);
+            String f_name = getArguments().getString(Config.TAG_RAZDEL);
         }
 
         final boolean is_more = AppController.getInstance().isMore();
@@ -92,10 +76,10 @@ public class MainFragment extends Fragment  {
         String login = AppController.getInstance().userName("");
         final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
 
-        tabs = binding.tabLayout;
+        TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
         viewPager = binding.viewPager;
-        adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
+        AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
 
         // вкладки
         tabTiles.add(getString(R.string.tab_last));
@@ -126,7 +110,7 @@ public class MainFragment extends Fragment  {
         viewPager.setCurrentItem(0,true);
         viewPager.setOffscreenPageLimit(1);
 
-        tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
             if (dvc_tab_icons) {
                 tab.setIcon(tabIcons.get(position));
             } else {
@@ -168,7 +152,25 @@ public class MainFragment extends Fragment  {
             }
         });
 
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null));
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
+
+        // перехват кнопки назад.
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+
+                Log.e("---", "handleOnBackPressed: "+ razdel);
+                if (viewPager.getCurrentItem() != 0) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                } else {
+                    requireActivity().onBackPressed();
+
+                }
+
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
+
     }
 
     @Override

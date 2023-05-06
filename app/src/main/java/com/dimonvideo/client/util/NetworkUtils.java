@@ -2,7 +2,7 @@ package com.dimonvideo.client.util;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
@@ -22,6 +22,7 @@ import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
@@ -31,9 +32,11 @@ import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -41,7 +44,7 @@ import java.util.Map;
 
 public class NetworkUtils {
 
-    public static void checkPassword(Context context, String password) {
+    public static void checkPassword(Context context, String password, String razdel) {
         View view = MainActivity.binding.getRoot();
         String login = AppController.getInstance().userName("null");
         final int auth_state = AppController.getInstance().isAuth();
@@ -82,10 +85,7 @@ public class NetworkUtils {
 
                                 try {
                                     if (auth_state == 0) Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
-                                    Intent local = new Intent();
-                                    local.setAction(Config.INTENT_AUTH);
-                                    local.putExtra("pm_unread", String.valueOf(pm_unread));
-                                    context.sendBroadcast(local);
+                                    EventBus.getDefault().post(new MessageEvent(razdel, null, null, String.valueOf(pm_unread), null, null));
                                 } catch (Throwable ignored) {
                                 }
                             } else {
@@ -225,11 +225,7 @@ public class NetworkUtils {
                                 String count = "0";
                                 if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
                                 if (Integer.parseInt(count) < 1) count = "0";
-                                Intent local = new Intent();
-                                local.setAction(Config.INTENT_DELETE_PM);
-                                local.putExtra("pm_unread", count);
-                                local.putExtra("action", "deletePm");
-                                context.sendBroadcast(local);
+                                EventBus.getDefault().post(new MessageEvent(null, null, null, count, "deletePm", null));
                             }
                         }, error -> showErrorToast(context, error)
                 );
@@ -265,11 +261,7 @@ public class NetworkUtils {
                             String count = "0";
                             if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
                             if (Integer.parseInt(count) < 1) count = "0";
-                            Intent local = new Intent();
-                            local.setAction(Config.INTENT_READ_PM);
-                            local.putExtra("pm_unread", count);
-                            local.putExtra("action", "readPm");
-                            context.sendBroadcast(local);
+                            EventBus.getDefault().post(new MessageEvent(null, null, null, count, "readPm", null));
                         }, error -> showErrorToast(context, error)
                 );
 
@@ -281,6 +273,8 @@ public class NetworkUtils {
     }
 
     public static void sendPm(Context context, int pm_id, String text, int delete, String razdel, int uid) {
+
+        Log.e("---", "sendPm: "+razdel + " text: "+text);
 
         final String password = AppController.getInstance().userPassword();
         String login = AppController.getInstance().userName("null");
@@ -347,4 +341,55 @@ public class NetworkUtils {
                     });
         }
     }
+
+    // загрузка изображений во вложения
+    public static byte[] getFileDataFromDrawable(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    public static void uploadBitmap(final Bitmap bitmap, Context context, String razdel) {
+
+        final String user_name = AppController.getInstance().userName("dvclient");
+
+        ProgressHelper.showDialog(context, context.getString(R.string.please_wait));
+        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Config.UPLOAD_URL,
+                response -> {
+                    ProgressHelper.dismissDialog();
+                    try {
+                        JSONObject obj = new JSONObject(new String(response.data));
+                        String msg = obj.getString(Config.TAG_LINK);
+                        String err = obj.getString("error");
+                        EventBus.getDefault().post(new MessageEvent(razdel, null, msg, null, null, bitmap));
+                        Log.e("---", "uploadBitmap: "+razdel + " name: "+msg);
+                        if (err.equals("false")) Toast.makeText(context, context.getString(R.string.success_image), Toast.LENGTH_SHORT).show();
+                        if (err.equals("true")) Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                },
+                error -> ProgressHelper.dismissDialog()) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("name", user_name);
+                return params;
+            }
+
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+                long imagename = System.currentTimeMillis();
+                params.put("pic", new DataPart(imagename + ".png", getFileDataFromDrawable(bitmap)));
+                return params;
+            }
+        };
+
+        Volley.newRequestQueue(context).add(volleyMultipartRequest);
+    }
+
+
 }

@@ -24,7 +24,7 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import java.util.Calendar;
 import java.util.List;
 
-public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdapter.ViewHolder> {
+public class AdapterForumCategory extends RecyclerView.Adapter<AdapterForumCategory.ViewHolder> {
 
     private final Context context;
 
@@ -32,7 +32,7 @@ public class ForumCategoryAdapter extends RecyclerView.Adapter<ForumCategoryAdap
     List<FeedForum> jsonFeed;
 
     //Constructor of this class
-    public ForumCategoryAdapter(List<FeedForum> jsonFeed, Context context){
+    public AdapterForumCategory(List<FeedForum> jsonFeed, Context context){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;

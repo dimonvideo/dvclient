@@ -2,7 +2,6 @@ package com.dimonvideo.client.util;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -29,7 +28,7 @@ public class RequestPermissionHandler {
     }
 
     private boolean needRequestRuntimePermissions() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+        return true;
     }
 
     private void requestUnGrantedPermissions(String[] permissions, int requestCode) {

@@ -29,7 +29,8 @@
                 android:layout_width="match_parent"
                 android:layout_marginTop="12dp"
                 android:layout_below="@id/border"
-                android:layout_height="250dp"/>
+                android:layout_height="250dp"
+                android:contentDescription="@string/action_screen" />
 
             <TextView
                 android:id="@+id/title"
@@ -40,6 +41,7 @@
                 android:ellipsize="end"
                 android:lineSpacingExtra="5sp"
                 android:maxLines="3"
+                android:textStyle="bold"
                 android:textSize="20sp" />
 
             <TextView
@@ -206,32 +208,33 @@
                 android:visibility="gone"
                 android:text="@string/menu_share_title"
                 android:textStyle="bold"/>
-    <Button
-        android:id="@+id/dismiss2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="15dp"
-        android:padding="15dp"
-        android:layout_below="@id/btn_share"
-        android:background="@drawable/btn"
-        android:textSize="16sp"
-        android:text="@string/close"
-        android:gravity="center"
-        />
+
+            <Button
+                android:id="@+id/dismiss2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btn_share"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/btn_red"
+                android:gravity="center"
+                android:padding="15dp"
+                android:text="@string/close"
+                android:textSize="16sp" />
 
             <ImageView
                 android:id="@+id/dismiss"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
                 android:layout_marginTop="25dp"
-                android:layout_marginEnd="25dp"
-                android:background="@android:drawable/ic_menu_close_clear_cancel"
-                android:layout_alignParentRight="true"
-                />
+                android:layout_marginEnd="28dp"
+                android:background="@android:drawable/ic_menu_close_clear_cancel" />
 
 
-
-    </RelativeLayout>
+        </RelativeLayout>
 
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

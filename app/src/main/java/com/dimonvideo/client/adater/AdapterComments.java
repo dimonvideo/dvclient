@@ -5,29 +5,24 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
-import android.text.method.LinkMovementMethod;
-import android.util.Log;
+import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.preference.PreferenceManager;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -36,24 +31,50 @@ import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.main.Comments;
+import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
 import com.dimonvideo.client.util.AppController;
-import com.dimonvideo.client.util.ButtonsActions;
-import com.dimonvideo.client.util.DownloadFile;
+import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.OpenUrl;
+import com.dimonvideo.client.util.TextViewClickMovement;
+import com.dimonvideo.client.util.URLImageParser;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.xml.sax.XMLReader;
 
 import java.util.Calendar;
 import java.util.List;
 
-public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHolder> {
+public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHolder> {
 
     private final Context context;
+    private String image_uploaded;
+    private String razdel;
+    private final List<FeedForum> jsonFeed;
 
-    //List to store all
-    List<FeedForum> jsonFeed;
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+        image_uploaded = event.image_uploaded;
+    }
+
+    public static class TagHandler implements Html.TagHandler {
+        @Override
+        public void handleTag(boolean opening, String tag,
+                              Editable output, XMLReader xmlReader) {
+            if (!opening && tag.equals("ul")) {
+                output.append("\n");
+            }
+            if (opening && tag.equals("li")) {
+                output.append("\n\u2022");
+            }
+        }
+    }
 
     //Constructor of this class
-    public CommentsAdapter(List<FeedForum> jsonFeed, Context context) {
+    public AdapterComments(List<FeedForum> jsonFeed, Context context) {
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
@@ -64,17 +85,21 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_posts, parent, false);
-
-
         return new ViewHolder(v);
     }
 
-    @SuppressLint({"SetJavaScriptEnabled", "NotifyDataSetChanged"})
+    @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
 
         //Getting the particular item from the list
-        final FeedForum Feed = jsonFeed.get(position);
+        final FeedForum feed = jsonFeed.get(position);
+
+        razdel = feed.getRazdel();
+        int lid = feed.getPost_id();
+
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, image_uploaded, null, null, null));
+
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -83,61 +108,80 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         try {
-            if (Feed.getTime() > cal.getTimeInMillis() / 1000L)
+            if (feed.getTime() > cal.getTimeInMillis() / 1000L)
                 holder.status_logo.setImageResource(R.drawable.ic_status_green);
         } catch (Throwable ignored) {
 
         }
-        Glide.with(context).load(Feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
+
+        Glide.with(context).load(feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
+
         final String password = AppController.getInstance().userPassword();
         final int auth_state = AppController.getInstance().isAuth();
 
-        holder.textViewCategory.setText(Feed.getCategory());
+        holder.textViewCategory.setText(feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);
 
-        if ((Feed.getNewtopic() == 1) && (!password.equals("null")))
+        if ((feed.getNewtopic() == 1) && (!password.equals("null")))
             holder.post_layout.setVisibility(View.GONE);
+
+        holder.imagePick.setVisibility(View.GONE);
 
         // отправка ответа
         holder.btnSend.setOnClickListener(v -> {
-            NetworkUtils.sendPm(context, Feed.getId(), holder.textInput.getText().toString(), 20, Feed.getState(), 0);
+            String text = holder.textInput.getText().toString();
+            NetworkUtils.sendPm(context, feed.getId(), text, 20, feed.getState(), 0);
             holder.post_layout.setVisibility(View.GONE);
             notifyDataSetChanged();
-
         });
 
+        final boolean is_open_link = AppController.getInstance().isOpenLinks();
+        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
+
+        // html textview
+        TextView textViewText = holder.textViewText;
         try {
-            holder.textViewText.setText(Html.fromHtml(Feed.getText(), null,  null));
+            URLImageParser parser = new URLImageParser(textViewText);
+            Spanned spanned = Html.fromHtml(feed.getText(), parser, new AdapterComments.TagHandler());
+            textViewText.setText(spanned);
+            textViewText.setMovementMethod(new TextViewClickMovement() {
+                @Override
+                public void onLinkClick(String url) {
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, razdel);
+                }
+            });
         } catch (Throwable ignored) {
         }
-        holder.textViewTitle.setText("#"+ (Feed.getMin() + position + 1) +" ");
-        holder.textViewTitle.append(Feed.getUser());
-        holder.textViewDate.setText(Feed.getDate());
+
+
+        holder.textViewTitle.setText("#"+ (feed.getMin() + position + 1) +" ");
+        holder.textViewTitle.append(feed.getUser());
+        holder.textViewDate.setText(feed.getDate());
         holder.textViewComments.setVisibility(View.GONE);
         holder.rating_logo.setVisibility(View.GONE);
-        holder.textViewHits.setText(Feed.getTitle());
+        holder.textViewHits.setText(feed.getTitle());
 
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
-            if ((auth_state > 0) && (Feed.getId() > 0)) {
-                postComment(holder, Feed);
+            if ((auth_state > 0) && (feed.getId() > 0)) {
+                postComment(holder, feed);
             } else {
-                openComments(Feed);
+                openComments(lid, feed.getTitle(), razdel);
             }
 
         });
+
         holder.itemView.setOnClickListener(view -> {
-            if ((auth_state > 0) && (Feed.getId() > 0)) {
-                postComment(holder, Feed);
+            if ((auth_state > 0) && (feed.getId() > 0)) {
+                postComment(holder, feed);
             } else {
-                openComments(Feed);
+                openComments(lid, feed.getTitle(), razdel);
             }
 
         });
 
-
-        if (Feed.getMin()>0) {
+        if (feed.getMin()>0) {
             holder.post_layout.setVisibility(View.GONE);
         }
 
@@ -152,41 +196,47 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
         });
     }
 
-    private static void postComment(ViewHolder holder, FeedForum Feed) {
+    @SuppressLint("SetTextI18n")
+    private static void postComment(ViewHolder holder, FeedForum feed) {
         if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
-        holder.textInput.setText("[b]" + Feed.getUser() + "[/b], ");
+        RelativeLayout post_layout = MainFragmentCommentsFile.binding.post.linearLayout1;
+        post_layout.setVisibility(View.GONE);
+        holder.textInput.setText("[b]" + feed.getUser() + "[/b], ");
         holder.textInput.setSelection(holder.textInput.getText().length());
         holder.textInput.setFocusableInTouchMode(true);
         holder.textInput.requestFocus();
+
     }
 
-    private void openComments(FeedForum Feed) {
-        String comm_url = Config.COMMENTS_READS_URL + Feed.getState() + "&lid=" + Feed.getPost_id() + "&min=";
-        Intent intent = new Intent(context, Comments.class);
-        intent.putExtra(Config.TAG_TITLE, Feed.getTitle());
-        intent.putExtra(Config.TAG_LINK, comm_url);
-        intent.putExtra(Config.TAG_ID, String.valueOf(Feed.getId()));
-        intent.putExtra(Config.TAG_RAZDEL, Feed.getState());
-        context.startActivity(intent);
+    private void openComments(int lid, String title, String razdel) {
+        String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + lid + "&min=";
+        MainFragmentCommentsFile fragment = new MainFragmentCommentsFile();
+        Bundle bundle = new Bundle();
+        bundle.putString(Config.TAG_TITLE, title);
+        bundle.putString(Config.TAG_ID, String.valueOf(lid));
+        bundle.putString(Config.TAG_LINK, comm_url);
+        bundle.putString(Config.TAG_RAZDEL, razdel);
+        fragment.setArguments(bundle);
+        fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentCommentsFile");
     }
 
 
     // dialog
     private void show_dialog(ViewHolder holder, final int position, Context context){
         final CharSequence[] items = {context.getString(R.string.copy_listtext), context.getString(R.string.action_open)};
-        FeedForum Feed = jsonFeed.get(position);
+        FeedForum feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
-        holder.url = Config.BASE_URL + "/" + com.dimonvideo.client.model.Feed.getRazdel() + "/" + Feed.getPost_id();
-        if (com.dimonvideo.client.model.Feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
-            holder.url = Config.BASE_URL + "/" + Feed.getPost_id() + "-news.html";
+        holder.url = Config.BASE_URL + "/" + feed.getRazdel() + "/" + feed.getPost_id();
+        if (feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+            holder.url = Config.BASE_URL + "/" + feed.getPost_id() + "-news.html";
 
-        builder.setTitle(Feed.getTitle());
+        builder.setTitle(feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
 
             if (item == 0) { // copy text
-                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
+                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText()).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
@@ -209,9 +259,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
-        public ImageView rating_logo, status_logo, imageView, views_logo;
+        public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;
         public TextView textViewText;
-        public LinearLayout post_layout;
+        public RelativeLayout post_layout;
         public Button btnSend;
         public EditText textInput;
         public String url;
@@ -235,6 +285,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.ViewHo
             textInput = itemView.findViewById(R.id.textInput);
             textViewCategory = itemView.findViewById(R.id.category);
             textViewNames = itemView.findViewById(R.id.names);
+            imagePick = itemView.findViewById(R.id.img_btn);
         }
 
     }

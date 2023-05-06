@@ -2,25 +2,23 @@ package com.dimonvideo.client.ui.pm;
 
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
-import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
@@ -36,16 +34,10 @@ import java.util.ArrayList;
 
 public class PmFragment extends Fragment {
 
-    public RecyclerView recyclerView;
-    public PmAdapter adapter;
-    ViewPager2 viewPager;
-    TabsAdapter adapt;
-    TabLayoutMediator tabLayoutMediator;
-    TabLayout tabs;
     private final ArrayList<String> tabTiles = new ArrayList<>();
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
     private FragmentTabsBinding binding;
-    static int razdel = 13;
+    private String razdel = "13";
 
     public PmFragment() {
         // Required empty public constructor
@@ -73,9 +65,9 @@ public class PmFragment extends Fragment {
         final boolean is_arc = AppController.getInstance().isPmArchive();
         final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
 
-        tabs = binding.tabLayout;
-        viewPager = binding.viewPager;
-        adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
+        TabLayout tabs = binding.tabLayout;
+        ViewPager2 viewPager = binding.viewPager;
+        AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
 
         tabTiles.add(getString(R.string.tab_inbox));
         tabIcons.add(R.drawable.outline_inbox_24);
@@ -147,8 +139,7 @@ public class PmFragment extends Fragment {
         });
 
 
-
-        tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
 
 
             if (dvc_tab_icons) {
@@ -160,7 +151,24 @@ public class PmFragment extends Fragment {
 
         tabLayoutMediator.attach();
 
-        UpdatePm.update(requireContext());
+        UpdatePm.update(requireContext(), razdel);
+
+
+        // перехват кнопки назад.
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+
+                Log.e("---", "handleOnBackPressed: "+ razdel);
+                if (viewPager.getCurrentItem() != 0) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                } else {
+                    requireActivity().onBackPressed();
+                }
+
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,30 +9,21 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.ForumCategoryAdapter;
+import com.dimonvideo.client.adater.AdapterForumCategory;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
-import com.google.android.material.navigation.NavigationView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -49,14 +38,11 @@ import java.util.Objects;
 public class ForumFragmentForums extends Fragment   {
 
     private List<FeedForum> listFeed;
-    public RecyclerView recyclerView;
-    public ForumCategoryAdapter adapter;
-    int razdel = 8; // forum fragment
+    private AdapterForumCategory adapter;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.FORUM_CATEGORY_URL;
-    SwipeRefreshLayout swipLayout;
+    private SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
 
     public ForumFragmentForums() {
@@ -65,7 +51,8 @@ public class ForumFragmentForums extends Fragment   {
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
+        // forum fragment
+        String razdel = event.razdel;
     }
 
     @SuppressLint("DetachAndAttachSameFragment")
@@ -80,9 +67,9 @@ public class ForumFragmentForums extends Fragment   {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        EventBus.getDefault().postSticky(new MessageEvent(8, null, null));
+        EventBus.getDefault().postSticky(new MessageEvent("8", null, null, null, null, null));
 
-        recyclerView = binding.recyclerView;
+        RecyclerView recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -106,7 +93,7 @@ public class ForumFragmentForums extends Fragment   {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new ForumCategoryAdapter(listFeed, getContext());
+        adapter = new AdapterForumCategory(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -131,6 +118,7 @@ public class ForumFragmentForums extends Fragment   {
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
 
+        String url = Config.FORUM_CATEGORY_URL;
         return new JsonArrayRequest(url + requestCount,
                 response -> {
                     progressBar.setVisibility(View.GONE);

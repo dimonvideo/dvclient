@@ -13,9 +13,8 @@ import java.util.concurrent.Executors;
 
 public class UpdatePm {
 
-    public static void update(Context context) {
+    public static void update(Context context, String razdel) {
 
-        View view = MainActivity.binding.getRoot();
 
         String is_pm = AppController.getInstance().isPm();
         int auth_state = AppController.getInstance().isAuth();
@@ -25,13 +24,14 @@ public class UpdatePm {
         if (auth_state > 0) {
 
             // обновляем счетчик лс
+            View view = MainActivity.binding.getRoot();
             TextView fab_badge = view.findViewById(R.id.fab_badge);
             Executors.newSingleThreadExecutor().execute(() -> {
 
                 Handler mainHandler = new Handler(Looper.getMainLooper());
 
                 mainHandler.post(() -> {
-                    if (!is_pm.equals("off")) NetworkUtils.checkPassword(context, password);
+                    if (!is_pm.equals("off")) NetworkUtils.checkPassword(context, password, razdel);
                 });
 
                 mainHandler.post(() -> {

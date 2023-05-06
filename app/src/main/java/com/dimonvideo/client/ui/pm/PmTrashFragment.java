@@ -1,7 +1,6 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -18,7 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,11 +24,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.PmAdapter;
+import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
@@ -53,7 +50,7 @@ public class PmTrashFragment extends Fragment {
 
     private List<FeedPm> listFeed;
     public RecyclerView recyclerView;
-    public PmAdapter adapter;
+    public AdapterPm adapter;
     SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
@@ -68,7 +65,7 @@ public class PmTrashFragment extends Fragment {
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        pm = event.pm;
+        pm = event.action;
     }
     @SuppressLint({"NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -110,7 +107,7 @@ public class PmTrashFragment extends Fragment {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new PmAdapter(listFeed);
+        adapter = new AdapterPm(listFeed);
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -133,7 +130,7 @@ public class PmTrashFragment extends Fragment {
             }
 
             @Override
-            public void onChildDraw(Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX/4, dY, actionState, isCurrentlyActive);
 
                 View itemView = viewHolder.itemView;
@@ -166,13 +163,13 @@ public class PmTrashFragment extends Fragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAbsoluteAdapterPosition();
-                ((PmAdapter) adapter).restoreItem(position);
+                ((AdapterPm) adapter).restoreItem(position);
                 Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
                 snackbar.setAction(getString(R.string.tab_inbox), view -> {
                     assert getParentFragment() != null;
                     ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
                     viewPager.setCurrentItem(0, true);
-                    EventBus.getDefault().post(new MessageEvent(13, null, "deleted"));
+                    EventBus.getDefault().post(new MessageEvent("13", null, null, null, "deleted", null));
 
                 });
 

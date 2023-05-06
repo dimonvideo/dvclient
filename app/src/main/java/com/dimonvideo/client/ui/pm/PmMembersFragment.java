@@ -1,7 +1,6 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,17 +13,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.FriendsAdapter;
+import com.dimonvideo.client.adater.AdapterPmFriends;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
@@ -42,28 +39,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class PmMembersFragment extends Fragment  {
+public class PmMembersFragment extends Fragment {
 
     private List<FeedPm> listFeed;
-    public RecyclerView recyclerView;
-    public FriendsAdapter adapter;
-    SwipeRefreshLayout swipLayout;
+    private RecyclerView recyclerView;
+    private AdapterPmFriends adapter;
+    private SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    static int razdel = 13;
-    String url = Config.MEMBERS_URL;
-    static String story;
-    String search_url = Config.MEMBERS_SEARCH_URL;
-    String s_url = "";
+    private String razdel = "13";
+    private String url = Config.MEMBERS_URL;
+    private String story;
+    private String s_url = "";
     private FragmentHomeBinding binding;
 
     public PmMembersFragment() {
         // Required empty public constructor
     }
 
+
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        razdel = 13;
+        razdel = "13";
         story = event.story;
     }
 
@@ -88,7 +85,7 @@ public class PmMembersFragment extends Fragment  {
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
         }
 
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -114,7 +111,7 @@ public class PmMembersFragment extends Fragment  {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new FriendsAdapter(listFeed, getContext());
+        adapter = new AdapterPmFriends(listFeed, getContext());
 
         // разделитель позиций
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -133,6 +130,7 @@ public class PmMembersFragment extends Fragment  {
             swipLayout.setRefreshing(false);
 
         });
+
     }
 
     // запрос к серверу апи
@@ -150,6 +148,7 @@ public class PmMembersFragment extends Fragment  {
         String finalLogin = login_name;
 
         if (!TextUtils.isEmpty(story)) {
+            String search_url = Config.MEMBERS_SEARCH_URL;
             url = search_url;
 
             try {

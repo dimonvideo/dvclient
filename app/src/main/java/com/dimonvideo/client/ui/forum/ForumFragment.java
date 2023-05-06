@@ -1,41 +1,28 @@
 package com.dimonvideo.client.ui.forum;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.NavController;
-import androidx.navigation.NavGraph;
-import androidx.navigation.Navigation;
-import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.TabsAdapter;
+import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
-import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
-import com.dimonvideo.client.util.NetworkUtils;
-import com.dimonvideo.client.util.UpdatePm;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -47,16 +34,14 @@ import java.util.ArrayList;
 
 public class ForumFragment extends Fragment  {
 
-    int razdel = 8; // forum fragment
-    String story = null;
+    private String razdel = "8"; // forum fragment
+    private String story = null;
     public static ViewPager2 viewPager;
-    TabsAdapter adapt;
-    TabLayoutMediator tabLayoutMediator;
-    TabLayout tabs;
     private final ArrayList<String> tabTiles = new ArrayList<>();
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
     FloatingActionButton fab;
     private FragmentTabsBinding binding;
+    private final Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
 
     public ForumFragment() {
         // Required empty public constructor
@@ -79,8 +64,8 @@ public class ForumFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        razdel = 8;
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null));
+        razdel = "8";
+        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
 
         String login = AppController.getInstance().userName("");
         final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
@@ -88,10 +73,10 @@ public class ForumFragment extends Fragment  {
         final boolean is_favor = AppController.getInstance().isTabFavor();
         final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
 
-        tabs = binding.tabLayout;
+        TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
         viewPager = binding.viewPager;
-        adapt = new TabsAdapter(getChildFragmentManager(), getLifecycle());
+        AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
 
         // вкладки
         tabTiles.add(getString(R.string.tab_topics));
@@ -111,15 +96,13 @@ public class ForumFragment extends Fragment  {
         adapt.addFragment(new ForumFragmentTopics());
         adapt.addFragment(new ForumFragmentForums());
         if (tab_topics_no_posts) adapt.addFragment(new ForumFragmentTopicsNoPosts());
-        if (login.length() > 2 && is_favor)adapt.addFragment(new ForumFragmentTopicsFav());
+        if (login.length() > 2 && is_favor) adapt.addFragment(new ForumFragmentTopicsFav());
 
-        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         toolbar.setTitle(getString(R.string.menu_forum));
 
         if (this.getArguments() != null) {
             viewPager.setCurrentItem(0,true);
-            String f_name = String.valueOf(getArguments().getInt(Config.TAG_CATEGORY));
-            toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+            String f_name = getArguments().getString(Config.TAG_CATEGORY);
             toolbar.setSubtitle(f_name);
         }
 
@@ -159,7 +142,7 @@ public class ForumFragment extends Fragment  {
         viewPager.setCurrentItem(0,false);
         viewPager.setOffscreenPageLimit(3);
 
-        tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
             if (dvc_tab_icons) {
                 tab.setIcon(tabIcons.get(position));
             } else {
@@ -169,6 +152,21 @@ public class ForumFragment extends Fragment  {
 
         tabLayoutMediator.attach();
 
+        // перехват кнопки назад.
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+
+                Log.e("---", "handleOnBackPressed: "+ razdel);
+                if (viewPager.getCurrentItem() != 0) {
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                } else {
+                    requireActivity().onBackPressed();
+                }
+
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
     }
 
     @Override
