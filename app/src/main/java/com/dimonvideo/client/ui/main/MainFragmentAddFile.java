@@ -32,6 +32,7 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
@@ -66,13 +67,12 @@ public class MainFragmentAddFile extends Fragment {
     private List<String> listFeed, listFeedRazdel, listFeedCategory;
     private Spinner categoryList;
     private EditText desc, catalog, ist, title;
-    private FrameLayout screenFrame;
-    private RelativeLayout istFrame;
-    private ImageButton imgBtn;
+    private RelativeLayout istFrame, screenFrame;
+    private ImageButton imgBtn, imgDelete;
     private TextView selectScreen, note;
     private Button btnClose, btnSend;
     private String login_name;
-    private String screenName;
+    private String screenName, screen;
     private String categoryId;
     private AlertDialog alert;
      AlertDialog.Builder builder;
@@ -87,7 +87,9 @@ public class MainFragmentAddFile extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         Bitmap bitmap = event.bitmap;
-        screenName = Config.THUMB_URL + login_name + File.separator + event.image_uploaded;
+        screen = event.image_uploaded;
+        screenName = Config.THUMB_URL + login_name + File.separator + screen;
+
 
         // если скриншот загружен на сервер
         if (bitmap != null) {
@@ -97,6 +99,7 @@ public class MainFragmentAddFile extends Fragment {
             desc.setVisibility(View.VISIBLE);
             btnSend.setVisibility(View.VISIBLE);
             btnClose.setVisibility(View.VISIBLE);
+            imgDelete.setVisibility(View.VISIBLE);
 
             if (login_name.equals("DimonVideo")) catalog.setVisibility(View.VISIBLE);
 
@@ -107,13 +110,24 @@ public class MainFragmentAddFile extends Fragment {
 
             note.setVisibility(View.GONE);
 
+            // кнопка удалить
+            imgDelete.setOnClickListener(v -> {
+                imgBtn.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.outline_image_24));
+                imgDelete.setVisibility(View.GONE);
+                selectScreen.setVisibility(View.VISIBLE);
+                btnSend.setVisibility(View.GONE);
+                btnClose.setVisibility(View.GONE);
+                requestToServer(Config.DELETE_URL, screen);
+                desc.setVisibility(View.GONE);
+            });
+
             // кнопка Закрыть
             btnClose.setOnClickListener(v -> {
-
                 builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle(getString(R.string.warning));
                 builder.setMessage(getString(R.string.warning_message));
                 builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+                    requestToServer(Config.DELETE_URL, screen);
                     dialog.dismiss();
                     MainActivity.navController.navigate(R.id.nav_home);
                 });
@@ -125,64 +139,68 @@ public class MainFragmentAddFile extends Fragment {
 
             // кнопка Отправить
             btnSend.setOnClickListener(v -> {
-
                 builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle(getString(R.string.warning));
                 builder.setMessage(getString(R.string.check_message)+"\n\n"+getString(R.string.signature_title)+": "+login_name);
                 builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
-                    dialog.dismiss();
-                    ProgressHelper.showDialog(requireContext(), getString(R.string.please_wait));
-                    StringRequest stringRequest = new StringRequest(Request.Method.POST, Config.UPLOAD_FILE_URL, response -> {
-
-                        JSONObject obj;
-                        try {
-                            obj = new JSONObject(response);
-
-                            String msg = obj.getString(Config.TAG_LINK);
-                            String err = obj.getString("error");
-
-                            if (err.equals("false")) {
-                                Toast.makeText(requireContext(), requireContext().getString(R.string.success_send_file), Toast.LENGTH_LONG).show();
-                                MainActivity.navController.navigate(R.id.nav_home);
-                                try {
-                                    myClipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                                    myClip = ClipData.newPlainText("text", msg);
-                                    myClipboard.setPrimaryClip(myClip);
-                                } catch (Throwable ignored) {
-                                }
-                            }
-                            if (err.equals("true")) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                            ProgressHelper.dismissDialog();
-
-
-                        } catch (Exception ignored) {
-                            ProgressHelper.dismissDialog();
-                        }
-                    }, Throwable::printStackTrace) {
-
-                        @Override
-                        protected Map<String, String> getParams() {
-                            Map<String, String> postMap = new HashMap<>();
-                            postMap.put("send_user", login_name);
-                            postMap.put("send_razdel", listFeedRazdel.get(0));
-                            postMap.put("send_category", categoryId);
-                            postMap.put("send_title", title.getText().toString());
-                            postMap.put("send_desc", desc.getText().toString());
-                            postMap.put("send_screen", screenName);
-                            postMap.put("send_catalog", catalog.getText().toString());
-                            postMap.put("send_ist", ist.getText().toString());
-                            return postMap;
-                        }
-                    };
-
-                    AppController.getInstance().addToRequestQueue(stringRequest);
-
-                });
+                            dialog.dismiss();
+                            requestToServer(Config.UPLOAD_FILE_URL, screenName);
+                        });
                 builder.setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss());
                 alert = builder.create();
                 alert.show();
             });
         }
+    }
+
+    private void requestToServer(String url, String image_url) {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
+
+            JSONObject obj;
+            try {
+                obj = new JSONObject(response);
+
+                String msg = obj.getString(Config.TAG_LINK);
+                String err = obj.getString("error");
+
+                if (err.equals("false")) {
+                    Toast.makeText(requireContext(), requireContext().getString(R.string.success_send_file), Toast.LENGTH_LONG).show();
+                    if (url.equals(Config.UPLOAD_FILE_URL)) {
+                        MainActivity.navController.navigate(R.id.nav_home);
+                        try {
+                            myClipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                            myClip = ClipData.newPlainText("text", msg);
+                            myClipboard.setPrimaryClip(myClip);
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                }
+                if (err.equals("true")) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                ProgressHelper.dismissDialog();
+
+
+            } catch (Exception ignored) {
+                ProgressHelper.dismissDialog();
+            }
+        }, Throwable::printStackTrace) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> postMap = new HashMap<>();
+                postMap.put("send_user", login_name);
+                postMap.put("send_razdel", listFeedRazdel.get(0));
+                postMap.put("send_category", categoryId);
+                postMap.put("send_title", title.getText().toString());
+                postMap.put("send_desc", desc.getText().toString());
+                postMap.put("send_screen", image_url);
+                postMap.put("send_catalog", catalog.getText().toString());
+                postMap.put("send_ist", ist.getText().toString());
+                postMap.put("send_id", login_name); // для удаления
+                return postMap;
+            }
+        };
+
+        AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -213,6 +231,8 @@ public class MainFragmentAddFile extends Fragment {
 
         istFrame = binding.istLayout;
         istFrame.setVisibility(View.GONE);
+
+        imgDelete = binding.imgDelete;
 
         screenFrame = binding.screen;
         screenFrame.setVisibility(View.GONE);

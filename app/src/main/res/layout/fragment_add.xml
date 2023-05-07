@@ -80,7 +80,7 @@
             />
 
         <!-- screen -->
-        <FrameLayout
+        <RelativeLayout
             android:id="@+id/screen"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -88,25 +88,40 @@
             android:layout_width="match_parent">
             <ImageButton
                 android:id="@+id/img_btn"
-                android:scaleType="fitXY"
+                android:scaleType="fitCenter"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:background="@drawable/outline_image_24"
                 android:layout_margin="5dp"
-                android:text="@string/download_started"
-                android:contentDescription="@string/download_started"  >
+                android:text="@string/download"
+                android:contentDescription="@string/download"  >
             </ImageButton>
 
             <TextView
                 android:id="@+id/screen_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_gravity="center|center_vertical"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_toEndOf="@id/img_btn"
+                android:text="@string/select_screen" />
+
+            <ImageButton
+                android:id="@+id/img_delete"
+                android:scaleType="fitCenter"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/outline_delete_outline_24"
+                android:layout_toEndOf="@id/screen_text"
                 android:layout_margin="5dp"
-                android:clickable="false"
-                android:text="@string/select_screen" >
-            </TextView>
-        </FrameLayout>
+                android:text="@string/download"
+                android:visibility="gone"
+                android:contentDescription="@string/download"  >
+            </ImageButton>
+        </RelativeLayout>
 
         <!-- ist -->
         <RelativeLayout

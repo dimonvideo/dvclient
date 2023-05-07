@@ -14,6 +14,7 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.widget.Toolbar;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkError;
 import com.android.volley.NoConnectionError;
 import com.android.volley.ParseError;
@@ -41,6 +42,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class NetworkUtils {
 
@@ -387,7 +389,10 @@ public class NetworkUtils {
                 return params;
             }
         };
-
+        volleyMultipartRequest.setRetryPolicy(new DefaultRetryPolicy(
+                (int) TimeUnit.SECONDS.toMillis(10),
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         Volley.newRequestQueue(context).add(volleyMultipartRequest);
     }
 

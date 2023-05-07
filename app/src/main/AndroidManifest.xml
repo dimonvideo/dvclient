@@ -14,6 +14,7 @@
     <uses-permission android:name="com.android.vending.BILLING"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+
     <queries>
         <package android:name="com.dv.adm.AEditor" />
         <package android:name="com.dv.get.AEditor" />
@@ -41,6 +42,15 @@
         android:largeHeap="true"
         tools:targetApi="tiramisu"
         android:dataExtractionRules="@xml/data_extraction_rules">
+        <!-- Trigger Google Play services to install the backported photo picker module. -->
+        <service android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data android:name="photopicker_activity:0:required" android:value="" />
+        </service>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
