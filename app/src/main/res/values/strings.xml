@@ -200,4 +200,6 @@
     <string name="success_send_file">File send succsefully!</string>
     <string name="news_ist">News source</string>
     <string name="post_description">post here</string>
+    <string name="vote">Vote</string>
+    <string name="vote_sum">will shown our vote</string>
 </resources>

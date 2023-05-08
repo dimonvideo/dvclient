@@ -45,11 +45,6 @@
         android:title="@string/action_donate"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_vote"
-        android:orderInCategory="8"
-        android:title="@string/action_vote"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/nav_clear_cache"
         android:orderInCategory="9"
         android:title="@string/clear_cache"

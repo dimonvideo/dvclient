@@ -68,10 +68,11 @@ public class PmVhodFragment extends Fragment {
         // Required empty public constructor
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         String pm = event.action;
         if (pm != null) update();
+        Log.e("---", "PmVhodFragment event: "+pm );
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -84,6 +85,11 @@ public class PmVhodFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         listFeed = new ArrayList<>();
 
         NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -197,9 +203,10 @@ public class PmVhodFragment extends Fragment {
                 int position = viewHolder.getAbsoluteAdapterPosition();
 
                 if (direction == ItemTouchHelper.LEFT) {
-                    adapter.removeItem(position);
+                    if (position >= 0) adapter.removeItem(position);
                     Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_removed), Snackbar.LENGTH_LONG);
                     snackbar.setAction(getString(R.string.tab_trash), view -> {
+                        EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "deleted", null));
                         assert getParentFragment() != null;
                         ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
                         viewPager.setCurrentItem(4, true);
@@ -214,11 +221,12 @@ public class PmVhodFragment extends Fragment {
                 }
 
                 if (direction == ItemTouchHelper.RIGHT) {
-                    adapter.archiveItem(position);
+                    if (position >= 0) adapter.archiveItem(position);
                     Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_archived), Snackbar.LENGTH_LONG);
                     TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
                     fab_badge.setVisibility(View.GONE);
                     snackbar.show();
+                    EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "archived", null));
                     NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
                     notificationManager.cancelAll();
                 }
@@ -248,7 +256,6 @@ public class PmVhodFragment extends Fragment {
 
     private void update() {
         requestCount = 1;
-        listFeed.clear();
         getData();
         TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
         fab_badge.setVisibility(View.GONE);
@@ -337,6 +344,7 @@ public class PmVhodFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         binding = null;
     }
     @Override
@@ -352,5 +360,6 @@ public class PmVhodFragment extends Fragment {
         super.onStop();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
     }
+
 
 }

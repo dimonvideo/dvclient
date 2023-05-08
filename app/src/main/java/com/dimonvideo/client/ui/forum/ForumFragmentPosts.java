@@ -14,7 +14,9 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -79,6 +81,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
             imagePick.setBackground(bitmapDrawable);
+            imagePick.setBackgroundTintList(null);
         }
     }
 
@@ -101,7 +104,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
         toolbar.setNavigationIcon(R.drawable.ic_back_button);
 
 
-        RelativeLayout post_layout = binding.post.linearLayout1;
+        LinearLayout post_layout = binding.post.linearLayout1;
         imagePick = binding.post.imgBtn;
 
         imagePick.setOnClickListener(v -> {
@@ -156,7 +159,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
 
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
-        Button btnSend = binding.post.btnSend;
+        ImageButton btnSend = binding.post.btnSend;
         EditText textInput = binding.post.textInput;
 
         btnSend.setOnClickListener(v -> {

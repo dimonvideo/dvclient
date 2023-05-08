@@ -14,7 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -166,7 +168,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
                 if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
-                RelativeLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
+                LinearLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
                 post_layout.setVisibility(View.GONE);
             }
         });
@@ -175,7 +177,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
                 if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
                 holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
                 holder.textInput.setSelection(holder.textInput.getText().length());
-                RelativeLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
+                LinearLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
                 post_layout.setVisibility(View.GONE);
             }
         });
@@ -251,8 +253,8 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;
         public TextView textViewText;
-        public RelativeLayout btns;
-        public Button btnSend;
+        public LinearLayout btns;
+        public ImageButton btnSend;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;

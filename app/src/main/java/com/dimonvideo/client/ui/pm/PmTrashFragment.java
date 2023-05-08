@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
@@ -63,10 +65,13 @@ public class PmTrashFragment extends Fragment {
     public PmTrashFragment() {
         // Required empty public constructor
     }
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        pm = event.action;
+        String pm = event.action;
+        if (pm != null) update();
+        Log.e("---", "PmTrashFragment event: "+pm );
     }
+
     @SuppressLint({"NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -77,6 +82,11 @@ public class PmTrashFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+
         requestCount = 1;
         emptyView = binding.emptyView;
         emptyLayout = binding.linearEmpty;
@@ -163,13 +173,13 @@ public class PmTrashFragment extends Fragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAbsoluteAdapterPosition();
-                ((AdapterPm) adapter).restoreItem(position);
+                if (position >= 0) ((AdapterPm) adapter).restoreItem(position);
                 Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
                 snackbar.setAction(getString(R.string.tab_inbox), view -> {
                     assert getParentFragment() != null;
                     ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
                     viewPager.setCurrentItem(0, true);
-                    EventBus.getDefault().post(new MessageEvent("13", null, null, null, "deleted", null));
+                    EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "deleted", null));
 
                 });
 
@@ -199,12 +209,8 @@ public class PmTrashFragment extends Fragment {
 
         // обновление
         swipLayout = binding.swipeLayout;
-        swipLayout.setOnRefreshListener(() -> {
-            requestCount = 1;
-            listFeed.clear();
-            getData();
-            swipLayout.setRefreshing(false);
-        });
+        swipLayout.setOnRefreshListener(this::update);
+
     }
 
     // запрос к серверу апи
@@ -271,6 +277,16 @@ public class PmTrashFragment extends Fragment {
         requestCount++;
     }
 
+    private void update() {
+        requestCount = 1;
+        listFeed = new ArrayList<>();
+        getData();
+        TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
+        fab_badge.setVisibility(View.GONE);
+        swipLayout.setRefreshing(false);
+        Log.e(Config.TAG, "PmFragmentTrash update ");
+    }
+
     // опредление последнего элемента
     private boolean isLastItemDisplaying(RecyclerView recyclerView) {
         if (Objects.requireNonNull(recyclerView.getAdapter()).getItemCount() != 0) {
@@ -283,6 +299,7 @@ public class PmTrashFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         binding = null;
     }
     @Override

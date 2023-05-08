@@ -45,6 +45,7 @@
         <!-- Trigger Google Play services to install the backported photo picker module. -->
         <service android:name="com.google.android.gms.metadata.ModuleDependencies"
             android:enabled="false"
+            tools:ignore="MissingClass"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />

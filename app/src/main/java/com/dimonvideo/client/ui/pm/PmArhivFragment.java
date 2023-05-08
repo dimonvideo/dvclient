@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,12 +32,15 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterPm;
-import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -59,12 +63,18 @@ public class PmArhivFragment extends Fragment  {
     private List<FeedPm> listFeed;
     private int requestCount = 1;
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        String pm = event.action;
+        if (pm != null) update();
+        Log.e("---", "PmArhivFragment event: "+pm );
+    }
 
     public PmArhivFragment() {
         // Required empty public constructor
     }
 
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
+    @SuppressLint({"NotifyDataSetChanged"})
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -74,6 +84,10 @@ public class PmArhivFragment extends Fragment  {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -114,12 +128,7 @@ public class PmArhivFragment extends Fragment  {
         recyclerView.setAdapter(adapter);
         // обновление
         swipLayout = binding.swipeLayout;
-        swipLayout.setOnRefreshListener(() -> {
-            requestCount = 1;
-            listFeed.clear();
-            getData();
-            swipLayout.setRefreshing(false);
-        });
+        swipLayout.setOnRefreshListener(this::update);
 
         // swipe to delete
         ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -184,13 +193,14 @@ public class PmArhivFragment extends Fragment  {
                 int position = viewHolder.getAbsoluteAdapterPosition();
 
                 if (direction == ItemTouchHelper.LEFT) {
-                    adapter.removeItem(position);
+                    if (position >= 0) adapter.removeItem(position);
                     Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_removed), Snackbar.LENGTH_LONG);
                     snackbar.setAction(getString(R.string.tab_trash), view -> {
                         assert getParentFragment() != null;
                         ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
                         viewPager.setCurrentItem(4, true);
                     });
+                    EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "deleted", null));
 
                     TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
                     fab_badge.setVisibility(View.GONE);
@@ -201,14 +211,15 @@ public class PmArhivFragment extends Fragment  {
                 }
 
                 if (direction == ItemTouchHelper.RIGHT) {
-                    adapter.restoreFromArchiveItem(position);
-                    AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
+                    if (position >= 0) adapter.restoreFromArchiveItem(position);
+
                     Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
                     snackbar.setAction(getString(R.string.tab_inbox), view -> {
                         assert getParentFragment() != null;
                         ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
                         viewPager.setCurrentItem(0, true);
                     });
+                    EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "deleted", null));
                     TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
                     fab_badge.setVisibility(View.GONE);
                     snackbar.setActionTextColor(Color.GREEN);
@@ -308,10 +319,34 @@ public class PmArhivFragment extends Fragment  {
         return false;
     }
 
+    private void update() {
+        requestCount = 1;
+        getData();
+        TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
+        fab_badge.setVisibility(View.GONE);
+        swipLayout.setRefreshing(false);
+        Log.e(Config.TAG, "PmFragmentTrash update ");
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         binding = null;
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+    }
+
 
 }

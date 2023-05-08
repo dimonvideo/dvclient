@@ -104,7 +104,7 @@ public class PmFragment extends Fragment {
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,false);
-        viewPager.setOffscreenPageLimit(4);
+        viewPager.setOffscreenPageLimit(6);
         viewPager.setUserInputEnabled(false);
         Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         toolbar.setTitle(R.string.tab_pm);
@@ -118,6 +118,8 @@ public class PmFragment extends Fragment {
             public void onTabSelected(TabLayout.Tab tab) {
                 int pos = tab.getPosition();
                 toolbar.setSubtitle(tabTiles.get(pos));
+
+                Log.e("---", "pos: "+pos );
 
                 if (pos == 1) {
                     if (searchView != null) searchView.setVisibility(View.VISIBLE);

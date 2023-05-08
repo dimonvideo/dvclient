@@ -124,6 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
+        - в главном разделе отображается Опрос сайта, можно голосовать в программе.\n
         - возможность прикреплять изображения к ответам, комментариям и личным сообщениям.\n
         - возможность добавлять на сайт Новости, Картинки, Статьи, записи в Блог.\n
         - улучшена навигация по приложению и поправлена разметка.\n
@@ -199,5 +200,7 @@
     <string name="success_send_file">Файл отправлен на проверку модераторам!</string>
     <string name="news_ist">Источник новости</string>
     <string name="post_description">напишите ответ</string>
+    <string name="vote">Наш опрос</string>
+    <string name="vote_sum">покажет главный Опрос с сайта</string>
 
 </resources>

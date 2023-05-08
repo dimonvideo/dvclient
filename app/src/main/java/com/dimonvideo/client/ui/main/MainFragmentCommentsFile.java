@@ -11,7 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -76,6 +78,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
             imagePick.setBackground(bitmapDrawable);
+            imagePick.setBackgroundTintList(null);
         }
     }
 
@@ -97,10 +100,6 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
-        }
-
-        if (this.getArguments() != null) {
-            razdel = getArguments().getString(Config.TAG_CATEGORY);
         }
 
         if (this.getArguments() != null) {
@@ -141,10 +140,10 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
         recyclerView.setAdapter(adapter);
 
-        RelativeLayout post_layout = binding.post.linearLayout1;
+        LinearLayout post_layout = binding.post.linearLayout1;
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
-        Button btnSend = binding.post.btnSend;
+        ImageButton btnSend = binding.post.btnSend;
         textInput = binding.post.textInput;
         textInput.requestFocus();
 

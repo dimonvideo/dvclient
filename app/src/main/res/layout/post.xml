@@ -1,53 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout android:id="@+id/linearLayout1"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="fill_parent"
-    android:background="@color/list_row_hover_start_color"
-    android:layout_margin="5dp"
-    android:visibility="gone"
-    android:baselineAligned="true"
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:id="@+id/linearLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:visibility="gone"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:baselineAligned="true"
+    android:orientation="horizontal"
+    android:weightSum="1">
 
-    <EditText
-        android:id="@+id/textInput"
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:minLines="3"
-        android:layout_centerVertical="true"
-        android:textColor="@color/text"
-        android:padding="5dp"
-        android:labelFor="@id/img_btn"
-        android:autofillHints="@string/post_description"
-        android:ems="10"
-        android:gravity="start|center_vertical"
-        android:hint="@string/post_description"
-        android:imeOptions="actionDone"
-        android:inputType="textImeMultiLine|textMultiLine"
-        android:focusable="true"
-        android:cursorVisible="true"
-        android:focusableInTouchMode="true">
-    </EditText>
+        android:layout_marginTop="1dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" >
+
         <ImageButton
             android:id="@+id/img_btn"
+            app:backgroundTint="@color/colorPmSend"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:background="@drawable/outline_image_24"
-            android:layout_centerVertical="true"
-            android:layout_toStartOf="@id/btnSend"
             android:scaleType="fitXY"
             android:layout_margin="5dp"
             android:text="@string/download_started"
             android:contentDescription="@string/download_started" />
-        <Button
+
+        <EditText
+            android:id="@+id/textInput"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.0"
+            android:padding="5dp"
+            android:background="@drawable/shape_post"
+            android:minLines="1"
+            android:textColor="@color/text"
+            android:labelFor="@id/btnSend"
+            android:autofillHints="@string/post_description"
+            android:gravity="start|center_vertical"
+            android:hint="@string/post_description"
+            android:lineSpacingExtra="7sp"
+            android:imeOptions="actionDone"
+            android:inputType="textImeMultiLine|textMultiLine"
+            android:focusable="true"
+            android:maxLines="15"
+            android:cursorVisible="true"
+            android:focusableInTouchMode="true"
+            >
+            <requestFocus />
+        </EditText>
+
+        <ImageButton
             style="@style/Widget.AppCompat.Button.Colored"
             android:text="@string/pm_send"
-            android:layout_height="45dp"
-            android:layout_width="125dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
+            android:layout_height="35dp"
+            android:src="@drawable/outline_send_24"
+            android:layout_width="35dp"
+            android:layout_marginStart="5dp"
+            android:background="@drawable/circle_shape"
             app:backgroundTint="@color/colorPmSend"
-            android:id="@+id/btnSend" />
-    </RelativeLayout>
+            android:id="@+id/btnSend"
+            android:contentDescription="@string/pm_send"/>
+    </LinearLayout>
+</LinearLayout>
 

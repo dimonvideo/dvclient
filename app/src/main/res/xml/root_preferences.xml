@@ -380,7 +380,6 @@
     </PreferenceCategory>
 
     <!-- addFile Preference -->
-
     <PreferenceCategory app:title="@string/menu_add_file">
 
         <SwitchPreferenceCompat
@@ -390,4 +389,16 @@
             app:title="@string/menu_add_file" />
 
     </PreferenceCategory>
+
+    <!-- opros Preference -->
+
+    <PreferenceCategory app:title="@string/vote">
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:key="dvc_add_vote"
+        app:summary="@string/vote_sum"
+        app:title="@string/action_vote" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

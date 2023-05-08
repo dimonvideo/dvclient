@@ -13,10 +13,10 @@ import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -199,7 +199,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     @SuppressLint("SetTextI18n")
     private static void postComment(ViewHolder holder, FeedForum feed) {
         if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
-        RelativeLayout post_layout = MainFragmentCommentsFile.binding.post.linearLayout1;
+        LinearLayout post_layout = MainFragmentCommentsFile.binding.post.linearLayout1;
         post_layout.setVisibility(View.GONE);
         holder.textInput.setText("[b]" + feed.getUser() + "[/b], ");
         holder.textInput.setSelection(holder.textInput.getText().length());
@@ -261,8 +261,8 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;
         public TextView textViewText;
-        public RelativeLayout post_layout;
-        public Button btnSend;
+        public LinearLayout post_layout;
+        public ImageButton btnSend;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;

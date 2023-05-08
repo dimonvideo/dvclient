@@ -120,5 +120,8 @@ public class Config {
     public static final String UPLOAD_FILE_URL = BASE_URL + "/apps/dvclient.php?op=15&api=upload";
 
     public static final String THUMB_URL = "https://msg.dimonvideo.ru/api/";
+    public static final String VOTE_URL = BASE_URL + "/apps/dvclient.php?op=16";
+    public static final String VOTE_URL_VIEW = BASE_URL + "/apps/dvclient.php?op=17&u=";
+
 }
 

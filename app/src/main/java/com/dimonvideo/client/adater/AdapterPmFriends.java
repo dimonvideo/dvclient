@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -13,7 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -221,12 +224,13 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
         public TextView textViewText;
-        public RelativeLayout btns;
-        public Button send;
+        public LinearLayout btns;
+        public ImageButton send;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
         public ClipData myClip;
+        @SuppressLint("StaticFieldLeak")
         public static ImageView imagePick;
 
         //Initializing Views

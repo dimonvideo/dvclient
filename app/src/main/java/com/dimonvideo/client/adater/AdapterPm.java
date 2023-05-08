@@ -18,7 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -113,8 +115,8 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
         public TextView textViewText;
-        public RelativeLayout btns;
-        public Button send;
+        public LinearLayout btns;
+        public ImageButton send;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
@@ -292,10 +294,12 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     // swipe to delete
     public void removeItem(int position) {
         try {
-            FeedPm Feed =  jsonFeed.get(position);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(mContext, Feed.getId(), 0);
-            notifyItemRemoved(position);
+            if (position >= 0) {
+                FeedPm Feed = jsonFeed.get(position);
+                jsonFeed.remove(position);
+                NetworkUtils.deletePm(mContext, Feed.getId(), 0);
+                notifyItemRemoved(position);
+            }
         } catch (Throwable ignored) {}
 
     }
@@ -303,10 +307,12 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     // swipe to restore
     public void restoreItem(int position) {
         try {
-            FeedPm Feed =  jsonFeed.get(position);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(mContext, Feed.getId(), 1);
-            notifyItemRemoved(position);
+            if (position >= 0) {
+                FeedPm Feed = jsonFeed.get(position);
+                jsonFeed.remove(position);
+                NetworkUtils.deletePm(mContext, Feed.getId(), 1);
+                notifyItemRemoved(position);
+            }
         } catch (Throwable ignored) {}
 
 
@@ -315,10 +321,12 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     // swipe to archive
     public void archiveItem(int position) {
         try {
-            FeedPm Feed =  jsonFeed.get(position);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(mContext, Feed.getId(), 2);
-            notifyItemRemoved(position);
+            if (position >= 0) {
+                FeedPm Feed = jsonFeed.get(position);
+                jsonFeed.remove(position);
+                NetworkUtils.deletePm(mContext, Feed.getId(), 2);
+                notifyItemRemoved(position);
+            }
         } catch (Throwable ignored) {}
 
 
@@ -328,10 +336,12 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     // swipe to restore from archive
     public void restoreFromArchiveItem(int position) {
         try {
-            FeedPm Feed =  jsonFeed.get(position);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(mContext, Feed.getId(), 3);
-            notifyItemRemoved(position);
+            if (position >= 0) {
+                FeedPm Feed = jsonFeed.get(position);
+                jsonFeed.remove(position);
+                NetworkUtils.deletePm(mContext, Feed.getId(), 3);
+                notifyItemRemoved(position);
+            }
         } catch (Throwable ignored) {}
 
 

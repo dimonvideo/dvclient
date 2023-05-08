@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.LocaleList;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -65,6 +66,7 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentAddFile;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.ui.pm.PmFragment;
 import com.dimonvideo.client.ui.pm.PmMembersFragment;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -96,8 +98,8 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     public static NavController navController;
     private boolean doubleBackToExitPressedOnce = false;
-
-
+    @SuppressLint("StaticFieldLeak")
+    public static TextView fab_badge;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        fab_badge = binding.appBarMain.fabBadge;
 
         adjustFontScale(getResources().getConfiguration());
 
@@ -446,18 +450,15 @@ public class MainActivity extends AppCompatActivity {
 
         razdel = event.razdel;
         String count_pm = event.count_pm;
-        TextView fab_badge;
         if ((count_pm != null)) {
-            fab_badge = binding.appBarMain.fabBadge;
             fab_badge.setVisibility(View.VISIBLE);
             fab_badge.setText(count_pm);
         }
-        if ((count_pm == null) || (count_pm.equals("0"))) {
-            fab_badge = binding.appBarMain.fabBadge;
+        if (count_pm != null && count_pm.equals("0")) {
             fab_badge.setVisibility(View.GONE);
         }
 
-        Log.e("---", "Main activity pm recieved: "+count_pm);
+        Log.e("---", "Main activity pm recieved: "+ count_pm);
         Log.e("---", "Main activity razdel: "+razdel);
 
     }
@@ -487,6 +488,7 @@ public class MainActivity extends AppCompatActivity {
                 homeFrag = new MainFragmentContent();
                 if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
                 if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
+                if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
 
                 Bundle bundle = new Bundle();
                 String story = searchEditText.getText().toString().trim();
@@ -531,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (razdel != null) {
                 if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
+                if (razdel.equals("13")) homeFrag = new PmFragment(); // pm
                 if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
             }
 
@@ -558,7 +560,8 @@ public class MainActivity extends AppCompatActivity {
             homeFrag = new MainFragment();
             if (razdel != null) {
                 if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
+                if (razdel.equals("13")) homeFrag = new PmFragment(); // pm
+                if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
             }
             EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
 
@@ -658,20 +661,6 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Throwable ignored) {
                     }
                 }
-            }
-        }
-
-        // votes
-        if (id == R.id.action_vote) {
-
-            String url = Config.BASE_URL + "/votes";
-
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
-                    url));
-
-            try {
-                startActivity(browserIntent);
-            } catch (Throwable ignored) {
             }
         }
 
