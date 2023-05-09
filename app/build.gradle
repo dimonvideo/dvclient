@@ -22,6 +22,7 @@ android {
                     'You can add it to local.properties once you have gotten it from Play. ' +
                     'Example: base64EncodedPublicKey=[key value]')
         }
+        setProperty("archivesBaseName", applicationId + "-v" + versionCode)
         buildConfigField("String", "BASE64_ENCODED_PUBLIC_KEY", "\"" + localProperties['base64EncodedPublicKey'] + "\"")
 
     }
