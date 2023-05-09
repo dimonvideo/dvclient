@@ -68,7 +68,7 @@ public class PmTrashFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         String pm = event.action;
-        if (pm != null) update();
+        if ((pm != null) && (pm.equals("deleted"))) update();
         Log.e("---", "PmTrashFragment event: "+pm );
     }
 
@@ -179,7 +179,7 @@ public class PmTrashFragment extends Fragment {
                     assert getParentFragment() != null;
                     ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
                     viewPager.setCurrentItem(0, true);
-                    EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "deleted", null));
+                    EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "restored", null));
 
                 });
 

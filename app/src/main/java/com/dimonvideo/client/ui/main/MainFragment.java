@@ -76,9 +76,11 @@ public class MainFragment extends Fragment  {
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             String f_name = getArguments().getString(Config.TAG_RAZDEL);
         }
+        final boolean is_opros = AppController.getInstance().isOpros();
 
         opros = binding.oprosText;
         if (Objects.equals(razdel, "10")) opros.setVisibility(View.VISIBLE);
+        if (!is_opros) opros.setVisibility(View.GONE);
 
         final boolean is_more = AppController.getInstance().isMore();
         final boolean is_favor = AppController.getInstance().isTabFavor();

@@ -202,4 +202,5 @@
     <string name="post_description">post here</string>
     <string name="vote">Vote</string>
     <string name="vote_sum">will shown our vote</string>
+    <string name="is_info_feedback">======</string>
 </resources>

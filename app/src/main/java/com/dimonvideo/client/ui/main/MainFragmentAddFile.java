@@ -32,6 +32,8 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -246,7 +248,10 @@ public class MainFragmentAddFile extends Fragment {
         btnClose.setVisibility(View.GONE);
 
         imgBtn = binding.imgBtn;
-
+        Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
+        SearchView searchView = toolbar.findViewById(R.id.action_search);
+        if (searchView != null) searchView.setVisibility(View.INVISIBLE);
+        
         // название файла
         title.setOnEditorActionListener(
                 (v, actionId, event) -> {
@@ -286,7 +291,7 @@ public class MainFragmentAddFile extends Fragment {
                 .createFromResource(requireContext(), R.array.add_razdel,
                         android.R.layout.simple_spinner_item);
         razdelListAdapter
-                .setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
+                .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         razdelList.setAdapter(razdelListAdapter);
         razdelList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override

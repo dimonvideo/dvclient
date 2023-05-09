@@ -247,6 +247,9 @@ public class AppController extends Application {
     public boolean isAddFile() {
         return getSharedPreferences().getBoolean("dvc_add_file", true);
     }
+    public boolean isOpros() {
+        return getSharedPreferences().getBoolean("dvc_add_vote", true);
+    }
 
     // =============================================== put preferences ================================================================== //
 

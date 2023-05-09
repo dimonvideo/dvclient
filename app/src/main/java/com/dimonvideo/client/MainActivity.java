@@ -609,19 +609,26 @@ public class MainActivity extends AppCompatActivity {
         // feedback
         if (id == R.id.action_feedback) {
 
-            Intent selectorIntent = new Intent(Intent.ACTION_SENDTO);
-            selectorIntent.setData(Uri.parse("mailto:"));
-
-            final Intent emailIntent = new Intent(Intent.ACTION_SEND);
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{getString(R.string.app_mail)});
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
-            emailIntent.setSelector(selectorIntent);
+            String s = getString(R.string.is_info_feedback);
 
             try {
-                startActivity(Intent.createChooser(emailIntent, getString(R.string.app_name)));
-            } catch (android.content.ActivityNotFoundException e) {
+                s += "\n\n API: " + android.os.Build.VERSION.SDK_INT;
+                s += "\n Device: " + android.os.Build.DEVICE;
+                s += "\n Model: " + android.os.Build.MODEL + " (" + android.os.Build.PRODUCT + ")";
+            } catch (Throwable ignored) {
+            }
+
+            Intent i = new Intent(Intent.ACTION_SENDTO);
+            i.setData(Uri.parse("mailto:"));
+            i.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{getString(R.string.app_mail)});
+            i.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " Feedback");
+            i.putExtra(android.content.Intent.EXTRA_TEXT, "\n\n" + s);
+            try {
+                startActivity(i);
+            } catch (Throwable ignored) {
                 Toast.makeText(this, getString(R.string.share_no_email_handler_found), Toast.LENGTH_SHORT).show();
             }
+
         }
 
         // clear cache

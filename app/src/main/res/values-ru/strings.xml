@@ -202,5 +202,6 @@
     <string name="post_description">напишите ответ</string>
     <string name="vote">Наш опрос</string>
     <string name="vote_sum">покажет главный Опрос с сайта</string>
+    <string name="is_info_feedback">======</string>
 
 </resources>

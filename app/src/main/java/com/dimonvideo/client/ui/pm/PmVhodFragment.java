@@ -71,7 +71,7 @@ public class PmVhodFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         String pm = event.action;
-        if (pm != null) update();
+        if ((pm != null) && (pm.equals("restored"))) update();
         Log.e("---", "PmVhodFragment event: "+pm );
     }
 

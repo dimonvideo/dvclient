@@ -63,10 +63,14 @@
         <!-- razdel -->
         <Spinner
             android:id="@+id/razdel"
-            android:layout_below="@id/title"
-            android:layout_margin="8dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:spinnerMode="dialog"
+            android:layout_marginBottom="8dp" />
 
         <!-- categories -->
         <Spinner
@@ -74,10 +78,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/razdel"
-            android:layout_margin="8dp"
-            android:spinnerMode="dialog"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
             android:dropDownVerticalOffset="50dp"
-            />
+            android:spinnerMode="dialog" />
 
         <!-- screen -->
         <RelativeLayout
@@ -99,10 +105,11 @@
 
             <TextView
                 android:id="@+id/screen_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center|center_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center|center_horizontal"
                 android:layout_marginStart="5dp"
+                android:layout_centerInParent="true"
                 android:layout_marginTop="5dp"
                 android:layout_marginEnd="5dp"
                 android:layout_marginBottom="5dp"
@@ -115,7 +122,8 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:background="@drawable/outline_delete_outline_24"
-                android:layout_toEndOf="@id/screen_text"
+                android:layout_toEndOf="@id/img_btn"
+                android:layout_centerInParent="true"
                 android:layout_margin="5dp"
                 android:text="@string/download"
                 android:visibility="gone"

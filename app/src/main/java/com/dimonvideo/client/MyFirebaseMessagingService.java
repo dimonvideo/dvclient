@@ -62,7 +62,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                 if ((Integer.parseInt(Objects.requireNonNull(count_pm)) > 0) && (!dvc_pm_notify) && (is_pm.equals("on"))) {
 
-                    EventBus.getDefault().post(new MessageEvent(razdel, null, null, count_pm, null, null));
+                    EventBus.getDefault().post(new MessageEvent(razdel, null, null, count_pm, "restored", null));
                     Log.e("---", "MyFirebaseMessagingService razdel: "+razdel);
                     Log.e(Config.TAG, "Send broadcast to PM #" + id);
 
