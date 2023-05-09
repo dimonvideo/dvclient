@@ -91,8 +91,6 @@ public class MainFragmentAddFile extends Fragment {
         Bitmap bitmap = event.bitmap;
         screen = event.image_uploaded;
         screenName = Config.THUMB_URL + login_name + File.separator + screen;
-
-
         // если скриншот загружен на сервер
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
@@ -166,7 +164,7 @@ public class MainFragmentAddFile extends Fragment {
                 String err = obj.getString("error");
 
                 if (err.equals("false")) {
-                    Toast.makeText(requireContext(), requireContext().getString(R.string.success_send_file), Toast.LENGTH_LONG).show();
+                    Toast.makeText(requireContext(), requireContext().getString(R.string.success), Toast.LENGTH_LONG).show();
                     if (url.equals(Config.UPLOAD_FILE_URL)) {
                         MainActivity.navController.navigate(R.id.nav_home);
                         try {
@@ -250,7 +248,7 @@ public class MainFragmentAddFile extends Fragment {
         imgBtn = binding.imgBtn;
         Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         SearchView searchView = toolbar.findViewById(R.id.action_search);
-        if (searchView != null) searchView.setVisibility(View.INVISIBLE);
+        searchView.setVisibility(View.INVISIBLE);
         
         // название файла
         title.setOnEditorActionListener(

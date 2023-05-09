@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
+import androidx.appcompat.widget.SearchView;
 
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
@@ -22,6 +24,7 @@ import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -31,6 +34,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ForumFragment extends Fragment  {
 
@@ -42,6 +46,7 @@ public class ForumFragment extends Fragment  {
     FloatingActionButton fab;
     private FragmentTabsBinding binding;
     private final Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
+    private TextView opros;
 
     public ForumFragment() {
         // Required empty public constructor
@@ -66,7 +71,10 @@ public class ForumFragment extends Fragment  {
 
         razdel = "8";
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
-
+        opros = binding.oprosText;
+        if (!Objects.equals(razdel, "13")) opros.setVisibility(View.VISIBLE);
+        final boolean is_opros = AppController.getInstance().isOpros();
+        if (!is_opros) opros.setVisibility(View.GONE);
         String login = AppController.getInstance().userName("");
         final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
         final boolean tab_topics_no_posts = AppController.getInstance().isTopicsNoPosts();
@@ -112,6 +120,16 @@ public class ForumFragment extends Fragment  {
             public void onTabSelected(TabLayout.Tab tab) {
                 int pos = tab.getPosition();
                 toolbar.setSubtitle(tabTiles.get(pos));
+                if (pos == 0) {
+                    if (is_opros) opros.setVisibility(View.VISIBLE);
+                } else opros.setVisibility(View.GONE);
+                SearchView searchView = toolbar.findViewById(R.id.action_search);
+                if ((searchView != null) && (pos != 0)) {
+                    searchView.setVisibility(View.INVISIBLE);
+                }
+                if ((searchView != null) && (pos == 0)) {
+                    searchView.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -167,6 +185,8 @@ public class ForumFragment extends Fragment  {
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
+        NetworkUtils.getOprosTitle(opros, requireContext());
+
     }
 
     @Override

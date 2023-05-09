@@ -10,15 +10,16 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         app:tabMode="scrollable"
-        app:tabIndicatorColor="@color/colorPrimary"
         android:background="@color/colorPrimaryDark"
         android:elevation="8dp"
         android:gravity="center_horizontal"
         app:tabGravity="center"
+        app:tabIndicatorGravity="top"
+        app:tabIndicatorColor="@color/colorAccent"
         app:layout_scrollFlags="scroll|enterAlways"
         app:tabSelectedTextColor="@color/colorAccent"
         />
-    <!-- screen -->
+    <!-- opros -->
     <RelativeLayout
         android:layout_height="wrap_content"
         android:layout_gravity="center|center_vertical"
@@ -37,9 +38,15 @@
         android:textColor="@color/colorAccent"
         android:layout_margin="5dp"
         android:text="@string/vote" />
+        <View
+            android:layout_width="match_parent"
+            android:id="@+id/border"
+            android:layout_below="@id/opros_text"
+            android:layout_height="2dp"
+            android:background="@color/colorAccent" />
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
-        android:layout_below="@id/opros_text"
+        android:layout_below="@id/border"
         android:layout_width="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_height="match_parent"

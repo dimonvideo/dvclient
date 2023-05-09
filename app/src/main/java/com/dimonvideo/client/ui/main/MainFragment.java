@@ -1,7 +1,6 @@
 package com.dimonvideo.client.ui.main;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,28 +9,27 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
-import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -79,7 +77,7 @@ public class MainFragment extends Fragment  {
         final boolean is_opros = AppController.getInstance().isOpros();
 
         opros = binding.oprosText;
-        if (Objects.equals(razdel, "10")) opros.setVisibility(View.VISIBLE);
+        if (!Objects.equals(razdel, "13")) opros.setVisibility(View.VISIBLE);
         if (!is_opros) opros.setVisibility(View.GONE);
 
         final boolean is_more = AppController.getInstance().isMore();
@@ -141,6 +139,21 @@ public class MainFragment extends Fragment  {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 int pos = tab.getPosition();
+                if (pos == 0) {
+                    if (is_opros) opros.setVisibility(View.VISIBLE);
+                } else {
+                    opros.setVisibility(View.GONE);
+
+                }
+                Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
+                toolbar.setSubtitle(tabTiles.get(pos));
+                SearchView searchView = toolbar.findViewById(R.id.action_search);
+                if ((searchView != null) && (pos != 0)) {
+                    searchView.setVisibility(View.INVISIBLE);
+                }
+                if ((searchView != null) && (pos == 0)) {
+                    searchView.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -160,8 +173,9 @@ public class MainFragment extends Fragment  {
                     ft.addToBackStack(fragment.toString());
                     ft.replace(R.id.container_frag, fragment);
                     ft.commit();
-                } else opros.setVisibility(View.GONE);
-
+                    Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
+                    toolbar.setSubtitle("");
+                }
             }
         });
 
@@ -183,43 +197,9 @@ public class MainFragment extends Fragment  {
 
         EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
 
-        getDataFromServer(opros);
+        NetworkUtils.getOprosTitle(opros, requireContext());
 
     }
-
-    // запрос к серверу апи
-    private void getDataFromServer(TextView opros) {
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.VOTE_URL,
-                response -> {
-                    for (int i = 0; i < response.length(); i++) {
-                        Feed jsonFeed = new Feed();
-                        JSONObject json;
-                        try {
-                            json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        opros.setText("");
-                        opros.setText(jsonFeed.getTitle());
-                        opros.setOnClickListener(v -> {
-                            MainFragmentOpros fragment = new MainFragmentOpros();
-                            Bundle bundle = new Bundle();
-                            bundle.putString(Config.TAG_TITLE, jsonFeed.getTitle());
-                            fragment.setArguments(bundle);
-                            fragment.show(((AppCompatActivity)requireActivity()).getSupportFragmentManager(), "MainFragmentOpros");
-                        });
-                    }
-                    Log.e("---", "opros: "+response);
-
-                },
-                error -> {
-
-                });
-
-        AppController.getInstance().addToRequestQueue(jsonArrayRequest);
-    }
-
 
     @Override
     public void onDestroy() {

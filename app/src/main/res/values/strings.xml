@@ -203,4 +203,7 @@
     <string name="vote">Vote</string>
     <string name="vote_sum">will shown our vote</string>
     <string name="is_info_feedback">======</string>
+    <string name="is_more_odob">Replace More by Waiting</string>
+    <string name="is_more_odob_sum">replace more tab with waiting tab</string>
+    <string name="download_complete">Download complete</string>
 </resources>

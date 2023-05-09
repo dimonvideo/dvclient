@@ -209,9 +209,15 @@ public class MainActivity extends AppCompatActivity {
         TextView Login_Name = navigationView.getHeaderView(0).findViewById(R.id.login_string);
         ImageView avatar = navigationView.getHeaderView(0).findViewById(R.id.avatar);
         ImageView setting_icon = navigationView.getHeaderView(0).findViewById(R.id.settings_icon);
+        ImageView exit_icon = navigationView.getHeaderView(0).findViewById(R.id.exit_icon);
         ImageView theme_icon = navigationView.getHeaderView(0).findViewById(R.id.theme_icon);
         TextView app_version = navigationView.getHeaderView(0).findViewById(R.id.app_version);
         app_version.append(": " + BuildConfig.VERSION_NAME);
+
+        // иконка exit
+        exit_icon.setOnClickListener(view -> {
+            finish();
+        });
 
         // иконка настроек
         setting_icon.setOnClickListener(view -> {

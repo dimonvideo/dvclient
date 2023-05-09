@@ -1,16 +1,20 @@
 package com.dimonvideo.client.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.android.volley.AuthFailureError;
@@ -22,6 +26,7 @@ import com.android.volley.Request;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
@@ -31,6 +36,8 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.model.Feed;
+import com.dimonvideo.client.ui.main.MainFragmentOpros;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
@@ -71,7 +78,7 @@ public class NetworkUtils {
                             int state = jsonObject.getInt(Config.TAG_STATE);
 
                             String image = "0", status = "0", lastdate = "0", token = "0", rep = "0", reg = "0", rat = "0", posts = "0";
-                            int pm_unread = 0, uid = 0;
+                            int pm_unread = 0, uid = 0, user_group = 4;
 
                             if (state > 0) {
                                 pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
@@ -84,6 +91,7 @@ public class NetworkUtils {
                                 rat = jsonObject.getString(Config.TAG_COMMENTS);
                                 posts = jsonObject.getString(Config.TAG_COUNT);
                                 uid = jsonObject.getInt(Config.TAG_UID);
+                                user_group = jsonObject.getInt(Config.TAG_USER_GROUP);
 
                                 try {
                                     if (auth_state == 0) Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
@@ -109,6 +117,7 @@ public class NetworkUtils {
                                 AppController.getInstance().putRating(rat);
                                 AppController.getInstance().putPosts(posts);
                                 AppController.getInstance().putUserId(uid);
+                                AppController.getInstance().putUserGroup(user_group);
                                 AppController.getInstance().putPmUnread(pm_unread);
                             }
 
@@ -395,6 +404,40 @@ public class NetworkUtils {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         Volley.newRequestQueue(context).add(volleyMultipartRequest);
     }
+
+    public static void getOprosTitle(TextView opros, Context context){
+        // запрос к серверу апи
+
+            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.VOTE_URL,
+                    response -> {
+                        for (int i = 0; i < response.length(); i++) {
+                            Feed jsonFeed = new Feed();
+                            JSONObject json;
+                            try {
+                                json = response.getJSONObject(i);
+                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            opros.setText("");
+                            opros.setText(jsonFeed.getTitle());
+                            opros.setOnClickListener(v -> {
+                                MainFragmentOpros fragment = new MainFragmentOpros();
+                                Bundle bundle = new Bundle();
+                                bundle.putString(Config.TAG_TITLE, jsonFeed.getTitle());
+                                fragment.setArguments(bundle);
+                                if (context != null) fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentOpros");
+                            });
+                        }
+
+                    },
+                    error -> {
+
+                    });
+
+            AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+        }
+
 
 
 }

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,7 +53,9 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
     private String story = null;
     private SharedPreferences sharedPrefs;
     private String s_url = "";
+    private String st_url = "";
     private FragmentHomeBinding binding;
+    boolean is_more_odob;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -73,6 +76,7 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         }
 
         sharedPrefs = AppController.getInstance().getSharedPreferences();
+        is_more_odob = AppController.getInstance().isMoreOdob();
 
         recyclerView = binding.recyclerView;
         LinearLayoutManager layoutManager
@@ -145,7 +149,14 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
             }
             s_url = "&story=" + story;
         }
-        return new JsonArrayRequest(url + requestCount + "&c=placeholder," + category_string + s_url,
+
+        if (is_more_odob) st_url = "&st=2";
+
+        String url_final = url + requestCount + "&c=placeholder," + category_string + s_url + st_url;
+
+        Log.e("---", "url_final: "+url_final);
+
+        return new JsonArrayRequest(url_final,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);

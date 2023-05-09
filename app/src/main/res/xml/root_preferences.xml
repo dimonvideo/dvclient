@@ -110,6 +110,13 @@
             app:key="dvc_more"
             app:title="@string/is_more" />
         <SwitchPreferenceCompat
+            android:dependency="dvc_more"
+            app:defaultValue="false"
+            android:summary="@string/is_more_odob_sum"
+            app:useSimpleSummaryProvider="true"
+            app:key="dvc_more_odob"
+            app:title="@string/is_more_odob" />
+        <SwitchPreferenceCompat
             app:defaultValue="false"
             android:summary="@string/is_favor"
             app:useSimpleSummaryProvider="true"

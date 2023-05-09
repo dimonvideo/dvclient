@@ -115,6 +115,9 @@ public class AppController extends Application {
     public int isUserId() {
         return getSharedPreferences().getInt("user_id", 0);
     }
+    public int isUserGroup() {
+        return getSharedPreferences().getInt("user_group", 4);
+    }
 
     public int isPmUnread() {
         return getSharedPreferences().getInt("pm_unread", 0);
@@ -231,6 +234,9 @@ public class AppController extends Application {
     public boolean isMore() {
         return getSharedPreferences().getBoolean("dvc_more", false);
     }
+    public boolean isMoreOdob() {
+        return getSharedPreferences().getBoolean("dvc_more_odob", false);
+    }
 
     public boolean isCommentTab() {
         return getSharedPreferences().getBoolean("dvc_comment", false);
@@ -303,6 +309,10 @@ public class AppController extends Application {
 
     public void putUserId(int uid) {
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("user_id", uid).apply();
+    }
+
+    public void putUserGroup(int user_group) {
+        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("user_group", user_group).apply();
     }
 
     public void putPmUnread(int pm_unread) {

@@ -64,6 +64,7 @@ public class Config {
     //JSON TAGS
     public static final String TAG_ID = "lid";
     public static final String TAG_UID = "user_id";
+    public static final String TAG_USER_GROUP = "user_group";
     public static final String TAG_IMAGE_URL = "image";
     public static final String TAG_FAV = "fav";
     public static final String TAG_TITLE = "title";

@@ -52,6 +52,12 @@
             </intent-filter>
             <meta-data android:name="photopicker_activity:0:required" android:value="" />
         </service>
+        <receiver android:name=".util.DownloadBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"

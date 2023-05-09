@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,7 +71,6 @@ public class MainFragmentContent extends Fragment {
     private SharedPreferences sharedPrefs;
     private String story, f_name, s_url = "";
     private FragmentHomeBinding binding;
-    private Toolbar toolbar;
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -182,16 +182,16 @@ public class MainFragmentContent extends Fragment {
 
 
         try {
-            toolbar = MainActivity.binding.appBarMain.toolbar;
+            Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
             NetworkUtils.loadAvatar(requireContext(), toolbar);
 
-            if ((!TextUtils.isEmpty(f_name)) && (toolbar != null)) {
+            if (!TextUtils.isEmpty(f_name)) {
                 toolbar.setSubtitle(f_name);
-            } else if (toolbar != null) {
+            } else {
                 toolbar.setSubtitle(null);
             }
 
-            if ((cid > 0) && (toolbar != null)) {
+            if (cid > 0) {
                 toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
             }
 
@@ -245,7 +245,6 @@ public class MainFragmentContent extends Fragment {
         }
 
         String url_final = url + requestCount + "&c=placeholder," + category_string + s_url;
-
 
         return new JsonArrayRequest(url_final,
                 response -> {

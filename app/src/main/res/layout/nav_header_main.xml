@@ -35,7 +35,7 @@
             android:layout_gravity="top"
             android:gravity="top"
             android:layout_marginStart="10dip"
-            android:layout_marginEnd="25dip"
+            android:layout_marginEnd="20dip"
             android:layout_marginTop="5dp"
             android:contentDescription="@string/Comments"
             android:layout_alignParentTop="true"
@@ -50,13 +50,27 @@
             android:layout_gravity="top"
             android:gravity="top"
             android:layout_marginStart="1dip"
+            android:layout_marginEnd="20dip"
+            android:layout_toStartOf="@+id/exit_icon"
+            android:layout_marginTop="5dp"
+            android:contentDescription="@string/Comments"
+            android:scaleType="centerInside"
+            android:src="@drawable/baseline_settings_24" />
+        <!-- prefs -->
+        <ImageView
+            android:id="@+id/exit_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:gravity="top"
+            android:layout_marginStart="1dip"
             android:layout_marginEnd="5dip"
             android:layout_marginTop="5dp"
             android:contentDescription="@string/Comments"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:scaleType="centerInside"
-            android:src="@drawable/baseline_settings_24" />
+            android:src="@drawable/outline_power_settings_new_24" />
     </RelativeLayout>
 
     <LinearLayout
