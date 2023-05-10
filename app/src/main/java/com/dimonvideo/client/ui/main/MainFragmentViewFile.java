@@ -1,17 +1,22 @@
-package com.dimonvideo.client.util;
+package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -21,57 +26,117 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterMainRazdel;
+import com.dimonvideo.client.databinding.BottomDetailBinding;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.ButtonsActions;
+import com.dimonvideo.client.util.DownloadFile;
+import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.OpenUrl;
+import com.dimonvideo.client.util.TextViewClickMovement;
+import com.dimonvideo.client.util.URLImageParser;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
 import com.like.OnLikeListener;
 
-public class OpenBottomSheet {// подробный вывод файла
+import org.xml.sax.XMLReader;
 
-    public static void openFile(String razdel, View v, int lid, int comments, String title,
-                                String user, int plus, String link, String mod, String size, String logourl, String text, String date, String category) {
+public class MainFragmentViewFile extends BottomSheetDialogFragment {
 
-        Provider.updateStatus(lid, razdel, 1);
+    private BottomDetailBinding binding;
+    private String razdel, lid, file_title, date, category, user, text, logourl, mod, link, size;
+    private int plus, comments, status;
 
-        Context context = v.getContext();
-        @SuppressLint("InflateParams") View views = LayoutInflater.from(context).inflate(R.layout.bottom_detail, null);
+    public MainFragmentViewFile(){
+        // Required empty public constructor
+    }
+
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        binding = BottomDetailBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    public void onViewCreated(@NonNull View views, @Nullable Bundle savedInstanceState) {
+
+        if (this.getArguments() != null) {
+            file_title = getArguments().getString(Config.TAG_TITLE);
+            razdel = getArguments().getString(Config.TAG_RAZDEL);
+            category = getArguments().getString(Config.TAG_CATEGORY);
+            date = getArguments().getString(Config.TAG_DATE);
+            plus = getArguments().getInt(Config.TAG_PLUS);
+            lid = getArguments().getString(Config.TAG_ID);
+            user = getArguments().getString(Config.TAG_USER);
+            text = getArguments().getString(Config.TAG_TEXT);
+            logourl = getArguments().getString(Config.TAG_IMAGE_URL);
+            mod = getArguments().getString(Config.TAG_MOD);
+            comments = getArguments().getInt(Config.TAG_COMMENTS);
+            status = getArguments().getInt(Config.TAG_STATUS);
+            link = getArguments().getString(Config.TAG_LINK);
+            size = getArguments().getString(Config.TAG_SIZE);
+        }
+
+        if (lid != null) {
+            Provider.updateStatus(Integer.parseInt(lid), razdel, 1);
+        }
+
+        Context context = requireContext();
+
 
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
         final boolean is_share_btn = AppController.getInstance().isShareBtn();
 
-        TextView textViewTitle = views.findViewById(R.id.title);
-        textViewTitle.setText(title);
-        TextView textViewDate = views.findViewById(R.id.date);
+        TextView textViewTitle = binding.title;
+        textViewTitle.setText(file_title);
+        TextView textViewDate = binding.date;
         textViewDate.setText(date);
-        TextView textViewCategory = views.findViewById(R.id.category);
+        TextView textViewCategory = binding.category;
         textViewCategory.setText(category);
-        TextView txt_plus = views.findViewById(R.id.txt_plus);
+        TextView txt_plus = binding.txtPlus;
         txt_plus.setText(String.valueOf(plus));
-        TextView textViewAuthor = views.findViewById(R.id.by_name);
+        TextView textViewAuthor = binding.byName;
         textViewAuthor.setText(String.valueOf(user));
 
-        Button dismiss2 = views.findViewById(R.id.dismiss2);
-        Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share;
+        Button dismiss2 = binding.dismiss2;
+        Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share, btn_odob;
 
         LikeButton likeButton, starButton;
-        likeButton = views.findViewById(R.id.thumb_button);
+        likeButton = binding.thumbButton;
 
-        starButton = views.findViewById(R.id.star_button);
+        starButton = binding.starButton;
 
-        btn_comms = views.findViewById(R.id.btn_comment);
-        btn_download = views.findViewById(R.id.btn_download);
-        btn_mod = views.findViewById(R.id.btn_mod);
-        btn_share = views.findViewById(R.id.btn_share);
-        btn_mp4 = views.findViewById(R.id.btn_mp4);
+        btn_comms = binding.btnComment;
+        btn_download = binding.btnDownload;
+        btn_mod = binding.btnMod;
+        btn_share = binding.btnShare;
+        btn_mp4 = binding.btnMp4;
+        btn_odob = binding.btnOdob;
+        btn_odob.setVisibility(View.GONE);
+
+        Log.e("---", "status: "+status);
+        if ((status == 0) && (AppController.getInstance().isUserGroup() <= 2)){
+            btn_odob.setVisibility(View.VISIBLE);
+            btn_odob.setOnClickListener(v -> {
+                NetworkUtils.getOdob(razdel, Integer.parseInt(lid));
+            });
+        }
 
         // html textview
-        TextView textViewText = views.findViewById(R.id.text);
+        TextView textViewText = binding.text;
         try {
             URLImageParser parser = new URLImageParser(textViewText);
-            Spanned spanned = Html.fromHtml(text, parser, new AdapterMainRazdel.TagHandler());
+            Spanned spanned = Html.fromHtml(text, parser, new TagHandler());
             textViewText.setText(spanned);
             textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
@@ -82,41 +147,35 @@ public class OpenBottomSheet {// подробный вывод файла
         } catch (Throwable ignored) {
         }
 
-        ImageView imageView = views.findViewById(R.id.logo);
-        ImageView imageDismiss = views.findViewById(R.id.dismiss);
+        ImageView imageView = binding.logo;
+        ImageView imageDismiss = binding.dismiss;
 
         Glide.with(context).load(logourl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transform(new FitCenter(), new RoundedCorners(15))
                 .into(imageView);
 
-        imageView.setOnClickListener(view -> ButtonsActions.loadScreen(context, logourl));
+        imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, logourl));
 
-        AdapterMainRazdel.dialog = new BottomSheetDialog(context);
-        AdapterMainRazdel.dialog.setCancelable(true);
-        AdapterMainRazdel.dialog.setCanceledOnTouchOutside(true);
-        AdapterMainRazdel.dialog.setContentView(views);
-        AdapterMainRazdel.dialog.show();
-
-        imageDismiss.setOnClickListener(view -> {
-            AdapterMainRazdel.dialog.dismiss();
+        imageDismiss.setOnClickListener(v -> {
+            dismiss();
         });
-        dismiss2.setOnClickListener(view -> {
-            AdapterMainRazdel.dialog.dismiss();
+        dismiss2.setOnClickListener(v -> {
+            dismiss();
         });
 
 
-        btn_comms.setOnClickListener(view -> {
+        btn_comms.setOnClickListener(v -> {
             String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + lid + "&min=";
             MainFragmentCommentsFile fragment = new MainFragmentCommentsFile();
             Bundle bundle = new Bundle();
-            bundle.putString(Config.TAG_TITLE, title);
+            bundle.putString(Config.TAG_TITLE, file_title);
             bundle.putString(Config.TAG_ID, String.valueOf(lid));
             bundle.putString(Config.TAG_LINK, comm_url);
             bundle.putString(Config.TAG_RAZDEL, razdel);
             fragment.setArguments(bundle);
             fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentCommentsFile");
-            AdapterMainRazdel.dialog.dismiss();
+            dismiss();
         });
         // комментарии
         if (comments > 0) {
@@ -129,13 +188,13 @@ public class OpenBottomSheet {// подробный вывод файла
         // смотреть онлайн
         if ((razdel != null) && (razdel.equals(Config.VUPLOADER_RAZDEL))) {
             btn_mp4.setVisibility(View.VISIBLE);
-            btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, link));
+            btn_mp4.setOnClickListener(v -> ButtonsActions.PlayVideo(context, link));
         }
         // слушать онлайн
         if ((razdel != null) && (razdel.equals(Config.MUZON_RAZDEL))) {
             btn_mp4.setVisibility(View.VISIBLE);
             btn_mp4.setText(R.string.listen_online);
-            btn_mp4.setOnClickListener(view -> ButtonsActions.PlayVideo(context, link));
+            btn_mp4.setOnClickListener(v -> ButtonsActions.PlayVideo(context, link));
         }
         // если нет размера файла
         if ((size == null) || (size.startsWith("0"))) {
@@ -148,7 +207,7 @@ public class OpenBottomSheet {// подробный вывод файла
         // если нет mod
         if ((mod != null) && (!mod.startsWith("null"))) {
             btn_mod.setVisibility(View.VISIBLE);
-            btn_mod.setOnClickListener(view -> DownloadFile.download(context, mod, razdel));
+            btn_mod.setOnClickListener(v -> DownloadFile.download(context, mod, razdel));
         }
 
         // поделится
@@ -157,7 +216,7 @@ public class OpenBottomSheet {// подробный вывод файла
         } catch (Throwable ignored) {
         }
 
-        btn_share.setOnClickListener(view -> {
+        btn_share.setOnClickListener(v -> {
 
             String url = Config.BASE_URL + "/" + razdel + "/" + lid;
             if (razdel != null && razdel.equals(Config.COMMENTS_RAZDEL))
@@ -167,8 +226,8 @@ public class OpenBottomSheet {// подробный вывод файла
             sendIntent.setAction(Intent.ACTION_SEND);
             sendIntent.putExtra(Intent.EXTRA_TEXT, url);
             sendIntent.setType("text/plain");
-            Intent shareIntent = Intent.createChooser(sendIntent, title);
-            AdapterMainRazdel.dialog.dismiss();
+            Intent shareIntent = Intent.createChooser(sendIntent, file_title);
+            dismiss();
             try {
                 context.startActivity(shareIntent);
             } catch (Throwable ignored) {
@@ -177,20 +236,20 @@ public class OpenBottomSheet {// подробный вывод файла
         });
 
         // скачать
-        btn_download.setOnClickListener(view -> DownloadFile.download(context, link, razdel));
+        btn_download.setOnClickListener(v -> DownloadFile.download(context, link, razdel));
 
         // лайк и избранное
         starButton.setOnLikeListener(new OnLikeListener() {
             @Override
             public void liked(LikeButton starButton) {
                 Snackbar.make(views, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, razdel, lid, 1); // в избранное
+                ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 1); // в избранное
             }
 
             @Override
             public void unLiked(LikeButton starButton) {
                 Snackbar.make(views, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, razdel, lid, 2); // из избранного
+                ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 2); // из избранного
             }
         });
 
@@ -198,7 +257,7 @@ public class OpenBottomSheet {// подробный вывод файла
             @Override
             public void liked(LikeButton likeButton) {
                 Snackbar.make(views, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, razdel, lid, 1);
+                ButtonsActions.like_file(context, razdel, Integer.parseInt(lid), 1);
                 txt_plus.setText(String.valueOf(plus + 1));
 
             }
@@ -206,7 +265,7 @@ public class OpenBottomSheet {// подробный вывод файла
             @Override
             public void unLiked(LikeButton likeButton) {
                 Snackbar.make(views, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, razdel, lid, 2);
+                ButtonsActions.like_file(context, razdel, Integer.parseInt(lid), 2);
                 txt_plus.setText(String.valueOf(plus - 1));
             }
         });
@@ -221,5 +280,44 @@ public class OpenBottomSheet {// подробный вывод файла
 
         if (is_share_btn) btn_share.setVisibility(View.GONE);
 
+    }
+
+    public static class TagHandler implements Html.TagHandler {
+        @Override
+        public void handleTag(boolean opening, String tag,
+                              Editable output, XMLReader xmlReader) {
+            if (!opening && tag.equals("ul")) {
+                output.append("\n");
+            }
+            if (opening && tag.equals("li")) {
+                output.append("\n\u2022");
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding = null;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 }

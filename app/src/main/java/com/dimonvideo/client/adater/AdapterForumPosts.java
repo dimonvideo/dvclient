@@ -12,12 +12,10 @@ import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -94,7 +92,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     }
 
-    @SuppressLint("NotifyDataSetChanged")
+    @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     private void populateItemRows(ItemViewHolder holder, int position) {
 
         if (!EventBus.getDefault().isRegistered(this)) {
@@ -121,18 +119,6 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         final int auth_state = AppController.getInstance().isAuth();
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
-
-        // отправка ответа на форум
-        holder.btnSend.setOnClickListener(v -> {
-            String text = holder.textInput.getText().toString();
-            EventBus.getDefault().post(new MessageEvent("8", null, null, null, null, null));
-            NetworkUtils.sendPm(mContext, Feed.getTopic_id(), text, 2, null, 0);
-            holder.btns.setVisibility(View.GONE);
-            notifyDataSetChanged();
-        });
-
-        holder.imagePick.setVisibility(View.GONE);
-
 
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
@@ -165,20 +151,12 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             if (auth_state > 0) {
-                if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
-                holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
-                holder.textInput.setSelection(holder.textInput.getText().length());
-                LinearLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
-                post_layout.setVisibility(View.GONE);
+                EventBus.getDefault().post(new MessageEvent("8", null, null, null, "[b]" + Feed.getLast_poster_name() + "[/b], ", null));
             }
         });
         holder.itemView.setOnClickListener(view -> {
             if (auth_state > 0) {
-                if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
-                holder.textInput.setText("[b]" + Feed.getLast_poster_name() + "[/b], ");
-                holder.textInput.setSelection(holder.textInput.getText().length());
-                LinearLayout post_layout = ForumFragmentPosts.binding.post.linearLayout1;
-                post_layout.setVisibility(View.GONE);
+                EventBus.getDefault().post(new MessageEvent("8", null, null, null, "[b]" + Feed.getLast_poster_name() + "[/b], ", null));
             }
         });
 
@@ -253,8 +231,6 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;
         public TextView textViewText;
-        public LinearLayout btns;
-        public ImageButton btnSend;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
@@ -274,10 +250,8 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
             textViewTitle = itemView.findViewById(R.id.names);
-            btnSend = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
             imagePick = itemView.findViewById(R.id.img_btn);
-            btns = itemView.findViewById(R.id.post);
 
         }
 

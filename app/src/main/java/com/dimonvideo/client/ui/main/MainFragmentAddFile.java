@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -23,6 +24,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +37,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
@@ -81,6 +84,7 @@ public class MainFragmentAddFile extends Fragment {
     private ClipboardManager myClipboard;
     private ClipData myClip;
     private boolean doubleBackToExitPressedOnce = false;
+    private InputMethodManager imm;
 
     public MainFragmentAddFile() {
 
@@ -95,7 +99,7 @@ public class MainFragmentAddFile extends Fragment {
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
             imgBtn.setBackground(bitmapDrawable);
-            selectScreen.setVisibility(View.GONE);
+            selectScreen.setVisibility(View.INVISIBLE);
             desc.setVisibility(View.VISIBLE);
             btnSend.setVisibility(View.VISIBLE);
             btnClose.setVisibility(View.VISIBLE);
@@ -108,17 +112,17 @@ public class MainFragmentAddFile extends Fragment {
                 ist.setText(Config.BASE_URL);
             }
 
-            note.setVisibility(View.GONE);
+            note.setVisibility(View.INVISIBLE);
 
             // кнопка удалить
             imgDelete.setOnClickListener(v -> {
                 imgBtn.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.outline_image_24));
-                imgDelete.setVisibility(View.GONE);
+                imgDelete.setVisibility(View.INVISIBLE);
                 selectScreen.setVisibility(View.VISIBLE);
-                btnSend.setVisibility(View.GONE);
-                btnClose.setVisibility(View.GONE);
+                btnSend.setVisibility(View.INVISIBLE);
+                btnClose.setVisibility(View.INVISIBLE);
                 requestToServer(Config.DELETE_URL, screen);
-                desc.setVisibility(View.GONE);
+                desc.setVisibility(View.INVISIBLE);
             });
 
             // кнопка Закрыть
@@ -223,33 +227,38 @@ public class MainFragmentAddFile extends Fragment {
         login_name = AppController.getInstance().userName(null);
         if (login_name == null) MainActivity.navController.navigate(R.id.nav_home);
 
-        Spinner razdelList = (Spinner) binding.razdel;
-        razdelList.setVisibility(View.GONE);
+        Spinner razdelList = binding.razdel;
+        razdelList.setVisibility(View.INVISIBLE);
         title = binding.title;
+
+        NestedScrollView sv = binding.scroll;
+        sv.post(() -> sv.fullScroll(View.FOCUS_UP));
 
         ist = binding.ist;
 
         istFrame = binding.istLayout;
-        istFrame.setVisibility(View.GONE);
+        istFrame.setVisibility(View.INVISIBLE);
 
         imgDelete = binding.imgDelete;
 
         screenFrame = binding.screen;
-        screenFrame.setVisibility(View.GONE);
+        screenFrame.setVisibility(View.INVISIBLE);
 
         selectScreen = binding.screenText;
 
         btnClose = binding.dismiss;
         btnSend = binding.save;
 
-        btnSend.setVisibility(View.GONE);
-        btnClose.setVisibility(View.GONE);
+        btnSend.setVisibility(View.INVISIBLE);
+        btnClose.setVisibility(View.INVISIBLE);
 
         imgBtn = binding.imgBtn;
         Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         SearchView searchView = toolbar.findViewById(R.id.action_search);
         searchView.setVisibility(View.INVISIBLE);
-        
+        title.requestFocus();
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(title, InputMethodManager.SHOW_IMPLICIT);
         // название файла
         title.setOnEditorActionListener(
                 (v, actionId, event) -> {
@@ -264,6 +273,8 @@ public class MainFragmentAddFile extends Fragment {
                                 Toast.makeText(requireContext(), getString(R.string.title_retry), Toast.LENGTH_SHORT).show();
                             }else {
                                 razdelList.setVisibility(View.VISIBLE);
+                                imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                                imm.hideSoftInputFromWindow(title.getWindowToken(), 0);
                             }
 
                             return true;
@@ -274,12 +285,12 @@ public class MainFragmentAddFile extends Fragment {
         );
 
 
-        categoryList = (Spinner) binding.categories;
-        categoryList.setVisibility(View.GONE);
+        categoryList = binding.categories;
+        categoryList.setVisibility(View.INVISIBLE);
 
         desc = binding.desc;
         catalog = binding.catalog;
-        desc.setVisibility(View.GONE);
+        desc.setVisibility(View.INVISIBLE);
 
         note = binding.note;
         note.setMovementMethod(LinkMovementMethod.getInstance());
@@ -304,18 +315,27 @@ public class MainFragmentAddFile extends Fragment {
                     }
                     if (position == 2) {
                         razdel = Config.GALLERY_RAZDEL;
-                        istFrame.setVisibility(View.GONE);
+                        istFrame.setVisibility(View.INVISIBLE);
                         listFeedRazdel.add(razdel);
                     }
                     if (position == 3) {
                         razdel = Config.BLOG_RAZDEL;
                         listFeedRazdel.add(razdel);
-                        istFrame.setVisibility(View.GONE);
+                        istFrame.setVisibility(View.INVISIBLE);
                     }
                     if (position == 4) {
                         razdel = Config.ARTICLES_RAZDEL;
-                        istFrame.setVisibility(View.GONE);
+                        istFrame.setVisibility(View.INVISIBLE);
                         listFeedRazdel.add(razdel);
+                    }
+                    if (position == 5) {
+
+                        razdel = Config.COMMENTS_RAZDEL;
+                        istFrame.setVisibility(View.INVISIBLE);
+                        if (AppController.getInstance().isUserGroup() != 1) {
+                            razdel = Config.NEWS_RAZDEL;
+                            listFeedRazdel.add(Config.NEWS_RAZDEL);
+                        }
                     }
                     getData();
                 }
@@ -387,7 +407,7 @@ public class MainFragmentAddFile extends Fragment {
 
                                     if (listFeedRazdel.get(0).equals(Config.NEWS_RAZDEL)) {
                                         istFrame.setVisibility(View.VISIBLE);
-                                    } else istFrame.setVisibility(View.GONE);
+                                    } else istFrame.setVisibility(View.INVISIBLE);
 
                                     // загрузка скриншота
                                     imgBtn.setOnClickListener(v -> {

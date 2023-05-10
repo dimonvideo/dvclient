@@ -1,6 +1,8 @@
 package com.dimonvideo.client.ui.main;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,6 +88,7 @@ public class MainFragment extends Fragment  {
         final boolean is_comment = AppController.getInstance().isCommentTab();
         String login = AppController.getInstance().userName("");
         final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
+        final boolean is_more_odob = AppController.getInstance().isMoreOdob();
 
         TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
@@ -96,7 +99,7 @@ public class MainFragment extends Fragment  {
         tabTiles.add(getString(R.string.tab_last));
         tabIcons.add(R.drawable.baseline_home_24);
         if (is_more)  {
-            tabTiles.add(getString(R.string.tab_details));
+            if (!is_more_odob) tabTiles.add(getString(R.string.tab_details)); else tabTiles.add(getString(R.string.tab_waiting));
             tabIcons.add(R.drawable.outline_info_24);
         }
         tabTiles.add(getString(R.string.tab_categories));
@@ -111,14 +114,14 @@ public class MainFragment extends Fragment  {
         }
         adapt.clearList();
         adapt.addFragment(new MainFragmentContent());
-        if (is_more) adapt.addFragment(new MainFragmentHorizontal());
+        if (is_more) adapt.addFragment(new MainFragmentInfo());
         adapt.addFragment(new MainFragmentCats());
         if (login.length() > 2 && is_favor) adapt.addFragment(new MainFragmentFav());
         if (is_comment) adapt.addFragment(new MainFragmentComments());
 
 
         viewPager.setAdapter(adapt);
-        viewPager.setCurrentItem(0,true);
+        viewPager.setCurrentItem(0,false);
         viewPager.setOffscreenPageLimit(2);
 
         TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
@@ -132,7 +135,7 @@ public class MainFragment extends Fragment  {
         tabLayoutMediator.attach();
 
         if (this.getArguments() != null) {
-            viewPager.setCurrentItem(0,true);
+            viewPager.post(() -> viewPager.setCurrentItem(0));
         }
 
         tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -198,6 +201,22 @@ public class MainFragment extends Fragment  {
         EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
 
         NetworkUtils.getOprosTitle(opros, requireContext());
+
+        // открываем раздел из dvadmin
+        Intent intent_admin = requireActivity().getIntent();
+        if (intent_admin != null) {
+
+            String action_admin = intent_admin.getStringExtra("action_admin");
+
+            Log.e(Config.TAG, "DVAdmin intent in fragment: " + action_admin);
+
+            if (action_admin != null) {
+                if (is_more) {
+                    viewPager.post(() -> viewPager.setCurrentItem(1));
+                }
+
+            }
+        }
 
     }
 

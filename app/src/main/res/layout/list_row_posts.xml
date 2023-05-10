@@ -71,12 +71,7 @@
         android:textAppearance="@android:style/TextAppearance.Small"
         android:textSize="@dimen/text"/>
 
-    <include
-        layout="@layout/post"
-        android:id="@+id/post"
-        android:layout_below="@id/listtext"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+
 
     <!-- autor -->
     <TextView
@@ -86,7 +81,7 @@
         android:layout_marginTop="5dp"
         android:gravity="center_vertical|end"
         android:textColor="@color/text"
-        android:layout_below="@id/post"
+        android:layout_below="@id/listtext"
         android:textSize="@dimen/text"
         android:text="@string/menu_forum"
         tools:ignore="SpUsage" />

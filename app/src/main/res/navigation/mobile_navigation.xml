@@ -225,5 +225,19 @@
             android:id="@+id/action_nav_suploader_to_nav_home"
             app:destination="@id/nav_home" />
     </fragment>
-
+    <fragment
+        android:id="@+id/nav_device"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
+        android:label="@string/device"
+        android:tag="device"
+        tools:layout="@layout/fragment_home">
+        <argument
+            android:name="category"
+            app:argType="string"
+            android:defaultValue="17"
+            />
+        <action
+            android:id="@+id/action_nav_device_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 </navigation>

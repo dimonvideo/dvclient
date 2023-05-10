@@ -21,7 +21,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.adater.AdapterMainFull;
+import com.dimonvideo.client.adater.AdapterMainRazdelInfo;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
@@ -41,11 +41,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayout.OnRefreshListener   {
+public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnRefreshListener   {
 
     private List<Feed> listFeed;
     private RecyclerView recyclerView;
-    private AdapterMainFull adapter;
+    private AdapterMainRazdelInfo adapter;
     private SwipeRefreshLayout swipLayout;
     private ProgressBar progressBar, ProgressBarBottom;
     private int requestCount = 1;
@@ -106,7 +106,7 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
         // получение данных
         getData();
 
-        adapter = new AdapterMainFull(listFeed, getContext());
+        adapter = new AdapterMainRazdelInfo(listFeed, getContext());
 
         recyclerView.setAdapter(adapter);
 
@@ -154,12 +154,12 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
 
         String url_final = url + requestCount + "&c=placeholder," + category_string + s_url + st_url;
 
-        Log.e("---", "url_final: "+url_final);
-
+        Log.e("---", url_final);
         return new JsonArrayRequest(url_final,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
+                    Log.e("---", "response info: "+response);
                     for (int i = 0; i < response.length(); i++) {
                             Feed jsonFeed = new Feed();
                             JSONObject json;
@@ -182,6 +182,7 @@ public class MainFragmentHorizontal extends Fragment implements SwipeRefreshLayo
                                 jsonFeed.setId(json.getInt(Config.TAG_ID));
                                 jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                                 jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
+                                jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }

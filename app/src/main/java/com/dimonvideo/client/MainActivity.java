@@ -104,6 +104,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        final String is_dark = AppController.getInstance().isDark();
+        if (is_dark.equals("true"))
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        else if (is_dark.equals("system"))
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
+        super.onCreate(savedInstanceState);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -111,14 +122,12 @@ public class MainActivity extends AppCompatActivity {
         // очистка старых записей
         new Handler().postDelayed(Provider::clearDB_OLD, 3000);
 
-        final String is_dark = AppController.getInstance().isDark();
         final String main_razdel = AppController.getInstance().mainRazdel();
         final String image_url = AppController.getInstance().imageUrl();
         final String password = AppController.getInstance().userPassword();
         final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
         final String is_pm = AppController.getInstance().isPm();
         final int auth_state = AppController.getInstance().isAuth();
-
 
         final boolean is_uploader = AppController.getInstance().isUploader();
         final boolean is_android = AppController.getInstance().isAndroid();
@@ -132,18 +141,8 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_tracker = AppController.getInstance().isTracker();
         final boolean is_blog = AppController.getInstance().isBlog();
         final boolean is_suploader = AppController.getInstance().isSuploader();
+        final boolean is_device = AppController.getInstance().isDevice();
         final boolean is_add_file = AppController.getInstance().isAddFile();
-
-        if (is_dark.equals("true"))
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        else if (is_dark.equals("system"))
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-        else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
-        super.onCreate(savedInstanceState);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
 
         fab_badge = binding.appBarMain.fabBadge;
 
@@ -175,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_forum, R.id.nav_news,
                 R.id.nav_vuploader, R.id.nav_muzon, R.id.nav_books, R.id.nav_uploader,
-                R.id.nav_android, R.id.nav_articles, R.id.nav_tracker, R.id.nav_blog, R.id.nav_suploader)
+                R.id.nav_android, R.id.nav_articles, R.id.nav_tracker, R.id.nav_blog, R.id.nav_suploader, R.id.nav_device)
                 .setOpenableLayout(drawerLayout)
                 .build();
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -357,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
         if (!is_tracker) navigationView.getMenu().removeItem(R.id.nav_tracker);
         if (!is_blog) navigationView.getMenu().removeItem(R.id.nav_blog);
         if (!is_suploader) navigationView.getMenu().removeItem(R.id.nav_suploader);
+        if (!is_device) navigationView.getMenu().removeItem(R.id.nav_device);
         if ((is_pm.equals("off")) || (auth_state != 1))
             navigationView.getMenu().removeItem(R.id.nav_pm);
         if ((auth_state != 1) || (!is_add_file)) navigationView.getMenu().removeItem(R.id.nav_add);
@@ -386,6 +386,27 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+        // открываем раздел из dvadmin
+        Intent intent_admin = getIntent();
+        if (intent_admin != null) {
+
+            String action_admin = intent_admin.getStringExtra("action_admin");
+
+            Log.e(Config.TAG, "DVAdmin intent: " + action_admin);
+
+            if (action_admin != null) {
+
+                if (action_admin.equalsIgnoreCase(Config.UPLOADER_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_uploader));
+                if (action_admin.equalsIgnoreCase(Config.VUPLOADER_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_vuploader));
+                if (action_admin.equalsIgnoreCase(Config.NEWS_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_news));
+                if (action_admin.equalsIgnoreCase(Config.GALLERY_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_gallery));
+                if (action_admin.equalsIgnoreCase(Config.MUZON_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_muzon));
+                if (action_admin.equalsIgnoreCase(Config.DEVICE_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_device));
+
+            }
+        }
+
         // написание личных сообщений
         FloatingActionButton fab = MainActivity.binding.appBarMain.fab;
         TextView fabBage = MainActivity.binding.appBarMain.fabBadge;
@@ -504,7 +525,7 @@ public class MainActivity extends AppCompatActivity {
                 homeFrag.setArguments(bundle);
 
                 fragmentManager.beginTransaction()
-                        .replace(R.id.nav_host_fragment, homeFrag)
+                        .add(R.id.nav_host_fragment, homeFrag)
                         .commit();
             }
             return false;

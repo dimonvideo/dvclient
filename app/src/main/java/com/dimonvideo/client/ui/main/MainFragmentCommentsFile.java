@@ -1,6 +1,7 @@
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -61,24 +63,33 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
     @SuppressLint("StaticFieldLeak")
     public static CommentsListBinding binding;
     private String story = null;
-    private EditText textInput;
     private ImageView imagePick;
+    private EditText textInput;
 
     public MainFragmentCommentsFile(){
         // Required empty public constructor
     }
 
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
         razdel = event.razdel;
         story = event.story;
         image_uploaded = event.image_uploaded;
         Bitmap bitmap = event.bitmap;
+        String cit = event.action;
         // если скриншот загружен на сервер
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
             imagePick.setBackground(bitmapDrawable);
             imagePick.setBackgroundTintList(null);
+        }
+        // если скриншот загружен на сервер
+        if (cit != null) {
+            textInput.setText(cit);
+            textInput.setSelection(textInput.getText().length());
+            textInput.requestFocus();
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(textInput, InputMethodManager.SHOW_IMPLICIT);
         }
     }
 
@@ -151,7 +162,11 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
             String text = textInput.getText().toString();
             NetworkUtils.sendPm(getContext(), Integer.parseInt(lid), BBCodes.imageCodes(text, image_uploaded, razdel), 20, razdel, 0);
             textInput.getText().clear();
-            dismiss();
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(textInput.getWindowToken(), 0);
+            imagePick.setVisibility(View.GONE);
+            requestCount = 1;
+            getData();
         });
 
         imagePick = binding.post.imgBtn;
@@ -210,7 +225,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        ProgressBarBottom.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
         AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }

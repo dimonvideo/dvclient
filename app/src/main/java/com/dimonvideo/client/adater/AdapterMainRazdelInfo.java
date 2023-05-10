@@ -8,10 +8,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +23,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -42,19 +37,18 @@ import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
-import com.dimonvideo.client.util.OpenBottomSheet;
+import com.dimonvideo.client.ui.main.MainFragmentViewFile;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
-import com.google.android.material.snackbar.Snackbar;
 import com.like.LikeButton;
-import com.like.OnLikeListener;
 
-import org.xml.sax.XMLReader;
-
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
-public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHolder> {
+public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazdelInfo.ViewHolder> {
 
     private Context context;
 
@@ -62,7 +56,7 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
     private final List<Feed> jsonFeed;
 
     //Constructor of this class
-    public AdapterMainFull(List<Feed> jsonFeed, Context context) {
+    public AdapterMainRazdelInfo(List<Feed> jsonFeed, Context context) {
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
@@ -148,18 +142,15 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
         holder.textViewName.setText(feed.getUser());
         holder.textViewComments.setOnClickListener(view -> {
             String comm_url = Config.COMMENTS_READS_URL + feed.getRazdel() + "&lid=" + feed.getId() + "&min=";
-            Fragment fragment = new MainFragmentCommentsFile();
+            MainFragmentCommentsFile fragment = new MainFragmentCommentsFile();
             Bundle bundle = new Bundle();
             bundle.putString(Config.TAG_TITLE, feed.getTitle());
-            bundle.putString(Config.TAG_ID, String.valueOf(feed.getId()));
+            bundle.putString(Config.TAG_ID, String.valueOf(lid));
             bundle.putString(Config.TAG_LINK, comm_url);
-            bundle.putString(Config.TAG_RAZDEL, feed.getRazdel());
+            bundle.putString(Config.TAG_RAZDEL, razdel);
             fragment.setArguments(bundle);
-            FragmentManager fragmentManager = ((AppCompatActivity)context).getSupportFragmentManager();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.addToBackStack(null);
-            ft.replace(R.id.container_frag, fragment);
-            ft.commit();
+            fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentCommentsFile");
+
 
         });
         if (feed.getComments() == 0) {
@@ -174,16 +165,16 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
 
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            OpenBottomSheet.openFile(razdel, view, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(), feed.getCategory());
+            openFile(razdel, lid, feed.getComments(), feed.getTitle(),
+                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(), feed.getCategory(), feed.getStatus());
 
 
         });
 
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            OpenBottomSheet.openFile(razdel, view, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(), feed.getCategory());
+            openFile(razdel, lid, feed.getComments(), feed.getTitle(),
+                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(), feed.getCategory(), feed.getStatus());
         });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, feed.getImageUrl()));
@@ -207,6 +198,16 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
             holder.btn_download.setVisibility(View.GONE);
             holder.btn_share.setVisibility(View.GONE);
             holder.btn_mod.setVisibility(View.GONE);
+            holder.btn_odob.setVisibility(View.GONE);
+        }
+
+        if ((feed.getStatus() == 0) && (AppController.getInstance().isUserGroup() <= 2)){
+            holder.btn_odob.setVisibility(View.VISIBLE);
+            holder.btn_odob.setOnClickListener(v -> {
+                NetworkUtils.getOdob(razdel, lid);
+                jsonFeed.remove(position);
+                notifyItemRemoved(position);
+            });
         }
 
         // dialog menu
@@ -255,6 +256,29 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
             }
 
         });
+
+    }
+
+    private void openFile(String razdel, int lid, int comments, String title, String user, int plus, String link, String mod, String size, String imageUrl,
+                          String text, String date, String category, int status) {
+            MainFragmentViewFile fragment = new MainFragmentViewFile();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_RAZDEL, razdel);
+            bundle.putString(Config.TAG_TITLE, title);
+            bundle.putString(Config.TAG_ID, String.valueOf(lid));
+            bundle.putString(Config.TAG_DATE, date);
+            bundle.putString(Config.TAG_CATEGORY, category);
+            bundle.putInt(Config.TAG_PLUS, plus);
+            bundle.putString(Config.TAG_USER, user);
+            bundle.putString(Config.TAG_TEXT, text);
+            bundle.putString(Config.TAG_IMAGE_URL, imageUrl);
+            bundle.putString(Config.TAG_MOD, mod);
+            bundle.putInt(Config.TAG_COMMENTS, comments);
+            bundle.putInt(Config.TAG_STATUS, status);
+            bundle.putString(Config.TAG_LINK, link);
+            bundle.putString(Config.TAG_SIZE, size);
+            fragment.setArguments(bundle);
+            fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentViewFile");
 
     }
 
@@ -336,7 +360,7 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
         public ImageView imageView, rating_logo, status_logo, fav_star, small_share, small_download;
         public TextView textViewText;
         public String url;
-        public Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share;
+        public Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share, btn_odob;
         public ProgressBar progressBar;
         public LikeButton likeButton, starButton;
         public LinearLayout name;
@@ -362,6 +386,7 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
             btn_mod = itemView.findViewById(R.id.btn_mod);
             btn_share = itemView.findViewById(R.id.btn_share);
             btn_mp4 = itemView.findViewById(R.id.btn_mp4);
+            btn_odob = itemView.findViewById(R.id.btn_odob);
             progressBar = itemView.findViewById(R.id.progressBar);
             likeButton = itemView.findViewById(R.id.thumb_button);
             starButton = itemView.findViewById(R.id.star_button);
@@ -372,4 +397,5 @@ public class AdapterMainFull extends RecyclerView.Adapter<AdapterMainFull.ViewHo
         }
 
     }
+
 }

@@ -224,6 +224,7 @@
         <item>@string/menu_gallery</item>
         <item>@string/blog</item>
         <item>@string/articles</item>
+        <item>@string/main</item>
     </string-array>
 
     <string name="theme_system">Follow system</string>

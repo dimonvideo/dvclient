@@ -16,6 +16,7 @@ public class Config {
     public static final String TRACKER_RAZDEL = "tracker";
     public static final String BLOG_RAZDEL = "blog";
     public static final String SUPLOADER_RAZDEL = "suploader";
+    public static final String DEVICE_RAZDEL = "device";
     public static final String MEMBERS_RAZDEL = "members";
 
     //Data URL
@@ -43,6 +44,8 @@ public class Config {
     public static final String BLOG_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+BLOG_RAZDEL+"&min=";
     public static final String SUPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+SUPLOADER_RAZDEL+"&min=";
     public static final String SUPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+SUPLOADER_RAZDEL+"&min=";
+    public static final String DEVICE_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+DEVICE_RAZDEL+"&min=";
+    public static final String DEVICE_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+DEVICE_URL+"&min=";
     public static final String MEMBERS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+MEMBERS_RAZDEL+"&min=";
     public static final String MEMBERS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+MEMBERS_RAZDEL+"&min=";
     public static final String FORUM_FEED_URL = BASE_URL + "/apps/dvclient.php?op=5&min=";
@@ -95,6 +98,7 @@ public class Config {
     public static final String TAG_REP = "reputation";
     public static final String TAG_REG = "reg_date";
     public static final String TAG_POST_ID = "post_id";
+    public static final String TAG_STATUS = "status";
 
     // Public store url
     public static final String GOOGLE_PLAY_URL = "https://play.google.com/store/apps/dev?id=6091758746633814135";
@@ -123,6 +127,7 @@ public class Config {
     public static final String THUMB_URL = "https://msg.dimonvideo.ru/api/";
     public static final String VOTE_URL = BASE_URL + "/apps/dvclient.php?op=16";
     public static final String VOTE_URL_VIEW = BASE_URL + "/apps/dvclient.php?op=17&u=";
+    public static final String APPROVE_URL = BASE_URL + "/apps/dvclient.php?op=19&razdel=";
 
 }
 

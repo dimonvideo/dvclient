@@ -386,6 +386,17 @@
 
     </PreferenceCategory>
 
+    <!-- device Preference -->
+
+    <PreferenceCategory app:title="@string/device">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dvc_device"
+            app:title="@string/device" />
+
+    </PreferenceCategory>
+
     <!-- addFile Preference -->
     <PreferenceCategory app:title="@string/menu_add_file">
 

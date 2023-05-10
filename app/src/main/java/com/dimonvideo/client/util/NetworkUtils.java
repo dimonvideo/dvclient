@@ -438,6 +438,37 @@ public class NetworkUtils {
             AppController.getInstance().addToRequestQueue(jsonArrayRequest);
         }
 
+    public static void getOdob(String razdel, int lid){
 
+        View view = MainActivity.binding.getRoot();
+        String password = AppController.getInstance().userPassword();
+        String login = AppController.getInstance().userName("");
+        try {
+            password = URLEncoder.encode(password, "utf-8");
+            login = URLEncoder.encode(login, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.APPROVE_URL+razdel+"&u="+login+"&p="+password+"&lid="+lid,
+                response -> {
+                    for (int i = 0; i < response.length(); i++) {
+                        Feed jsonFeed = new Feed();
+                        JSONObject json;
+                        try {
+                            json = response.getJSONObject(i);
+                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                            Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                },
+                error -> {
+
+                });
+
+        AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+    }
 
 }

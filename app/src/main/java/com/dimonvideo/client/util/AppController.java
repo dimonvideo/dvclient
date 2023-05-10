@@ -175,6 +175,10 @@ public class AppController extends Application {
         return getSharedPreferences().getBoolean("dvc_suploader", false);
     }
 
+    public boolean isDevice() {
+        return getSharedPreferences().getBoolean("dvc_device", false);
+    }
+
     public boolean isAspectRatio() {
         return getSharedPreferences().getBoolean("dvc_vuploader_aspect", false);
     }

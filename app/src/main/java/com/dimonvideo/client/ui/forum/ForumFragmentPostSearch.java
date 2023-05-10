@@ -167,7 +167,7 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        ProgressBarBottom.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
         AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }

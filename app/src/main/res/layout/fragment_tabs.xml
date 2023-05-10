@@ -23,6 +23,7 @@
     <RelativeLayout
         android:layout_height="wrap_content"
         android:layout_gravity="center|center_vertical"
+        android:background="@color/colorList"
         android:layout_marginTop="40dp"
         android:layout_width="match_parent">
     <TextView

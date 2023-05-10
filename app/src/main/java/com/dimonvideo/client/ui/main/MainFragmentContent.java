@@ -248,6 +248,7 @@ public class MainFragmentContent extends Fragment {
 
         return new JsonArrayRequest(url_final,
                 response -> {
+                    Log.e("---", "response: "+response);
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
 
@@ -281,6 +282,7 @@ public class MainFragmentContent extends Fragment {
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                             jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
+                            jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
 
 
                             // сохраняем в базу результат для оффлайн просмотра

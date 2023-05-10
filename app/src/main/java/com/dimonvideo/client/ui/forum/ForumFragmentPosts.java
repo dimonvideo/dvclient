@@ -67,21 +67,32 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     @SuppressLint("StaticFieldLeak")
     public static CommentsListBinding binding;
     private String image_uploaded, razdel;
+    private EditText textInput;
 
     public ForumFragmentPosts(){
         // Required empty public constructor
     }
 
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         razdel = event.razdel;
         Bitmap bitmap = event.bitmap;
         image_uploaded = event.image_uploaded;
+        String cit = event.action;
+
         // если скриншот загружен на сервер
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
             imagePick.setBackground(bitmapDrawable);
             imagePick.setBackgroundTintList(null);
+        }
+        // если скриншот загружен на сервер
+        if (cit != null) {
+            textInput.setText(cit);
+            textInput.setSelection(textInput.getText().length());
+            textInput.requestFocus();
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(textInput, InputMethodManager.SHOW_IMPLICIT);
         }
     }
 
@@ -160,12 +171,14 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
         ImageButton btnSend = binding.post.btnSend;
-        EditText textInput = binding.post.textInput;
+        textInput = binding.post.textInput;
 
         btnSend.setOnClickListener(v -> {
             String text = textInput.getText().toString();
             NetworkUtils.sendPm(getContext(), Integer.parseInt(tid), BBCodes.imageCodes(text, image_uploaded, razdel), 2, null, 0);
             textInput.getText().clear();
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(textInput.getWindowToken(), 0);
             imagePick.setVisibility(View.GONE);
             requestCount = 1;
             getData();
@@ -258,7 +271,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
 
     // получение данных и увеличение номера страницы
     private void getData() {
-        ProgressBarBottom.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
         AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }

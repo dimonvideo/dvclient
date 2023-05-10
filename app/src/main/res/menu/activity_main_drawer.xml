@@ -82,6 +82,10 @@
             android:checkable="true"
             android:icon="@drawable/baseline_download_for_offline_24"
             android:title="@string/suploader" />
-
+        <item
+            android:id="@+id/nav_device"
+            android:checkable="true"
+            android:icon="@drawable/outline_phone_android_24"
+            android:title="@string/device" />
     </group>
 </menu>

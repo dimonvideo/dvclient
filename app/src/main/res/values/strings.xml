@@ -206,4 +206,8 @@
     <string name="is_more_odob">Replace More by Waiting</string>
     <string name="is_more_odob_sum">replace more tab with waiting tab</string>
     <string name="download_complete">Download complete</string>
+    <string name="device">Devices catalog</string>
+    <string name="tab_waiting">Waiting</string>
+    <string name="odob">Approve</string>
+    <string name="main">Main</string>
 </resources>

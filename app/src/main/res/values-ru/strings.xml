@@ -124,6 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
+        - интеграция с DVAdmin и возможность смотреть ожидающие файлы (а для помошников их можно одобрять)\n
         - отображается Опрос сайта, можно голосовать в программе.\n
         - возможность прикреплять изображения к ответам, комментариям и личным сообщениям.\n
         - возможность добавлять на сайт Новости, Картинки, Статьи, записи в Блог.\n
@@ -206,5 +207,9 @@
     <string name="is_more_odob">Ожидающие во вкладке Подробно</string>
     <string name="is_more_odob_sum">еще не одобренные файлы будут во вкладке Подробно</string>
     <string name="download_complete">Загрузка завершена</string>
+    <string name="device">Каталог устройств</string>
+    <string name="tab_waiting">Ожидающие</string>
+    <string name="odob">Одобрить</string>
+    <string name="main">Главное</string>
 
 </resources>

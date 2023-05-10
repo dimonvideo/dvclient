@@ -177,13 +177,28 @@
             tools:ignore="RtlHardcoded"
             android:visibility="gone"/>
     </LinearLayout>
+        <Button
+            android:id="@+id/btn_odob"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            android:background="@drawable/btn_green_shape"
+            android:layout_below="@id/like_layout"
+            android:textColor="@color/text"
+            android:text="@string/odob"
+            android:textStyle="bold"/>
 
     <Button
         android:id="@+id/btn_comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_below="@id/like_layout"
+        android:layout_below="@id/btn_odob"
         android:layout_marginStart="10dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="10dp"

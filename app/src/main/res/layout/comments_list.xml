@@ -16,125 +16,138 @@
             android:id="@+id/border"
             android:layout_width="match_parent"
             android:layout_height="3dp"
+            android:layout_alignParentStart="true"
             android:background="@color/colorAccent" />
 
-        <TextView
-            android:id="@+id/title"
+        <RelativeLayout
+            android:id="@+id/title_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/border"
-            android:layout_alignParentStart="true"
-            android:layout_margin="10dp"
-            android:layout_toStartOf="@id/search_icon"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textStyle="bold"
-            android:textColor="@color/text"
-            android:textSize="@dimen/title" />
-
-        <EditText
-            android:id="@+id/search"
-            android:layout_width="match_parent"
-            android:layout_alignParentStart="true"
-            android:layout_height="wrap_content"
-            android:autofillHints="@string/search"
-            android:background="@color/white"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:visibility="gone"
-            android:layout_toStartOf="@id/dismiss"
-            android:imeOptions="actionSearch"
-            android:drawableEnd="@android:drawable/ic_menu_search"
-            android:hint="@string/search"
-            android:inputType="text" >
-            <requestFocus/>
-        </EditText>
-        <ImageView
-            android:id="@+id/search_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_toStartOf="@id/dismiss"
-            android:background="@android:drawable/ic_menu_search"
-            android:contentDescription="@string/no" />
-        <ImageView
-            android:id="@+id/dismiss"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:background="@android:drawable/ic_menu_close_clear_cancel"
-            android:contentDescription="@string/no" />
-
-        <View
-            android:id="@+id/border2"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:layout_below="@id/title"
-            android:background="@color/colorAccent"/>
-
-        <include
-            android:id="@+id/post"
-            layout="@layout/post"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/border2" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/post"
-            android:background="@color/colorList"
-            android:clipToPadding="false"
-            android:focusableInTouchMode="true"
-            android:scrollbars="vertical" />
-
-        <TextView
-            android:id="@+id/empty_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="@string/no_data_available"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/linearEmpty"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="30dp"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:background="@color/colorPrimary"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textEmpty"
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_toStartOf="@id/search_icon"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text"
+                android:textSize="@dimen/title"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/dismiss"
+                android:autofillHints="@string/search"
+                android:background="@color/white"
+                android:drawableEnd="@android:drawable/ic_menu_search"
+                android:hint="@string/search"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:visibility="gone">
+
+                <requestFocus />
+            </EditText>
+
+            <ImageView
+                android:id="@+id/search_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/dismiss"
+                android:background="@android:drawable/ic_menu_search"
+                android:contentDescription="@string/no" />
+
+            <ImageView
+                android:id="@+id/dismiss"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@android:drawable/ic_menu_close_clear_cancel"
+                android:contentDescription="@string/no" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/title_layout">
+
+            <include
+                android:id="@+id/post"
+                layout="@layout/post"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/post"
+                android:background="@color/colorList"
+                android:clipToPadding="false"
+                android:focusableInTouchMode="true"
+                android:scrollbars="vertical" />
+
+            <TextView
+                android:id="@+id/empty_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/no_data_available"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/linearEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_marginTop="30dp"
-                android:text="@string/dialog_no_result"
-                android:textColor="@color/colorAccent" />
-        </LinearLayout>
+                android:orientation="vertical"
+                android:visibility="gone">
 
-        <ProgressBar
-            android:id="@+id/progressbar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="visible" />
+                <TextView
+                    android:id="@+id/textEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/dialog_no_result"
+                    android:textColor="@color/colorAccent" />
+            </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/ProgressBarBottom"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_alignParentBottom="true"
-            android:layout_centerInParent="true"
-            android:visibility="gone" />
+            <ProgressBar
+                android:id="@+id/progressbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:visibility="visible" />
 
+            <ProgressBar
+                android:id="@+id/ProgressBarBottom"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+        </RelativeLayout>
 
     </RelativeLayout>
 

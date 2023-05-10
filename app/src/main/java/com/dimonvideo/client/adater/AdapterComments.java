@@ -92,7 +92,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        //Getting the particular item from the list
         final FeedForum feed = jsonFeed.get(position);
 
         razdel = feed.getRazdel();
@@ -121,19 +120,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         holder.textViewCategory.setText(feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);
-
-        if ((feed.getNewtopic() == 1) && (!password.equals("null")))
-            holder.post_layout.setVisibility(View.GONE);
-
-        holder.imagePick.setVisibility(View.GONE);
-
-        // отправка ответа
-        holder.btnSend.setOnClickListener(v -> {
-            String text = holder.textInput.getText().toString();
-            NetworkUtils.sendPm(context, feed.getId(), text, 20, feed.getState(), 0);
-            holder.post_layout.setVisibility(View.GONE);
-            notifyDataSetChanged();
-        });
 
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
@@ -165,7 +151,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
             if ((auth_state > 0) && (feed.getId() > 0)) {
-                postComment(holder, feed);
+                postComment(feed);
             } else {
                 openComments(lid, feed.getTitle(), razdel);
             }
@@ -174,16 +160,12 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         holder.itemView.setOnClickListener(view -> {
             if ((auth_state > 0) && (feed.getId() > 0)) {
-                postComment(holder, feed);
+                postComment(feed);
             } else {
                 openComments(lid, feed.getTitle(), razdel);
             }
 
         });
-
-        if (feed.getMin()>0) {
-            holder.post_layout.setVisibility(View.GONE);
-        }
 
         // show dialog
         holder.itemView.setOnLongClickListener(view -> {
@@ -197,14 +179,8 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     }
 
     @SuppressLint("SetTextI18n")
-    private static void postComment(ViewHolder holder, FeedForum feed) {
-        if (holder.post_layout.getVisibility()==View.VISIBLE) holder.post_layout.setVisibility(View.GONE); else holder.post_layout.setVisibility(View.VISIBLE);
-        LinearLayout post_layout = MainFragmentCommentsFile.binding.post.linearLayout1;
-        post_layout.setVisibility(View.GONE);
-        holder.textInput.setText("[b]" + feed.getUser() + "[/b], ");
-        holder.textInput.setSelection(holder.textInput.getText().length());
-        holder.textInput.setFocusableInTouchMode(true);
-        holder.textInput.requestFocus();
+    private static void postComment(FeedForum feed) {
+        EventBus.getDefault().post(new MessageEvent(feed.getRazdel(), null, null, null, "[b]" + feed.getUser() + "[/b], ", null));
 
     }
 
@@ -261,8 +237,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;
         public TextView textViewText;
-        public LinearLayout post_layout;
-        public ImageButton btnSend;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
@@ -280,8 +254,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
             textViewDate = itemView.findViewById(R.id.date);
             textViewComments = itemView.findViewById(R.id.rating);
             textViewTitle = itemView.findViewById(R.id.title);
-            post_layout = itemView.findViewById(R.id.post);
-            btnSend = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
             textViewCategory = itemView.findViewById(R.id.category);
             textViewNames = itemView.findViewById(R.id.names);

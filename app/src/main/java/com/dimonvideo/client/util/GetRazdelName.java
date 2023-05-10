@@ -72,6 +72,11 @@ public class GetRazdelName {
                 search_url = Config.SUPLOADER_SEARCH_URL;
                 key = Config.SUPLOADER_RAZDEL;
             }
+            if (razdel.equals("17") || razdel.equals("device")) {
+                url = Config.DEVICE_URL;
+                search_url = Config.DEVICE_SEARCH_URL;
+                key = Config.DEVICE_RAZDEL;
+            }
         }
         switch (op) {
             case 1:
