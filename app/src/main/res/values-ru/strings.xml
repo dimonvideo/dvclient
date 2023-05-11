@@ -213,5 +213,7 @@
     <string name="odob">Одобрить</string>
     <string name="main">Главное</string>
     <string name="votes">Опросы</string>
+    <string name="predlog_vote">Предложи свой опрос</string>
+    <string name="results_vote">Результаты опросов</string>
 
 </resources>

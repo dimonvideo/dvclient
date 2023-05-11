@@ -211,4 +211,6 @@
     <string name="odob">Approve</string>
     <string name="main">Main</string>
     <string name="votes">Votes</string>
+    <string name="predlog_vote">New vote</string>
+    <string name="results_vote">Votes results</string>
 </resources>

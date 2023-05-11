@@ -9,15 +9,18 @@ import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.databinding.OprosListBinding;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ProgressHelper;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -27,6 +30,7 @@ import org.greenrobot.eventbus.EventBus;
 public class MainFragmentOpros extends BottomSheetDialogFragment {
     private OprosListBinding binding;
     private WebView webView;
+    private Button btn_new, btn_result;
 
 
     public MainFragmentOpros(){
@@ -87,6 +91,31 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
             }
         });
         webView.loadUrl(url);
+
+        btn_new = binding.predlog;
+        btn_result = binding.results;
+
+        btn_new.setOnClickListener(v -> {
+            ForumFragmentPosts fragment = new ForumFragmentPosts();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_TITLE, "Предложи опрос!");
+            bundle.putString(Config.TAG_ID, "1728149578");
+            bundle.putString(Config.TAG_RAZDEL, "8");
+            fragment.setArguments(bundle);
+            fragment.show(((AppCompatActivity)requireContext()).getSupportFragmentManager(), "ForumFragmentPosts");
+            dismiss();
+        });
+
+        btn_result.setOnClickListener(v -> {
+            ForumFragmentPosts fragment = new ForumFragmentPosts();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_TITLE, "Результаты опросов");
+            bundle.putString(Config.TAG_ID, "1728131216");
+            bundle.putString(Config.TAG_RAZDEL, "8");
+            fragment.setArguments(bundle);
+            fragment.show(((AppCompatActivity)requireContext()).getSupportFragmentManager(), "ForumFragmentPosts");
+            dismiss();
+        });
 
 
         ImageView imageDismiss = binding.dismiss;
