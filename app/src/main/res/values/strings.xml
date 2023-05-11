@@ -210,4 +210,5 @@
     <string name="tab_waiting">Waiting</string>
     <string name="odob">Approve</string>
     <string name="main">Main</string>
+    <string name="votes">Votes</string>
 </resources>

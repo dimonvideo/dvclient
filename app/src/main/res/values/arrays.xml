@@ -225,6 +225,7 @@
         <item>@string/blog</item>
         <item>@string/articles</item>
         <item>@string/main</item>
+        <item>@string/votes</item>
     </string-array>
 
     <string name="theme_system">Follow system</string>

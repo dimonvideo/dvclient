@@ -18,6 +18,7 @@ public class Config {
     public static final String SUPLOADER_RAZDEL = "suploader";
     public static final String DEVICE_RAZDEL = "device";
     public static final String MEMBERS_RAZDEL = "members";
+    public static final String VOTE_RAZDEL = "vote";
 
     //Data URL
     public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+COMMENTS_RAZDEL+"&min=";

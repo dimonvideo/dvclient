@@ -212,5 +212,6 @@
     <string name="tab_waiting">Ожидающие</string>
     <string name="odob">Одобрить</string>
     <string name="main">Главное</string>
+    <string name="votes">Опросы</string>
 
 </resources>

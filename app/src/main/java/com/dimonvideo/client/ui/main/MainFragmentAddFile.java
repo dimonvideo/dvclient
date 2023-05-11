@@ -329,13 +329,20 @@ public class MainFragmentAddFile extends Fragment {
                         listFeedRazdel.add(razdel);
                     }
                     if (position == 5) {
-
                         razdel = Config.COMMENTS_RAZDEL;
                         istFrame.setVisibility(View.INVISIBLE);
                         if (AppController.getInstance().isUserGroup() != 1) {
                             razdel = Config.NEWS_RAZDEL;
                             listFeedRazdel.add(Config.NEWS_RAZDEL);
-                        }
+                        } else listFeedRazdel.add(Config.NEWS_RAZDEL);
+                    }
+                    if (position == 6) {
+                        razdel = Config.VOTE_RAZDEL;
+                        istFrame.setVisibility(View.INVISIBLE);
+                        if (AppController.getInstance().isUserGroup() != 1) {
+                            razdel = Config.NEWS_RAZDEL;
+                            listFeedRazdel.add(Config.NEWS_RAZDEL);
+                        } else listFeedRazdel.add(Config.VOTE_RAZDEL);
                     }
                     getData();
                 }
