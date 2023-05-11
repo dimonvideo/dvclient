@@ -1,14 +1,11 @@
 package com.dimonvideo.client.adater;
 
-import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.Html;
@@ -16,12 +13,10 @@ import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -147,7 +142,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        final FeedPm Feed =  jsonFeed.get(position);
+        final FeedPm Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
 
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
@@ -174,7 +169,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
 
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             holder.itemView.setBackgroundColor(0x00000000);
@@ -184,7 +179,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
 
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             holder.itemView.setBackgroundColor(0x00000000);
@@ -200,7 +195,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         holder.send.setOnClickListener(v -> {
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
             holder.btns.setVisibility(View.GONE);
             String text = holder.textInput.getText().toString();
             NetworkUtils.sendPm(mContext, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
@@ -208,22 +203,22 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
         holder.send.setOnLongClickListener(v -> {
 
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed, position);
+            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
             holder.btns.setVisibility(View.GONE);
             String text = holder.textInput.getText().toString();
             NetworkUtils.sendPm(mContext, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
             try {
-                jsonFeed.remove(position);
+                jsonFeed.remove(holder.getBindingAdapterPosition());
             } catch (Throwable ignored) {}
             return true;
         });
         // show dialog
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position);
+            show_dialog(holder, holder.getBindingAdapterPosition());
             return true;
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            show_dialog(holder, position);
+            show_dialog(holder, holder.getBindingAdapterPosition());
             return true;
         });
 
@@ -233,7 +228,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 
     // show full
-    private void showFullText(ItemViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed, int position) {
+    private void showFullText(ItemViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed) {
         try {
             URLImageParser parser = new URLImageParser(holder.textViewText);
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new TagHandler());

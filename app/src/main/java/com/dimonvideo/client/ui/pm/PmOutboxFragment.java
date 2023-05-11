@@ -125,7 +125,7 @@ public class PmOutboxFragment extends Fragment implements SwipeRefreshLayout.OnR
                     if (requestCount == 1) {
                         listFeed.clear();
                         adapter.notifyDataSetChanged();
-                        recyclerView.scrollToPosition(0);
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
                     for (int i = 0; i < response.length(); i++) {
                         FeedPm jsonFeed = new FeedPm();

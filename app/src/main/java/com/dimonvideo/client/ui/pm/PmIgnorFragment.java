@@ -126,7 +126,7 @@ public class PmIgnorFragment extends Fragment implements SwipeRefreshLayout.OnRe
                     if (requestCount == 1) {
                         listFeed.clear();
                         adapter.notifyDataSetChanged();
-                        recyclerView.scrollToPosition(0);
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
                     for (int i = 0; i < response.length(); i++) {

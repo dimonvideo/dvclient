@@ -25,6 +25,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/status"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:textSize="@dimen/title"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
@@ -36,6 +38,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />
@@ -64,8 +68,6 @@
         android:layout_marginTop="5dp"
         android:textColor="@color/category"
         android:textStyle="italic"
-        android:ellipsize="end"
-        android:maxLines="1"
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
     <!-- autor -->
@@ -75,6 +77,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center_vertical|end"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:layout_below="@id/listtext"
         android:textSize="@dimen/text"
         android:text="@string/menu_forum"
@@ -98,6 +102,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/views_logo"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:layout_below="@id/names"
         android:textSize="@dimen/date"
         android:textColor="@color/colorAccent"
@@ -125,6 +131,8 @@
         android:layout_below="@id/names"
         android:textColor="@color/colorAccent"
         android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/rating_logo"
         android:textSize="@dimen/date"
@@ -137,6 +145,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
         tools:ignore="SpUsage" />

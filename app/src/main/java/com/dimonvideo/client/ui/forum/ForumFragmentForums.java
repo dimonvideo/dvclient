@@ -44,6 +44,7 @@ public class ForumFragmentForums extends Fragment   {
     private ProgressBar progressBar, ProgressBarBottom;
     private SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
+    private RecyclerView recyclerView;
 
     public ForumFragmentForums() {
         // Required empty public constructor
@@ -69,7 +70,7 @@ public class ForumFragmentForums extends Fragment   {
 
         EventBus.getDefault().postSticky(new MessageEvent("8", null, null, null, null, null));
 
-        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -123,6 +124,11 @@ public class ForumFragmentForums extends Fragment   {
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     for (int i = 0; i < response.length(); i++) {
                         FeedForum jsonFeed = new FeedForum();
                         JSONObject json;

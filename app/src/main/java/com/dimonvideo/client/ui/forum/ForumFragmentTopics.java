@@ -159,6 +159,11 @@ public class ForumFragmentTopics extends Fragment {
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     for (int i = 0; i < response.length(); i++) {
                         FeedForum jsonFeed = new FeedForum();
                         JSONObject json;

@@ -65,6 +65,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
     private String story = null;
     private ImageView imagePick;
     private EditText textInput;
+    private RecyclerView recyclerView;
 
     public MainFragmentCommentsFile(){
         // Required empty public constructor
@@ -123,7 +124,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, image_uploaded, null, null, null));
 
 
-        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -189,6 +190,11 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
         return new JsonArrayRequest(comm_url + requestCount,
                 response -> {
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {

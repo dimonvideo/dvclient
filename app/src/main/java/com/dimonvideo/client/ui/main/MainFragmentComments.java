@@ -49,6 +49,7 @@ public class MainFragmentComments extends Fragment {
     private ProgressBar progressBar, ProgressBarBottom;
     private String razdel = "10";
     private FragmentHomeBinding binding;
+    private RecyclerView recyclerView;
 
     public MainFragmentComments() {
         // Required empty public constructor
@@ -88,7 +89,7 @@ public class MainFragmentComments extends Fragment {
         // получение данных
         getData();
         adapter = new AdapterComments(listFeed, getContext());
-        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView = binding.recyclerView;
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -138,6 +139,11 @@ public class MainFragmentComments extends Fragment {
         String url = Config.COMMENTS_READS_URL;
         return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {

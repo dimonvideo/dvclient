@@ -53,9 +53,9 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
-        final FeedCats feed =  jsonFeed.get(position);
+        final FeedCats feed =  jsonFeed.get(holder.getBindingAdapterPosition());
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);

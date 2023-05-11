@@ -34,18 +34,15 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
+import com.dimonvideo.client.ui.main.MainFragmentViewFile;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
-import com.dimonvideo.client.ui.main.MainFragmentViewFile;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
-import com.like.LikeButton;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
 
 public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazdelInfo.ViewHolder> {
@@ -90,10 +87,11 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
 
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
 
-        Feed feed = jsonFeed.get(position);
+        Feed feed = jsonFeed.get(holder.getBindingAdapterPosition());
         final boolean is_vuploader_play = AppController.getInstance().isVuploaderPlay();
         final boolean is_muzon_play = AppController.getInstance().isMuzonPlay();
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
@@ -159,14 +157,15 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
         }
         if (feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);
-            holder.fav_star.setOnClickListener(v -> removeFav(position));
+            holder.fav_star.setOnClickListener(v -> removeFav(holder.getBindingAdapterPosition()));
         }
         holder.textViewHits.setText(String.valueOf(feed.getHits()));
 
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             openFile(razdel, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(), feed.getCategory(), feed.getStatus());
+                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(),
+                    feed.getCategory(), feed.getStatus());
 
 
         });
@@ -174,7 +173,8 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             openFile(razdel, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(), feed.getCategory(), feed.getStatus());
+                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getText(), feed.getDate(),
+                    feed.getCategory(), feed.getStatus());
         });
 
         holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, feed.getImageUrl()));
@@ -189,38 +189,31 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
                 holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, feed.getLink()));
         } catch (Exception ignored) {
         }
-        if (feed.getMin() > 0) {
-            holder.btn_comms.setVisibility(View.GONE);
-            holder.txt_plus.setVisibility(View.GONE);
-            holder.likeButton.setVisibility(View.GONE);
-            holder.starButton.setVisibility(View.GONE);
-            holder.btn_mp4.setVisibility(View.GONE);
-            holder.btn_download.setVisibility(View.GONE);
-            holder.btn_share.setVisibility(View.GONE);
-            holder.btn_mod.setVisibility(View.GONE);
-            holder.btn_odob.setVisibility(View.GONE);
-        }
 
         if ((feed.getStatus() == 0) && (AppController.getInstance().isUserGroup() <= 2)){
             holder.btn_odob.setVisibility(View.VISIBLE);
             holder.btn_odob.setOnClickListener(v -> {
                 NetworkUtils.getOdob(razdel, lid);
-                jsonFeed.remove(position);
-                notifyItemRemoved(position);
+                try {
+                    jsonFeed.remove(holder.getBindingAdapterPosition());
+                    notifyDataSetChanged();
+                } catch(Exception ignored) {
+
+                }
             });
         }
 
         // dialog menu
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
         holder.imageView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
 
@@ -346,23 +339,25 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
     }
 
     // swipe to remove favorites
-    @SuppressLint("NotifyDataSetChanged")
     public void removeFav(int position) {
         Feed feed = jsonFeed.get(position);
-        jsonFeed.remove(position);
-        notifyDataSetChanged();
+        try {
+            jsonFeed.remove(position);
+            notifyItemRemoved(position);
+        } catch(Exception ignored){
+
+        }
         ButtonsActions.add_to_fav_file(context, feed.getRazdel(), feed.getId(), 2);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, txt_plus, textViewName;
+        public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewName;
         public ImageView imageView, rating_logo, status_logo, fav_star, small_share, small_download;
         public TextView textViewText;
         public String url;
-        public Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share, btn_odob;
+        public Button btn_odob;
         public ProgressBar progressBar;
-        public LikeButton likeButton, starButton;
         public LinearLayout name;
         public ClipboardManager myClipboard;
         public ClipData myClip;
@@ -381,16 +376,8 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
             textViewComments = itemView.findViewById(R.id.rating);
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
-            btn_comms = itemView.findViewById(R.id.btn_comment);
-            btn_download = itemView.findViewById(R.id.btn_download);
-            btn_mod = itemView.findViewById(R.id.btn_mod);
-            btn_share = itemView.findViewById(R.id.btn_share);
-            btn_mp4 = itemView.findViewById(R.id.btn_mp4);
             btn_odob = itemView.findViewById(R.id.btn_odob);
             progressBar = itemView.findViewById(R.id.progressBar);
-            likeButton = itemView.findViewById(R.id.thumb_button);
-            starButton = itemView.findViewById(R.id.star_button);
-            txt_plus = itemView.findViewById(R.id.txt_plus);
             name = itemView.findViewById(R.id.name_layout);
             small_share = itemView.findViewById(R.id.small_share);
             small_download = itemView.findViewById(R.id.small_download);

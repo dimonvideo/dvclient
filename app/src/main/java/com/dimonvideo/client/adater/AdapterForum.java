@@ -50,10 +50,10 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
 
         //Getting the particular item from the list
-        final FeedForum Feed =  jsonFeed.get(position);
+        final FeedForum Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -67,6 +67,8 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewText.setText(Feed.getText());
+        holder.textViewText.setTextColor(context.getColor(R.color.year));
+        holder.textViewNames.setTextColor(context.getColor(R.color.year));
         holder.textViewDate.setText(Feed.getDate());
         holder.textViewNames.setText(Feed.getLast_poster_name());
         holder.textViewCategory.setText(Feed.getCategory());
@@ -90,7 +92,7 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
         });
         if (Feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);
-            holder.fav_star.setOnClickListener(v -> removeFav(position));
+            holder.fav_star.setOnClickListener(v -> removeFav(holder.getBindingAdapterPosition()));
         }
         holder.itemView.setOnLongClickListener(view -> {
             final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.menu_fav)};

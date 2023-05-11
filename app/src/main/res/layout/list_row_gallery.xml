@@ -123,44 +123,6 @@
         android:textSize="@dimen/text"
         tools:ignore="SpUsage" />
 
-    <LinearLayout
-        android:id="@+id/like_layout"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/listtext"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_marginTop="5dp"
-        android:layout_gravity="center_horizontal|center"
-        tools:ignore="ExtraText">
-
-        <com.like.LikeButton
-            android:id="@+id/star_button"
-            app:icon_size="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon_type="star"
-            android:visibility="gone"/>
-
-        <com.like.LikeButton
-            android:id="@+id/thumb_button"
-            android:layout_marginStart="10dp"
-            app:icon_size="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon_type="thumb"
-            android:visibility="gone"/>
-
-        <TextView
-            android:id="@+id/txt_plus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="5dp"
-            android:gravity="left"
-            tools:ignore="RtlHardcoded"
-            android:visibility="gone"/>
-    </LinearLayout>
     <Button
         android:id="@+id/btn_odob"
         android:layout_width="match_parent"
@@ -172,72 +134,10 @@
         android:layout_marginBottom="10dp"
         android:visibility="gone"
         android:background="@drawable/btn_green_shape"
-        android:layout_below="@id/like_layout"
+        android:layout_below="@id/listtext"
         android:textColor="@color/text"
         android:text="@string/odob"
         android:textStyle="bold"/>
-    <Button
-        android:id="@+id/btn_comment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_below="@id/btn_odob"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/btn"
-        android:text="@string/Comments"
-        android:textStyle="bold"
-        android:visibility="gone"/>
-
-    <Button
-        android:id="@+id/btn_download"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"
-        android:layout_below="@id/btn_comment"
-        android:background="@drawable/btn"
-        android:text="@string/download"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btn_mod"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_below="@id/btn_download"
-        android:layout_margin="10dp"
-        android:background="@drawable/btn"
-        android:text="@string/download_mod"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btn_mp4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_below="@id/btn_mod"
-        android:layout_margin="10dp"
-        android:background="@drawable/btn"
-        android:text="@string/download_mp4"
-        android:textStyle="bold"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btn_share"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_below="@id/btn_mp4"
-        android:layout_margin="10dp"
-        android:background="@drawable/btn"
-        android:text="@string/menu_share_title"
-        android:textStyle="bold"
-        android:visibility="gone" />
 
     <!-- views -->
     <ImageView
@@ -246,7 +146,7 @@
         android:layout_height="@dimen/title"
         android:layout_marginEnd="3dip"
         android:layout_marginTop="3dip"
-        android:layout_below="@id/btn_mp4"
+        android:layout_below="@id/btn_odob"
         android:contentDescription="@string/Comments"
         app:srcCompat="@android:drawable/ic_menu_view"
         tools:src="@android:drawable/ic_menu_view"
@@ -257,7 +157,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/views_logo"
-        android:layout_below="@id/btn_mp4"
+        android:layout_below="@id/btn_odob"
         android:textSize="@dimen/date"
         android:textColor="@color/colorAccent"
         tools:ignore="SpUsage" />

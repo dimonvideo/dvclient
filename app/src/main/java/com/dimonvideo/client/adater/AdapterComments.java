@@ -32,6 +32,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
+import com.dimonvideo.client.ui.main.MainFragmentViewFileByApi;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
@@ -92,7 +93,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        final FeedForum feed = jsonFeed.get(position);
+        final FeedForum feed = jsonFeed.get(holder.getBindingAdapterPosition());
 
         razdel = feed.getRazdel();
         int lid = feed.getPost_id();
@@ -115,7 +116,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         Glide.with(context).load(feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
 
-        final String password = AppController.getInstance().userPassword();
         final int auth_state = AppController.getInstance().isAuth();
 
         holder.textViewCategory.setText(feed.getCategory());
@@ -140,13 +140,22 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         }
 
 
-        holder.textViewTitle.setText("#"+ (feed.getMin() + position + 1) +" ");
+        holder.textViewTitle.setText("#"+ (feed.getMin() + holder.getBindingAdapterPosition() + 1) +" ");
         holder.textViewTitle.append(feed.getUser());
         holder.textViewDate.setText(feed.getDate());
         holder.textViewComments.setVisibility(View.GONE);
         holder.rating_logo.setVisibility(View.GONE);
         holder.textViewHits.setText(feed.getTitle());
 
+        // просмотр описания файла
+        holder.textViewHits.setOnClickListener(view -> {
+            MainFragmentViewFileByApi fragment = new MainFragmentViewFileByApi();
+            Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_RAZDEL, razdel);
+            bundle.putString(Config.TAG_ID, String.valueOf(lid));
+            fragment.setArguments(bundle);
+            fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentViewFileByApi");
+        });
 
         // цитирование
         holder.textViewText.setOnClickListener(view -> {
@@ -169,11 +178,11 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         // show dialog
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
     }

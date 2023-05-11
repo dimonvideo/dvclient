@@ -88,7 +88,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
-        populateItemRows((ItemViewHolder) holder, position);
+        populateItemRows((ItemViewHolder) holder, holder.getBindingAdapterPosition());
 
     }
 
@@ -174,7 +174,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     // dialog
-    private void show_dialog(ItemViewHolder holder, final int position){
+    private void show_dialog(ItemViewHolder holder, int position){
         final CharSequence[] items = {mContext.getString(R.string.menu_share_title), mContext.getString(R.string.action_open),
                 mContext.getString(R.string.action_like), mContext.getString(R.string.copy_listtext)};
         FeedForum Feed = jsonFeed.get(position);

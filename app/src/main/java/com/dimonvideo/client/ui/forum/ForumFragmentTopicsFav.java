@@ -50,8 +50,8 @@ public class ForumFragmentTopicsFav extends Fragment  {
     private String story = null;
     private String s_url = "";
     private int id = 0;
-    private String razdel = "8"; // forum fragment
     private FragmentHomeBinding binding;
+    private RecyclerView recyclerView;
 
     public ForumFragmentTopicsFav() {
         // Required empty public constructor
@@ -85,7 +85,7 @@ public class ForumFragmentTopicsFav extends Fragment  {
         getData();
         adapter = new AdapterForum(listFeed, getContext());
 
-        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView = binding.recyclerView;
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -126,7 +126,8 @@ public class ForumFragmentTopicsFav extends Fragment  {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
+        // forum fragment
+        String razdel = event.razdel;
         story = event.story;
     }
 
@@ -146,6 +147,11 @@ public class ForumFragmentTopicsFav extends Fragment  {
         String url = Config.FORUM_FEED_URL;
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {

@@ -5,19 +5,16 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,14 +73,14 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
         //Getting the particular item from the list
-        final FeedPm Feed =  jsonFeed.get(position);
+        final FeedPm Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
@@ -123,7 +120,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
 
         });
 
-        holder.imagePick.setOnClickListener(v -> {
+        ViewHolder.imagePick.setOnClickListener(v -> {
 
 
             MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
@@ -143,11 +140,11 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
 
         // меню по долгому нажатию
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
 

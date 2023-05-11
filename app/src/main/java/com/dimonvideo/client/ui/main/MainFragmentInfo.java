@@ -82,7 +82,6 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
         LinearLayoutManager layoutManager
                 = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -157,6 +156,13 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
         Log.e("---", url_final);
         return new JsonArrayRequest(url_final,
                 response -> {
+
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
+
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     Log.e("---", "response info: "+response);

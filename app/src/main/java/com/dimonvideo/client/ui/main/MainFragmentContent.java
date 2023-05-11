@@ -160,7 +160,6 @@ public class MainFragmentContent extends Fragment {
         assert horizontalDivider != null;
         horizontalDecoration.setDrawable(horizontalDivider);
         recyclerView.addItemDecoration(horizontalDecoration);
-        recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(mContext);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -255,7 +254,7 @@ public class MainFragmentContent extends Fragment {
                     if (requestCount == 1) {
                         listFeed.clear();
                         adapter.notifyDataSetChanged();
-                        recyclerView.scrollToPosition(0);
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
 

@@ -119,6 +119,11 @@ public class PmIshFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
         return new JsonArrayRequest(url + requestCount + "&pm=3&login_name=" + finalLogin + "&login_password=" + finalPass,
                 response -> {
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     progressBar.setVisibility(View.GONE);
                     progressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {

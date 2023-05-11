@@ -100,7 +100,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
 
         Feed feed = jsonFeed.get(position);
 
@@ -159,7 +159,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         // избранное
         if (feed.getFav() > 0) {
             holder.fav_star.setVisibility(View.VISIBLE);
-            holder.fav_star.setOnClickListener(v -> removeFav(position));
+            holder.fav_star.setOnClickListener(v -> removeFav(holder.getBindingAdapterPosition()));
         }
         holder.textViewHits.setText(String.valueOf(feed.getHits()));
 
@@ -168,12 +168,14 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             openFile(razdel, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(), feed.getCategory(), feed.getStatus());
+                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(),
+                    feed.getCategory(), feed.getStatus());
         });
         holder.textViewText.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             openFile(razdel, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(), feed.getCategory(), feed.getStatus());
+                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(),
+                    feed.getCategory(), feed.getStatus());
         });
 
         // показ скриншота
@@ -206,15 +208,15 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         // dialog menu
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
         holder.imageView.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
         holder.textViewText.setOnLongClickListener(view -> {
-            show_dialog(holder, position, context);
+            show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
 
@@ -260,8 +262,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         MainFragmentViewFile fragment = new MainFragmentViewFile();
         Bundle bundle = new Bundle();
         bundle.putString(Config.TAG_RAZDEL, razdel);
-        bundle.putString(Config.TAG_TITLE, title);
         bundle.putString(Config.TAG_ID, String.valueOf(lid));
+        bundle.putString(Config.TAG_TITLE, title);
         bundle.putString(Config.TAG_DATE, date);
         bundle.putString(Config.TAG_CATEGORY, category);
         bundle.putInt(Config.TAG_PLUS, plus);

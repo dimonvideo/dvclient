@@ -126,6 +126,13 @@ public class PmFriendsFragment extends Fragment {
 
         return new JsonArrayRequest(url + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass,
                 response -> {
+
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
+
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {

@@ -45,7 +45,7 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
     private String tid = "1728146606";
     private String story, t_name;
     private CommentsListBinding binding;
-
+    private RecyclerView recyclerView;
 
     public ForumFragmentPostSearch(){
         // Required empty public constructor
@@ -68,7 +68,7 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
             t_name = (String) getArguments().getString(Config.TAG_TITLE);
         }
 
-        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -129,6 +129,11 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     for (int i = 0; i < response.length(); i++) {
                         FeedForum jsonFeed = new FeedForum();
                         JSONObject json;

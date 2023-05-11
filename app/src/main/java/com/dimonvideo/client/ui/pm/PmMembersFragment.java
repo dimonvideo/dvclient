@@ -167,7 +167,7 @@ public class PmMembersFragment extends Fragment {
                     if (requestCount == 1) {
                         listFeed.clear();
                         adapter.notifyDataSetChanged();
-                        recyclerView.scrollToPosition(0);
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
                     progressBar.setVisibility(View.GONE);

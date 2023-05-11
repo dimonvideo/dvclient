@@ -44,6 +44,8 @@
         android:layout_alignTop="@+id/container_post"
         android:textColor="@color/text"
         android:textSize="@dimen/title"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:textStyle="bold"
         tools:ignore="SpUsage" />
 
@@ -54,6 +56,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_marginTop="5dp"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:layout_toEndOf="@+id/container_post"
         android:textColor="@color/colorAccent"
         android:textSize="@dimen/date"
@@ -67,6 +71,7 @@
         android:layout_below="@id/category"
         android:layout_marginTop="5dp"
         android:textColor="@color/text"
+
         android:layout_toEndOf="@+id/container_post"
         android:textAppearance="@android:style/TextAppearance.Small"
         android:textSize="@dimen/text"/>
@@ -83,6 +88,8 @@
         android:textColor="@color/text"
         android:layout_below="@id/listtext"
         android:textSize="@dimen/text"
+        android:maxLines="1"
+        android:ellipsize="marquee"
         android:text="@string/menu_forum"
         tools:ignore="SpUsage" />
     <!-- views -->
@@ -104,7 +111,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="3dip"
         android:layout_toEndOf="@+id/views_logo"
-        android:ellipsize="end"
+        android:ellipsize="marquee"
         android:layout_below="@id/names"
         android:maxLines="1"
         android:layout_toStartOf="@+id/date"

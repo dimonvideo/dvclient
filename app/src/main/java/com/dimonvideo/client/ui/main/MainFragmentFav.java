@@ -151,6 +151,11 @@ public class MainFragmentFav extends Fragment  {
 
         return new JsonArrayRequest(url + requestCount + s_url+"&fav=1&login_name="+ login_name,
                 response -> {
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {

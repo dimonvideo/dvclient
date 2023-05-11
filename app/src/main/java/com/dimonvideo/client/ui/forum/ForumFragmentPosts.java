@@ -68,6 +68,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     public static CommentsListBinding binding;
     private String image_uploaded, razdel;
     private EditText textInput;
+    private RecyclerView recyclerView;
 
     public ForumFragmentPosts(){
         // Required empty public constructor
@@ -129,7 +130,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
             t_name = getArguments().getString(Config.TAG_TITLE);
         }
 
-        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
         recyclerView.setLayoutManager(layoutManager);
@@ -234,6 +235,11 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
+                    if (requestCount == 1) {
+                        listFeed.clear();
+                        adapter.notifyDataSetChanged();
+                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
+                    }
                     for (int i = 0; i < response.length(); i++) {
                         FeedForum jsonFeed = new FeedForum();
                         JSONObject json;
