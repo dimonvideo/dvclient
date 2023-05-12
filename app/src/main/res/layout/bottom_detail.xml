@@ -194,7 +194,7 @@
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="10dp"
                 android:visibility="gone"
-                android:background="@drawable/btn_green_shape"
+                android:background="@drawable/btn_green"
                 android:layout_below="@id/like_layout"
                 android:textColor="@color/text"
                 android:text="@string/odob"

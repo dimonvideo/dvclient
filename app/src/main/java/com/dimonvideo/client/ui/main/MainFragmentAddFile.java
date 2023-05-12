@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -77,7 +78,7 @@ public class MainFragmentAddFile extends Fragment {
     private TextView selectScreen, note;
     private Button btnClose, btnSend;
     private String login_name;
-    private String screenName, screen;
+    private String screenName, screen, logo;
     private String categoryId;
     private AlertDialog alert;
      AlertDialog.Builder builder;
@@ -95,6 +96,7 @@ public class MainFragmentAddFile extends Fragment {
         Bitmap bitmap = event.bitmap;
         screen = event.image_uploaded;
         screenName = Config.THUMB_URL + login_name + File.separator + screen;
+        logo  = Config.THUMB_URL + login_name + File.separator + "thumbs"  + File.separator +  screen;
         // если скриншот загружен на сервер
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
@@ -121,7 +123,7 @@ public class MainFragmentAddFile extends Fragment {
                 selectScreen.setVisibility(View.VISIBLE);
                 btnSend.setVisibility(View.INVISIBLE);
                 btnClose.setVisibility(View.INVISIBLE);
-                requestToServer(Config.DELETE_URL, screen);
+                requestToServer(Config.DELETE_URL, screen, null);
                 desc.setVisibility(View.INVISIBLE);
             });
 
@@ -131,7 +133,7 @@ public class MainFragmentAddFile extends Fragment {
                 builder.setTitle(getString(R.string.warning));
                 builder.setMessage(getString(R.string.warning_message));
                 builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
-                    requestToServer(Config.DELETE_URL, screen);
+                    requestToServer(Config.DELETE_URL, screen, null);
                     dialog.dismiss();
                     MainActivity.navController.navigate(R.id.nav_home);
                 });
@@ -148,7 +150,7 @@ public class MainFragmentAddFile extends Fragment {
                 builder.setMessage(getString(R.string.check_message)+"\n\n"+getString(R.string.signature_title)+": "+login_name);
                 builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
                             dialog.dismiss();
-                            requestToServer(Config.UPLOAD_FILE_URL, screenName);
+                            requestToServer(Config.UPLOAD_FILE_URL, screenName, logo);
                         });
                 builder.setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss());
                 alert = builder.create();
@@ -157,7 +159,7 @@ public class MainFragmentAddFile extends Fragment {
         }
     }
 
-    private void requestToServer(String url, String image_url) {
+    private void requestToServer(String url, String image_url, String logo_url) {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
             JSONObject obj;
@@ -198,11 +200,13 @@ public class MainFragmentAddFile extends Fragment {
                 postMap.put("send_desc", desc.getText().toString());
                 postMap.put("send_screen", image_url);
                 postMap.put("send_catalog", catalog.getText().toString());
+                postMap.put("send_logo", logo_url); // превью
                 postMap.put("send_ist", ist.getText().toString());
                 postMap.put("send_id", login_name); // для удаления
                 return postMap;
             }
         };
+
 
         AppController.getInstance().addToRequestQueue(stringRequest);
     }

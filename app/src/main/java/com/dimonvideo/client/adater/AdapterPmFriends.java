@@ -48,15 +48,12 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
     private Context context;
     String image_uploaded;
 
-    //List to store all
     List<FeedPm> jsonFeed;
 
-    //Constructor of this class
-    public AdapterPmFriends(List<FeedPm> jsonFeed, Context context){
+    public AdapterPmFriends(List<FeedPm> jsonFeed){
         super();
         //Getting all feed
         this.jsonFeed = jsonFeed;
-        this.context = context;
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
@@ -79,10 +76,9 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
             EventBus.getDefault().register(this);
         }
 
-        //Getting the particular item from the list
         final FeedPm Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-
+        Glide.with(context).clear(holder.imageView);
         Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
@@ -120,8 +116,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
 
         });
 
-        ViewHolder.imagePick.setOnClickListener(v -> {
-
+        holder.imagePick.setOnClickListener(v -> {
 
             MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
                     .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
@@ -227,8 +222,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         public String url;
         public ClipboardManager myClipboard;
         public ClipData myClip;
-        @SuppressLint("StaticFieldLeak")
-        public static ImageView imagePick;
+        public ImageView imagePick;
 
         //Initializing Views
         public ViewHolder(View itemView) {

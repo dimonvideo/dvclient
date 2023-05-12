@@ -28,6 +28,7 @@ import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -96,17 +97,6 @@ public class ForumFragmentTopicsFav extends Fragment  {
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                if (isLastItemDisplaying(recyclerView)) {
-                    getData();
-                }
-
-            }
-        });
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         recyclerView.setItemViewCacheSize(10);
@@ -114,6 +104,34 @@ public class ForumFragmentTopicsFav extends Fragment  {
 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
+
+
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                // подгрузка ленты
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+            }
+        });
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+        });
+
         // обновление
         swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {

@@ -53,10 +53,8 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context mContext;
     String image_uploaded;
 
-    //List to store all
     List<FeedPm> jsonFeed;
 
-    //Constructor of this class
     public AdapterPm(List<FeedPm> JsonFeed){
         super();
         this.jsonFeed = JsonFeed;
@@ -100,12 +98,6 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return jsonFeed == null ? 0 : jsonFeed.size();
     }
 
-    public int getItemViewType(int position) {
-        int VIEW_TYPE_ITEM = 0;
-        int VIEW_TYPE_LOADING = 1;
-        return jsonFeed.get(position) == null ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
-    }
-
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
@@ -135,14 +127,10 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void populateItemRows(ItemViewHolder holder, int position) {
 
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
-
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        final FeedPm Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
+        final FeedPm Feed =  jsonFeed.get(position);
 
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 

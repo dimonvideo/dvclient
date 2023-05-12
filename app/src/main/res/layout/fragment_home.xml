@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container_frag"
     android:layout_height="match_parent"
     tools:context=".ui.main.MainFragment">
@@ -10,6 +11,7 @@
                 android:id="@+id/swipe_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
@@ -20,7 +22,21 @@
                 android:overScrollMode="never"
                 android:scrollbars="vertical" />
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="5dp"
+        android:layout_centerHorizontal="true"
+        android:background="#52353232"
+        app:borderWidth="0dp"
+        app:elevation="0dp"
+        android:backgroundTint="#A3353232"
+        android:visibility="gone"
+        android:src="@drawable/outline_expand_less_24"
+        app:rippleColor="#FD353232"
+        android:contentDescription="@string/app_functions" />
             <TextView
                 android:id="@+id/empty_view"
                 android:layout_width="match_parent"

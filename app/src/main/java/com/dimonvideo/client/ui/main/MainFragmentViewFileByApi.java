@@ -303,12 +303,15 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
         String url_final = Config.SINGLE_FILE_URL + razdel + "&lid=" + lid;
 
+        Log.e("---", url_final);
         ProgressHelper.showDialog(requireContext(), getString(R.string.please_wait));
 
         return new JsonArrayRequest(url_final,
                 response -> {
 
-                        Feed jsonFeed = new Feed();
+            Log.e("---", "api: "+response);
+
+            Feed jsonFeed = new Feed();
                         JSONObject json;
                         try {
                             json = response.getJSONObject(0);

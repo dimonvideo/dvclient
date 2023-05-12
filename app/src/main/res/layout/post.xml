@@ -51,7 +51,6 @@
             android:cursorVisible="true"
             android:focusableInTouchMode="true"
             >
-            <requestFocus />
         </EditText>
 
         <ImageButton

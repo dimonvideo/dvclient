@@ -2,6 +2,7 @@ package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -75,17 +77,6 @@ public class ForumFragmentForums extends Fragment   {
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                if (isLastItemDisplaying(recyclerView)) {
-                    getData();
-                }
-
-            }
-        });
         listFeed = new ArrayList<>();
 
         progressBar = binding.progressbar;
@@ -102,6 +93,32 @@ public class ForumFragmentForums extends Fragment   {
         recyclerView.addItemDecoration(dividerItemDecoration);
 
         recyclerView.setAdapter(adapter);
+
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                // подгрузка ленты
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+            }
+        });
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+        });
 
         // обновление
         swipLayout = binding.swipeLayout;

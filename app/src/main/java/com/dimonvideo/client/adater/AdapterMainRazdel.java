@@ -112,17 +112,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         int lid = feed.getId();
 
         holder.status_logo.setImageResource(R.drawable.ic_status_green);
-        try {
-            int status;
-            Cursor cursor = Provider.getOneData(String.valueOf(lid), razdel);
-            if (cursor != null) {
-                status = cursor.getInt(2);
-                if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-                cursor.close();
-            }
-
-        } catch (Throwable ignored) {
-        }
+        int status = Provider.getStatus(String.valueOf(lid), razdel);
+        if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
 
         //Loading image from url

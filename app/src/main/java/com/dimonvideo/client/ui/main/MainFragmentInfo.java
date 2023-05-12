@@ -2,6 +2,7 @@ package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -13,20 +14,24 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterMainRazdelInfo;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -79,23 +84,6 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
         is_more_odob = AppController.getInstance().isMoreOdob();
 
         recyclerView = binding.recyclerView;
-        LinearLayoutManager layoutManager
-                = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                if (isLastItemDisplaying(recyclerView)) {
-                    getData();
-                }
-
-            }
-        });
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
-                layoutManager.getOrientation());
-        recyclerView.addItemDecoration(dividerItemDecoration);
 
         listFeed = new ArrayList<>();
         progressBar = binding.progressbar;
@@ -107,7 +95,46 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
 
         adapter = new AdapterMainRazdelInfo(listFeed, getContext());
 
+        // разделитель позиций
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
+
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                // подгрузка ленты
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+            }
+        });
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+        });
+
 
         // обновление
         swipLayout = binding.swipeLayout;
@@ -125,7 +152,7 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
         story = event.story;
     }
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
+
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         String key = GetRazdelName.getRazdelName(razdel, 0);
@@ -159,7 +186,7 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
 
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
@@ -194,7 +221,7 @@ public class MainFragmentInfo extends Fragment implements SwipeRefreshLayout.OnR
                             }
                             listFeed.add(jsonFeed);
                         }
-                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
+                    adapter.notifyItemRangeChanged(0, 10);
 
                 },
                 error -> {

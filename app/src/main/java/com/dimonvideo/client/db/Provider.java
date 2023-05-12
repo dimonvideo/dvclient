@@ -27,6 +27,7 @@ public class Provider extends ContentProvider {
     private static final String BASE_PATH = "dvclient";
     public static final Uri CONTENT_URI = Uri.parse("content://"
             + AUTHORITY + "/" + BASE_PATH);
+    public static SQLiteDatabase sqlDB;
 
     private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static {
@@ -61,8 +62,8 @@ public class Provider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
-        SQLiteDatabase db = database.getWritableDatabase();
-        Cursor cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
+        sqlDB = database.getWritableDatabase();
+        Cursor cursor = queryBuilder.query(sqlDB, projection, selection, selectionArgs, null, null, sortOrder);
         cursor.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), uri);
 
         return cursor;
@@ -76,7 +77,7 @@ public class Provider extends ContentProvider {
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
         int uriType = sURIMatcher.match(uri);
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+        sqlDB = database.getWritableDatabase();
         long id = 0;
         if (uriType == MESSAGES) {
             id = sqlDB.insertWithOnConflict(Table.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
@@ -100,7 +101,7 @@ public class Provider extends ContentProvider {
     // обновляем флаг status - прочитано или нет
     public static void updateStatus(int lid, String razdel, int status)
     {
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+        sqlDB = database.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
         contentValues.put(Table.COLUMN_STATUS,status);
 
@@ -137,7 +138,7 @@ public class Provider extends ContentProvider {
 
     // возвращаем последние 10 строк для быстрого запуска.
     public static Cursor getAllRows(String razdel) {
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+        sqlDB = database.getWritableDatabase();
         String WHERE = Table.COLUMN_RAZDEL + " = ?";
 
         return sqlDB.query(Table.TABLE_NAME, Table.ALL_KEYS,
@@ -146,42 +147,50 @@ public class Provider extends ContentProvider {
 
     // очистка базы
     public static void clearDB(){
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+        sqlDB = database.getWritableDatabase();
 
         String selectQuery = "DELETE FROM "+ Table.TABLE_NAME;
         Cursor c = sqlDB.rawQuery(selectQuery, null);
         c.moveToFirst();
         c.close();
+        sqlDB.close();
     }
 
     public static void markAllRead(String razdel)
     {
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+        sqlDB = database.getWritableDatabase();
 
         String query="UPDATE "+Table.TABLE_NAME+" SET "+Table.COLUMN_STATUS+" = ? WHERE " + Table.COLUMN_RAZDEL+" = ?";
         String[] selections={String.valueOf(1), razdel};
         Cursor c =sqlDB.rawQuery(query, selections);
         c.moveToFirst();
         c.close();
+        sqlDB.close();
     }
 
     // очистка базы старше полугода
     public static void clearDB_OLD(){
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+        sqlDB = database.getWritableDatabase();
 
         String selectQuery = "DELETE FROM "+Table.TABLE_NAME+" WHERE "+Table.COLUMN_TIMESTAMP+" >= date('now','-100 day')";
         sqlDB.execSQL(selectQuery);
+        sqlDB.close();
     }
 
     // находим одну запись
-    public static Cursor getOneData(String lid, String razdel){
-        SQLiteDatabase sqlDB = database.getWritableDatabase();
+    public static int getStatus(String lid, String razdel){
+        sqlDB = database.getWritableDatabase();
         String WHERE = Table.COLUMN_LID + " = ? AND " + Table.COLUMN_RAZDEL + " = ?";
         Cursor c = sqlDB.query(Table.TABLE_NAME, Table.ALL_KEYS, WHERE, new String[]{String.valueOf(lid), razdel},
                 null, null, null);
-        if (c != null) {
-            c.moveToFirst();
+        int data = 0;
+        if (c.getCount() > 0) {
+           c.moveToFirst();
+           data = c.getInt(2);
+           c.close();
         }
-        return c;
+
+        sqlDB.close();
+        return data;
     }
 }

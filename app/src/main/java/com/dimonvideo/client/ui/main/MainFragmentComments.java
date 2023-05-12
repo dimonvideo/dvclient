@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -29,6 +30,7 @@ import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -97,26 +99,40 @@ public class MainFragmentComments extends Fragment {
         assert horizontalDivider != null;
         horizontalDecoration.setDrawable(horizontalDivider);
         recyclerView.addItemDecoration(horizontalDecoration);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
+        recyclerView.setAdapter(adapter);
+
+
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
 
+                // подгрузка ленты
                 if (isLastItemDisplaying(recyclerView)) {
                     getData();
                 }
-
             }
         });
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(3);
-        recyclerView.hasFixedSize();
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(adapter);
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+        });
 
         // обновление
         swipLayout = binding.swipeLayout;
@@ -131,17 +147,18 @@ public class MainFragmentComments extends Fragment {
 
 
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         String key = GetRazdelName.getRazdelName(razdel, 0);
 
         String url = Config.COMMENTS_READS_URL;
+
+        Log.v("---", url + key + "&min=" + requestCount  + "&lid=0");
         return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
                     progressBar.setVisibility(View.GONE);
@@ -168,7 +185,7 @@ public class MainFragmentComments extends Fragment {
                         }
                         listFeed.add(jsonFeed);
                     }
-                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 50);
+                    adapter.notifyItemRangeChanged(0, 10);
 
                     Log.e("---", String.valueOf(response));
                 },

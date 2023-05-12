@@ -1,6 +1,7 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -16,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -88,10 +90,8 @@ public class PmMembersFragment extends Fragment {
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
 
         recyclerView = binding.recyclerView;
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
+
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -110,31 +110,27 @@ public class PmMembersFragment extends Fragment {
         ProgressBarBottom = binding.ProgressBarBottom;
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
+        adapter = new AdapterPmFriends(listFeed);
         getData();
-        adapter = new AdapterPmFriends(listFeed, getContext());
 
         // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
-
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
 
-        // обновление
-        swipLayout = binding.swipeLayout;
-        swipLayout.setOnRefreshListener(() -> {
-            listFeed.clear();
-            requestCount = 1;
-            story = null; url = Config.MEMBERS_URL;
-            getData();
-            swipLayout.setRefreshing(false);
-
-        });
 
     }
 
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
         String pass = AppController.getInstance().userPassword();
@@ -166,7 +162,7 @@ public class PmMembersFragment extends Fragment {
 
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
@@ -191,8 +187,7 @@ public class PmMembersFragment extends Fragment {
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
-                    Log.e("---", "get data - " + url);
+                    adapter.notifyItemRangeChanged(0, 10);
 
                 },
                 error -> {
@@ -219,9 +214,27 @@ public class PmMembersFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
         binding = null;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
 }

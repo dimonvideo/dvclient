@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +26,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -40,6 +43,7 @@ import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.UpdatePm;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -96,6 +100,7 @@ public class MainFragmentContent extends Fragment {
             EventBus.getDefault().register(this);
         }
 
+
         mContext = requireContext();
         sharedPrefs = AppController.getInstance().getSharedPreferences();
 
@@ -112,9 +117,8 @@ public class MainFragmentContent extends Fragment {
 
         listFeed = new ArrayList<>();
 
-        // запоминание просмотренного
+        // запоминание просмотренного, показ из БД старых данных при запуске
         try {
-
             Cursor cursor = Provider.getAllRows(key);
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
@@ -122,6 +126,7 @@ public class MainFragmentContent extends Fragment {
 
                         Feed jsonFeedList = new Feed();
                         jsonFeedList.setId(cursor.getInt(1));
+                        jsonFeedList.setStatus(cursor.getInt(2));
                         jsonFeedList.setTitle(cursor.getString(3));
                         jsonFeedList.setText(cursor.getString(4));
                         jsonFeedList.setFull_text(cursor.getString(5));
@@ -133,11 +138,13 @@ public class MainFragmentContent extends Fragment {
                         jsonFeedList.setLink(cursor.getString(12));
 
                         listFeed.add(jsonFeedList);
+                        Log.v("---", key+" in BD: "+jsonFeedList.getStatus()+" "+jsonFeedList.getTitle());
 
                     } while (cursor.moveToNext());
 
                 }
                 cursor.close();
+                Provider.sqlDB.close();
             }
         } catch (Throwable ignored) {
         }
@@ -156,27 +163,16 @@ public class MainFragmentContent extends Fragment {
 
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(mContext, R.drawable.divider);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
         assert horizontalDivider != null;
         horizontalDecoration.setDrawable(horizontalDivider);
         recyclerView.addItemDecoration(horizontalDecoration);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(mContext);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                if (isLastItemDisplaying(recyclerView)) {
-                    getData();
-                }
-
-            }
-        });
         recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         recyclerView.setItemViewCacheSize(10);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
 
 
@@ -198,6 +194,32 @@ public class MainFragmentContent extends Fragment {
 
         }
 
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                // подгрузка ленты
+                if (isLastItemDisplaying(recyclerView)) {
+                    getData();
+                }
+            }
+        });
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+        });
+
 
         // обновление
         swipLayout = binding.swipeLayout;
@@ -214,7 +236,6 @@ public class MainFragmentContent extends Fragment {
 
 
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         Set<String> selections = null;
         try {
@@ -253,7 +274,7 @@ public class MainFragmentContent extends Fragment {
 
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
@@ -285,9 +306,7 @@ public class MainFragmentContent extends Fragment {
 
 
                             // сохраняем в базу результат для оффлайн просмотра
-                            int unique = json.getInt(Config.TAG_ID);
                             ContentValues values = new ContentValues();
-                            values.put(Table.COLUMN_ID, unique);
                             values.put(Table.COLUMN_LID, json.getInt(Config.TAG_ID));
                             values.put(Table.COLUMN_STATUS, 0);
                             values.put(Table.COLUMN_TITLE, json.getString(Config.TAG_TITLE));
@@ -313,7 +332,7 @@ public class MainFragmentContent extends Fragment {
 
 
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyItemRangeChanged(0, 10);
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);

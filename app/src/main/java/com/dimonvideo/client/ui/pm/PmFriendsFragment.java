@@ -1,7 +1,9 @@
 package com.dimonvideo.client.ui.pm;
 
 import android.annotation.SuppressLint;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +14,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.toolbox.JsonArrayRequest;
@@ -24,6 +28,7 @@ import com.dimonvideo.client.adater.AdapterPmFriends;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,20 +69,31 @@ public class PmFriendsFragment extends Fragment {
         requestCount = 1;
 
         recyclerView = binding.recyclerView;
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
 
+                // подгрузка ленты
                 if (isLastItemDisplaying(recyclerView)) {
                     getData();
                 }
-
             }
+        });
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
         });
         listFeed = new ArrayList<>();
 
@@ -87,13 +103,20 @@ public class PmFriendsFragment extends Fragment {
         ProgressBarBottom.setVisibility(View.GONE);
         // получение данных
         getData();
-        adapter = new AdapterPmFriends(listFeed, getContext());
+        adapter = new AdapterPmFriends(listFeed);
 
         // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
-        recyclerView.setHasFixedSize(true);
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
         // обновление
         swipLayout = binding.swipeLayout;
@@ -109,7 +132,6 @@ public class PmFriendsFragment extends Fragment {
 
 
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
@@ -129,7 +151,7 @@ public class PmFriendsFragment extends Fragment {
 
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
@@ -154,7 +176,7 @@ public class PmFriendsFragment extends Fragment {
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyItemRangeChanged(0, 10);
 
                 },
                 error -> {

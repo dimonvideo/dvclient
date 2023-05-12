@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,7 +78,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     //Constructor of this class
     public AdapterComments(List<FeedForum> jsonFeed, Context context) {
         super();
-        //Getting all feed
         this.jsonFeed = jsonFeed;
         this.context = context;
     }
@@ -140,7 +140,8 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         }
 
 
-        holder.textViewTitle.setText("#"+ (feed.getMin() + holder.getBindingAdapterPosition() + 1) +" ");
+        Log.v("---", String.valueOf(feed.getMin()));
+        holder.textViewTitle.setText("#"+ (position + 1)+" ");
         holder.textViewTitle.append(feed.getUser());
         holder.textViewDate.setText(feed.getDate());
         holder.textViewComments.setVisibility(View.GONE);

@@ -27,6 +27,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.db.Provider;
 import com.potyvideo.library.AndExoPlayerView;
 import com.potyvideo.library.globalEnums.EnumAspectRatio;
 

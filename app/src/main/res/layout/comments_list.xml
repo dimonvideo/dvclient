@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorList"
     tools:context=".MainActivity">
 
@@ -106,7 +107,21 @@
                 android:clipToPadding="false"
                 android:focusableInTouchMode="true"
                 android:scrollbars="vertical" />
-
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="5dp"
+                android:layout_centerHorizontal="true"
+                android:background="#52353232"
+                app:borderWidth="0dp"
+                app:elevation="0dp"
+                android:backgroundTint="#A3353232"
+                android:visibility="gone"
+                android:src="@drawable/outline_expand_less_24"
+                app:rippleColor="#FD353232"
+                android:contentDescription="@string/app_functions" />
             <TextView
                 android:id="@+id/empty_view"
                 android:layout_width="match_parent"

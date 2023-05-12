@@ -118,7 +118,11 @@ public class URLImageParser implements Html.ImageGetter {
 
         @Override
         public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
-            setDrawable(new BitmapDrawable(container.get().getResources(), bitmap));
+            try {
+                setDrawable(new BitmapDrawable(container.get().getResources(), bitmap));
+            } catch(Exception ignored){
+
+            }
         }
 
         @Override

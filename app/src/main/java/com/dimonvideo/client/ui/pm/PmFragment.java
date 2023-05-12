@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -104,7 +105,7 @@ public class PmFragment extends Fragment {
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0,false);
-        viewPager.setOffscreenPageLimit(1);
+        viewPager.setOffscreenPageLimit(2);
         viewPager.setUserInputEnabled(false);
         Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
         toolbar.setTitle(R.string.tab_pm);
@@ -175,9 +176,9 @@ public class PmFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
         binding = null;
-
     }
 
     @Override
@@ -195,12 +196,8 @@ public class PmFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
-    @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
 }

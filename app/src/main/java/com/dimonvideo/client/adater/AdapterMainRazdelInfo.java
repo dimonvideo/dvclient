@@ -102,17 +102,8 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
         int lid = feed.getId();
 
         holder.status_logo.setImageResource(R.drawable.ic_status_green);
-        try {
-            int status;
-            Cursor cursor = Provider.getOneData(String.valueOf(feed.getId()), feed.getRazdel());
-            if (cursor != null) {
-                status = cursor.getInt(2);
-                if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-                cursor.close();
-            }
-
-        } catch (Throwable ignored) {
-        }
+        int status = Provider.getStatus(String.valueOf(lid), razdel);
+        if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         //Loading image from url
         Glide.with(context).load(feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.bitmapTransform(new RoundedCorners(14))).into(holder.imageView);
@@ -148,7 +139,7 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
             bundle.putString(Config.TAG_RAZDEL, razdel);
             fragment.setArguments(bundle);
             fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentCommentsFile");
-
+            Provider.updateStatus(lid, razdel, 1);
 
         });
         if (feed.getComments() == 0) {
@@ -177,16 +168,25 @@ public class AdapterMainRazdelInfo extends RecyclerView.Adapter<AdapterMainRazde
                     feed.getCategory(), feed.getStatus());
         });
 
-        holder.imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, feed.getImageUrl()));
+        holder.imageView.setOnClickListener(v -> {
+            Provider.updateStatus(lid, razdel, 1);
+            ButtonsActions.loadScreen(context, feed.getImageUrl());
+        });
 
         try {
             if ((feed.getRazdel() != null) && (feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play))
-                holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, feed.getLink()));
+                holder.imageView.setOnClickListener(v -> {
+                    Provider.updateStatus(lid, razdel, 1);
+                    ButtonsActions.PlayVideo(context, feed.getLink());
+                });
         } catch (Exception ignored) {
         }
         try {
             if ((feed.getRazdel() != null) && (feed.getRazdel().equals(Config.MUZON_RAZDEL) && is_muzon_play))
-                holder.imageView.setOnClickListener(v -> ButtonsActions.PlayVideo(context, feed.getLink()));
+                holder.imageView.setOnClickListener(v -> {
+                    Provider.updateStatus(lid, razdel, 1);
+                    ButtonsActions.PlayVideo(context, feed.getLink());
+                });
         } catch (Exception ignored) {
         }
 

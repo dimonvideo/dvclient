@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,10 +21,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -36,6 +39,7 @@ import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
@@ -90,25 +94,38 @@ public class PmArhivFragment extends Fragment  {
         }
 
         recyclerView = binding.recyclerView;
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+
         listFeed = new ArrayList<>();
         emptyView = binding.emptyView;
         emptyLayout = binding.linearEmpty;
 
         emptyView.setVisibility(View.VISIBLE);
         emptyLayout.setVisibility(View.VISIBLE);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
+
+        // показ кнопки наверх
+        FloatingActionButton fab = binding.fabTop;
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) { // down
+                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                } else if (dy < 0) { // up
+                    fab.setVisibility(View.VISIBLE);
+                }
+            }
+
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
 
+                // подгрузка ленты
                 if (isLastItemDisplaying(recyclerView)) {
                     getData();
                 }
-
             }
+        });
+        fab.setOnClickListener(views -> {
+            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
         });
 
         progressBar = binding.progressbar;
@@ -118,13 +135,18 @@ public class PmArhivFragment extends Fragment  {
         // получение данных
         getData();
         adapter = new AdapterPm(listFeed);
-
         // разделитель позиций
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(requireContext(), R.drawable.divider)));
-        recyclerView.addItemDecoration(dividerItemDecoration);
-        recyclerView.setHasFixedSize(true);
-
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
         // обновление
         swipLayout = binding.swipeLayout;
@@ -247,7 +269,6 @@ public class PmArhivFragment extends Fragment  {
         });
     }
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         String login_name = AppController.getInstance().userName("null");
@@ -267,7 +288,7 @@ public class PmArhivFragment extends Fragment  {
                     progressBarBottom.setVisibility(View.GONE);
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
+                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
                     for (int i = 0; i < response.length(); i++) {
@@ -289,7 +310,7 @@ public class PmArhivFragment extends Fragment  {
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyItemRangeChanged(0, 10);
                     if (adapter.getItemCount() == 0) {
                         emptyLayout.setVisibility(View.VISIBLE);
                         emptyView.setVisibility(View.VISIBLE);
@@ -330,10 +351,11 @@ public class PmArhivFragment extends Fragment  {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+        super.onDestroy();
         binding = null;
     }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -346,6 +368,11 @@ public class PmArhivFragment extends Fragment  {
     public void onStop() {
         super.onStop();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
 
