@@ -215,5 +215,6 @@
     <string name="votes">Опросы</string>
     <string name="predlog_vote">Предложи свой опрос</string>
     <string name="results_vote">Результаты опросов</string>
+    <string name="put_to_news">Отправить в новости</string>
 
 </resources>

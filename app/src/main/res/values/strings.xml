@@ -213,4 +213,5 @@
     <string name="votes">Votes</string>
     <string name="predlog_vote">New vote</string>
     <string name="results_vote">Votes results</string>
+    <string name="put_to_news">Put to news</string>
 </resources>

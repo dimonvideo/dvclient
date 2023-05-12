@@ -129,6 +129,6 @@ public class Config {
     public static final String VOTE_URL_VIEW = BASE_URL + "/apps/dvclient.php?op=17&u=";
     public static final String APPROVE_URL = BASE_URL + "/apps/dvclient.php?op=19&razdel=";
     public static final String SINGLE_FILE_URL = BASE_URL + "/apps/dvclient.php?op=20&razdel=";
-
+    public static final String PUTTONEWS_URL = BASE_URL + "/apps/dvclient.php?op=22&razdel=";
 }
 

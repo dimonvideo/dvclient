@@ -39,6 +39,7 @@ import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.ui.main.MainFragmentViewFile;
+import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import org.xml.sax.XMLReader;
@@ -300,7 +301,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     private void show_dialog(ViewHolder holder, final int position, Context context) {
         final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open),
                 context.getString(R.string.menu_fav), context.getString(R.string.action_like), context.getString(R.string.action_screen),
-                context.getString(R.string.download), context.getString(R.string.copy_listtext)};
+                context.getString(R.string.download), context.getString(R.string.copy_listtext), context.getString(R.string.put_to_news)};
         final Feed feed = jsonFeed.get(position);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         holder.url = Config.BASE_URL + "/" + feed.getRazdel() + "/" + feed.getId();
@@ -348,6 +349,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 } catch (Throwable ignored) {
                 }
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+            }
+            if (item == 7) { // to news
+                NetworkUtils.putToNews(feed.getRazdel(), feed.getId());
             }
         });
         builder.show();

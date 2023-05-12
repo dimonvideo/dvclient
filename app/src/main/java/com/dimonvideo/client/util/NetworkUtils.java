@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -54,95 +56,14 @@ import java.util.concurrent.TimeUnit;
 public class NetworkUtils {
 
     public static void checkPassword(Context context, String password, String razdel) {
-        View view = MainActivity.binding.getRoot();
-        String login = AppController.getInstance().userName("null");
-        final int auth_state = AppController.getInstance().isAuth();
-        String current_token = AppController.getInstance().isToken();
-        if (password == null || password.length() < 5 || password.length() > 71) {
-            Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
-        } else {
-
-            String pass = password;
-            try {
-                pass = URLEncoder.encode(password, "utf-8");
-                login = URLEncoder.encode(login, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
-            String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass;
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                    response -> {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int state = jsonObject.getInt(Config.TAG_STATE);
-
-                            String image = "0", status = "0", lastdate = "0", token = "0", rep = "0", reg = "0", rat = "0", posts = "0";
-                            int pm_unread = 0, uid = 0, user_group = 4;
-
-                            if (state > 0) {
-                                pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
-                                image = jsonObject.getString(Config.TAG_IMAGE_URL);
-                                status = jsonObject.getString(Config.TAG_HEADERS);
-                                lastdate = jsonObject.getString(Config.TAG_TIME);
-                                token = jsonObject.getString(Config.TAG_TOKEN);
-                                rep = jsonObject.getString(Config.TAG_REP);
-                                reg = jsonObject.getString(Config.TAG_REG);
-                                rat = jsonObject.getString(Config.TAG_COMMENTS);
-                                posts = jsonObject.getString(Config.TAG_COUNT);
-                                uid = jsonObject.getInt(Config.TAG_UID);
-                                user_group = jsonObject.getInt(Config.TAG_USER_GROUP);
-
-                                try {
-                                    if (auth_state == 0) Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
-                                    EventBus.getDefault().post(new MessageEvent(razdel, null, null, String.valueOf(pm_unread), null, null));
-                                } catch (Throwable ignored) {
-                                }
-                            } else {
-                                try {
-                                    Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
-                                } catch (Throwable ignored) {
-                                }
-                            }
-
-                            AppController.getInstance().putAuthState(state);
-
-                            if (state > 0) {
-
-                                AppController.getInstance().putImage(image);
-                                AppController.getInstance().putRang(status);
-                                AppController.getInstance().putLastDate(lastdate);
-                                AppController.getInstance().putReputation(rep);
-                                AppController.getInstance().putRegDate(reg);
-                                AppController.getInstance().putRating(rat);
-                                AppController.getInstance().putPosts(posts);
-                                AppController.getInstance().putUserId(uid);
-                                AppController.getInstance().putUserGroup(user_group);
-                                AppController.getInstance().putPmUnread(pm_unread);
-                            }
-
-                            if ((!token.equals(current_token)) && (state > 0)) GetToken.getToken(context);
-
-                            // Log.e("auth", response);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }, error -> showErrorToast(context, error)
-            );
-            AppController.getInstance().addToRequestQueue(stringRequest);
-
-        }
-
-    }
-
-    public static void checkLogin(Context context, String login) {
-        View view = MainActivity.binding.getRoot();
-        final String password = AppController.getInstance().userPassword();
-        if (login == null || login.length() < 2 || login.length() > 71) {
-            Snackbar.make(view, context.getString(R.string.login_invalid), Snackbar.LENGTH_LONG).show();
-        } else {
-            if (password.length() > 5) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            View view = MainActivity.binding.getRoot();
+            String login = AppController.getInstance().userName("null");
+            final int auth_state = AppController.getInstance().isAuth();
+            String current_token = AppController.getInstance().isToken();
+            if (password == null || password.length() < 5 || password.length() > 71) {
+                Snackbar.make(view, context.getString(R.string.password_invalid), Snackbar.LENGTH_LONG).show();
+            } else {
 
                 String pass = password;
                 try {
@@ -158,31 +79,118 @@ public class NetworkUtils {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 int state = jsonObject.getInt(Config.TAG_STATE);
+
+                                String image = "0", status = "0", lastdate = "0", token = "0", rep = "0", reg = "0", rat = "0", posts = "0";
+                                int pm_unread = 0, uid = 0, user_group = 4;
+
                                 if (state > 0) {
-                                    Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
-                                    Intent local = new Intent();
-                                    local.setAction(Config.INTENT_AUTH);
-                                    context.sendBroadcast(local);
+                                    pm_unread = jsonObject.getInt(Config.TAG_PM_UNREAD);
+                                    image = jsonObject.getString(Config.TAG_IMAGE_URL);
+                                    status = jsonObject.getString(Config.TAG_HEADERS);
+                                    lastdate = jsonObject.getString(Config.TAG_TIME);
+                                    token = jsonObject.getString(Config.TAG_TOKEN);
+                                    rep = jsonObject.getString(Config.TAG_REP);
+                                    reg = jsonObject.getString(Config.TAG_REG);
+                                    rat = jsonObject.getString(Config.TAG_COMMENTS);
+                                    posts = jsonObject.getString(Config.TAG_COUNT);
+                                    uid = jsonObject.getInt(Config.TAG_UID);
+                                    user_group = jsonObject.getInt(Config.TAG_USER_GROUP);
+
+                                    try {
+                                        if (auth_state == 0)
+                                            Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                                        EventBus.getDefault().post(new MessageEvent(razdel, null, null, String.valueOf(pm_unread), null, null));
+                                    } catch (Throwable ignored) {
+                                    }
+                                } else {
+                                    try {
+                                        Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
+                                    } catch (Throwable ignored) {
+                                    }
                                 }
-                                else
-                                    Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
 
                                 AppController.getInstance().putAuthState(state);
-                                GetToken.getToken(context);
 
+                                if (state > 0) {
+
+                                    AppController.getInstance().putImage(image);
+                                    AppController.getInstance().putRang(status);
+                                    AppController.getInstance().putLastDate(lastdate);
+                                    AppController.getInstance().putReputation(rep);
+                                    AppController.getInstance().putRegDate(reg);
+                                    AppController.getInstance().putRating(rat);
+                                    AppController.getInstance().putPosts(posts);
+                                    AppController.getInstance().putUserId(uid);
+                                    AppController.getInstance().putUserGroup(user_group);
+                                    AppController.getInstance().putPmUnread(pm_unread);
+                                }
+
+                                if ((!token.equals(current_token)) && (state > 0))
+                                    GetToken.getToken(context);
+
+                                // Log.e("auth", response);
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
                         }, error -> showErrorToast(context, error)
                 );
-
                 AppController.getInstance().addToRequestQueue(stringRequest);
-            }
 
-        }
+            }
+        });
 
     }
+
+    public static void checkLogin(Context context, final String login) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            View view = MainActivity.binding.getRoot();
+            String password = AppController.getInstance().userPassword();
+            if (login == null || login.length() < 2 || login.length() > 71) {
+                Snackbar.make(view, context.getString(R.string.login_invalid), Snackbar.LENGTH_LONG).show();
+            } else {
+                if (password.length() > 5) {
+
+                    String login_f = "";
+                    try {
+                        password = URLEncoder.encode(password, "utf-8");
+                        login_f = URLEncoder.encode(login, "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+                    String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + password;
+                    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                            response -> {
+                                try {
+                                    JSONObject jsonObject = new JSONObject(response);
+                                    int state = jsonObject.getInt(Config.TAG_STATE);
+                                    if (state > 0) {
+                                        Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
+                                        Intent local = new Intent();
+                                        local.setAction(Config.INTENT_AUTH);
+                                        context.sendBroadcast(local);
+                                    } else
+                                        Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
+
+                                    AppController.getInstance().putAuthState(state);
+                                    GetToken.getToken(context);
+
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }, error -> showErrorToast(context, error)
+                    );
+
+                    AppController.getInstance().addToRequestQueue(stringRequest);
+                }
+
+            }
+        });
+
+    }
+
     static void showErrorToast(Context context, VolleyError error) {
         @StringRes int errorTextRes = getErrorTextResId(error);
 
@@ -209,148 +217,158 @@ public class NetworkUtils {
     }
 
     public static void deletePm(Context context, int pm_id, int delete) {
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-        final String password = AppController.getInstance().userPassword();
-        String login = AppController.getInstance().userName("null");
-        final int pm_unread = AppController.getInstance().isPmUnread();
-        if (login.length() < 2 || login.length() > 71) {
-            Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
-        } else {
-            if (password.length() > 5) {
+            final String password = AppController.getInstance().userPassword();
+            String login = AppController.getInstance().userName("null");
+            final int pm_unread = AppController.getInstance().isPmUnread();
+            if (login.length() < 2 || login.length() > 71) {
+                Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
+            } else {
+                if (password.length() > 5) {
 
-                String pass = password;
-                try {
-                    pass = URLEncoder.encode(password, "utf-8");
-                    login = URLEncoder.encode(login, "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    String pass = password;
+                    try {
+                        pass = URLEncoder.encode(password, "utf-8");
+                        login = URLEncoder.encode(login, "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+                    String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete=" + delete;
+                    Log.e(Config.TAG, url);
+                    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                            response -> {
+
+                                if (delete == 0) {
+                                    if (pm_unread > 1)
+                                        AppController.getInstance().putPmUnread(pm_unread - 1);
+                                    else AppController.getInstance().putPmUnread(0);
+                                    String count = "0";
+                                    if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
+                                    if (Integer.parseInt(count) < 1) count = "0";
+                                    EventBus.getDefault().post(new MessageEvent(null, null, null, count, "deletePm", null));
+                                }
+                            }, error -> showErrorToast(context, error)
+                    );
+
+                    AppController.getInstance().addToRequestQueue(stringRequest);
                 }
 
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete=" + delete;
-                Log.e(Config.TAG, url);
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                        response -> {
-
-                            if (delete == 0) {
-                                if (pm_unread > 1) AppController.getInstance().putPmUnread(pm_unread - 1); else AppController.getInstance().putPmUnread(0);
-                                String count = "0";
-                                if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
-                                if (Integer.parseInt(count) < 1) count = "0";
-                                EventBus.getDefault().post(new MessageEvent(null, null, null, count, "deletePm", null));
-                            }
-                        }, error -> showErrorToast(context, error)
-                );
-
-                AppController.getInstance().addToRequestQueue(stringRequest);
             }
-
-        }
+        });
 
     }
 
     public static void readPm(Context context, int pm_id) {
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-        final String password = AppController.getInstance().userPassword();
-        String login = AppController.getInstance().userName("null");
-        final int pm_unread = AppController.getInstance().isPmUnread();
-        if (login.length() < 2 || login.length() > 71) {
-            Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
-        } else {
-            if (password.length() > 5) {
+            final String password = AppController.getInstance().userPassword();
+            String login = AppController.getInstance().userName("null");
+            final int pm_unread = AppController.getInstance().isPmUnread();
+            if (login.length() < 2 || login.length() > 71) {
+                Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
+            } else {
+                if (password.length() > 5) {
 
-                String pass = password;
-                try {
-                    pass = URLEncoder.encode(password, "utf-8");
-                    login = URLEncoder.encode(login, "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    String pass = password;
+                    try {
+                        pass = URLEncoder.encode(password, "utf-8");
+                        login = URLEncoder.encode(login, "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+                    String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=11";
+                    StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                            response -> {
+                                String count = "0";
+                                if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
+                                if (Integer.parseInt(count) < 1) count = "0";
+                                EventBus.getDefault().post(new MessageEvent(null, null, null, count, "readPm", null));
+                            }, error -> showErrorToast(context, error)
+                    );
+
+                    AppController.getInstance().addToRequestQueue(stringRequest);
                 }
 
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=11";
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                        response -> {
-                            String count = "0";
-                            if (pm_unread > 1) count = String.valueOf(pm_unread - 1);
-                            if (Integer.parseInt(count) < 1) count = "0";
-                            EventBus.getDefault().post(new MessageEvent(null, null, null, count, "readPm", null));
-                        }, error -> showErrorToast(context, error)
-                );
-
-                AppController.getInstance().addToRequestQueue(stringRequest);
             }
-
-        }
+        });
 
     }
 
     public static void sendPm(Context context, int pm_id, String text, int delete, String razdel, int uid) {
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-        Log.e("---", "sendPm: "+razdel + " text: "+text);
+            Log.e("---", "sendPm: " + razdel + " text: " + text);
 
-        final String password = AppController.getInstance().userPassword();
-        String login = AppController.getInstance().userName("null");
-        String pass = password;
-        if (login.length() < 2 || login.length() > 71) {
-            Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
-        } else {
-            if ((text != null) && (text.length() > 1)) {
-                try {
-                    pass = URLEncoder.encode(password, "utf-8");
-                    login = URLEncoder.encode(login, "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-                String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
-                StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
-
-                    Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
-                    GetToken.getToken(context);
-                }, Throwable::printStackTrace) {
-
-                    @Override
-                    protected Map<String, String> getParams() {
-                        Map<String, String> postMap = new HashMap<>();
-                        postMap.put("pm_text", text);
-                        return postMap;
+            final String password = AppController.getInstance().userPassword();
+            String login = AppController.getInstance().userName("null");
+            String pass = password;
+            if (login.length() < 2 || login.length() > 71) {
+                Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
+            } else {
+                if ((text != null) && (text.length() > 1)) {
+                    try {
+                        pass = URLEncoder.encode(password, "utf-8");
+                        login = URLEncoder.encode(login, "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
                     }
-                };
 
-                AppController.getInstance().addToRequestQueue(stringRequest);
+                    String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
+                    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
+                        Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
+                        GetToken.getToken(context);
+                    }, Throwable::printStackTrace) {
+
+                        @Override
+                        protected Map<String, String> getParams() {
+                            Map<String, String> postMap = new HashMap<>();
+                            postMap.put("pm_text", text);
+                            return postMap;
+                        }
+                    };
+
+                    AppController.getInstance().addToRequestQueue(stringRequest);
+
+                }
             }
-        }
 
-        GetToken.getToken(context);
+            GetToken.getToken(context);
+        });
     }
 
-    public static void loadAvatar(Context context, Toolbar toolbar){
+    public static void loadAvatar(Context context, Toolbar toolbar) {
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-        final String image_url = AppController.getInstance().imageUrl();
-        final int auth_state = AppController.getInstance().isAuth();
-        if (auth_state > 0) {
-            Glide.with(context)
-                    .asDrawable()
-                    .load(image_url)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .centerInside()
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(new CustomTarget<Drawable>() {
+            final String image_url = AppController.getInstance().imageUrl();
+            final int auth_state = AppController.getInstance().isAuth();
+            if (auth_state > 0) {
+                Glide.with(context)
+                        .asDrawable()
+                        .load(image_url)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .centerInside()
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(new CustomTarget<Drawable>() {
 
-                        @Override
-                        public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
-                            try {
-                                toolbar.setNavigationIcon(resource);
-                            } catch (Throwable ignored) {
+                            @Override
+                            public void onResourceReady(@NonNull Drawable resource, @Nullable @org.jetbrains.annotations.Nullable com.bumptech.glide.request.transition.Transition<? super Drawable> transition) {
+                                try {
+                                    toolbar.setNavigationIcon(resource);
+                                } catch (Throwable ignored) {
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                            @Override
+                            public void onLoadCleared(@Nullable Drawable placeholder) {
 
-                        }
-                    });
-        }
+                            }
+                        });
+            }
+        });
     }
 
     // загрузка изображений во вложения
@@ -361,53 +379,56 @@ public class NetworkUtils {
     }
 
     public static void uploadBitmap(final Bitmap bitmap, Context context, String razdel) {
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-        final String user_name = AppController.getInstance().userName("dvclient");
+            final String user_name = AppController.getInstance().userName("dvclient");
 
-        ProgressHelper.showDialog(context, context.getString(R.string.please_wait));
-        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Config.UPLOAD_URL,
-                response -> {
-                    ProgressHelper.dismissDialog();
-                    try {
-                        JSONObject obj = new JSONObject(new String(response.data));
-                        String msg = obj.getString(Config.TAG_LINK);
-                        String err = obj.getString("error");
-                        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, msg, null, null, bitmap));
-                        Log.e("---", "uploadBitmap: "+razdel + " name: "+msg);
-                        if (err.equals("false")) Toast.makeText(context, context.getString(R.string.success_image), Toast.LENGTH_SHORT).show();
-                        if (err.equals("true")) Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+            ProgressHelper.showDialog(context, context.getString(R.string.please_wait));
+            VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, Config.UPLOAD_URL,
+                    response -> {
+                        ProgressHelper.dismissDialog();
+                        try {
+                            JSONObject obj = new JSONObject(new String(response.data));
+                            String msg = obj.getString(Config.TAG_LINK);
+                            String err = obj.getString("error");
+                            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, msg, null, null, bitmap));
+                            Log.e("---", "uploadBitmap: " + razdel + " name: " + msg);
+                            if (err.equals("false"))
+                                Toast.makeText(context, context.getString(R.string.success_image), Toast.LENGTH_SHORT).show();
+                            if (err.equals("true"))
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
 
-                },
-                error -> ProgressHelper.dismissDialog()) {
+                    },
+                    error -> ProgressHelper.dismissDialog()) {
 
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("name", user_name);
-                return params;
-            }
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("name", user_name);
+                    return params;
+                }
 
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-                long imagename = System.currentTimeMillis();
-                params.put("pic", new DataPart(imagename + ".png", getFileDataFromDrawable(bitmap)));
-                return params;
-            }
-        };
-        volleyMultipartRequest.setRetryPolicy(new DefaultRetryPolicy(
-                (int) TimeUnit.SECONDS.toMillis(10),
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        Volley.newRequestQueue(context).add(volleyMultipartRequest);
+                @Override
+                protected Map<String, DataPart> getByteData() {
+                    Map<String, DataPart> params = new HashMap<>();
+                    long imagename = System.currentTimeMillis();
+                    params.put("pic", new DataPart(imagename + ".png", getFileDataFromDrawable(bitmap)));
+                    return params;
+                }
+            };
+            volleyMultipartRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    (int) TimeUnit.SECONDS.toMillis(10),
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            Volley.newRequestQueue(context).add(volleyMultipartRequest);
+        });
     }
 
-    public static void getOprosTitle(TextView opros, Context context){
-        // запрос к серверу апи
-
+    public static void getOprosTitle(TextView opros, Context context) {
+        new Handler(Looper.getMainLooper()).post(() -> {
             JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.VOTE_URL,
                     response -> {
                         for (int i = 0; i < response.length(); i++) {
@@ -426,7 +447,8 @@ public class NetworkUtils {
                                 Bundle bundle = new Bundle();
                                 bundle.putString(Config.TAG_TITLE, jsonFeed.getTitle());
                                 fragment.setArguments(bundle);
-                                if (context != null) fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentOpros");
+                                if (context != null)
+                                    fragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "MainFragmentOpros");
                             });
                         }
 
@@ -436,39 +458,77 @@ public class NetworkUtils {
                     });
 
             AppController.getInstance().addToRequestQueue(jsonArrayRequest);
-        }
-
-    public static void getOdob(String razdel, int lid){
-
-        View view = MainActivity.binding.getRoot();
-        String password = AppController.getInstance().userPassword();
-        String login = AppController.getInstance().userName("");
-        try {
-            password = URLEncoder.encode(password, "utf-8");
-            login = URLEncoder.encode(login, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.APPROVE_URL+razdel+"&u="+login+"&p="+password+"&lid="+lid,
-                response -> {
-                    for (int i = 0; i < response.length(); i++) {
-                        Feed jsonFeed = new Feed();
-                        JSONObject json;
-                        try {
-                            json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                },
-                error -> {
-
-                });
-
-        AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+        });
     }
+
+    public static void getOdob(String razdel, int lid) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            View view = MainActivity.binding.getRoot();
+            String password = AppController.getInstance().userPassword();
+            String login = AppController.getInstance().userName("");
+            try {
+                password = URLEncoder.encode(password, "utf-8");
+                login = URLEncoder.encode(login, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.APPROVE_URL + razdel + "&u=" + login + "&p=" + password + "&lid=" + lid,
+                    response -> {
+                        for (int i = 0; i < response.length(); i++) {
+                            Feed jsonFeed = new Feed();
+                            JSONObject json;
+                            try {
+                                json = response.getJSONObject(i);
+                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                                Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    },
+                    error -> {
+
+                    });
+
+            AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+        });
+
+    }
+
+    public static void putToNews(String razdel, int lid) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            View view = MainActivity.binding.getRoot();
+            String password = AppController.getInstance().userPassword();
+            String login = AppController.getInstance().userName("");
+            try {
+                password = URLEncoder.encode(password, "utf-8");
+                login = URLEncoder.encode(login, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.PUTTONEWS_URL + razdel + "&u=" + login + "&p=" + password + "&lid=" + lid,
+                    response -> {
+                        for (int i = 0; i < response.length(); i++) {
+                            Feed jsonFeed = new Feed();
+                            JSONObject json;
+                            try {
+                                json = response.getJSONObject(i);
+                                jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                                Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    },
+                    error -> {
+
+                    });
+
+            AppController.getInstance().addToRequestQueue(jsonArrayRequest);
+        });
+    }
+
 
 }
