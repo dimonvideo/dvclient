@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class MainFragmentCats extends Fragment {
+public class MainFragmentCategories extends Fragment {
 
     private List<FeedCats> listFeed;
     private AdapterMainCategories adapter;
@@ -46,7 +46,7 @@ public class MainFragmentCats extends Fragment {
     private String razdel;
     private FragmentHomeBinding binding;
 
-    public MainFragmentCats() {
+    public MainFragmentCategories() {
         // Required empty public constructor
     }
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)

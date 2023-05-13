@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.LocaleList;
 import android.os.Looper;
-import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -66,8 +65,8 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentAddFile;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.ui.pm.PmFragment;
-import com.dimonvideo.client.ui.pm.PmMembersFragment;
+import com.dimonvideo.client.ui.pm.PmFragmentTabs;
+import com.dimonvideo.client.ui.pm.PmFragmentMembers;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.GetRazdelName;
@@ -190,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 10) navGraph.setStartDestination(R.id.nav_home);
             if (Integer.parseInt(main_razdel) == 4) navGraph.setStartDestination(R.id.nav_news);
             if (Integer.parseInt(main_razdel) == 1) navGraph.setStartDestination(R.id.nav_gallery);
-            if (Integer.parseInt(main_razdel) == 3) navGraph.setStartDestination(R.id.nav_vuploader);
+            if (Integer.parseInt(main_razdel) == 3)
+                navGraph.setStartDestination(R.id.nav_vuploader);
             if (Integer.parseInt(main_razdel) == 5) navGraph.setStartDestination(R.id.nav_muzon);
             if (Integer.parseInt(main_razdel) == 6) navGraph.setStartDestination(R.id.nav_books);
             if (Integer.parseInt(main_razdel) == 2) navGraph.setStartDestination(R.id.nav_uploader);
@@ -198,7 +198,8 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
             if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
             if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
-            if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
+            if (Integer.parseInt(main_razdel) == 16)
+                navGraph.setStartDestination(R.id.nav_suploader);
 
             navController.setGraph(navGraph);
 
@@ -255,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 ShortcutManager shortcutManager = (ShortcutManager) getSystemService(SHORTCUT_SERVICE);
                 Intent notificationIntent = new Intent(this, MainActivity.class);
-                notificationIntent.putExtra("action", "PmFragment");
+                notificationIntent.putExtra("action", "PmFragmentTabs");
                 notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
                 ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
@@ -379,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e(Config.TAG, "Main intent: " + action);
 
             if (action != null) {
-                if (Objects.equals(action, "PmFragment")) {
+                if (Objects.equals(action, "PmFragmentTabs")) {
                     navigationView.post(() -> navController.navigate(R.id.nav_pm));
                 }
                 if (Objects.equals(action, "ForumFragment")) {
@@ -398,12 +399,18 @@ public class MainActivity extends AppCompatActivity {
 
             if (action_admin != null) {
 
-                if (action_admin.equalsIgnoreCase(Config.UPLOADER_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_uploader));
-                if (action_admin.equalsIgnoreCase(Config.VUPLOADER_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_vuploader));
-                if (action_admin.equalsIgnoreCase(Config.NEWS_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_news));
-                if (action_admin.equalsIgnoreCase(Config.GALLERY_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_gallery));
-                if (action_admin.equalsIgnoreCase(Config.MUZON_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_muzon));
-                if (action_admin.equalsIgnoreCase(Config.DEVICE_RAZDEL)) navigationView.post(() -> navController.navigate(R.id.nav_device));
+                if (action_admin.equalsIgnoreCase(Config.UPLOADER_RAZDEL))
+                    navigationView.post(() -> navController.navigate(R.id.nav_uploader));
+                if (action_admin.equalsIgnoreCase(Config.VUPLOADER_RAZDEL))
+                    navigationView.post(() -> navController.navigate(R.id.nav_vuploader));
+                if (action_admin.equalsIgnoreCase(Config.NEWS_RAZDEL))
+                    navigationView.post(() -> navController.navigate(R.id.nav_news));
+                if (action_admin.equalsIgnoreCase(Config.GALLERY_RAZDEL))
+                    navigationView.post(() -> navController.navigate(R.id.nav_gallery));
+                if (action_admin.equalsIgnoreCase(Config.MUZON_RAZDEL))
+                    navigationView.post(() -> navController.navigate(R.id.nav_muzon));
+                if (action_admin.equalsIgnoreCase(Config.DEVICE_RAZDEL))
+                    navigationView.post(() -> navController.navigate(R.id.nav_device));
 
             }
         }
@@ -434,12 +441,12 @@ public class MainActivity extends AppCompatActivity {
                     if (uri != null) {
                         try {
                             Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
-                          //  Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 720, 720, false);
+                            //  Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 720, 720, false);
                             Matrix matrix = new Matrix();
-                            matrix .setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(0, 0, 720, 720), Matrix.ScaleToFit.CENTER);
+                            matrix.setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(0, 0, 720, 720), Matrix.ScaleToFit.CENTER);
                             Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                             NetworkUtils.uploadBitmap(scaledBitmap, this, razdel);
-                            Log.e("---", "Main pickMedia: "+razdel);
+                            Log.e("---", "Main pickMedia: " + razdel);
                         } catch (Exception ignored) {
                         }
                     }
@@ -486,8 +493,8 @@ public class MainActivity extends AppCompatActivity {
             fab_badge.setVisibility(View.GONE);
         }
 
-        Log.e("---", "Main activity pm recieved: "+ count_pm);
-        Log.e("---", "Main activity razdel: "+razdel);
+        Log.e("---", "Main activity pm recieved: " + count_pm);
+        Log.e("---", "Main activity razdel: " + razdel);
 
     }
 
@@ -515,7 +522,7 @@ public class MainActivity extends AppCompatActivity {
 
                 homeFrag = new MainFragmentContent();
                 if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel.equals("13")) homeFrag = new PmMembersFragment(); // pm
+                if (razdel.equals("13")) homeFrag = new PmFragmentMembers(); // pm
                 if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
 
                 Bundle bundle = new Bundle();
@@ -561,7 +568,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (razdel != null) {
                 if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel.equals("13")) homeFrag = new PmFragment(); // pm
+                if (razdel.equals("13")) homeFrag = new PmFragmentTabs(); // pm
                 if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
             }
 
@@ -571,24 +578,24 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
 
 
-
         }
 
         // mark all read
         if (id == R.id.action_mark) {
 
             String key = GetRazdelName.getRazdelName(razdel, 0);
+            new Handler(Looper.getMainLooper()).post(() -> {
 
-            Provider.markAllRead(key);
-            Toast.makeText(this, this.getString(R.string.success), Toast.LENGTH_LONG).show();
-
+                Provider.markAllRead(key);
+                Toast.makeText(this, this.getString(R.string.success), Toast.LENGTH_LONG).show();
+            });
 
             FragmentManager fragmentManager = getSupportFragmentManager();
 
             homeFrag = new MainFragment();
             if (razdel != null) {
                 if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel.equals("13")) homeFrag = new PmFragment(); // pm
+                if (razdel.equals("13")) homeFrag = new PmFragmentTabs(); // pm
                 if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
             }
             EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
@@ -709,7 +716,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
-        AdapterMainRazdel.onDestroy();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
@@ -801,7 +807,7 @@ public class MainActivity extends AppCompatActivity {
         navController.navigate(R.id.nav_home);
         this.doubleBackToExitPressedOnce = true;
         Toast.makeText(this, getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
-        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce=false, 2000);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
     }
 
 }

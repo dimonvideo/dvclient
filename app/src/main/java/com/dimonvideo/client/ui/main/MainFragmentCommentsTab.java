@@ -1,9 +1,10 @@
-package com.dimonvideo.client.ui.pm;
+package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,38 +23,44 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.AdapterPm;
+import com.dimonvideo.client.adater.AdapterComments;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
-import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.GetRazdelName;
+import com.dimonvideo.client.util.MessageEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class PmOutboxFragment extends Fragment {
+public class MainFragmentCommentsTab extends Fragment {
 
-    private List<FeedPm> listFeed;
-    public RecyclerView recyclerView;
-    public AdapterPm adapter;
-    SwipeRefreshLayout swipLayout;
+    private List<FeedForum> listFeed;
+    private AdapterComments adapter;
+    private SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    String url = Config.PM_URL;
+    private String razdel = "10";
     private FragmentHomeBinding binding;
+    private RecyclerView recyclerView;
 
-
-    public PmOutboxFragment() {
+    public MainFragmentCommentsTab() {
         // Required empty public constructor
     }
 
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event){
+        razdel = event.razdel;
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -64,12 +70,45 @@ public class PmOutboxFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         requestCount = 1;
 
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+        if (this.getArguments() != null) {
+            razdel = getArguments().getString(Config.TAG_CATEGORY);
+            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
+        }
+
+        listFeed = new ArrayList<>();
+
+        progressBar = binding.progressbar;
+        progressBar.setVisibility(View.VISIBLE);
+        ProgressBarBottom = binding.ProgressBarBottom;
+        ProgressBarBottom.setVisibility(View.GONE);
+        // получение данных
+        getData();
+        adapter = new AdapterComments(listFeed, getContext());
         recyclerView = binding.recyclerView;
+
+        // разделитель позиций
+        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
+        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
+        assert horizontalDivider != null;
+        horizontalDecoration.setDrawable(horizontalDivider);
+        recyclerView.addItemDecoration(horizontalDecoration);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
+        recyclerView.setAdapter(adapter);
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
+        boolean is_top = AppController.getInstance().isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -77,6 +116,7 @@ public class PmOutboxFragment extends Fragment {
                     new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
+                    if (!is_top) fab.setVisibility(View.GONE);
                 }
             }
 
@@ -93,31 +133,7 @@ public class PmOutboxFragment extends Fragment {
         fab.setOnClickListener(views -> {
             recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
         });
-        listFeed = new ArrayList<>();
 
-        progressBar = binding.progressbar;
-        progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = binding.ProgressBarBottom;
-        ProgressBarBottom.setVisibility(View.GONE);
-        // получение данных
-        getData();
-        adapter = new AdapterPm(listFeed);
-
-        // разделитель позиций
-        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
-        assert horizontalDivider != null;
-        horizontalDecoration.setDrawable(horizontalDivider);
-        recyclerView.addItemDecoration(horizontalDecoration);
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(10);
-        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
-        recyclerView.setAdapter(adapter);
-
-        recyclerView.setAdapter(adapter);
         // обновление
         swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
@@ -128,49 +144,51 @@ public class PmOutboxFragment extends Fragment {
         });
     }
 
-    // запрос к серверу апи
-    private JsonArrayRequest getDataFromServer(int requestCount) {
-        String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
-        String pass = AppController.getInstance().userPassword();
-        try {
-            pass = URLEncoder.encode(pass, "utf-8");
-            login_name = URLEncoder.encode(login_name, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        String finalPass = pass;
-        String finalLogin = login_name;
 
-        return new JsonArrayRequest(url + requestCount + "&pm=1&login_name=" + finalLogin + "&login_password=" + finalPass,
+
+    // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
+    private JsonArrayRequest getDataFromServer(int requestCount) {
+
+        String key = GetRazdelName.getRazdelName(razdel, 0);
+
+        String url = Config.COMMENTS_READS_URL;
+
+        Log.v("---", url + key + "&min=" + requestCount  + "&lid=0");
+        return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {
-                    progressBar.setVisibility(View.GONE);
-                    ProgressBarBottom.setVisibility(View.GONE);
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
                     for (int i = 0; i < response.length(); i++) {
-                        FeedPm jsonFeed = new FeedPm();
+                        FeedForum jsonFeed = new FeedForum();
                         JSONObject json;
                         try {
                             json = response.getJSONObject(i);
+                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            jsonFeed.setImageUrl(json.getString(Config.TAG_CATEGORY));
-                            jsonFeed.setId(json.getInt(Config.TAG_ID));
-                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setIs_new(json.getInt(Config.TAG_HITS));
-                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                            jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
-
+                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                            jsonFeed.setUser(json.getString(Config.TAG_USER));
+                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                            jsonFeed.setState(json.getString(Config.TAG_RAZDEL));
+                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                            jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            jsonFeed.setPost_id(json.getInt(Config.TAG_POST_ID));
+                            jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyItemRangeChanged(0, 10);
-
+                    recyclerView.post(() -> {
+                        adapter.notifyDataSetChanged();
+                    });
+                    Log.e("---", String.valueOf(response));
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
@@ -196,8 +214,22 @@ public class PmOutboxFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
         binding = null;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+    }
 }

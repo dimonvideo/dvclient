@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -73,8 +75,10 @@ public class MainFragmentContent extends Fragment {
     private String search_url = Config.COMMENTS_SEARCH_URL;
     private String key = "comments";
     private SharedPreferences sharedPrefs;
-    private String story, f_name, s_url = "";
+    private String story, f_name, s_url = "", tab_title;
     private FragmentHomeBinding binding;
+    private boolean is_more_odob;
+    private String st_url = "";
 
     public MainFragmentContent() {
         // Required empty public constructor
@@ -103,8 +107,10 @@ public class MainFragmentContent extends Fragment {
 
         mContext = requireContext();
         sharedPrefs = AppController.getInstance().getSharedPreferences();
+        is_more_odob = AppController.getInstance().isMoreOdob();
 
         if (this.getArguments() != null) {
+            tab_title = getArguments().getString("tab");
             cid = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             f_name = getArguments().getString(Config.TAG_RAZDEL);
@@ -138,7 +144,7 @@ public class MainFragmentContent extends Fragment {
                         jsonFeedList.setLink(cursor.getString(12));
 
                         listFeed.add(jsonFeedList);
-                        Log.v("---", key+" in BD: "+jsonFeedList.getStatus()+" "+jsonFeedList.getTitle());
+                        Log.v("---", key + " in BD: " + jsonFeedList.getStatus() + " " + jsonFeedList.getTitle());
 
                     } while (cursor.moveToNext());
 
@@ -164,14 +170,13 @@ public class MainFragmentContent extends Fragment {
         // разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
-        assert horizontalDivider != null;
-        horizontalDecoration.setDrawable(horizontalDivider);
+        if (horizontalDivider != null) {
+            horizontalDecoration.setDrawable(horizontalDivider);
+        }
         recyclerView.addItemDecoration(horizontalDecoration);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(10);
+        recyclerView.setNestedScrollingEnabled(true);
         ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
 
@@ -196,6 +201,8 @@ public class MainFragmentContent extends Fragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
+        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top_mark = AppController.getInstance().isOnTopMark();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -203,6 +210,7 @@ public class MainFragmentContent extends Fragment {
                     new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
+                    if (!is_top) fab.setVisibility(View.GONE);
                 }
             }
 
@@ -218,6 +226,14 @@ public class MainFragmentContent extends Fragment {
         });
         fab.setOnClickListener(views -> {
             recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
+            String key = GetRazdelName.getRazdelName(razdel, 0);
+            if (is_top_mark) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    Provider.markAllRead(key);
+                    Toast.makeText(getContext(), this.getString(R.string.success), Toast.LENGTH_LONG).show();
+                });
+            }
+
         });
 
 
@@ -236,11 +252,12 @@ public class MainFragmentContent extends Fragment {
 
 
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
         Set<String> selections = null;
         try {
             selections = sharedPrefs.getStringSet("dvc_" + key + "_cat", null);
-        } catch(Exception ignored) {
+        } catch (Exception ignored) {
 
         }
 
@@ -250,6 +267,7 @@ public class MainFragmentContent extends Fragment {
             category_string = TextUtils.join(",", selected);
         }
 
+        final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
 
         if (cid > 0) s_url = "&where=" + cid;
 
@@ -265,16 +283,22 @@ public class MainFragmentContent extends Fragment {
         }
 
         String url_final = url + requestCount + "&c=placeholder," + category_string + s_url;
+        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_details)))) {
+            if (is_more_odob) st_url = "&st=2";
+            url_final = url + requestCount + "&c=placeholder," + category_string + s_url + st_url;
+        }
+        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_favorites)))) {
+            url_final = url + requestCount + s_url + "&fav=1&login_name=" + login_name;
+        }
 
         return new JsonArrayRequest(url_final,
                 response -> {
-                    Log.e("---", "response: "+response);
+                    Log.e("---", "response: " + response);
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
 
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
@@ -286,7 +310,11 @@ public class MainFragmentContent extends Fragment {
                             json = response.getJSONObject(i);
                             jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            jsonFeed.setText(json.getString(Config.TAG_TEXT));
+
+                            if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_details)))) {
+                                jsonFeed.setText(json.getString(Config.TAG_FULL_TEXT));
+                            } else jsonFeed.setText(json.getString(Config.TAG_TEXT));
+
                             jsonFeed.setFull_text(json.getString(Config.TAG_FULL_TEXT));
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
                             jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
@@ -303,26 +331,29 @@ public class MainFragmentContent extends Fragment {
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                             jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
                             jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
+                            jsonFeed.setFav(json.getInt(Config.TAG_FAV));
 
 
                             // сохраняем в базу результат для оффлайн просмотра
-                            ContentValues values = new ContentValues();
-                            values.put(Table.COLUMN_LID, json.getInt(Config.TAG_ID));
-                            values.put(Table.COLUMN_STATUS, 0);
-                            values.put(Table.COLUMN_TITLE, json.getString(Config.TAG_TITLE));
-                            values.put(Table.COLUMN_DATE, json.getString(Config.TAG_DATE));
-                            values.put(Table.COLUMN_TIMESTAMP, json.getString(Config.TAG_TIME));
-                            values.put(Table.COLUMN_TEXT, json.getString(Config.TAG_TEXT));
-                            values.put(Table.COLUMN_FULL_TEXT, json.getString(Config.TAG_FULL_TEXT));
-                            values.put(Table.COLUMN_CATEGORY, json.getString(Config.TAG_CATEGORY));
-                            values.put(Table.COLUMN_IMG, json.getString(Config.TAG_IMAGE_URL));
-                            values.put(Table.COLUMN_RAZDEL, json.getString(Config.TAG_RAZDEL));
-                            values.put(Table.COLUMN_SIZE, json.getString(Config.TAG_SIZE));
-                            values.put(Table.COLUMN_URL, json.getString(Config.TAG_LINK));
-
-                            try {
-                                mContext.getContentResolver().insert(Provider.CONTENT_URI, values);
-                            } catch (Throwable ignored) {
+                            if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_last)))) {
+                                ContentValues values = new ContentValues();
+                                values.put(Table.COLUMN_LID, json.getInt(Config.TAG_ID));
+                                values.put(Table.COLUMN_STATUS, 0);
+                                values.put(Table.COLUMN_TITLE, json.getString(Config.TAG_TITLE));
+                                values.put(Table.COLUMN_DATE, json.getString(Config.TAG_DATE));
+                                values.put(Table.COLUMN_TIMESTAMP, json.getString(Config.TAG_TIME));
+                                values.put(Table.COLUMN_TEXT, json.getString(Config.TAG_TEXT));
+                                values.put(Table.COLUMN_FULL_TEXT, json.getString(Config.TAG_FULL_TEXT));
+                                values.put(Table.COLUMN_CATEGORY, json.getString(Config.TAG_CATEGORY));
+                                values.put(Table.COLUMN_IMG, json.getString(Config.TAG_IMAGE_URL));
+                                values.put(Table.COLUMN_RAZDEL, json.getString(Config.TAG_RAZDEL));
+                                values.put(Table.COLUMN_SIZE, json.getString(Config.TAG_SIZE));
+                                values.put(Table.COLUMN_URL, json.getString(Config.TAG_LINK));
+                                values.put(Table.COLUMN_STATE, json.getInt(Config.TAG_STATUS));
+                                try {
+                                    mContext.getContentResolver().insert(Provider.CONTENT_URI, values);
+                                } catch (Throwable ignored) {
+                                }
                             }
 
                         } catch (JSONException e) {
@@ -330,9 +361,10 @@ public class MainFragmentContent extends Fragment {
                         }
                         listFeed.add(jsonFeed);
 
-
                     }
-                    adapter.notifyItemRangeChanged(0, 10);
+                    recyclerView.post(() -> {
+                        adapter.notifyDataSetChanged();
+                    });
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);

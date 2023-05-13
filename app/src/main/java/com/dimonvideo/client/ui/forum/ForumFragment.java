@@ -22,6 +22,7 @@ import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
+import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
@@ -101,10 +102,25 @@ public class ForumFragment extends Fragment  {
         }
 
         adapt.clearList();
-        adapt.addFragment(new ForumFragmentTopics());
+        Bundle bundle = new Bundle();
+        bundle.putString("tab",getString(R.string.tab_last));
+        ForumFragmentTopics fragment_main = new ForumFragmentTopics();
+        fragment_main.setArguments(bundle);
+
+        bundle = new Bundle();
+        bundle.putString("tab",getString(R.string.tab_details));
+        ForumFragmentTopics fragment_no_post = new ForumFragmentTopics();
+        fragment_no_post.setArguments(bundle);
+
+        bundle = new Bundle();
+        bundle.putString("tab",getString(R.string.tab_favorites));
+        ForumFragmentTopics fragment_fav = new ForumFragmentTopics();
+        fragment_fav.setArguments(bundle);
+
+        adapt.addFragment(fragment_main);
         adapt.addFragment(new ForumFragmentForums());
-        if (tab_topics_no_posts) adapt.addFragment(new ForumFragmentTopicsNoPosts());
-        if (login.length() > 2 && is_favor) adapt.addFragment(new ForumFragmentTopicsFav());
+        if (tab_topics_no_posts) adapt.addFragment(fragment_no_post);
+        if (login.length() > 2 && is_favor) adapt.addFragment(fragment_fav);
 
         toolbar.setTitle(getString(R.string.menu_forum));
 

@@ -17,9 +17,10 @@ public class Table {
     public static final String COLUMN_RAZDEL = "razdel";
     public static final String COLUMN_SIZE = "size";
     public static final String COLUMN_URL = "url";
+    public static final String COLUMN_STATE = "state";
 
     public static final String[] ALL_KEYS = new String[] {COLUMN_ID, COLUMN_LID, COLUMN_STATUS, COLUMN_TITLE, COLUMN_TEXT, COLUMN_FULL_TEXT,
-            COLUMN_DATE, COLUMN_TIMESTAMP, COLUMN_CATEGORY, COLUMN_IMG, COLUMN_RAZDEL, COLUMN_SIZE, COLUMN_URL};
+            COLUMN_DATE, COLUMN_TIMESTAMP, COLUMN_CATEGORY, COLUMN_IMG, COLUMN_RAZDEL, COLUMN_SIZE, COLUMN_URL, COLUMN_STATE};
 
     private static final String DATABASE_CREATE = "create table "
             + TABLE_NAME
@@ -36,7 +37,8 @@ public class Table {
             + COLUMN_IMG + " text,"
             + COLUMN_RAZDEL + " text,"
             + COLUMN_SIZE + " text,"
-            + COLUMN_URL + " text"
+            + COLUMN_URL + " text,"
+            + COLUMN_STATE + " integer"
             + ");";
 
     public static void onCreate(SQLiteDatabase database) {

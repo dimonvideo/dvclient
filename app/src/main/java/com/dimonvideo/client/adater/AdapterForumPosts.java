@@ -113,7 +113,12 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         } catch (Throwable ignored) {
 
         }
-        Glide.with(mContext).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+        Glide.with(mContext)
+                .load(Feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.baseline_image_20)
+                .apply(RequestOptions.circleCropTransform())
+                .into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());
 
         final int auth_state = AppController.getInstance().isAuth();
@@ -149,11 +154,6 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         } catch (Throwable ignored) {
         }
         // цитирование
-        holder.textViewText.setOnClickListener(view -> {
-            if (auth_state > 0) {
-                EventBus.getDefault().post(new MessageEvent("8", null, null, null, "[b]" + Feed.getLast_poster_name() + "[/b], ", null));
-            }
-        });
         holder.itemView.setOnClickListener(view -> {
             if (auth_state > 0) {
                 EventBus.getDefault().post(new MessageEvent("8", null, null, null, "[b]" + Feed.getLast_poster_name() + "[/b], ", null));
@@ -162,10 +162,6 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         // меню по долгому нажатию
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position);
-            return true;
-        });
-        holder.textViewText.setOnLongClickListener(view -> {
             show_dialog(holder, position);
             return true;
         });

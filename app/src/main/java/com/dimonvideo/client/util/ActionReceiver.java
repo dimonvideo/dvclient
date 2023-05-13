@@ -48,7 +48,7 @@ public class ActionReceiver extends BroadcastReceiver {
     // open PM fragment from notify
     public void performAction2(Context context, String id){
         Intent notificationIntent = new Intent(context, MainActivity.class);
-        notificationIntent.putExtra("action", "PmFragment");
+        notificationIntent.putExtra("action", "PmFragmentTabs");
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             context.startActivity(notificationIntent);

@@ -50,14 +50,15 @@ import java.util.List;
 
 public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private Context mContext;
+    private Context context;
     String image_uploaded;
 
     List<FeedPm> jsonFeed;
 
-    public AdapterPm(List<FeedPm> JsonFeed){
+    public AdapterPm(List<FeedPm> JsonFeed, Context context){
         super();
         this.jsonFeed = JsonFeed;
+        this.context = context;
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
@@ -82,7 +83,6 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_pm, parent, false);
-        mContext = parent.getContext();
         return new ItemViewHolder(view);
     }
 
@@ -134,7 +134,12 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
-        Glide.with(mContext).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+        Glide.with(context)
+                .load(Feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.baseline_image_20)
+                .apply(RequestOptions.circleCropTransform())
+                .into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewDate.setText(Feed.getDate());
@@ -163,16 +168,6 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             holder.itemView.setBackgroundColor(0x00000000);
 
         });
-        holder.textViewText.setOnClickListener(v -> {
-
-            if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
-
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
-
-            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            holder.itemView.setBackgroundColor(0x00000000);
-
-        });
 
         holder.imagePick.setOnClickListener(v -> {
             MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
@@ -186,7 +181,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
             holder.btns.setVisibility(View.GONE);
             String text = holder.textInput.getText().toString();
-            NetworkUtils.sendPm(mContext, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
+            NetworkUtils.sendPm(context, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
 
         });
         holder.send.setOnLongClickListener(v -> {
@@ -194,7 +189,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
             holder.btns.setVisibility(View.GONE);
             String text = holder.textInput.getText().toString();
-            NetworkUtils.sendPm(mContext, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
+            NetworkUtils.sendPm(context, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
             try {
                 jsonFeed.remove(holder.getBindingAdapterPosition());
             } catch (Throwable ignored) {}
@@ -202,10 +197,6 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
         // show dialog
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, holder.getBindingAdapterPosition());
-            return true;
-        });
-        holder.textViewText.setOnLongClickListener(view -> {
             show_dialog(holder, holder.getBindingAdapterPosition());
             return true;
         });
@@ -222,12 +213,12 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Spanned spanned = Html.fromHtml(Feed.getText(), parser, new TagHandler());
             holder.textViewText.setText(spanned);
 
-            if (Feed.getIs_new() > 0) NetworkUtils.readPm(mContext, Feed.getId());
+            if (Feed.getIs_new() > 0) NetworkUtils.readPm(context, Feed.getId());
 
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, "pm");
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, "pm");
                 }
             });
         } catch (Throwable ignored) {
@@ -236,13 +227,13 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     // dialog
     private void show_dialog(ItemViewHolder holder, final int position){
-        final CharSequence[] items = {mContext.getString(R.string.action_open), mContext.getString(R.string.copy_listtext), mContext.getString(R.string.pm_delete)};
+        final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.copy_listtext), context.getString(R.string.pm_delete)};
         final FeedPm Feed =  jsonFeed.get(position);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         holder.url = Config.BASE_URL + "/pm/6/" + Feed.getId();
 
-        holder.myClipboard = (ClipboardManager)mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
 
         builder.setTitle(Feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
@@ -250,7 +241,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (item == 0) { // browser
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
                 try {
-                    mContext.startActivity(browserIntent);
+                    context.startActivity(browserIntent);
                 } catch (Throwable ignored) {
                 }
             }
@@ -259,16 +250,16 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     holder.myClipboard.setPrimaryClip(holder.myClip);
                 } catch (Throwable ignored) {
                 }
-                Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
             if (item == 2) { // delete
                 try {
                     removeItem(position);
-                    Toast.makeText(mContext, mContext.getString(R.string.msg_removed), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, context.getString(R.string.msg_removed), Toast.LENGTH_SHORT).show();
 
                 } catch (Throwable ignored) {
                 }
-                Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
         });
         builder.show();
@@ -280,7 +271,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (position >= 0) {
                 FeedPm Feed = jsonFeed.get(position);
                 jsonFeed.remove(position);
-                NetworkUtils.deletePm(mContext, Feed.getId(), 0);
+                NetworkUtils.deletePm(context, Feed.getId(), 0);
                 notifyItemRemoved(position);
             }
         } catch (Throwable ignored) {}
@@ -293,7 +284,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (position >= 0) {
                 FeedPm Feed = jsonFeed.get(position);
                 jsonFeed.remove(position);
-                NetworkUtils.deletePm(mContext, Feed.getId(), 1);
+                NetworkUtils.deletePm(context, Feed.getId(), 1);
                 notifyItemRemoved(position);
             }
         } catch (Throwable ignored) {}
@@ -307,7 +298,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (position >= 0) {
                 FeedPm Feed = jsonFeed.get(position);
                 jsonFeed.remove(position);
-                NetworkUtils.deletePm(mContext, Feed.getId(), 2);
+                NetworkUtils.deletePm(context, Feed.getId(), 2);
                 notifyItemRemoved(position);
             }
         } catch (Throwable ignored) {}
@@ -322,7 +313,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (position >= 0) {
                 FeedPm Feed = jsonFeed.get(position);
                 jsonFeed.remove(position);
-                NetworkUtils.deletePm(mContext, Feed.getId(), 3);
+                NetworkUtils.deletePm(context, Feed.getId(), 3);
                 notifyItemRemoved(position);
             }
         } catch (Throwable ignored) {}

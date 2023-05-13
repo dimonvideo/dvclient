@@ -1,6 +1,8 @@
 package com.dimonvideo.client.util;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -20,55 +22,57 @@ import java.util.Map;
 public class GetToken {
 
     public static void getToken(Context context){
-        String is_name = AppController.getInstance().userName("null");
-        String password = AppController.getInstance().userPassword();
-        try {
-            password = URLEncoder.encode(password, "utf-8");
-            is_name = URLEncoder.encode(is_name, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-        try {
+            String is_name = AppController.getInstance().userName("null");
+            String password = AppController.getInstance().userPassword();
+            try {
+                password = URLEncoder.encode(password, "utf-8");
+                is_name = URLEncoder.encode(is_name, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
 
-            String finalIs_name = is_name;
-            String finalPassword = password;
-            FirebaseMessaging.getInstance().getToken()
-                    .addOnCompleteListener(task -> {
-                        if (!task.isSuccessful()) {
-                            return;
-                        }
-                        String token = task.getResult();
-                        Log.w("TAG", "Fetching FCM registration token " + token);
+            try {
 
-                AppController.getInstance().putToken(token);
+                String finalIs_name = is_name;
+                String finalPassword = password;
+                FirebaseMessaging.getInstance().getToken()
+                        .addOnCompleteListener(task -> {
+                            if (!task.isSuccessful()) {
+                                return;
+                            }
+                            String token = task.getResult();
+                            Log.w("TAG", "Fetching FCM registration token " + token);
 
-            String url = Config.CHECK_AUTH_URL + "&login_name=" + finalIs_name + "&login_password=" + finalPassword;
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    String state = jsonObject.getString("state");
-                    Log.e("tag", state);
+                            AppController.getInstance().putToken(token);
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }, Throwable::printStackTrace) {
+                            String url = Config.CHECK_AUTH_URL + "&login_name=" + finalIs_name + "&login_password=" + finalPassword;
+                            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
+                                try {
+                                    JSONObject jsonObject = new JSONObject(response);
+                                    String state = jsonObject.getString("state");
+                                    Log.e("tag", state);
 
-                @Override
-                protected Map<String, String> getParams() {
-                    Map<String, String> postMap = new HashMap<>();
-                    postMap.put("token", token);
-                    return postMap;
-                }
-            };
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }, Throwable::printStackTrace) {
 
-            Volley.newRequestQueue(context).add(stringRequest);
-                    });
+                                @Override
+                                protected Map<String, String> getParams() {
+                                    Map<String, String> postMap = new HashMap<>();
+                                    postMap.put("token", token);
+                                    return postMap;
+                                }
+                            };
 
-        } catch (Exception ignored) {
-        }
+                            Volley.newRequestQueue(context).add(stringRequest);
+                        });
 
+            } catch (Exception ignored) {
+            }
 
+        });
     }
 }

@@ -214,4 +214,8 @@
     <string name="predlog_vote">New vote</string>
     <string name="results_vote">Votes results</string>
     <string name="put_to_news">Put to news</string>
+    <string name="ontop">Scroll to top button</string>
+    <string name="ontop_sum">show scroll to top button</string>
+    <string name="ontop_mark">Mark all read when press OnTop button</string>
+    <string name="ontop_mark_sum">mark all files read when press OnTop button</string>
 </resources>

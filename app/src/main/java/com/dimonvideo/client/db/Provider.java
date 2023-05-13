@@ -80,7 +80,7 @@ public class Provider extends ContentProvider {
         sqlDB = database.getWritableDatabase();
         long id = 0;
         if (uriType == MESSAGES) {
-            id = sqlDB.insertWithOnConflict(Table.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+            id = sqlDB.insertWithOnConflict(Table.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         } else {
             throw new IllegalArgumentException("Unknown URI: " + uri);
         }

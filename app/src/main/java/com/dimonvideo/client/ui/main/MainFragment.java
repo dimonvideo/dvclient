@@ -113,11 +113,27 @@ public class MainFragment extends Fragment  {
             tabIcons.add(R.drawable.baseline_chat_24);
         }
         adapt.clearList();
-        adapt.addFragment(new MainFragmentContent());
-        if (is_more) adapt.addFragment(new MainFragmentInfo());
-        adapt.addFragment(new MainFragmentCats());
-        if (login.length() > 2 && is_favor) adapt.addFragment(new MainFragmentFav());
-        if (is_comment) adapt.addFragment(new MainFragmentComments());
+
+        Bundle bundle = new Bundle();
+        bundle.putString("tab",getString(R.string.tab_last));
+        MainFragmentContent fragment_main = new MainFragmentContent();
+        fragment_main.setArguments(bundle);
+
+        bundle = new Bundle();
+        bundle.putString("tab",getString(R.string.tab_details));
+        MainFragmentContent fragment_info = new MainFragmentContent();
+        fragment_info.setArguments(bundle);
+
+        bundle = new Bundle();
+        bundle.putString("tab",getString(R.string.tab_favorites));
+        MainFragmentContent fragment_fav = new MainFragmentContent();
+        fragment_fav.setArguments(bundle);
+
+        adapt.addFragment(fragment_main);
+        if (is_more) adapt.addFragment(fragment_info);
+        adapt.addFragment(new MainFragmentCategories());
+        if (login.length() > 2 && is_favor) adapt.addFragment(fragment_fav);
+        if (is_comment) adapt.addFragment(new MainFragmentCommentsTab());
 
 
         viewPager.setAdapter(adapt);

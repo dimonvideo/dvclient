@@ -44,15 +44,12 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_topics, parent, false);
-
-
         return new ViewHolder(v);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        //Getting the particular item from the list
         final FeedForum Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);

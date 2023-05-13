@@ -45,14 +45,14 @@ import java.util.List;
 
 public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.ViewHolder> {
 
-    private Context context;
+    private final Context context;
     String image_uploaded;
 
     List<FeedPm> jsonFeed;
 
-    public AdapterPmFriends(List<FeedPm> jsonFeed){
+    public AdapterPmFriends(List<FeedPm> jsonFeed, Context context){
         super();
-        //Getting all feed
+        this.context = context;
         this.jsonFeed = jsonFeed;
     }
 
@@ -65,7 +65,6 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_pm, parent, false);
-        context = parent.getContext();
         return new ViewHolder(v);
     }
 
@@ -78,8 +77,11 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
 
         final FeedPm Feed =  jsonFeed.get(holder.getBindingAdapterPosition());
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-        Glide.with(context).clear(holder.imageView);
-        Glide.with(context).load(Feed.getImageUrl()).diskCacheStrategy(DiskCacheStrategy.ALL).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
+        Glide.with(context)
+                .load(Feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.baseline_image_20)
+                .apply(RequestOptions.circleCropTransform()).into(holder.imageView);
 
         holder.textViewTitle.setText(Feed.getTitle());
         holder.textViewDate.setText(Feed.getLast_poster_name());
@@ -110,12 +112,6 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
 
         });
 
-        holder.textViewText.setOnClickListener(v -> {
-
-            if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
-
-        });
-
         holder.imagePick.setOnClickListener(v -> {
 
             MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
@@ -135,10 +131,6 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
 
         // меню по долгому нажатию
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, holder.getBindingAdapterPosition(), context);
-            return true;
-        });
-        holder.textViewText.setOnLongClickListener(view -> {
             show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });

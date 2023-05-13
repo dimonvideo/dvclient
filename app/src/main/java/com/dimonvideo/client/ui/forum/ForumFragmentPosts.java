@@ -159,9 +159,9 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
 
         recyclerView.setAdapter(adapter);
 
-
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
+        boolean is_top = AppController.getInstance().isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -169,6 +169,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
                     new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
+                    if (!is_top) fab.setVisibility(View.GONE);
                 }
             }
 
@@ -254,7 +255,6 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
                     ProgressBarBottom.setVisibility(View.GONE);
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
                     for (int i = 0; i < response.length(); i++) {
@@ -283,8 +283,9 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyDataSetChanged();
-
+                    recyclerView.post(() -> {
+                        adapter.notifyDataSetChanged();
+                    });
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);

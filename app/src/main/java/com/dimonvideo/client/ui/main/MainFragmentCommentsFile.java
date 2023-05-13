@@ -161,9 +161,9 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
         recyclerView.setAdapter(adapter);
 
-
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
+        boolean is_top = AppController.getInstance().isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -171,6 +171,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
                     new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
+                    if (!is_top) fab.setVisibility(View.GONE);
                 }
             }
 
@@ -221,13 +222,13 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
                 }
     // запрос к серверу апи
+    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
 
         return new JsonArrayRequest(comm_url + requestCount,
                 response -> {
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyItemRangeChanged(0, 10);
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
                     progressBar.setVisibility(View.GONE);
@@ -254,8 +255,9 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
                         }
                         listFeed.add(jsonFeed);
                     }
-                    adapter.notifyItemRangeChanged(0, 10);
-                    Log.e("---", "MainFragmentCommentsFile: "+response);
+                    recyclerView.post(() -> {
+                        adapter.notifyDataSetChanged();
+                    });
 
                 },
                 error -> {

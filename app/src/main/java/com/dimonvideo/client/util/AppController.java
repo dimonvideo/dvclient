@@ -203,6 +203,14 @@ public class AppController extends Application {
         return getSharedPreferences().getBoolean("dvc_open_link", false);
     }
 
+    public boolean isOnTop() {
+        return getSharedPreferences().getBoolean("dvc_ontop", true);
+    }
+
+    public boolean isOnTopMark() {
+        return getSharedPreferences().getBoolean("dvc_ontop_mark", false);
+    }
+
     public boolean isVuploaderPlayListtext() {
         return getSharedPreferences().getBoolean("dvc_vuploader_play_listtext", false);
     }

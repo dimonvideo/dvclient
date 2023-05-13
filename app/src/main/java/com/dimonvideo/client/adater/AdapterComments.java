@@ -114,7 +114,13 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         }
 
-        Glide.with(context).load(feed.getImageUrl()).apply(RequestOptions.circleCropTransform()).diskCacheStrategy(DiskCacheStrategy.ALL).into(holder.imageView);
+        Glide.with(context)
+                .load(feed.getImageUrl())
+                .apply(RequestOptions.circleCropTransform())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.baseline_image_20)
+                .apply(new RequestOptions().override(80, 80))
+                .into(holder.imageView);
 
         final int auth_state = AppController.getInstance().isAuth();
 

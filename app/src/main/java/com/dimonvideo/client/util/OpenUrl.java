@@ -20,26 +20,31 @@ public class OpenUrl {
             assert url != null;
             String extension = url.substring(url.lastIndexOf(".") + 1);
 
-            if ((extension.equals("png")) || (extension.equals("jpg")) || (extension.equals("jpeg")))
-                ButtonsActions.loadScreen(context, url);
-
-            else if ((extension.equals("apk")) || (extension.equals("zip")) || (extension.equals("avi"))
-                    || (extension.equals("mp3"))
-                    || (extension.equals("m4a"))
-                    || (extension.equals("rar")))
-            {
-                DownloadFile.download(context, url, razdel);
-            }
-            else if (extension.equals("mp4")) {
-                if (is_vuploader_play_listtext) ButtonsActions.PlayVideo(context, url);
-                else DownloadFile.download(context, url, razdel);
-            }
-            else {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                try {
-                    context.startActivity(browserIntent);
-                } catch (Throwable ignored) {
-                }
+            switch (extension) {
+                case "png":
+                case "jpg":
+                case "jpeg":
+                    ButtonsActions.loadScreen(context, url);
+                    break;
+                case "apk":
+                case "zip":
+                case "avi":
+                case "mp3":
+                case "m4a":
+                case "rar":
+                    DownloadFile.download(context, url, razdel);
+                    break;
+                case "mp4":
+                    if (is_vuploader_play_listtext) ButtonsActions.PlayVideo(context, url);
+                    else DownloadFile.download(context, url, razdel);
+                    break;
+                default:
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    try {
+                        context.startActivity(browserIntent);
+                    } catch (Throwable ignored) {
+                    }
+                    break;
             }
         } else {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));

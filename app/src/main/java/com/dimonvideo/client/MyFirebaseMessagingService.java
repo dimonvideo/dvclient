@@ -124,7 +124,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Log.e(Config.TAG, "Notify new PM #" + id);
 
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
-        notificationIntent.putExtra("action", "PmFragment");
+        notificationIntent.putExtra("action", "PmFragmentTabs");
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent pendingIntent;

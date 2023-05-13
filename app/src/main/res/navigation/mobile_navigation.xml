@@ -32,7 +32,7 @@
     </fragment>
     <fragment
         android:id="@+id/nav_pm"
-        android:name="com.dimonvideo.client.ui.pm.PmFragment"
+        android:name="com.dimonvideo.client.ui.pm.PmFragmentTabs"
         android:label="@string/tab_pm"
         android:tag="pm"
         tools:layout="@layout/fragment_tabs">

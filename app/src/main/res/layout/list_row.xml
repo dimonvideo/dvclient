@@ -6,244 +6,247 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:padding="4dp">
+
     <RelativeLayout
+        android:id="@+id/block0"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/block0">
-    <!-- status -->
-    <ImageView
-        android:id="@+id/status"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginStart="5dip"
-        android:layout_marginEnd="5dip"
-        android:layout_marginTop="5dip"
-        android:layout_marginBottom="4dp"
-        android:layout_alignParentStart="true"
-        android:contentDescription="@string/Comments"
-        android:src="@drawable/ic_status_green" />
+        android:layout_height="wrap_content">
+        <!-- status -->
+        <ImageView
+            android:id="@+id/status"
+            android:layout_width="@dimen/text"
+            android:layout_height="@dimen/text"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="5dip"
+            android:layout_marginTop="5dip"
+            android:layout_marginEnd="5dip"
+            android:layout_marginBottom="4dp"
+            android:contentDescription="@string/Comments"
+            android:src="@drawable/ic_status_green" />
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/text"
-        android:layout_toEndOf="@+id/status"
-        android:textSize="@dimen/title"
-        android:layout_marginBottom="4dp"
-        android:textStyle="bold"
-        android:maxLines="1"
-        android:ellipsize="end"
-        tools:ignore="SpUsage" />
-    </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_below="@id/block0"
-        android:layout_height="wrap_content"
-        android:id="@+id/block">
-
-    <!-- Thumbnail Image -->
-    <ImageView
-        android:id="@+id/thumbnail"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="8dp"
-        android:contentDescription="@string/action_screen" />
-
-
-
-    <!-- category -->
-    <TextView
-        android:id="@+id/category"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="@+id/thumbnail"
-        android:layout_toEndOf="@+id/thumbnail"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
-
-    <!-- favorites -->
-    <ImageView
-        android:id="@+id/fav"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/thumbnail"
-        android:visibility="gone"
-        android:layout_marginTop="5dp"
-        android:contentDescription="@string/favorites_btn"
-        android:textColor="@color/colorAccent"
-        android:layout_toStartOf="@+id/listtext"
-        android:textSize="@dimen/date"
-        app:srcCompat="@android:drawable/star_big_on"
-        tools:ignore="SpUsage" />
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="15dp"
-        android:layout_below="@id/category"
-        android:layout_toEndOf="@+id/thumbnail"
-        android:visibility="gone"
-        android:layout_marginTop="7dp"
-        android:layout_marginBottom="7dp"
-        android:indeterminate="true" />
-
-   <!-- author -->
-    <LinearLayout
-        android:id="@+id/name_layout"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/progressBar"
-        android:layout_toEndOf="@+id/thumbnail"
-        android:visibility="gone"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="5dp"
-        android:layout_gravity="center_horizontal|center"
-        tools:ignore="ExtraText">
-
-        <!-- Added by -->
+        <!-- Title -->
         <TextView
-            android:id="@+id/added_by"
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_toEndOf="@+id/status"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/text"
-            android:text="@string/added_by"
-            android:textSize="@dimen/date"
+            android:textSize="@dimen/title"
+            android:textStyle="bold"
             tools:ignore="SpUsage" />
+    </RelativeLayout>
 
-        <!-- name -->
+    <RelativeLayout
+        android:id="@+id/block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/block0">
+
+        <!-- Thumbnail Image -->
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/action_screen" />
+
+
+        <!-- category -->
         <TextView
-            android:id="@+id/by_name"
+            android:id="@+id/category"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
+            android:layout_alignParentTop="@+id/thumbnail"
+            android:layout_toEndOf="@+id/thumbnail"
             android:textColor="@color/colorAccent"
-            android:textStyle="bold"
             android:textSize="@dimen/date"
             tools:ignore="SpUsage" />
-    </LinearLayout>
 
-    <!-- text -->
-    <TextView
-        android:id="@+id/listtext"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/name_layout"
-        android:layout_marginTop="5dp"
-        android:layout_toEndOf="@+id/thumbnail"
-        android:textColor="@color/text"
-        android:textSize="@dimen/text"
-        tools:ignore="SpUsage" />
+        <!-- favorites -->
+        <ImageView
+            android:id="@+id/fav"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/thumbnail"
+            android:layout_marginTop="5dp"
+            android:layout_toStartOf="@+id/listtext"
+            android:contentDescription="@string/favorites_btn"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/date"
+            android:visibility="gone"
+            app:srcCompat="@android:drawable/star_big_on"
+            tools:ignore="SpUsage" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="15dp"
+            android:layout_below="@id/category"
+            android:layout_marginTop="7dp"
+            android:layout_marginBottom="7dp"
+            android:layout_toEndOf="@+id/thumbnail"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <!-- author -->
+        <LinearLayout
+            android:id="@+id/name_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/progressBar"
+            android:layout_gravity="center_horizontal|center"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@+id/thumbnail"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:ignore="ExtraText">
+
+            <!-- Added by -->
+            <TextView
+                android:id="@+id/added_by"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/added_by"
+                android:textColor="@color/text"
+                android:textSize="@dimen/date"
+                tools:ignore="SpUsage" />
+
+            <!-- name -->
+            <TextView
+                android:id="@+id/by_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/date"
+                android:textStyle="bold"
+                tools:ignore="SpUsage" />
+        </LinearLayout>
+
+        <!-- text -->
+        <TextView
+            android:id="@+id/listtext"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/name_layout"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@+id/thumbnail"
+            android:textColor="@color/text"
+            android:textSize="@dimen/text"
+            tools:ignore="SpUsage" />
+
         <Button
             android:id="@+id/btn_odob"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/listtext"
             android:layout_gravity="center_horizontal"
             android:layout_marginStart="10dp"
             android:layout_marginTop="20dp"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"
-            android:visibility="gone"
             android:background="@drawable/btn_green_shape"
-            android:layout_below="@id/listtext"
-            android:textColor="@color/text"
             android:text="@string/odob"
-            android:textStyle="bold"/>
+            android:textColor="@color/text"
+            android:textStyle="bold"
+            android:visibility="gone" />
     </RelativeLayout>
 
     <RelativeLayout
+        android:id="@+id/block1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dip"
         android:layout_below="@id/block"
-        android:id="@+id/block1">
-    <!-- views -->
-    <ImageView
-        android:id="@+id/views_logo"
-        android:layout_width="@dimen/title"
-        android:layout_height="@dimen/title"
-        android:layout_marginTop="3dip"
-        android:layout_marginEnd="3dip"
-        android:contentDescription="@string/Comments"
-        app:srcCompat="@drawable/baseline_visibility_24"
-        tools:src="@drawable/baseline_visibility_24"
-        tools:srcCompat="@drawable/baseline_visibility_24" />
+        android:layout_marginTop="3dip">
+        <!-- views -->
+        <ImageView
+            android:id="@+id/views_logo"
+            android:layout_width="@dimen/title"
+            android:layout_height="@dimen/title"
+            android:layout_marginTop="3dip"
+            android:layout_marginEnd="3dip"
+            android:contentDescription="@string/Comments"
+            app:srcCompat="@drawable/baseline_visibility_24"
+            tools:src="@drawable/baseline_visibility_24"
+            tools:srcCompat="@drawable/baseline_visibility_24" />
 
-    <TextView
-        android:id="@+id/views_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dip"
-        android:layout_toEndOf="@+id/views_logo"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
+        <TextView
+            android:id="@+id/views_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dip"
+            android:layout_toEndOf="@+id/views_logo"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/date"
+            tools:ignore="SpUsage" />
 
-    <!-- comments -->
-    <ImageView
-        android:id="@+id/rating_logo"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginStart="15dip"
-        android:layout_marginTop="6dip"
-        android:layout_marginEnd="3dip"
-        android:layout_toEndOf="@+id/views_count"
-        android:contentDescription="@string/Comments"
-        app:srcCompat="@drawable/baseline_chat_24"
-        tools:src="@drawable/baseline_chat_24"
-        tools:srcCompat="@drawable/baseline_chat_24" />
+        <!-- comments -->
+        <ImageView
+            android:id="@+id/rating_logo"
+            android:layout_width="@dimen/text"
+            android:layout_height="@dimen/text"
+            android:layout_marginStart="15dip"
+            android:layout_marginTop="6dip"
+            android:layout_marginEnd="3dip"
+            android:layout_toEndOf="@+id/views_count"
+            android:contentDescription="@string/Comments"
+            app:srcCompat="@drawable/baseline_chat_24"
+            tools:src="@drawable/baseline_chat_24"
+            tools:srcCompat="@drawable/baseline_chat_24" />
 
-    <TextView
-        android:id="@+id/rating"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dip"
-        android:layout_toEndOf="@+id/rating_logo"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        android:textStyle="bold"
-        tools:ignore="SpUsage" />
+        <TextView
+            android:id="@+id/rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dip"
+            android:layout_toEndOf="@+id/rating_logo"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/date"
+            android:textStyle="bold"
+            tools:ignore="SpUsage" />
 
-    <!-- share -->
-    <ImageView
-        android:id="@+id/small_share"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginStart="15dip"
-        android:layout_marginTop="6dip"
-        android:layout_marginEnd="3dip"
-        android:layout_toEndOf="@+id/rating"
-        android:contentDescription="@string/Comments"
-        app:srcCompat="@drawable/baseline_share_24"
-        tools:src="@drawable/baseline_share_24"
-        tools:srcCompat="@drawable/baseline_share_24" />
+        <!-- share -->
+        <ImageView
+            android:id="@+id/small_share"
+            android:layout_width="@dimen/text"
+            android:layout_height="@dimen/text"
+            android:layout_marginStart="15dip"
+            android:layout_marginTop="6dip"
+            android:layout_marginEnd="3dip"
+            android:layout_toEndOf="@+id/rating"
+            android:contentDescription="@string/Comments"
+            app:srcCompat="@drawable/baseline_share_24"
+            tools:src="@drawable/baseline_share_24"
+            tools:srcCompat="@drawable/baseline_share_24" />
 
-    <!-- download -->
-    <ImageView
-        android:id="@+id/small_download"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginStart="15dip"
-        android:layout_marginTop="6dip"
-        android:layout_marginEnd="3dip"
-        android:layout_toEndOf="@+id/small_share"
-        android:contentDescription="@string/Comments"
-        app:srcCompat="@drawable/baseline_file_download_24"
-        tools:src="@drawable/baseline_file_download_24"
-        tools:srcCompat="@drawable/baseline_file_download_24" />
-    <!-- Date -->
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
+        <!-- download -->
+        <ImageView
+            android:id="@+id/small_download"
+            android:layout_width="@dimen/text"
+            android:layout_height="@dimen/text"
+            android:layout_marginStart="15dip"
+            android:layout_marginTop="6dip"
+            android:layout_marginEnd="3dip"
+            android:layout_toEndOf="@+id/small_share"
+            android:contentDescription="@string/Comments"
+            app:srcCompat="@drawable/baseline_file_download_24"
+            tools:src="@drawable/baseline_file_download_24"
+            tools:srcCompat="@drawable/baseline_file_download_24" />
+        <!-- Date -->
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/date"
+            tools:ignore="SpUsage" />
     </RelativeLayout>
 
 </RelativeLayout>

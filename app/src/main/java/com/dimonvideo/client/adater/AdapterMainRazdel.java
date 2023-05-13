@@ -8,12 +8,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -48,29 +51,16 @@ import java.util.List;
 
 public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.ViewHolder> {
 
-    private Context context;
-    @SuppressLint("StaticFieldLeak")
-    public static BottomSheetDialog dialog;
+    private final Context context;
 
     private String razdel;
 
-    //List to store all
     private final List<Feed> jsonFeed;
-    //Constructor of this class
+
     public AdapterMainRazdel(List<Feed> jsonFeed, Context context) {
         super();
         this.jsonFeed = jsonFeed;
         this.context = context;
-    }
-
-    public static void onDestroy() {
-        try{
-            if (dialog != null)
-                dialog.dismiss();
-        } catch(Exception ignored){
-
-        }
-
     }
 
     @NonNull
@@ -79,11 +69,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         if (viewType == 1) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_gallery, parent, false);
-            context = parent.getContext();
             return new ViewHolder(v);
         }
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
-        context = parent.getContext();
         return new ViewHolder(v);
     }
 
@@ -116,17 +104,26 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         int status = Provider.getStatus(String.valueOf(lid), razdel);
         if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
-
-        //Loading image from url
-        Glide.with(context)
-                .load(feed.getImageUrl())
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .apply(new RequestOptions().override(300, 300))
-                .transform(new CenterCrop(),new RoundedCorners(15))
-                .into(holder.imageView);
+        if (getItemViewType(position) == 1) {
+            Glide.with(context)
+                    .load(feed.getImageUrl())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .apply(new RequestOptions().override(250, 250))
+                    .placeholder(R.drawable.baseline_image_20)
+                    .transform(new CenterCrop(), new RoundedCorners(15))
+                    .into(holder.imageView);
+        } else {
+            Glide.with(context)
+                    .load(feed.getImageUrl())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .apply(new RequestOptions().override(80, 80))
+                    .placeholder(R.drawable.baseline_image_20)
+                    .transform(new CenterCrop(), new RoundedCorners(15))
+                    .into(holder.imageView);
+        }
 
         holder.textViewTitle.setText(feed.getTitle());
-        holder.textViewText.setText(Html.fromHtml(feed.getText(), null,  null));
+        holder.textViewText.setText(Html.fromHtml(feed.getText(), null, null));
 
         holder.textViewDate.setText(feed.getDate());
         holder.textViewCategory.setText(feed.getCategory());
@@ -163,25 +160,22 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                     feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(),
                     feed.getCategory(), feed.getStatus());
         });
-        holder.textViewText.setOnClickListener(view -> {
-            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            openFile(razdel, lid, feed.getComments(), feed.getTitle(),
-                    feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(),
-                    feed.getCategory(), feed.getStatus());
-        });
 
         // показ скриншота
         holder.imageView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            Provider.updateStatus(lid, razdel, 1);
-            Log.e("---", "screen: "+feed.getImageUrl());
+            new Handler(Looper.getMainLooper()).post(() -> {
+                Provider.updateStatus(lid, razdel, 1);
+            });
             ButtonsActions.loadScreen(context, feed.getImageUrl());
         });
 
         try {
             if ((razdel != null) && (razdel.equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play))
                 holder.imageView.setOnClickListener(view -> {
-                    Provider.updateStatus(lid, razdel, 1);
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        Provider.updateStatus(lid, razdel, 1);
+                    });
                     holder.status_logo.setImageResource(R.drawable.ic_status_gray);
                     ButtonsActions.PlayVideo(context, feed.getLink());
                 });
@@ -191,7 +185,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         try {
             if ((razdel != null) && (razdel.equals(Config.MUZON_RAZDEL) && is_muzon_play))
                 holder.imageView.setOnClickListener(view -> {
-                    Provider.updateStatus(lid, razdel, 1);
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        Provider.updateStatus(lid, razdel, 1);
+                    });
                     holder.status_logo.setImageResource(R.drawable.ic_status_gray);
                     ButtonsActions.PlayVideo(context, feed.getLink());
                 });
@@ -204,10 +200,6 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             return true;
         });
         holder.imageView.setOnLongClickListener(view -> {
-            show_dialog(holder, holder.getBindingAdapterPosition(), context);
-            return true;
-        });
-        holder.textViewText.setOnLongClickListener(view -> {
             show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
@@ -245,6 +237,21 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         });
 
+        // одобрение
+        holder.btn_odob.setVisibility(View.GONE);
+        if ((feed.getStatus() == 0) && (AppController.getInstance().isUserGroup() <= 2)) {
+            holder.btn_odob.setVisibility(View.VISIBLE);
+            holder.btn_odob.setOnClickListener(v -> {
+                NetworkUtils.getOdob(razdel, lid);
+                try {
+                    jsonFeed.remove(position);
+                    notifyItemRemoved(position);
+                } catch (Exception ignored) {
+
+                }
+            });
+        }
+
 
     }
 
@@ -268,7 +275,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         bundle.putString(Config.TAG_LINK, link);
         bundle.putString(Config.TAG_SIZE, size);
         fragment.setArguments(bundle);
-        fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentViewFile");
+        fragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "MainFragmentViewFile");
     }
 
     private void openComments(Feed feed, int lid) {
@@ -280,7 +287,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         bundle.putString(Config.TAG_LINK, comm_url);
         bundle.putString(Config.TAG_RAZDEL, razdel);
         fragment.setArguments(bundle);
-        fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentCommentsFile");
+        fragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "MainFragmentCommentsFile");
 
     }
 
@@ -344,8 +351,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 DownloadFile.download(context, feed.getLink(), feed.getRazdel());
             }
             if (item == 6) { // copy text
-                try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getFull_text()).toString());
-                holder.myClipboard.setPrimaryClip(holder.myClip);
+                try {
+                    holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getFull_text()).toString());
+                    holder.myClipboard.setPrimaryClip(holder.myClip);
                 } catch (Throwable ignored) {
                 }
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
@@ -363,11 +371,14 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     }
 
     // swipe to remove favorites
-    @SuppressLint("NotifyDataSetChanged")
     public void removeFav(int position) {
-        final Feed feed = jsonFeed.get(position);
-        jsonFeed.remove(position);
-        notifyDataSetChanged();
+        Feed feed = jsonFeed.get(position);
+        try {
+            jsonFeed.remove(position);
+            notifyItemRemoved(position);
+        } catch (Exception ignored) {
+
+        }
         ButtonsActions.add_to_fav_file(context, feed.getRazdel(), feed.getId(), 2);
     }
 
@@ -381,6 +392,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         public LinearLayout name;
         public ClipboardManager myClipboard;
         public ClipData myClip;
+        public Button btn_odob;
 
         //Initializing Views
         public ViewHolder(View itemView) {
@@ -400,6 +412,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             name = itemView.findViewById(R.id.name_layout);
             small_share = itemView.findViewById(R.id.small_share);
             small_download = itemView.findViewById(R.id.small_download);
+            btn_odob = itemView.findViewById(R.id.btn_odob);
         }
 
     }

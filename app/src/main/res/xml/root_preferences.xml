@@ -92,6 +92,19 @@
         <Preference
             android:key="dvc_import"
             android:title="@string/import_settings" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="dvc_ontop"
+            android:summary="@string/ontop_sum"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/ontop" />
+        <SwitchPreferenceCompat
+            android:dependency="dvc_ontop"
+            app:defaultValue="false"
+            app:key="dvc_ontop_mark"
+            android:summary="@string/ontop_mark_sum"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/ontop_mark" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/view_header">

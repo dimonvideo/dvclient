@@ -46,13 +46,13 @@ import java.util.Objects;
 public class ForumFragmentTopics extends Fragment {
 
     private List<FeedForum> listFeed;
-    public RecyclerView recyclerView;
-    public AdapterForum adapter;
+    private RecyclerView recyclerView;
+    private AdapterForum adapter;
 
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
     private String story = null;
-    private String s_url = "";
+    private String s_url = "", tab_title;
     private int id = 0;
     private SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
@@ -75,6 +75,7 @@ public class ForumFragmentTopics extends Fragment {
         Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
 
         if (this.getArguments() != null) {
+            tab_title = getArguments().getString("tab");
             id = getArguments().getInt(Config.TAG_ID);
             story = (String) getArguments().getSerializable(Config.TAG_STORY);
             String f_name = getArguments().getString(Config.TAG_CATEGORY);
@@ -108,17 +109,14 @@ public class ForumFragmentTopics extends Fragment {
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setDrawingCacheEnabled(true);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(10);
-        recyclerView.setHasFixedSize(true);
-
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
 
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
+        boolean is_top = AppController.getInstance().isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -126,6 +124,7 @@ public class ForumFragmentTopics extends Fragment {
                     new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
+                    if (!is_top) fab.setVisibility(View.GONE);
                 }
             }
 
@@ -168,17 +167,24 @@ public class ForumFragmentTopics extends Fragment {
             s_url = "&story=" + story;
         }
 
+        final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+
         if (id > 0) {
             s_url = "&id=" + id;
         }
-        String url = Config.FORUM_FEED_URL;
-        return new JsonArrayRequest(url + requestCount + s_url,
+        String url_final = Config.FORUM_FEED_URL + requestCount + s_url;
+        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_details)))) {
+            url_final = Config.FORUM_FEED_NO_POSTS_URL + requestCount + s_url;
+        }
+        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_favorites)))) {
+            url_final = Config.FORUM_FEED_URL + requestCount + s_url+"&fav=1&login_name="+ login_name;
+        }
+        return new JsonArrayRequest(url_final,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
                     if (requestCount == 1) {
                         listFeed.clear();
-                        adapter.notifyDataSetChanged();
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
                     for (int i = 0; i < response.length(); i++) {
@@ -197,14 +203,16 @@ public class ForumFragmentTopics extends Fragment {
                             jsonFeed.setPinned(json.getString(Config.TAG_PINNED));
                             jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                            jsonFeed.setFav(json.getInt(Config.TAG_FAV));
                             jsonFeed.setHits(json.getInt(Config.TAG_HITS));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                         listFeed.add(jsonFeed);
                     }
-                    new Handler().postDelayed(() -> adapter.notifyDataSetChanged(), 300);
-
+                    recyclerView.post(() -> {
+                        adapter.notifyDataSetChanged();
+                    });
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
