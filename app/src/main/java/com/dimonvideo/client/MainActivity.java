@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.drawable.Icon;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -81,6 +82,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
@@ -440,11 +443,11 @@ public class MainActivity extends AppCompatActivity {
                 registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
                     if (uri != null) {
                         try {
-                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
-                            //  Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 720, 720, false);
+
+                            Bitmap bitmap = rotateImageIfRequired(this, MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri), uri);
                             Matrix matrix = new Matrix();
-                            matrix.setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(0, 0, 720, 720), Matrix.ScaleToFit.CENTER);
-                            Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                            matrix.setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(0, 0, 960, 960), Matrix.ScaleToFit.CENTER);
+                            Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
                             NetworkUtils.uploadBitmap(scaledBitmap, this, razdel);
                             Log.e("---", "Main pickMedia: " + razdel);
                         } catch (Exception ignored) {
@@ -453,6 +456,41 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    // поворот если необходимо
+    private static Bitmap rotateImageIfRequired(Context context, Bitmap img, Uri selectedImage) throws IOException {
+
+        InputStream input = context.getContentResolver().openInputStream(selectedImage);
+        ExifInterface ei = null;
+        if (Build.VERSION.SDK_INT > 23)
+            if (input != null) {
+                ei = new ExifInterface(input);
+            }
+        else ei = new ExifInterface(Objects.requireNonNull(selectedImage.getPath()));
+
+        int orientation = 0;
+        if (ei != null) {
+            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+        }
+
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                return rotateImage(img, 90);
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                return rotateImage(img, 180);
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                return rotateImage(img, 270);
+            default:
+                return img;
+        }
+    }
+
+    private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
+    }
 
     @Override
     public boolean onSupportNavigateUp() {

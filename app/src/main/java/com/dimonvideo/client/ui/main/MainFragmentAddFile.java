@@ -42,6 +42,8 @@ import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.dimonvideo.client.Config;
@@ -53,6 +55,7 @@ import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.ProgressHelper;
+import com.omfine.image.picker.utils.StringUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -81,7 +84,7 @@ public class MainFragmentAddFile extends Fragment {
     private String screenName, screen, logo;
     private String categoryId;
     private AlertDialog alert;
-     AlertDialog.Builder builder;
+    AlertDialog.Builder builder;
     private ClipboardManager myClipboard;
     private ClipData myClip;
     private boolean doubleBackToExitPressedOnce = false;
@@ -94,13 +97,14 @@ public class MainFragmentAddFile extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         Bitmap bitmap = event.bitmap;
+        login_name = AppController.getInstance().userName(null);
         screen = event.image_uploaded;
         screenName = Config.THUMB_URL + login_name + File.separator + screen;
-        logo  = Config.THUMB_URL + login_name + File.separator + "thumbs"  + File.separator +  screen;
+        logo = Config.THUMB_URL + login_name + File.separator + "thumbs" + File.separator + screen;
         // если скриншот загружен на сервер
         if (bitmap != null) {
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
-            imgBtn.setBackground(bitmapDrawable);
+            imgBtn.setImageDrawable(bitmapDrawable);
             selectScreen.setVisibility(View.INVISIBLE);
             desc.setVisibility(View.VISIBLE);
             btnSend.setVisibility(View.VISIBLE);
@@ -118,7 +122,7 @@ public class MainFragmentAddFile extends Fragment {
 
             // кнопка удалить
             imgDelete.setOnClickListener(v -> {
-                imgBtn.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.outline_image_24));
+                imgBtn.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.outline_image_24));
                 imgDelete.setVisibility(View.INVISIBLE);
                 selectScreen.setVisibility(View.VISIBLE);
                 btnSend.setVisibility(View.INVISIBLE);
@@ -147,11 +151,11 @@ public class MainFragmentAddFile extends Fragment {
             btnSend.setOnClickListener(v -> {
                 builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle(getString(R.string.warning));
-                builder.setMessage(getString(R.string.check_message)+"\n\n"+getString(R.string.signature_title)+": "+login_name);
+                builder.setMessage(getString(R.string.check_message) + "\n\n" + getString(R.string.signature_title) + ": " + login_name);
                 builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
-                            dialog.dismiss();
-                            requestToServer(Config.UPLOAD_FILE_URL, screenName, logo);
-                        });
+                    dialog.dismiss();
+                    requestToServer(Config.UPLOAD_FILE_URL, screenName, logo);
+                });
                 builder.setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss());
                 alert = builder.create();
                 alert.show();
@@ -160,55 +164,68 @@ public class MainFragmentAddFile extends Fragment {
     }
 
     private void requestToServer(String url, String image_url, String logo_url) {
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
+        new Handler(Looper.getMainLooper()).post(() -> {
 
-            JSONObject obj;
-            try {
-                obj = new JSONObject(response);
+            Log.v("---", "image_url: " + image_url + " logo_url: " + logo_url + " login_name: " + login_name + " url: " + url);
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
-                String msg = obj.getString(Config.TAG_LINK);
-                String err = obj.getString("error");
+                Log.v("---", "response: " + response);
 
-                if (err.equals("false")) {
-                    Toast.makeText(requireContext(), requireContext().getString(R.string.success), Toast.LENGTH_LONG).show();
-                    if (url.equals(Config.UPLOAD_FILE_URL)) {
-                        MainActivity.navController.navigate(R.id.nav_home);
-                        try {
-                            myClipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                            myClip = ClipData.newPlainText("text", msg);
-                            myClipboard.setPrimaryClip(myClip);
-                        } catch (Throwable ignored) {
+                JSONObject obj;
+                try {
+                    obj = new JSONObject(response);
+
+                    String msg = obj.getString(Config.TAG_LINK);
+                    String err = obj.getString("error");
+
+                    if (err.equals("false")) {
+                        Toast.makeText(requireContext(), requireContext().getString(R.string.success), Toast.LENGTH_LONG).show();
+                        if (url.equals(Config.UPLOAD_FILE_URL)) {
+                            MainActivity.navController.navigate(R.id.nav_home);
+                            try {
+                                myClipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                                myClip = ClipData.newPlainText("text", msg);
+                                myClipboard.setPrimaryClip(myClip);
+                            } catch (Throwable ignored) {
+                            }
                         }
                     }
+                    if (err.equals("true"))
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                    ProgressHelper.dismissDialog();
+                } catch (Exception ignored) {
+                    ProgressHelper.dismissDialog();
                 }
-                if (err.equals("true")) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
-                ProgressHelper.dismissDialog();
+            }, error -> {
+                Toast.makeText(getContext(), "Error"+error, Toast.LENGTH_SHORT).show();
+                Log.e("---", "error: "+error);
+                error.printStackTrace();
+            }) {
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> postMap = new HashMap<>();
+                    if (login_name != null) postMap.put("send_user", login_name);
+                    if (listFeedRazdel.get(0) != null) postMap.put("send_razdel", listFeedRazdel.get(0));
+                    if (categoryId != null) postMap.put("send_category", categoryId);
+                    if (title.getText() != null) postMap.put("send_title", title.getText().toString());
+                    if (desc.getText() != null) postMap.put("send_desc", desc.getText().toString());
+                    if (image_url != null) postMap.put("send_screen", image_url);
+                    if (catalog.getText() != null) postMap.put("send_catalog", catalog.getText().toString());
+                    if (logo_url != null) postMap.put("send_logo", logo_url); // превью
+                    if (ist.getText() != null) postMap.put("send_ist", ist.getText().toString());
+                    if (login_name != null) postMap.put("send_id", login_name); // для удаления
+                    return postMap;
+                }
 
-
-            } catch (Exception ignored) {
-                ProgressHelper.dismissDialog();
-            }
-        }, Throwable::printStackTrace) {
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> postMap = new HashMap<>();
-                postMap.put("send_user", login_name);
-                postMap.put("send_razdel", listFeedRazdel.get(0));
-                postMap.put("send_category", categoryId);
-                postMap.put("send_title", title.getText().toString());
-                postMap.put("send_desc", desc.getText().toString());
-                postMap.put("send_screen", image_url);
-                postMap.put("send_catalog", catalog.getText().toString());
-                postMap.put("send_logo", logo_url); // превью
-                postMap.put("send_ist", ist.getText().toString());
-                postMap.put("send_id", login_name); // для удаления
-                return postMap;
-            }
-        };
-
-
-        AppController.getInstance().addToRequestQueue(stringRequest);
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String,String> params = new HashMap<>();
+                    params.put("Content-Type","application/x-www-form-urlencoded");
+                    return params;
+                }
+            };
+            AppController.getInstance().addToRequestQueue(stringRequest);
+        });
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -273,9 +290,9 @@ public class MainFragmentAddFile extends Fragment {
                                     event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
                         if (event == null || !event.isShiftPressed()) {
 
-                            if (TextUtils.isEmpty(title.getText().toString().trim())){
+                            if (TextUtils.isEmpty(title.getText().toString().trim())) {
                                 Toast.makeText(requireContext(), getString(R.string.title_retry), Toast.LENGTH_SHORT).show();
-                            }else {
+                            } else {
                                 razdelList.setVisibility(View.VISIBLE);
                                 imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                                 imm.hideSoftInputFromWindow(title.getWindowToken(), 0);
@@ -370,7 +387,7 @@ public class MainFragmentAddFile extends Fragment {
 
                 doubleBackToExitPressedOnce = true;
                 Toast.makeText(requireContext(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce=false, 2000);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
 
             }
         };
@@ -402,9 +419,9 @@ public class MainFragmentAddFile extends Fragment {
                         listFeedCategory.add(String.valueOf(jsonFeed.getCid()));
 
                         // выбор подкатегории
-                        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item , listFeed);
+                        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listFeed);
                         categoryAdapter.setDropDownViewResource(
-                                android.R.layout.simple_spinner_dropdown_item );
+                                android.R.layout.simple_spinner_dropdown_item);
                         categoryList.setAdapter(categoryAdapter);
                         ProgressHelper.dismissDialog();
                         categoryList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

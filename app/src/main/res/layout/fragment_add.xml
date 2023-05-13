@@ -59,7 +59,7 @@
             android:autofillHints="@string/file_name"
             android:hint="@string/file_name"
             android:imeOptions="actionDone"
-            android:inputType="text">
+            android:inputType="textCapSentences">
         </EditText>
 
         <!-- razdel -->
@@ -94,16 +94,21 @@
             android:layout_margin="8dp"
             android:layout_below="@id/categories"
             android:layout_width="match_parent">
+
             <ImageButton
                 android:id="@+id/img_btn"
-                android:scaleType="fitCenter"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:background="@drawable/outline_image_24"
-                android:layout_margin="5dp"
-                android:text="@string/download"
-                android:contentDescription="@string/download"  >
-            </ImageButton>
+                android:maxWidth="240dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="5dp"
+                android:src="@drawable/outline_image_24"
+                android:contentDescription="@string/download"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:text="@string/download"/>
 
             <TextView
                 android:id="@+id/screen_text"

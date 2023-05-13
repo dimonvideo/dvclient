@@ -144,7 +144,6 @@ public class MainFragmentContent extends Fragment {
                         jsonFeedList.setLink(cursor.getString(12));
 
                         listFeed.add(jsonFeedList);
-                        Log.v("---", key + " in BD: " + jsonFeedList.getStatus() + " " + jsonFeedList.getTitle());
 
                     } while (cursor.moveToNext());
 

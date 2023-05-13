@@ -39,6 +39,7 @@ public class AppController extends Application {
 
     public <T> void addToRequestQueue(Request<T> req) {
         req.setTag(TAG);
+        req.setShouldCache(false);
         getRequestQueueV().add(req);
     }
 
