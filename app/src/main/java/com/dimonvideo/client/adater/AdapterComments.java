@@ -52,15 +52,7 @@ import java.util.List;
 public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHolder> {
 
     private final Context context;
-    private String image_uploaded;
-    private String razdel;
     private final List<FeedForum> jsonFeed;
-
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
-        image_uploaded = event.image_uploaded;
-    }
 
     public static class TagHandler implements Html.TagHandler {
         @Override
@@ -93,12 +85,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        final FeedForum feed = jsonFeed.get(holder.getBindingAdapterPosition());
-
-        razdel = feed.getRazdel();
-        int lid = feed.getPost_id();
-
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, image_uploaded, null, null, null));
+        final FeedForum feed = jsonFeed.get(position);
 
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -139,7 +126,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
             textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, razdel);
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, feed.getRazdel());
                 }
             });
         } catch (Throwable ignored) {
@@ -158,29 +145,18 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         holder.textViewHits.setOnClickListener(view -> {
             MainFragmentViewFileByApi fragment = new MainFragmentViewFileByApi();
             Bundle bundle = new Bundle();
-            bundle.putString(Config.TAG_RAZDEL, razdel);
-            bundle.putString(Config.TAG_ID, String.valueOf(lid));
+            bundle.putString(Config.TAG_RAZDEL, feed.getRazdel());
+            bundle.putString(Config.TAG_ID, String.valueOf(feed.getPost_id()));
             fragment.setArguments(bundle);
             fragment.show(((AppCompatActivity)context).getSupportFragmentManager(), "MainFragmentViewFileByApi");
         });
 
-        // цитирование
-        holder.textViewText.setOnClickListener(view -> {
-            if ((auth_state > 0) && (feed.getId() > 0)) {
-                postComment(feed);
-            } else {
-                openComments(lid, feed.getTitle(), razdel);
-            }
-
+        holder.itemView.setOnClickListener(view -> {
+            openComments(feed.getPost_id(), feed.getTitle(), feed.getRazdel());
         });
 
-        holder.itemView.setOnClickListener(view -> {
-            if ((auth_state > 0) && (feed.getId() > 0)) {
-                postComment(feed);
-            } else {
-                openComments(lid, feed.getTitle(), razdel);
-            }
-
+        holder.textViewText.setOnClickListener(view -> {
+            openComments(feed.getPost_id(), feed.getTitle(), feed.getRazdel());
         });
 
         // show dialog
@@ -192,12 +168,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
             show_dialog(holder, holder.getBindingAdapterPosition(), context);
             return true;
         });
-    }
-
-    @SuppressLint("SetTextI18n")
-    private static void postComment(FeedForum feed) {
-        EventBus.getDefault().post(new MessageEvent(feed.getRazdel(), null, null, null, "[b]" + feed.getUser() + "[/b], ", null));
-
     }
 
     private void openComments(int lid, String title, String razdel) {

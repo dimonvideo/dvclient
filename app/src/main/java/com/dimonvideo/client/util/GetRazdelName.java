@@ -77,6 +77,11 @@ public class GetRazdelName {
                 search_url = Config.DEVICE_SEARCH_URL;
                 key = Config.DEVICE_RAZDEL;
             }
+            if (razdel.equals("18") || razdel.equals("new")) {
+                url = Config.NEW_FILES_URL;
+                search_url = Config.UPLOADER_SEARCH_URL;
+                key = Config.NEW_RAZDEL;
+            }
         }
         switch (op) {
             case 1:

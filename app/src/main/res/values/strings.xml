@@ -218,4 +218,6 @@
     <string name="ontop_sum">show scroll to top button</string>
     <string name="ontop_mark">Mark all read when press OnTop button</string>
     <string name="ontop_mark_sum">mark all files read when press OnTop button</string>
+    <string name="menu_new">New files</string>
+    <string name="menu_new_sum">show the new files ribbon</string>
 </resources>

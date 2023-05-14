@@ -135,6 +135,9 @@ public class AppController extends Application {
     public boolean isAndroid() {
         return getSharedPreferences().getBoolean("dvc_android", false);
     }
+    public boolean isNewFiles() {
+        return getSharedPreferences().getBoolean("dvc_new_files", false);
+    }
 
     public boolean isVuploader() {
         return getSharedPreferences().getBoolean("dvc_vuploader", true);

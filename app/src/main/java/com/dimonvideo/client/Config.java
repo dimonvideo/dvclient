@@ -19,6 +19,7 @@ public class Config {
     public static final String DEVICE_RAZDEL = "device";
     public static final String MEMBERS_RAZDEL = "members";
     public static final String VOTE_RAZDEL = "vote";
+    public static final String NEW_RAZDEL = "new";
 
     //Data URL
     public static final String COMMENTS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+COMMENTS_RAZDEL+"&min=";
@@ -46,6 +47,7 @@ public class Config {
     public static final String SUPLOADER_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+SUPLOADER_RAZDEL+"&min=";
     public static final String SUPLOADER_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+SUPLOADER_RAZDEL+"&min=";
     public static final String DEVICE_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+DEVICE_RAZDEL+"&min=";
+    public static final String NEW_FILES_URL = BASE_URL + "/apps/dvclient.php?op=23&min=";
     public static final String DEVICE_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+DEVICE_URL+"&min=";
     public static final String MEMBERS_URL = BASE_URL + "/apps/dvclient.php?op=1&razdel="+MEMBERS_RAZDEL+"&min=";
     public static final String MEMBERS_SEARCH_URL = BASE_URL + "/apps/dvclient.php?op=3&razdel="+MEMBERS_RAZDEL+"&min=";
@@ -55,6 +57,7 @@ public class Config {
     public static final String FORUM_POSTS_URL = BASE_URL + "/apps/dvclient.php?op=7&min=";
 
     public static final String COMMENTS_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&razdel=";
+    public static final String COMMENTS_NEW_READS_URL = BASE_URL + "/apps/dvclient.php?op=4&st=3&";
     public static final String CATEGORY_URL = BASE_URL + "/apps/dvclient.php?op=9&razdel=";
 
     public static final String CHECK_AUTH_URL = BASE_URL + "/apps/dvclient.php?op=10";

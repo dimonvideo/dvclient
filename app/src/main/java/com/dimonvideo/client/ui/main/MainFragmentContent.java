@@ -290,6 +290,7 @@ public class MainFragmentContent extends Fragment {
             url_final = url + requestCount + s_url + "&fav=1&login_name=" + login_name;
         }
 
+        Log.v("---", url_final);
         return new JsonArrayRequest(url_final,
                 response -> {
                     Log.e("---", "response: " + response);

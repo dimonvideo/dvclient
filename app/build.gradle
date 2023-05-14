@@ -15,8 +15,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode 300000057
-        versionName "3.0"
+        versionCode 300000060
+        versionName "3.1"
         if (!localProperties['base64EncodedPublicKey']) {
             logger.warn('base64EncodedPublicKey must be set for signature verification. ' +
                     'You can add it to local.properties once you have gotten it from Play. ' +
@@ -104,7 +104,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment:2.5.3'
     implementation 'androidx.navigation:navigation-ui:2.5.3'
     implementation 'androidx.preference:preference:1.2.0'
-    implementation 'com.android.billingclient:billing:5.2.0'
+    implementation 'com.android.billingclient:billing:6.0.0'
     implementation(platform('org.jetbrains.kotlin:kotlin-bom:1.8.21'))
     implementation 'androidx.activity:activity:1.7.1'
 

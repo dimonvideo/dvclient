@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
         final boolean is_suploader = AppController.getInstance().isSuploader();
         final boolean is_device = AppController.getInstance().isDevice();
         final boolean is_add_file = AppController.getInstance().isAddFile();
+        final boolean is_new_files = AppController.getInstance().isNewFiles();
 
         fab_badge = binding.appBarMain.fabBadge;
 
@@ -175,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView = binding.navView;
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_forum, R.id.nav_news,
+                R.id.nav_home, R.id.nav_new, R.id.nav_forum, R.id.nav_news,
                 R.id.nav_vuploader, R.id.nav_muzon, R.id.nav_books, R.id.nav_uploader,
                 R.id.nav_android, R.id.nav_articles, R.id.nav_tracker, R.id.nav_blog, R.id.nav_suploader, R.id.nav_device)
                 .setOpenableLayout(drawerLayout)
@@ -201,8 +202,9 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
             if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
             if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
-            if (Integer.parseInt(main_razdel) == 16)
-                navGraph.setStartDestination(R.id.nav_suploader);
+            if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
+            if (Integer.parseInt(main_razdel) == 17) navGraph.setStartDestination(R.id.nav_device);
+            if (Integer.parseInt(main_razdel) == 18) navGraph.setStartDestination(R.id.nav_new);
 
             navController.setGraph(navGraph);
 
@@ -365,6 +367,7 @@ public class MainActivity extends AppCompatActivity {
         if ((is_pm.equals("off")) || (auth_state != 1))
             navigationView.getMenu().removeItem(R.id.nav_pm);
         if ((auth_state != 1) || (!is_add_file)) navigationView.getMenu().removeItem(R.id.nav_add);
+        if (!is_new_files) navigationView.getMenu().removeItem(R.id.nav_new);
 
         // открытие личных сообщений
         if ((is_pm.equals("off")) || (auth_state != 1))
@@ -397,8 +400,6 @@ public class MainActivity extends AppCompatActivity {
         if (intent_admin != null) {
 
             String action_admin = intent_admin.getStringExtra("action_admin");
-
-            Log.e(Config.TAG, "DVAdmin intent: " + action_admin);
 
             if (action_admin != null) {
 
@@ -531,7 +532,6 @@ public class MainActivity extends AppCompatActivity {
             fab_badge.setVisibility(View.GONE);
         }
 
-        Log.e("---", "Main activity pm recieved: " + count_pm);
         Log.e("---", "Main activity razdel: " + razdel);
 
     }
@@ -614,8 +614,6 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.nav_host_fragment, homeFrag)
                     .addToBackStack(null)
                     .commit();
-
-
         }
 
         // mark all read

@@ -125,8 +125,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
             lid = (String) getArguments().getString(Config.TAG_ID);
         }
 
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, story, image_uploaded, null, null, null));
-
+        if (image_uploaded != null) EventBus.getDefault().postSticky(new MessageEvent(razdel, story, image_uploaded, null, null, null));
 
         recyclerView = binding.recyclerView;
 

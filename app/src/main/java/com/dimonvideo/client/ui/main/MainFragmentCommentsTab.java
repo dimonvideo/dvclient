@@ -51,6 +51,7 @@ public class MainFragmentCommentsTab extends Fragment {
     private String razdel = "10";
     private FragmentHomeBinding binding;
     private RecyclerView recyclerView;
+    private  String url = Config.COMMENTS_READS_URL;
 
     public MainFragmentCommentsTab() {
         // Required empty public constructor
@@ -152,9 +153,10 @@ public class MainFragmentCommentsTab extends Fragment {
 
         String key = GetRazdelName.getRazdelName(razdel, 0);
 
-        String url = Config.COMMENTS_READS_URL;
+        if ((razdel.equals("18") || razdel.equals("new"))) url = Config.COMMENTS_NEW_READS_URL;
 
         Log.v("---", url + key + "&min=" + requestCount  + "&lid=0");
+
         return new JsonArrayRequest(url + key + "&min=" + requestCount  + "&lid=0",
                 response -> {
                     if (requestCount == 1) {

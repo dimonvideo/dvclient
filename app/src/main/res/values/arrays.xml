@@ -36,6 +36,7 @@
     <!-- Razdel Preference -->
     <string-array name="razdel_list">
         <item>@string/menu_home</item>
+        <item>@string/menu_new</item>
         <item>@string/uploader</item>
         <item>@string/menu_gallery</item>
         <item>@string/menu_android</item>
@@ -47,10 +48,12 @@
         <item>@string/tracker</item>
         <item>@string/blog</item>
         <item>@string/suploader</item>
+        <item>@string/device</item>
     </string-array>
 
     <string-array name="razdel_list_values">
         <item>10</item>
+        <item>18</item>
         <item>2</item>
         <item>1</item>
         <item>11</item>
@@ -62,6 +65,7 @@
         <item>14</item>
         <item>15</item>
         <item>16</item>
+        <item>17</item>
     </string-array>
 
     <!-- Theme Preference -->

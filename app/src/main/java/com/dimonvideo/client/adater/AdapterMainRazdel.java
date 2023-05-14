@@ -52,9 +52,6 @@ import java.util.List;
 public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.ViewHolder> {
 
     private final Context context;
-
-    private String razdel;
-
     private final List<Feed> jsonFeed;
 
     public AdapterMainRazdel(List<Feed> jsonFeed, Context context) {
@@ -97,11 +94,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         final boolean is_muzon_play = AppController.getInstance().isMuzonPlay();
         final boolean is_share_btn = AppController.getInstance().isShareBtn();
 
-        razdel = feed.getRazdel();
-        int lid = feed.getId();
-
         holder.status_logo.setImageResource(R.drawable.ic_status_green);
-        int status = Provider.getStatus(String.valueOf(lid), razdel);
+        int status = Provider.getStatus(String.valueOf(feed.getId()), feed.getRazdel());
         if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         if (getItemViewType(position) == 1) {
@@ -134,10 +128,10 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         // комментарии
         holder.textViewComments.setOnClickListener(view -> {
-            openComments(feed, lid);
+            openComments(feed, feed.getId());
         });
         holder.rating_logo.setOnClickListener(view -> {
-            openComments(feed, lid);
+            openComments(feed, feed.getId());
         });
 
         if (feed.getComments() == 0) {
@@ -156,7 +150,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         // открытие подробной информации
         holder.itemView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            openFile(razdel, lid, feed.getComments(), feed.getTitle(),
+            openFile(feed.getRazdel(), feed.getId(), feed.getComments(), feed.getTitle(),
                     feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(),
                     feed.getCategory(), feed.getStatus());
         });
@@ -165,16 +159,16 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         holder.imageView.setOnClickListener(view -> {
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             new Handler(Looper.getMainLooper()).post(() -> {
-                Provider.updateStatus(lid, razdel, 1);
+                Provider.updateStatus(feed.getId(), feed.getRazdel(), 1);
             });
             ButtonsActions.loadScreen(context, feed.getImageUrl());
         });
 
         try {
-            if ((razdel != null) && (razdel.equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play))
+            if ((feed.getRazdel() != null) && (feed.getRazdel().equals(Config.VUPLOADER_RAZDEL) && is_vuploader_play))
                 holder.imageView.setOnClickListener(view -> {
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        Provider.updateStatus(lid, razdel, 1);
+                        Provider.updateStatus(feed.getId(), feed.getRazdel(), 1);
                     });
                     holder.status_logo.setImageResource(R.drawable.ic_status_gray);
                     ButtonsActions.PlayVideo(context, feed.getLink());
@@ -183,10 +177,10 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         }
 
         try {
-            if ((razdel != null) && (razdel.equals(Config.MUZON_RAZDEL) && is_muzon_play))
+            if ((feed.getRazdel() != null) && (feed.getRazdel().equals(Config.MUZON_RAZDEL) && is_muzon_play))
                 holder.imageView.setOnClickListener(view -> {
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        Provider.updateStatus(lid, razdel, 1);
+                        Provider.updateStatus(feed.getId(), feed.getRazdel(), 1);
                     });
                     holder.status_logo.setImageResource(R.drawable.ic_status_gray);
                     ButtonsActions.PlayVideo(context, feed.getLink());
@@ -205,7 +199,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         });
 
         // скачать
-        holder.small_download.setOnClickListener(view -> DownloadFile.download(context, feed.getLink(), razdel));
+        holder.small_download.setOnClickListener(view -> DownloadFile.download(context, feed.getLink(), feed.getRazdel()));
         // если нет размера файла
         if ((feed.getSize() == null) || (feed.getSize().startsWith("0"))) {
             holder.small_download.setVisibility(View.GONE);
@@ -220,9 +214,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         holder.small_share.setOnClickListener(view -> {
 
-            String url = Config.BASE_URL + "/" + razdel + "/" + lid;
-            if (razdel.equals(Config.COMMENTS_RAZDEL))
-                url = Config.BASE_URL + "/" + lid + "-news.html";
+            String url = Config.BASE_URL + "/" + feed.getRazdel() + "/" + feed.getId();
+            if (feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
+                url = Config.BASE_URL + "/" + feed.getId() + "-news.html";
 
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
@@ -242,7 +236,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         if ((feed.getStatus() == 0) && (AppController.getInstance().isUserGroup() <= 2)) {
             holder.btn_odob.setVisibility(View.VISIBLE);
             holder.btn_odob.setOnClickListener(v -> {
-                NetworkUtils.getOdob(razdel, lid);
+                NetworkUtils.getOdob(feed.getRazdel(), feed.getId());
                 try {
                     jsonFeed.remove(position);
                     notifyItemRemoved(position);
@@ -279,13 +273,13 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     }
 
     private void openComments(Feed feed, int lid) {
-        String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + lid + "&min=";
+        String comm_url = Config.COMMENTS_READS_URL + feed.getRazdel() + "&lid=" + lid + "&min=";
         MainFragmentCommentsFile fragment = new MainFragmentCommentsFile();
         Bundle bundle = new Bundle();
         bundle.putString(Config.TAG_TITLE, feed.getTitle());
         bundle.putString(Config.TAG_ID, String.valueOf(lid));
         bundle.putString(Config.TAG_LINK, comm_url);
-        bundle.putString(Config.TAG_RAZDEL, razdel);
+        bundle.putString(Config.TAG_RAZDEL, feed.getRazdel());
         fragment.setArguments(bundle);
         fragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "MainFragmentCommentsFile");
 

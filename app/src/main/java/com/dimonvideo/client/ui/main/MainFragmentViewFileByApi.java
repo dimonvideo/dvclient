@@ -309,8 +309,6 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         return new JsonArrayRequest(url_final,
                 response -> {
 
-            Log.e("---", "api: "+response);
-
             Feed jsonFeed = new Feed();
                         JSONObject json;
                         try {

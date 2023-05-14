@@ -168,7 +168,20 @@
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
-    <!-- Uploader Preference -->
+    <!-- New Preference -->
+
+    <PreferenceCategory app:title="@string/menu_new">
+
+        <SwitchPreferenceCompat
+            android:dependency="dvc_password"
+            app:defaultValue="false"
+            app:key="dvc_new_files"
+            app:useSimpleSummaryProvider="true"
+            app:summary="@string/menu_new_sum"
+            app:title="@string/menu_new" />
+    </PreferenceCategory>
+
+    <!-- Forum Preference -->
 
     <PreferenceCategory app:title="@string/menu_forum">
 

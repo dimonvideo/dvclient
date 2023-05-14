@@ -19,6 +19,11 @@
             android:icon="@drawable/baseline_forum_24"
             android:title="@string/menu_forum" />
         <item
+            android:id="@+id/nav_new"
+            android:checkable="true"
+            android:icon="@drawable/outline_feed_24"
+            android:title="@string/menu_new" />
+        <item
             android:id="@+id/nav_add"
             android:checkable="true"
             android:icon="@drawable/baseline_add_comment_24"

@@ -240,4 +240,19 @@
             android:id="@+id/action_nav_device_to_nav_home"
             app:destination="@id/nav_home" />
     </fragment>
+    <fragment
+        android:id="@+id/nav_new"
+        android:name="com.dimonvideo.client.ui.main.MainFragment"
+        android:label="@string/menu_new"
+        android:tag="new"
+        tools:layout="@layout/fragment_home">
+        <argument
+            android:name="category"
+            app:argType="string"
+            android:defaultValue="18"
+            />
+        <action
+            android:id="@+id/action_nav_new_to_nav_home"
+            app:destination="@id/nav_home" />
+    </fragment>
 </navigation>

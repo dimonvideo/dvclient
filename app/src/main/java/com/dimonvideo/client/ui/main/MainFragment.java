@@ -82,13 +82,18 @@ public class MainFragment extends Fragment  {
         if (!Objects.equals(razdel, "13")) opros.setVisibility(View.VISIBLE);
         if (!is_opros) opros.setVisibility(View.GONE);
 
-        final boolean is_more = AppController.getInstance().isMore();
-        final boolean is_favor = AppController.getInstance().isTabFavor();
+        boolean is_more = AppController.getInstance().isMore();
+        boolean is_favor = AppController.getInstance().isTabFavor();
         final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
         final boolean is_comment = AppController.getInstance().isCommentTab();
         String login = AppController.getInstance().userName("");
         final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
         final boolean is_more_odob = AppController.getInstance().isMoreOdob();
+
+        if (razdel.equals("18")) {
+            is_more = false;
+            is_favor = false;
+        }
 
         TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
@@ -102,8 +107,10 @@ public class MainFragment extends Fragment  {
             if (!is_more_odob) tabTiles.add(getString(R.string.tab_details)); else tabTiles.add(getString(R.string.tab_waiting));
             tabIcons.add(R.drawable.outline_info_24);
         }
-        tabTiles.add(getString(R.string.tab_categories));
-        tabIcons.add(R.drawable.outline_category_24);
+        if (!razdel.equals("18")) {
+            tabTiles.add(getString(R.string.tab_categories));
+            tabIcons.add(R.drawable.outline_category_24);
+        }
         if (login.length() > 2 && is_favor) {
             tabTiles.add(getString(R.string.tab_favorites));
             tabIcons.add(R.drawable.outline_star_border_24);
@@ -131,7 +138,7 @@ public class MainFragment extends Fragment  {
 
         adapt.addFragment(fragment_main);
         if (is_more) adapt.addFragment(fragment_info);
-        adapt.addFragment(new MainFragmentCategories());
+        if (!razdel.equals("18")) adapt.addFragment(new MainFragmentCategories());
         if (login.length() > 2 && is_favor) adapt.addFragment(fragment_fav);
         if (is_comment) adapt.addFragment(new MainFragmentCommentsTab());
 

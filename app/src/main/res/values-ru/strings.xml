@@ -124,10 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - интеграция с DVAdmin.\n
-        - отображается Опрос сайта, можно голосовать в программе.\n
-        - возможность добавлять файлы.\n
-        - новые опции в Настройках.
+        - новый раздел Новое сегодня (и сегодняшние комментарии), показывает материалы за текущий день. Раздел необходимо включить в Настройках приложения.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -217,5 +214,7 @@
     <string name="ontop_sum">покажет кнопку Наверх при скролле вверх</string>
     <string name="ontop_mark">Отмечать просмотренным при нажатии</string>
     <string name="ontop_mark_sum">отметит все файлы раздела просмотренными при нажатии кнопки Наверх</string>
+    <string name="menu_new">Новое сегодня</string>
+    <string name="menu_new_sum">покажет ленту новых файлов за сегодняшний день</string>
 
 </resources>
