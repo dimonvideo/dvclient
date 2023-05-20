@@ -1,6 +1,7 @@
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -9,7 +10,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,7 +24,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -117,6 +116,8 @@ public class MainFragmentContent extends Fragment {
             EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
         }
 
+        Log.e("---", "MainFragmentCid: "+cid);
+
         key = GetRazdelName.getRazdelName(razdel, 0);
         search_url = GetRazdelName.getRazdelName(razdel, 1);
         url = GetRazdelName.getRazdelName(razdel, 2);
@@ -142,6 +143,7 @@ public class MainFragmentContent extends Fragment {
                         jsonFeedList.setRazdel(cursor.getString(10));
                         jsonFeedList.setSize(cursor.getString(11));
                         jsonFeedList.setLink(cursor.getString(12));
+                        jsonFeedList.setState(1);
 
                         listFeed.add(jsonFeedList);
 
@@ -246,7 +248,7 @@ public class MainFragmentContent extends Fragment {
         });
 
 
-        UpdatePm.update(requireActivity(), razdel);
+        UpdatePm.update(requireActivity(), razdel, MainActivity.binding.getRoot());
     }
 
 
@@ -290,12 +292,15 @@ public class MainFragmentContent extends Fragment {
             url_final = url + requestCount + s_url + "&fav=1&login_name=" + login_name;
         }
 
-        Log.v("---", url_final);
+        Activity activity = getActivity();
+
         return new JsonArrayRequest(url_final,
                 response -> {
-                    Log.e("---", "response: " + response);
-                    progressBar.setVisibility(View.GONE);
-                    ProgressBarBottom.setVisibility(View.GONE);
+
+                    if (activity != null) {
+                        progressBar.setVisibility(View.GONE);
+                        ProgressBarBottom.setVisibility(View.GONE);
+                    }
 
                     if (requestCount == 1) {
                         listFeed.clear();
@@ -330,12 +335,13 @@ public class MainFragmentContent extends Fragment {
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                             jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
-                            jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
+                            jsonFeed.setStatus(0);
                             jsonFeed.setFav(json.getInt(Config.TAG_FAV));
+                            jsonFeed.setState(json.getInt(Config.TAG_STATUS));
 
 
                             // сохраняем в базу результат для оффлайн просмотра
-                            if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_last)))) {
+                            if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_last))) && (activity != null)) {
                                 ContentValues values = new ContentValues();
                                 values.put(Table.COLUMN_LID, json.getInt(Config.TAG_ID));
                                 values.put(Table.COLUMN_STATUS, 0);
@@ -359,16 +365,20 @@ public class MainFragmentContent extends Fragment {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        listFeed.add(jsonFeed);
+                        if (activity != null) listFeed.add(jsonFeed);
 
                     }
-                    recyclerView.post(() -> {
-                        adapter.notifyDataSetChanged();
-                    });
+                    if (activity != null)
+                        recyclerView.post(() -> {
+                            adapter.notifyDataSetChanged();
+                        });
+
                 },
                 error -> {
-                    progressBar.setVisibility(View.GONE);
-                    ProgressBarBottom.setVisibility(View.GONE);
+                    if(activity != null) {
+                        progressBar.setVisibility(View.GONE);
+                        ProgressBarBottom.setVisibility(View.GONE);
+                    }
                 });
     }
 

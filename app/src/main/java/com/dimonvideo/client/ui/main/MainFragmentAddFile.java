@@ -40,12 +40,15 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.DrawableImageViewTarget;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
@@ -103,8 +106,16 @@ public class MainFragmentAddFile extends Fragment {
         logo = Config.THUMB_URL + login_name + File.separator + "thumbs" + File.separator + screen;
         // если скриншот загружен на сервер
         if (bitmap != null) {
-            BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bitmap);
-            imgBtn.setImageDrawable(bitmapDrawable);
+            CircularProgressDrawable drawable = new CircularProgressDrawable(requireContext());
+            drawable.setColorSchemeColors(R.color.colorDelete, R.color.colorPrimary, R.color.colorAccent);
+            drawable.setCenterRadius(30f);
+            drawable.setStrokeWidth(5f);
+            drawable.start();
+            Glide.with(this)
+                    .load(Config.THUMB_URL+login_name+File.separator+screen)
+                    .placeholder(drawable)
+                    .into(new DrawableImageViewTarget(imgBtn));
+
             selectScreen.setVisibility(View.INVISIBLE);
             desc.setVisibility(View.VISIBLE);
             btnSend.setVisibility(View.VISIBLE);
@@ -381,6 +392,7 @@ public class MainFragmentAddFile extends Fragment {
             public void handleOnBackPressed() {
 
                 if (doubleBackToExitPressedOnce) {
+                    requestToServer(Config.DELETE_URL, screen, null);
                     MainActivity.navController.navigate(R.id.nav_home);
                     return;
                 }

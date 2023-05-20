@@ -8,12 +8,13 @@ import android.widget.TextView;
 
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
+import com.dimonvideo.client.databinding.ActivityMainBinding;
 
 import java.util.concurrent.Executors;
 
 public class UpdatePm {
 
-    public static void update(Context context, String razdel) {
+    public static void update(Context context, String razdel, View view) {
 
 
         String is_pm = AppController.getInstance().isPm();
@@ -24,7 +25,6 @@ public class UpdatePm {
         if (auth_state > 0) {
 
             // обновляем счетчик лс
-            View view = MainActivity.binding.getRoot();
             TextView fab_badge = view.findViewById(R.id.fab_badge);
             Executors.newSingleThreadExecutor().execute(() -> {
 

@@ -23,5 +23,8 @@
         app:itemTextColor="@color/colorAccent"
         app:itemIconTint="@color/year"
         app:headerLayout="@layout/nav_header_main"
-        app:menu="@menu/activity_main_drawer" />
+        app:menu="@menu/activity_main_drawer" >
+
+
+    </com.google.android.material.navigation.NavigationView>
 </androidx.drawerlayout.widget.DrawerLayout>

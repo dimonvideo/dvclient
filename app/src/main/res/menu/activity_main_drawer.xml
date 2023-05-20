@@ -93,4 +93,5 @@
             android:icon="@drawable/outline_phone_android_24"
             android:title="@string/device" />
     </group>
+
 </menu>

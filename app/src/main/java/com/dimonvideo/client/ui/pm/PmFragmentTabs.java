@@ -190,7 +190,7 @@ public class PmFragmentTabs extends Fragment {
 
         tabLayoutMediator.attach();
 
-        UpdatePm.update(requireContext(), razdel);
+        UpdatePm.update(requireContext(), razdel, MainActivity.binding.getRoot());
 
 
         // перехват кнопки назад.

@@ -98,6 +98,21 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         int status = Provider.getStatus(String.valueOf(feed.getId()), feed.getRazdel());
         if (status == 1) holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
+        // одобрение
+
+        if ((feed.getState() == 0) && (AppController.getInstance().isUserGroup() <= 2)) {
+            holder.btn_odob.setVisibility(View.VISIBLE);
+            holder.btn_odob.setOnClickListener(v -> {
+                NetworkUtils.getOdob(feed.getRazdel(), feed.getId());
+                try {
+                    jsonFeed.remove(position);
+                    notifyItemRemoved(position);
+                } catch (Exception ignored) {
+
+                }
+            });
+        } else holder.btn_odob.setVisibility(View.GONE);
+
         if (getItemViewType(position) == 1) {
             Glide.with(context)
                     .load(feed.getImageUrl())
@@ -231,20 +246,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         });
 
-        // одобрение
-        holder.btn_odob.setVisibility(View.GONE);
-        if ((feed.getStatus() == 0) && (AppController.getInstance().isUserGroup() <= 2)) {
-            holder.btn_odob.setVisibility(View.VISIBLE);
-            holder.btn_odob.setOnClickListener(v -> {
-                NetworkUtils.getOdob(feed.getRazdel(), feed.getId());
-                try {
-                    jsonFeed.remove(position);
-                    notifyItemRemoved(position);
-                } catch (Exception ignored) {
 
-                }
-            });
-        }
 
 
     }
