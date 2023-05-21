@@ -101,11 +101,14 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         }
 
-        Glide.with(context)
+        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
+
+        Glide.with(holder.itemView.getContext())
                 .load(feed.getImageUrl())
                 .apply(RequestOptions.circleCropTransform())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.baseline_image_20)
+                .error(R.drawable.baseline_image_20)
                 .apply(new RequestOptions().override(80, 80))
                 .into(holder.imageView);
 

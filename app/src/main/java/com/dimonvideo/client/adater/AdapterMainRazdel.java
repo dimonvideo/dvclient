@@ -113,20 +113,24 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             });
         } else holder.btn_odob.setVisibility(View.GONE);
 
+        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
+
         if (getItemViewType(position) == 1) {
-            Glide.with(context)
+            Glide.with(holder.itemView.getContext())
                     .load(feed.getImageUrl())
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .apply(new RequestOptions().override(250, 250))
                     .placeholder(R.drawable.baseline_image_20)
+                    .error(R.drawable.baseline_image_20)
                     .transform(new CenterCrop(), new RoundedCorners(15))
                     .into(holder.imageView);
         } else {
-            Glide.with(context)
+            Glide.with(holder.itemView.getContext())
                     .load(feed.getImageUrl())
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .apply(new RequestOptions().override(80, 80))
                     .placeholder(R.drawable.baseline_image_20)
+                    .error(R.drawable.baseline_image_20)
                     .transform(new CenterCrop(), new RoundedCorners(15))
                     .into(holder.imageView);
         }
@@ -167,7 +171,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             holder.status_logo.setImageResource(R.drawable.ic_status_gray);
             openFile(feed.getRazdel(), feed.getId(), feed.getComments(), feed.getTitle(),
                     feed.getUser(), feed.getPlus(), feed.getLink(), feed.getMod(), feed.getSize(), feed.getImageUrl(), feed.getFull_text(), feed.getDate(),
-                    feed.getCategory(), feed.getStatus());
+                    feed.getCategory(), feed.getState());
         });
 
         // показ скриншота
@@ -364,6 +368,11 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     @Override
     public int getItemCount() {
         return jsonFeed.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
     // swipe to remove favorites

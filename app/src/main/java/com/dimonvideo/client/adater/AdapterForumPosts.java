@@ -113,10 +113,14 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         } catch (Throwable ignored) {
 
         }
-        Glide.with(mContext)
+
+        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
+
+        Glide.with(holder.itemView.getContext())
                 .load(Feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.baseline_image_20)
+                .error(R.drawable.baseline_image_20)
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
         holder.textViewTitle.setText(Feed.getTitle());

@@ -134,10 +134,13 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
-        Glide.with(context)
+        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
+
+        Glide.with(holder.itemView.getContext())
                 .load(Feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.baseline_image_20)
+                .error(R.drawable.baseline_image_20)
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
 
