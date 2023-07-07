@@ -45,6 +45,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         if (remoteMessage.getData().size() > 0) {
+            Log.e("---", remoteMessage.getData().toString());
             String action = remoteMessage.getData().get("action");
             String count_pm = remoteMessage.getData().get("count_pm");
             int id = Integer.parseInt(Objects.requireNonNull(remoteMessage.getData().get("id")));
