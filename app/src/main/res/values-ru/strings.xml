@@ -124,8 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - новый раздел Новое сегодня (и сегодняшние комментарии), показывает материалы за текущий день.\n
-        - оптимизация отображения скриншотов.
+        - техническое обновление.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>

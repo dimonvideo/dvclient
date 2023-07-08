@@ -248,7 +248,10 @@ public class MainFragmentContent extends Fragment {
         });
 
 
-        UpdatePm.update(requireActivity(), razdel, MainActivity.binding.getRoot());
+        try{
+            UpdatePm.update(requireActivity(), razdel, MainActivity.binding.getRoot());
+        } catch (Exception ignored) {
+        }
     }
 
 

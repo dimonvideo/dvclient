@@ -15,8 +15,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode 300000062
-        versionName "3.3"
+        versionCode 300000064
+        versionName "3.4"
         if (!localProperties['base64EncodedPublicKey']) {
             logger.warn('base64EncodedPublicKey must be set for signature verification. ' +
                     'You can add it to local.properties once you have gotten it from Play. ' +
@@ -116,10 +116,10 @@ dependencies {
 
     implementation 'org.greenrobot:eventbus:3.3.1'
 
-    implementation 'com.google.firebase:firebase-core:21.1.1'
-    implementation 'com.google.firebase:firebase-analytics:21.3.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.3.7'
-    implementation 'com.google.firebase:firebase-messaging:23.1.2'
+    implementation platform('com.google.firebase:firebase-bom:32.1.1')
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 
     implementation 'com.github.HamidrezaAmz:MagicalExoPlayer:3.0.5'
 
