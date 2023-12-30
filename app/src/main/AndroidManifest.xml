@@ -38,8 +38,8 @@
         tools:replace="android:allowBackup"
         android:hardwareAccelerated="true"
         android:name=".util.AppController"
-        android:enableOnBackInvokedCallback="true"
         android:largeHeap="true"
+        android:enableOnBackInvokedCallback="true"
         tools:targetApi="tiramisu"
         android:dataExtractionRules="@xml/data_extraction_rules">
         <!-- Trigger Google Play services to install the backported photo picker module. -->

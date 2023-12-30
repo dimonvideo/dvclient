@@ -244,7 +244,7 @@ public class SettingsActivity extends AppCompatActivity {
                 editor.remove("dvc_pm");
                 editor.remove("auth_foto");
                 editor.apply();
-                requireActivity().onBackPressed();
+                requireActivity().getOnBackPressedDispatcher();
             });
             alert.setNegativeButton(R.string.no, (dialog, which) -> dialog.dismiss());
             alert.show();
@@ -293,7 +293,7 @@ public class SettingsActivity extends AppCompatActivity {
                             GetToken.getToken(mContext);
 
                             Toast.makeText(mContext, mContext.getString(R.string.success_auth), Toast.LENGTH_LONG).show();
-                            requireActivity().onBackPressed();
+                            requireActivity().getOnBackPressedDispatcher();
                             dialog.dismiss();
 
                         } else

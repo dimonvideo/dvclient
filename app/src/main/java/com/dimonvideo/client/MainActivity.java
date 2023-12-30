@@ -37,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
     public static NavigationView navigationView;
     @SuppressLint("StaticFieldLeak")
     public static NavController navController;
-    private boolean doubleBackToExitPressedOnce = false;
     @SuppressLint("StaticFieldLeak")
     public static TextView fab_badge;
 
@@ -326,29 +326,55 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(Config.INTENT_READ_PM);
         filter.addAction(Config.INTENT_DELETE_PM);
 
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
-                    Log.e(Config.TAG, "Auth broadcast");
-                    String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
-                    String is_pm = AppController.getInstance().isPm();
-                    String image_url = AppController.getInstance().imageUrl();
-                    Glide.with(getApplicationContext())
-                            .load(image_url)
-                            .apply(RequestOptions.circleCropTransform())
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-                            .centerCrop()
-                            .into(avatar);
-                    status.setImageResource(R.drawable.ic_status_green);
-                    Login_Name.setText(getString(R.string.sign_as));
-                    Login_Name.append(auth_name);
-                    avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
-                    if ((!is_pm.equals("off")) && (binding != null))
-                        binding.appBarMain.fab.setVisibility(View.VISIBLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
+                        Log.e(Config.TAG, "Auth broadcast");
+                        String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+                        String is_pm = AppController.getInstance().isPm();
+                        String image_url = AppController.getInstance().imageUrl();
+                        Glide.with(getApplicationContext())
+                                .load(image_url)
+                                .apply(RequestOptions.circleCropTransform())
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .centerCrop()
+                                .into(avatar);
+                        status.setImageResource(R.drawable.ic_status_green);
+                        Login_Name.setText(getString(R.string.sign_as));
+                        Login_Name.append(auth_name);
+                        avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
+                        if ((!is_pm.equals("off")) && (binding != null))
+                            binding.appBarMain.fab.setVisibility(View.VISIBLE);
+                    }
                 }
-            }
-        }, filter);
+            }, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
+                        Log.e(Config.TAG, "Auth broadcast");
+                        String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+                        String is_pm = AppController.getInstance().isPm();
+                        String image_url = AppController.getInstance().imageUrl();
+                        Glide.with(getApplicationContext())
+                                .load(image_url)
+                                .apply(RequestOptions.circleCropTransform())
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .centerCrop()
+                                .into(avatar);
+                        status.setImageResource(R.drawable.ic_status_green);
+                        Login_Name.setText(getString(R.string.sign_as));
+                        Login_Name.append(auth_name);
+                        avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
+                        if ((!is_pm.equals("off")) && (binding != null))
+                            binding.appBarMain.fab.setVisibility(View.VISIBLE);
+                    }
+                }
+            }, filter);
+        }
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);
@@ -832,18 +858,6 @@ public class MainActivity extends AppCompatActivity {
             p = permissions;
         }
         return p;
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
-            finish();
-            return;
-        }
-        navController.navigate(R.id.nav_home);
-        this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
-        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
     }
 
 }

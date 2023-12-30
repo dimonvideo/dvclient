@@ -1,11 +1,16 @@
 package com.dimonvideo.client.ui.forum;
 
+import static com.dimonvideo.client.MainActivity.navController;
+
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -48,6 +53,7 @@ public class ForumFragment extends Fragment  {
     private FragmentTabsBinding binding;
     private final Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
     private TextView opros;
+    private boolean doubleBackToExitPressedOnce = false;
 
     public ForumFragment() {
         // Required empty public constructor
@@ -191,11 +197,23 @@ public class ForumFragment extends Fragment  {
             @Override
             public void handleOnBackPressed() {
 
-                Log.e("---", "handleOnBackPressed: "+ razdel);
                 if (viewPager.getCurrentItem() != 0) {
                     viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
                 } else {
-                    requireActivity().onBackPressed();
+                    requireActivity().getOnBackPressedDispatcher().addCallback(requireActivity(), new OnBackPressedCallback(true) {
+                        @Override
+                        public void handleOnBackPressed() {
+                            Log.e("---", "Back pressed - " + doubleBackToExitPressedOnce);
+                            navController.navigate(R.id.nav_home);
+                            doubleBackToExitPressedOnce = true;
+                            Toast.makeText(requireActivity(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+                            if (doubleBackToExitPressedOnce) {
+                                requireActivity().finishAffinity();
+                                return;
+                            }
+                        }
+                    });
                 }
 
             }

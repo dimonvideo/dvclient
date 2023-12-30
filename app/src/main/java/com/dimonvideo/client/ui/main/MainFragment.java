@@ -1,12 +1,17 @@
 package com.dimonvideo.client.ui.main;
 
+import static com.dimonvideo.client.MainActivity.navController;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -45,6 +50,7 @@ public class MainFragment extends Fragment  {
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
     private FragmentTabsBinding binding;
     private TextView opros;
+    private boolean doubleBackToExitPressedOnce = false;
 
     public MainFragment() {
 
@@ -213,8 +219,20 @@ public class MainFragment extends Fragment  {
                 if (viewPager.getCurrentItem() != 0) {
                     viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
                 } else {
-                    requireActivity().onBackPressed();
-
+                    requireActivity().getOnBackPressedDispatcher().addCallback(requireActivity(), new OnBackPressedCallback(true) {
+                        @Override
+                        public void handleOnBackPressed() {
+                            Log.e("---", "Back pressed - " + doubleBackToExitPressedOnce);
+                            navController.navigate(R.id.nav_home);
+                            doubleBackToExitPressedOnce = true;
+                            Toast.makeText(requireActivity(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+                            if (doubleBackToExitPressedOnce) {
+                                requireActivity().finishAffinity();
+                                return;
+                            }
+                        }
+                    });
                 }
 
             }
