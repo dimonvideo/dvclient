@@ -25,11 +25,9 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.db.Provider;
 import com.potyvideo.library.AndExoPlayerView;
 import com.potyvideo.library.globalEnums.EnumAspectRatio;
 
@@ -130,8 +128,8 @@ public class ButtonsActions {
             try {
                 pass = URLEncoder.encode(password, "utf-8");
                 is_name = URLEncoder.encode(is_name, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
 
             String url = Config.CHECK_AUTH_URL + "&login_name=" + is_name + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
@@ -149,8 +147,8 @@ public class ButtonsActions {
                             } else
                                 Toast.makeText(context, context.getString(R.string.nav_header_title), Toast.LENGTH_LONG).show();
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                     }, error -> showErrorToast(context, error)
             );
@@ -169,8 +167,8 @@ public class ButtonsActions {
             try {
                 pass = URLEncoder.encode(password, "utf-8");
                 is_name = URLEncoder.encode(is_name, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
 
             String url = Config.CHECK_AUTH_URL + "&login_name=" + is_name + "&login_password=" + pass + "&razdel=members&id=" + id + "&addfav=" + type;
@@ -185,8 +183,8 @@ public class ButtonsActions {
                             } else
                                 Toast.makeText(context, context.getString(R.string.nav_header_title), Toast.LENGTH_LONG).show();
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                     }, error -> showErrorToast(context, error)
             );
@@ -208,7 +206,7 @@ public class ButtonsActions {
             } catch (Throwable ignored) {
             }
 
-            if ((is_external_video) && (!link.equals(""))) {
+            if ((is_external_video) && (!link.isEmpty())) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.parse(link), "video/*");
                 try {
@@ -229,7 +227,7 @@ public class ButtonsActions {
                 if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
                 else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
 
-                if (!link.equals("")) {
+                if (!link.isEmpty()) {
                     HashMap<String, String> map = new HashMap<>();
                     map.put("link", link);
                     andExoPlayerView.setSource(link, map);

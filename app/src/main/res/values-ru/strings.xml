@@ -124,7 +124,7 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - поддержка Android 14+
+        - улучшена совместимость с Huawei (для сборки из AppGallery)
         - обновления зависимостей
     </string>
     <string name="export">Экспорт настроек на SD</string>

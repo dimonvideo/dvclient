@@ -5,7 +5,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,10 +21,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,8 +40,6 @@ import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
@@ -58,7 +53,6 @@ import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.ProgressHelper;
-import com.omfine.image.picker.utils.StringUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -424,8 +418,8 @@ public class MainFragmentAddFile extends Fragment {
                             json = response.getJSONObject(i);
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setCid(json.getInt(Config.TAG_ID));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(String.valueOf(jsonFeed.getTitle()));
                         listFeedCategory.add(String.valueOf(jsonFeed.getCid()));

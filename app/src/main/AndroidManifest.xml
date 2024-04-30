@@ -11,8 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="com.android.vending.BILLING"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:ignore="SelectedPhotoAccess" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
 
     <queries>
@@ -41,17 +41,10 @@
         android:largeHeap="true"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="tiramisu"
-        android:dataExtractionRules="@xml/data_extraction_rules">
-        <!-- Trigger Google Play services to install the backported photo picker module. -->
-        <service android:name="com.google.android.gms.metadata.ModuleDependencies"
-            android:enabled="false"
-            tools:ignore="MissingClass"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
-            </intent-filter>
-            <meta-data android:name="photopicker_activity:0:required" android:value="" />
-        </service>
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:ignore="DiscouragedApi">
+
+
         <receiver android:name=".util.DownloadBroadcastReceiver"
             android:exported="true">
             <intent-filter>
@@ -108,9 +101,6 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_launcher_round" />
 
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
         <provider
             android:name=".db.Provider"
             android:authorities="com.dimonvideo.client"

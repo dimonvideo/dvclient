@@ -37,7 +37,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -60,7 +59,6 @@ import androidx.navigation.ui.NavigationUI;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
-import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
@@ -69,12 +67,12 @@ import com.dimonvideo.client.ui.main.MainFragmentAddFile;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
 import com.dimonvideo.client.ui.pm.PmFragmentTabs;
 import com.dimonvideo.client.ui.pm.PmFragmentMembers;
+import com.dimonvideo.client.util.Analytics;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
-import com.dimonvideo.client.util.PurchaseHelper;
 import com.dimonvideo.client.util.RequestPermissionHandler;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -103,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     public static TextView fab_badge;
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -114,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
+
+        Analytics.init(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -168,8 +169,8 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton(android.R.string.ok,
                                 (dialog, which) -> dialog.dismiss()).setIcon(R.mipmap.ic_launcher_round).show();
             }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+        } catch (PackageManager.NameNotFoundException ignored) {
+
         }
 
         DrawerLayout drawerLayout = binding.drawerLayout;
@@ -399,9 +400,6 @@ public class MainActivity extends AppCompatActivity {
         if ((is_pm.equals("off")) || (auth_state != 1))
             binding.appBarMain.fab.setVisibility(View.GONE);
 
-
-        // billing init
-        if (!getCurrentLanguage().equals("ru")) PurchaseHelper.init(this);
 
         // открываем лс из уведомления
         Intent intent_pm = getIntent();
@@ -673,7 +671,7 @@ public class MainActivity extends AppCompatActivity {
 
             String url = "https://play.google.com/store/apps/dev?id=6091758746633814135";
 
-            if (BuildConfig.FLAVOR.equals("DVClientSamsung"))
+            if (!BuildConfig.GOOGLE)
                 url = "https://dimonvideo.ru/android.html";
 
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
@@ -746,26 +744,8 @@ public class MainActivity extends AppCompatActivity {
                     url));
 
 
-            if (!BuildConfig.GOOGLE) {
-                try {
-                    startActivity(browserIntent);
-                } catch (Throwable ignored) {
-                }
-            } else {
-                if (getCurrentLanguage().equals("ru")) {
-                    try {
-                        startActivity(browserIntent);
-                    } catch (Throwable ignored) {
-                    }
-                } else {
-                    try {
+            startActivity(browserIntent);
 
-                        PurchaseHelper.doPurchase(MainActivity.this);
-
-                    } catch (Throwable ignored) {
-                    }
-                }
-            }
         }
 
         // exit
@@ -827,14 +807,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, getString(R.string.perm_invalid), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private String getCurrentLanguage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return LocaleList.getDefault().get(0).getLanguage();
-        } else {
-            return Locale.getDefault().getLanguage();
-        }
     }
 
     public static String[] permissions = {

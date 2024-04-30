@@ -3,11 +3,18 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        maven { url 'https://developer.huawei.com/repo/' }
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:8.3.2'
-        classpath 'com.google.gms:google-services:4.4.0'
+        if (getGradle().getStartParameter().getTaskNames().toString().toLowerCase().contains("huawei")) {
+            classpath 'com.huawei.agconnect:agcp:1.9.1.300'
+        } else {
+            classpath 'com.google.gms:google-services:4.4.1'
+        }
+
+
     }
 }
 
@@ -16,5 +23,6 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
+        maven { url 'https://developer.huawei.com/repo/' }
     }
 }
