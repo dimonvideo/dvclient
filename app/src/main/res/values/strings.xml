@@ -220,4 +220,12 @@
     <string name="ontop_mark_sum">mark all files read when press OnTop button</string>
     <string name="menu_new">New files</string>
     <string name="menu_new_sum">show the new files ribbon</string>
+    <string name="save">Save settings</string>
+    <string name="restore_backup">Restore settings</string>
+    <string name="menu_backup_explain">Backup</string>
+    <string name="prefs_count">Found:</string>
+    <string name="menu_backup">Settings backup</string>
+    <string name="menu_backup_sum">backup and restore settings</string>
+    <string name="prefs_date_copy">Backup date:</string>
+    <string name="prefs_date_restore">Restore date:</string>
 </resources>

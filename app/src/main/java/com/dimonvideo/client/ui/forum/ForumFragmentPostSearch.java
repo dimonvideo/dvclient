@@ -137,8 +137,8 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
     private JsonArrayRequest getDataFromServer(int requestCount) {
         try {
             story = URLEncoder.encode(story, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException ignored) {
+
         }
         String url = Config.FORUM_POSTS_URL;
         Log.e("---", "Process search: "+ url + requestCount + "&id=" + tid + "&story=" + story);
@@ -172,8 +172,8 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
                             jsonFeed.setNewtopic(json.getInt(Config.TAG_NEW_TOPIC));
                             jsonFeed.setTopic_id(json.getInt(Config.TAG_TOPIC_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

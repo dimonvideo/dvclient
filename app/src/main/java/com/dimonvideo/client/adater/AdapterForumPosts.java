@@ -13,9 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,11 +27,9 @@ import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
-import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
-import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
@@ -180,7 +176,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         FeedForum Feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        holder.url = Config.BASE_URL + "/forum/post_" + Feed.getId();
+        holder.url = Config.WRITE_URL + "/forum/post_" + Feed.getId();
 
         holder.myClipboard = (ClipboardManager)mContext.getSystemService(Context.CLIPBOARD_SERVICE);
 

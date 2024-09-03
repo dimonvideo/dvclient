@@ -102,7 +102,7 @@ public class AdapterForumCategory extends RecyclerView.Adapter<AdapterForumCateg
         return jsonFeed.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo;

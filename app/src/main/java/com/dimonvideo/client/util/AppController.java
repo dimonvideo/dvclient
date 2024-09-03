@@ -1,25 +1,32 @@
 package com.dimonvideo.client.util;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
+import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 
 public class AppController extends Application {
+    @SuppressLint("StaticFieldLeak")
     private static AppController sInstance;
     private RequestQueue mRequestQueue;
-    private SharedPreferences sharedPrefs;
+    private static SharedPreferences sharedPrefs;
+    private static SharedPreferences.Editor editor;
     public static final String TAG = AppController.class.getSimpleName();
+    @SuppressLint("StaticFieldLeak")
+    private static Context mCtx;
 
     @Override
     public void onCreate() {
         super.onCreate();
-
+        mCtx = this;
         sInstance = this;
     }
 
@@ -30,7 +37,7 @@ public class AppController extends Application {
     public RequestQueue getRequestQueueV() {
 
         if (mRequestQueue == null) {
-            mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+            mRequestQueue = Volley.newRequestQueue(mCtx);
             mRequestQueue.getCache().clear();
         }
 
@@ -38,23 +45,37 @@ public class AppController extends Application {
     }
 
     public <T> void addToRequestQueue(Request<T> req) {
-        req.setTag(TAG);
+        req.setTag(Config.TAG);
+        req.setRetryPolicy(new DefaultRetryPolicy(
+                6000,
+                3,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
         req.setShouldCache(false);
         getRequestQueueV().add(req);
     }
 
-    public SharedPreferences getSharedPreferences() {
+    public static SharedPreferences getSharedPreferences() {
 
         if (sharedPrefs == null) {
-            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
         }
 
         return sharedPrefs;
     }
+    public static SharedPreferences.Editor putSharedPreferences() {
+
+        if (editor == null) {
+            editor = sharedPrefs.edit();
+        }
+
+        return editor;
+    }
+
 
     // ===================================== preferences ========================================================= //
     public String isDark() {
-        return getSharedPreferences().getString("dvc_theme_list", "false");
+        return getSharedPreferences().getString("dvc_theme_list", "none");
     }
 
     public String mainRazdel() {
@@ -62,7 +83,7 @@ public class AppController extends Application {
     }
 
     public String imageUrl() {
-        return getSharedPreferences().getString("auth_foto", Config.BASE_URL + "/images/noavatar.png");
+        return getSharedPreferences().getString("auth_foto", Config.WRITE_URL + "/images/noavatar.png");
     }
 
     public String userPassword() {
@@ -275,63 +296,64 @@ public class AppController extends Application {
 
     // =============================================== put preferences ================================================================== //
 
+
     public void putThemeLight() {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("dvc_theme_list", "false").apply();
+        putSharedPreferences().putString("dvc_theme_list", "false").apply();
     }
 
     public void putThemeDark() {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("dvc_theme_list", "true").apply();
+        putSharedPreferences().putString("dvc_theme_list", "true").apply();
     }
 
     public void putToken(String token) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("current_token", token).apply();
+        putSharedPreferences().putString("current_token", token).apply();
     }
 
     public void putImage(String image) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_foto", image).apply();
+        putSharedPreferences().putString("auth_foto", image).apply();
     }
 
     public void putRang(String status) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_rang", status).apply();
+        putSharedPreferences().putString("auth_rang", status).apply();
     }
 
     public void putLastDate(String lastdate) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_last", lastdate).apply();
+        putSharedPreferences().putString("auth_last", lastdate).apply();
     }
 
     public void putReputation(String rep) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_rep", rep).apply();
+        putSharedPreferences().putString("auth_rep", rep).apply();
     }
 
     public void putRegDate(String reg) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_reg", reg).apply();
+        putSharedPreferences().putString("auth_reg", reg).apply();
     }
 
     public void putRating(String rat) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_rat", rat).apply();
+        putSharedPreferences().putString("auth_rat", rat).apply();
     }
 
     public void putPosts(String posts) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putString("auth_posts", posts).apply();
+        putSharedPreferences().putString("auth_posts", posts).apply();
     }
 
     public void putVersionCode(int versionCode) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("last_version_code", versionCode).apply();
+        putSharedPreferences().putInt("last_version_code", versionCode).apply();
     }
 
     public void putAuthState(int state) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("auth_state", state).apply();
+        putSharedPreferences().putInt("auth_state", state).apply();
     }
 
     public void putUserId(int uid) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("user_id", uid).apply();
+        putSharedPreferences().putInt("user_id", uid).apply();
     }
 
     public void putUserGroup(int user_group) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("user_group", user_group).apply();
+        putSharedPreferences().putInt("user_group", user_group).apply();
     }
 
     public void putPmUnread(int pm_unread) {
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putInt("pm_unread", pm_unread).apply();
+        putSharedPreferences().putInt("pm_unread", pm_unread).apply();
     }
 }

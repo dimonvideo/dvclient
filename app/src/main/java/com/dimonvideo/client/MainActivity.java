@@ -21,7 +21,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.LocaleList;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -65,8 +64,8 @@ import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentAddFile;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
-import com.dimonvideo.client.ui.pm.PmFragmentTabs;
 import com.dimonvideo.client.ui.pm.PmFragmentMembers;
+import com.dimonvideo.client.ui.pm.PmFragmentTabs;
 import com.dimonvideo.client.util.Analytics;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -84,7 +83,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -106,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         final String is_dark = AppController.getInstance().isDark();
-        if (is_dark.equals("true"))
+        if (is_dark.equals("on"))
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         else if (is_dark.equals("system"))
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
@@ -128,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
         final String main_razdel = AppController.getInstance().mainRazdel();
         final String image_url = AppController.getInstance().imageUrl();
-        final String password = AppController.getInstance().userPassword();
         final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
         final String is_pm = AppController.getInstance().isPm();
         final int auth_state = AppController.getInstance().isAuth();
@@ -283,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
                 ShortcutInfo logShortcut = new ShortcutInfo.Builder(this, "shortcut_visit")
                         .setShortLabel(getString(R.string.action_page))
                         .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                        .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.BASE_URL)))
+                        .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.WRITE_URL)))
                         .build();
 
                 ShortcutInfo opdsShortcut = new ShortcutInfo.Builder(this, "shortcut_opds")
@@ -738,7 +735,7 @@ public class MainActivity extends AppCompatActivity {
         // donate
         if (id == R.id.action_donate) {
 
-            String url = Config.BASE_URL + "/reklama.php";
+            String url = Config.WRITE_URL + "/reklama.php";
 
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
                     url));

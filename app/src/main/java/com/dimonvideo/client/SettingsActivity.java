@@ -7,13 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -21,7 +18,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,18 +31,15 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.SetPrefsBackup;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -70,16 +63,6 @@ public class SettingsActivity extends AppCompatActivity {
         final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String value = sharedPrefs.getString("dvc_scale", "1.0f");
         adjustFontScale(getResources().getConfiguration(), this, value);
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                Log.e("---", "onBackPressed");
-                Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
-            }
-        });
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements
@@ -95,8 +78,6 @@ public class SettingsActivity extends AppCompatActivity {
             Preference dvc_clear_login = findPreference("dvc_clear_login");
             Preference dvc_register = findPreference("dvc_register");
             Preference dvc_scale = findPreference("dvc_scale");
-            Preference dvc_export = findPreference("dvc_export");
-            Preference dvc_import = findPreference("dvc_import");
             Preference dvc_favor = findPreference("dvc_favor");
             Preference dvc_more = findPreference("dvc_more");
             Preference dvc_comment = findPreference("dvc_comment");
@@ -104,7 +85,7 @@ public class SettingsActivity extends AppCompatActivity {
             // переключение темы на лету
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
-                if (newValue.equals("true")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                if (newValue.equals("on")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 else if (newValue.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                 else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
@@ -139,9 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_password != null;
             dvc_password.setOnPreferenceChangeListener((preference, newValue) -> {
-                String listValue = (String) newValue;
-                View view = getView();
-                NetworkUtils.checkPassword(getContext(), listValue, "10");
+                NetworkUtils.checkPassword(getContext(), (String) newValue, "10");
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
             });
@@ -154,9 +133,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             assert dvc_login != null;
             dvc_login.setOnPreferenceChangeListener((preference, newValue) -> {
-                String listValue = (String) newValue;
-                View view = getView();
-                NetworkUtils.checkLogin(getContext(), listValue);
+                   NetworkUtils.checkLogin(getContext(), (String) newValue);
                 return true;
             });
 
@@ -164,7 +141,6 @@ public class SettingsActivity extends AppCompatActivity {
             dvc_pm.setOnPreferenceChangeListener((preference, newValue) -> {
                 SharedPreferences sharedPrefs = getDefaultSharedPreferences(requireContext());
                 final String password = sharedPrefs.getString("dvc_password", "null");
-                View view = getView();
                 NetworkUtils.checkPassword(getContext(), password, "10");
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
                 return true;
@@ -184,18 +160,14 @@ public class SettingsActivity extends AppCompatActivity {
 
                 return true;
             });
+            int auth_state = AppController.getInstance().isAuth();
+            if (auth_state > 0) {
+                dvc_register.setVisible(false);
+                dvc_login.setVisible(false);
+                dvc_password.setVisible(false);
 
-            assert dvc_export != null;
-            dvc_export.setOnPreferenceClickListener(preference -> {
-                saveSharedPreferencesToFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
-                return true;
-            });
+            }
 
-            assert dvc_import != null;
-            dvc_import.setOnPreferenceClickListener(preference -> {
-                loadSharedPreferencesFromFile(new File(Environment.getExternalStorageDirectory(), "dvclient.settings"));
-                return true;
-            });
 
             // интеграция с DVGet
             SwitchPreferenceCompat dvc_dvget = findPreference("dvc_dvget");
@@ -213,6 +185,15 @@ public class SettingsActivity extends AppCompatActivity {
                 boolean isEnabled = (Boolean) newValue;
                 dvc_dvget.setEnabled(!isEnabled);
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
+                return true;
+            });
+
+            Preference sett_backup = findPreference("sett_cloud_backup");
+            assert sett_backup != null;
+            sett_backup.setOnPreferenceClickListener(preference -> {
+                Intent intentExport = new Intent(requireContext(), SetPrefsBackup.class);
+                startActivity(intentExport);
+                requireActivity().finish();
                 return true;
             });
 
@@ -299,8 +280,8 @@ public class SettingsActivity extends AppCompatActivity {
                         } else
                             Toast.makeText(mContext, mContext.getString(R.string.unsuccess_auth), Toast.LENGTH_LONG).show();
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    } catch (JSONException ignored) {
+
                     }
                 }, Throwable::printStackTrace) {
 
@@ -320,81 +301,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         }
 
-        // save settings
-        private void saveSharedPreferencesToFile(File dst) {
-            ObjectOutputStream output = null;
-
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    output = new ObjectOutputStream(Files.newOutputStream(dst.toPath()));
-                }
-                SharedPreferences pref = getDefaultSharedPreferences(requireContext());
-                if (output != null) {
-                    output.writeObject(pref.getAll());
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (output != null) {
-                        output.flush();
-                        output.close();
-                        Toast.makeText(requireContext(), requireContext().getString(R.string.export_success), Toast.LENGTH_LONG).show();
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-
-        // import settings
-        @SuppressWarnings({"unchecked"})
-        private void loadSharedPreferencesFromFile(File src) {
-            boolean res = false;
-            ObjectInputStream input = null;
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    input = new ObjectInputStream(Files.newInputStream(src.toPath()));
-                }
-                SharedPreferences.Editor prefEdit = getDefaultSharedPreferences(requireContext()).edit();
-                prefEdit.clear();
-                Map<String, ?> entries = null;
-                if (input != null) {
-                    entries = (Map<String, ?>) input.readObject();
-                }
-                if (entries != null) {
-                    for (Map.Entry<String, ?> entry : entries.entrySet()) {
-                        Object v = entry.getValue();
-                        String key = entry.getKey();
-
-                        if (v instanceof Boolean)
-                            prefEdit.putBoolean(key, (Boolean) v);
-                        else if (v instanceof Float)
-                            prefEdit.putFloat(key, (Float) v);
-                        else if (v instanceof Integer)
-                            prefEdit.putInt(key, (Integer) v);
-                        else if (v instanceof Long)
-                            prefEdit.putLong(key, (Long) v);
-                        else if (v instanceof String)
-                            prefEdit.putString(key, ((String) v));
-                    }
-                }
-                prefEdit.apply();
-                res = true;
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (input != null) {
-                        input.close();
-                        Toast.makeText(requireContext(), requireContext().getString(R.string.import_success), Toast.LENGTH_LONG).show();
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
     }
 
 

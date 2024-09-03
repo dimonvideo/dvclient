@@ -41,7 +41,6 @@ import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.xml.sax.XMLReader;
@@ -234,7 +233,7 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final FeedPm Feed =  jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        holder.url = Config.BASE_URL + "/pm/6/" + Feed.getId();
+        holder.url = Config.WRITE_URL + "/pm/6/" + Feed.getId();
 
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
 

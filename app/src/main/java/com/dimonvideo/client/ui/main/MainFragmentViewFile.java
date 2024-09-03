@@ -25,10 +25,8 @@ import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.BottomDetailBinding;
 import com.dimonvideo.client.db.Provider;
-import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
@@ -178,13 +176,13 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
             dismiss();
         });
         // комментарии
+        String comText;
         if (comments > 0) {
-            String comText = context.getResources().getString(R.string.Comments) + " " + comments;
-            btn_comms.setText(comText);
+            comText = context.getResources().getString(R.string.Comments) + " " + comments;
         } else {
-            String comText = context.getResources().getString(R.string.Comments) + " " + 0;
-            btn_comms.setText(comText);
+            comText = context.getResources().getString(R.string.Comments) + " " + 0;
         }
+        btn_comms.setText(comText);
         // смотреть онлайн
         if ((razdel != null) && (razdel.equals(Config.VUPLOADER_RAZDEL))) {
             btn_mp4.setVisibility(View.VISIBLE);
@@ -218,9 +216,9 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
 
         btn_share.setOnClickListener(v -> {
 
-            String url = Config.BASE_URL + "/" + razdel + "/" + lid;
+            String url = Config.WRITE_URL + "/" + razdel + "/" + lid;
             if (razdel != null && razdel.equals(Config.COMMENTS_RAZDEL))
-                url = Config.BASE_URL + "/" + lid + "-news.html";
+                url = Config.WRITE_URL + "/" + lid + "-news.html";
 
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);

@@ -7,18 +7,15 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.activity.result.PickVisualMediaRequest;
@@ -249,8 +246,8 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setPost_id(json.getInt(Config.TAG_POST_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

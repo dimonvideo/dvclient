@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -29,8 +28,8 @@ public class GetToken {
             try {
                 password = URLEncoder.encode(password, "utf-8");
                 is_name = URLEncoder.encode(is_name, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
 
             try {
@@ -54,8 +53,8 @@ public class GetToken {
                                     String state = jsonObject.getString("state");
                                     Log.e("tag", state);
 
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                } catch (JSONException ignored) {
+
                                 }
                             }, Throwable::printStackTrace) {
 
@@ -66,8 +65,8 @@ public class GetToken {
                                     return postMap;
                                 }
                             };
-
-                            Volley.newRequestQueue(context).add(stringRequest);
+                            stringRequest.setShouldCache(false);
+                            AppController.getInstance().addToRequestQueue(stringRequest);
                         });
 
             } catch (Exception ignored) {

@@ -129,8 +129,8 @@ public class MainFragmentCategories extends Fragment {
                             jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
                             jsonFeed.setCid(json.getInt(Config.TAG_ID));
                             jsonFeed.setCount(json.getInt(Config.TAG_COUNT));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

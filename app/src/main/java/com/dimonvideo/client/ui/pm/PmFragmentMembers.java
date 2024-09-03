@@ -177,20 +177,19 @@ public class PmFragmentMembers extends Fragment {
         try {
             pass = URLEncoder.encode(pass, "utf-8");
             login_name = URLEncoder.encode(login_name, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException ignored) {
+
         }
         String finalPass = pass;
         String finalLogin = login_name;
 
         if (!TextUtils.isEmpty(story)) {
-            String search_url = Config.MEMBERS_SEARCH_URL;
-            url = search_url;
+            url = Config.MEMBERS_SEARCH_URL;
 
             try {
                 story = URLEncoder.encode(story, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
             s_url = "&story=" + story;
             Log.e("---", "story real - " + story);
@@ -230,8 +229,8 @@ public class PmFragmentMembers extends Fragment {
                             jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT)); // ранг
                             jsonFeed.setText(json.getString(Config.TAG_TEXT)); // фраза Нажмите чтоб написать сообщение
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

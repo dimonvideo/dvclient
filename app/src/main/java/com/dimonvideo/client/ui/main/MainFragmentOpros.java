@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -25,12 +24,8 @@ import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ProgressHelper;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-import org.greenrobot.eventbus.EventBus;
-
 public class MainFragmentOpros extends BottomSheetDialogFragment {
     private OprosListBinding binding;
-    private WebView webView;
-    private Button btn_new, btn_result;
 
 
     public MainFragmentOpros(){
@@ -92,8 +87,8 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
         });
         webView.loadUrl(url);
 
-        btn_new = binding.predlog;
-        btn_result = binding.results;
+        Button btn_new = binding.predlog;
+        Button btn_result = binding.results;
 
         btn_new.setOnClickListener(v -> {
             ForumFragmentPosts fragment = new ForumFragmentPosts();

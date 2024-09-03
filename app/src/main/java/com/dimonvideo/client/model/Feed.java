@@ -15,7 +15,7 @@ public class Feed {
 
     public void setImageUrl(String imageUrl) {
         if (!imageUrl.startsWith("http")) {
-            imageUrl = Config.BASE_URL + imageUrl;
+            imageUrl = Config.WRITE_URL + imageUrl;
         }
         this.imageUrl = imageUrl;
     }

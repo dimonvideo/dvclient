@@ -87,7 +87,12 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
+        <activity
+            android:name=".util.SetPrefsBackup"
+            android:exported="true"
+            android:label="@string/menu_backup"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <receiver android:name=".util.ActionReceiver"
             android:enabled="true"
             android:exported="true">

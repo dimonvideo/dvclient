@@ -124,8 +124,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - улучшена совместимость с Huawei (для сборки из AppGallery)
-        - обновления зависимостей
+        - добавлена возможность сохранения - восстановления настроек (после авторизации)\n
+        - оптимизация работы
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -217,5 +217,13 @@
     <string name="ontop_mark_sum">отметит все файлы раздела просмотренными при нажатии кнопки Наверх</string>
     <string name="menu_new">Новое сегодня</string>
     <string name="menu_new_sum">покажет ленту новых файлов за сегодняшний день</string>
+    <string name="save">Сохранить настройки</string>
+    <string name="restore_backup">Восстановить настройки</string>
+    <string name="menu_backup_explain">Настройки можно сохранить и восстановить на другом устройстве, на котором выполнен вход в учетную запись пользователя</string>
+    <string name="prefs_count">Настроек:</string>
+    <string name="menu_backup">Сохранение и восстановление настроек</string>
+    <string name="menu_backup_sum">настройки сохоанятся в облаке</string>
+    <string name="prefs_date_copy">Бэкап от:</string>
+    <string name="prefs_date_restore">Копия от:</string>
 
 </resources>

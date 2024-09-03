@@ -68,8 +68,8 @@ public class NetworkUtils {
                 try {
                     pass = URLEncoder.encode(password, "utf-8");
                     login = URLEncoder.encode(login, "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                } catch (UnsupportedEncodingException ignored) {
+
                 }
 
                 String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + pass;
@@ -129,11 +129,12 @@ public class NetworkUtils {
 
                                 // Log.e("auth", response);
 
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                            } catch (JSONException ignored) {
+
                             }
                         }, error -> showErrorToast(context, error)
                 );
+                stringRequest.setShouldCache(false);
                 AppController.getInstance().addToRequestQueue(stringRequest);
 
             }
@@ -154,8 +155,8 @@ public class NetworkUtils {
                     try {
                         password = URLEncoder.encode(password, "utf-8");
                         login_f = URLEncoder.encode(login, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
+                    } catch (UnsupportedEncodingException ignored) {
+
                     }
 
                     String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + password;
@@ -176,12 +177,12 @@ public class NetworkUtils {
                                     GetToken.getToken(context);
 
 
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                } catch (JSONException ignored) {
+
                                 }
                             }, error -> showErrorToast(context, error)
                     );
-
+                    stringRequest.setShouldCache(false);
                     AppController.getInstance().addToRequestQueue(stringRequest);
                 }
 
@@ -230,8 +231,8 @@ public class NetworkUtils {
                     try {
                         pass = URLEncoder.encode(password, "utf-8");
                         login = URLEncoder.encode(login, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
+                    } catch (UnsupportedEncodingException ignored) {
+
                     }
 
                     String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=10&delete=" + delete;
@@ -251,6 +252,7 @@ public class NetworkUtils {
                             }, error -> showErrorToast(context, error)
                     );
 
+                    stringRequest.setShouldCache(false);
                     AppController.getInstance().addToRequestQueue(stringRequest);
                 }
 
@@ -274,8 +276,8 @@ public class NetworkUtils {
                     try {
                         pass = URLEncoder.encode(password, "utf-8");
                         login = URLEncoder.encode(login, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
+                    } catch (UnsupportedEncodingException ignored) {
+
                     }
 
                     String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=11";
@@ -288,6 +290,7 @@ public class NetworkUtils {
                             }, error -> showErrorToast(context, error)
                     );
 
+                    stringRequest.setShouldCache(false);
                     AppController.getInstance().addToRequestQueue(stringRequest);
                 }
 
@@ -311,8 +314,8 @@ public class NetworkUtils {
                     try {
                         pass = URLEncoder.encode(password, "utf-8");
                         login = URLEncoder.encode(login, "utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
+                    } catch (UnsupportedEncodingException ignored) {
+
                     }
 
                     String url = Config.PM_URL + 1 + "&login_name=" + login + "&login_password=" + pass + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
@@ -330,6 +333,7 @@ public class NetworkUtils {
                         }
                     };
 
+                    stringRequest.setShouldCache(false);
                     AppController.getInstance().addToRequestQueue(stringRequest);
 
                 }
@@ -396,8 +400,8 @@ public class NetworkUtils {
                                 Toast.makeText(context, context.getString(R.string.success_image), Toast.LENGTH_SHORT).show();
                             if (err.equals("true"))
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
 
                     },
@@ -418,6 +422,7 @@ public class NetworkUtils {
                     return params;
                 }
             };
+            volleyMultipartRequest.setShouldCache(false);
             volleyMultipartRequest.setRetryPolicy(new DefaultRetryPolicy(
                     (int) TimeUnit.SECONDS.toMillis(10),
                     DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
@@ -436,8 +441,8 @@ public class NetworkUtils {
                             try {
                                 json = response.getJSONObject(i);
                                 jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                            } catch (JSONException ignored) {
+
                             }
                             opros.setText("");
                             opros.setText(jsonFeed.getTitle());
@@ -455,7 +460,7 @@ public class NetworkUtils {
                     error -> {
 
                     });
-
+            jsonArrayRequest.setShouldCache(false);
             AppController.getInstance().addToRequestQueue(jsonArrayRequest);
         });
     }
@@ -468,8 +473,8 @@ public class NetworkUtils {
             try {
                 password = URLEncoder.encode(password, "utf-8");
                 login = URLEncoder.encode(login, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
             JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.APPROVE_URL + razdel + "&u=" + login + "&p=" + password + "&lid=" + lid,
                     response -> {
@@ -480,8 +485,8 @@ public class NetworkUtils {
                                 json = response.getJSONObject(i);
                                 jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                                 Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                            } catch (JSONException ignored) {
+
                             }
                         }
 
@@ -489,7 +494,7 @@ public class NetworkUtils {
                     error -> {
 
                     });
-
+            jsonArrayRequest.setShouldCache(false);
             AppController.getInstance().addToRequestQueue(jsonArrayRequest);
         });
 
@@ -503,8 +508,8 @@ public class NetworkUtils {
             try {
                 password = URLEncoder.encode(password, "utf-8");
                 login = URLEncoder.encode(login, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
             JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.PUTTONEWS_URL + razdel + "&u=" + login + "&p=" + password + "&lid=" + lid,
                     response -> {
@@ -515,8 +520,8 @@ public class NetworkUtils {
                                 json = response.getJSONObject(i);
                                 jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                                 Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                            } catch (JSONException ignored) {
+
                             }
                         }
 
@@ -525,6 +530,7 @@ public class NetworkUtils {
 
                     });
 
+            jsonArrayRequest.setShouldCache(false);
             AppController.getInstance().addToRequestQueue(jsonArrayRequest);
         });
     }

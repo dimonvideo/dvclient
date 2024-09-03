@@ -24,6 +24,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -105,7 +106,7 @@ public class MainFragmentContent extends Fragment {
 
 
         mContext = requireContext();
-        sharedPrefs = AppController.getInstance().getSharedPreferences();
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         is_more_odob = AppController.getInstance().isMoreOdob();
 
         if (this.getArguments() != null) {
@@ -280,12 +281,13 @@ public class MainFragmentContent extends Fragment {
 
             try {
                 story = URLEncoder.encode(story, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
             s_url = "&story=" + story;
         }
 
+        if (TextUtils.isEmpty(category_string)) category_string = "all";
         String url_final = url + requestCount + "&c=placeholder," + category_string + s_url;
         if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_details)))) {
             if (is_more_odob) st_url = "&st=2";
@@ -296,6 +298,9 @@ public class MainFragmentContent extends Fragment {
         }
 
         Activity activity = getActivity();
+
+        Log.e("---", "url_final: "+url_final);
+
 
         return new JsonArrayRequest(url_final,
                 response -> {
@@ -309,6 +314,8 @@ public class MainFragmentContent extends Fragment {
                         listFeed.clear();
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
+
+                    Log.e("---", "response: "+response);
 
 
                     for (int i = 0; i < response.length(); i++) {
@@ -365,8 +372,8 @@ public class MainFragmentContent extends Fragment {
                                 }
                             }
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         if (activity != null) listFeed.add(jsonFeed);
 

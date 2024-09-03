@@ -1,6 +1,5 @@
 package com.dimonvideo.client.adater;
 
-import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -146,7 +145,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         FeedPm Feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        holder.url = Config.BASE_URL + "/0/name/" + Feed.getTitle();
+        holder.url = Config.WRITE_URL + "/0/name/" + Feed.getTitle();
 
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
 

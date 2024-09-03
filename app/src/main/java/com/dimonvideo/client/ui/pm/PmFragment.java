@@ -314,8 +314,8 @@ public class PmFragment extends Fragment {
         try {
             pass = URLEncoder.encode(pass, "utf-8");
             login_name = URLEncoder.encode(login_name, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException ignored) {
+
         }
         String finalPass = pass;
         String finalLogin = login_name;
@@ -360,8 +360,8 @@ public class PmFragment extends Fragment {
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
                             jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

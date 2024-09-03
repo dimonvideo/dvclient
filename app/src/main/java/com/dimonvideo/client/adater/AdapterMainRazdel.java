@@ -1,18 +1,15 @@
 package com.dimonvideo.client.adater;
 
-import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,12 +35,11 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.db.Provider;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
+import com.dimonvideo.client.ui.main.MainFragmentViewFile;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
-import com.dimonvideo.client.ui.main.MainFragmentViewFile;
 import com.dimonvideo.client.util.NetworkUtils;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import org.xml.sax.XMLReader;
 
@@ -233,9 +229,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         holder.small_share.setOnClickListener(view -> {
 
-            String url = Config.BASE_URL + "/" + feed.getRazdel() + "/" + feed.getId();
+            String url = Config.WRITE_URL + "/" + feed.getRazdel() + "/" + feed.getId();
             if (feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
-                url = Config.BASE_URL + "/" + feed.getId() + "-news.html";
+                url = Config.WRITE_URL + "/" + feed.getId() + "-news.html";
 
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
@@ -311,9 +307,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 context.getString(R.string.download), context.getString(R.string.copy_listtext), context.getString(R.string.put_to_news)};
         final Feed feed = jsonFeed.get(position);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        holder.url = Config.BASE_URL + "/" + feed.getRazdel() + "/" + feed.getId();
+        holder.url = Config.WRITE_URL + "/" + feed.getRazdel() + "/" + feed.getId();
         if (feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
-            holder.url = Config.BASE_URL + "/" + feed.getId() + "-news.html";
+            holder.url = Config.WRITE_URL + "/" + feed.getId() + "-news.html";
 
         holder.myClipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 
@@ -387,7 +383,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         ButtonsActions.add_to_fav_file(context, feed.getRazdel(), feed.getId(), 2);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewName;
         public ImageView imageView, rating_logo, status_logo, fav_star, small_share, small_download;

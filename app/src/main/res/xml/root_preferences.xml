@@ -60,6 +60,11 @@
             android:title="@string/clear_login" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/app_functions">
+        <Preference
+            android:key="sett_cloud_backup"
+            android:dependency="dvc_password"
+            android:title="@string/menu_backup"
+            android:summary="@string/menu_backup_sum" />
 
     <ListPreference
             android:defaultValue="10"
@@ -86,12 +91,6 @@
             android:summary="@string/idm"
             app:useSimpleSummaryProvider="true"
             app:title="@string/idm" />
-        <Preference
-            android:key="dvc_export"
-            android:title="@string/export" />
-        <Preference
-            android:key="dvc_import"
-            android:title="@string/import_settings" />
         <SwitchPreferenceCompat
             app:defaultValue="true"
             app:key="dvc_ontop"

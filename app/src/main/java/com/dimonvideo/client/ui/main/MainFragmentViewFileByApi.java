@@ -235,9 +235,9 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
         btn_share.setOnClickListener(v -> {
 
-            String url = Config.BASE_URL + "/" + razdel + "/" + lid;
+            String url = Config.WRITE_URL + "/" + razdel + "/" + lid;
             if (razdel != null && razdel.equals(Config.COMMENTS_RAZDEL))
-                url = Config.BASE_URL + "/" + lid + "-news.html";
+                url = Config.WRITE_URL + "/" + lid + "-news.html";
 
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
@@ -331,8 +331,8 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
                             jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
                             jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
 
                     if (ProgressHelper.isDialogVisible()) ProgressHelper.dismissDialog();

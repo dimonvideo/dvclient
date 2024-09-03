@@ -17,9 +17,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
+import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
 import com.dimonvideo.client.util.ButtonsActions;
 
 import java.util.Calendar;
@@ -95,7 +95,7 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
             final CharSequence[] items = {context.getString(R.string.menu_share_title), context.getString(R.string.action_open), context.getString(R.string.menu_fav)};
 
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            holder.url = Config.BASE_URL + "/forum/topic_" + Feed.getId();
+            holder.url = Config.WRITE_URL + "/forum/topic_" + Feed.getId();
 
 
             builder.setTitle(Feed.getTitle());
@@ -145,7 +145,7 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
         ButtonsActions.add_to_fav_file(context, "forum", Feed.getId(), 2);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
         public ImageView rating_logo, status_logo, fav_star;

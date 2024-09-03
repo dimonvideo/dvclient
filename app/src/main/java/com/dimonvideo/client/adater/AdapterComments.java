@@ -1,6 +1,5 @@
 package com.dimonvideo.client.adater;
 
-import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -15,9 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,15 +32,10 @@ import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
 import com.dimonvideo.client.ui.main.MainFragmentViewFileByApi;
 import com.dimonvideo.client.util.AppController;
-import com.dimonvideo.client.util.MessageEvent;
-import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.xml.sax.XMLReader;
 
 import java.util.Calendar;
@@ -51,7 +43,7 @@ import java.util.List;
 
 public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHolder> {
 
-    private final Context context;
+    Context context;
     private final List<FeedForum> jsonFeed;
 
     public static class TagHandler implements Html.TagHandler {
@@ -76,14 +68,18 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_posts, parent, false);
         return new ViewHolder(v);
     }
 
-    @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
+        onBindViewHold(holder, position);
+    }
+
+
+    public void onBindViewHold(ViewHolder holder, int position) {
 
         final FeedForum feed = jsonFeed.get(position);
 
@@ -111,8 +107,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
                 .error(R.drawable.baseline_image_20)
                 .apply(new RequestOptions().override(80, 80))
                 .into(holder.imageView);
-
-        final int auth_state = AppController.getInstance().isAuth();
 
         holder.textViewCategory.setText(feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);
@@ -193,9 +187,9 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
-        holder.url = Config.BASE_URL + "/" + feed.getRazdel() + "/" + feed.getPost_id();
+        holder.url = Config.WRITE_URL + "/" + feed.getRazdel() + "/" + feed.getPost_id();
         if (feed.getRazdel().equals(Config.COMMENTS_RAZDEL))
-            holder.url = Config.BASE_URL + "/" + feed.getPost_id() + "-news.html";
+            holder.url = Config.WRITE_URL + "/" + feed.getPost_id() + "-news.html";
 
         builder.setTitle(feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
@@ -221,7 +215,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         return jsonFeed.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewDate, textViewComments, textViewHits, textViewNames, textViewCategory;
         public ImageView rating_logo, status_logo, imageView, views_logo, imagePick;

@@ -120,7 +120,7 @@ public class MainFragmentAddFile extends Fragment {
 
             if (listFeedRazdel.get(0).equals(Config.NEWS_RAZDEL)) {
                 istFrame.setVisibility(View.VISIBLE);
-                ist.setText(Config.BASE_URL);
+                ist.setText(Config.WRITE_URL);
             }
 
             note.setVisibility(View.INVISIBLE);
@@ -204,7 +204,7 @@ public class MainFragmentAddFile extends Fragment {
             }, error -> {
                 Toast.makeText(getContext(), "Error"+error, Toast.LENGTH_SHORT).show();
                 Log.e("---", "error: "+error);
-                error.printStackTrace();
+
             }) {
                 @Override
                 protected Map<String, String> getParams() {

@@ -89,7 +89,7 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
         return jsonFeed.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
         public TextView textViewTitle, textViewCategory;
 

@@ -205,8 +205,8 @@ public class ForumFragmentTopics extends Fragment {
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setFav(json.getInt(Config.TAG_FAV));
                             jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

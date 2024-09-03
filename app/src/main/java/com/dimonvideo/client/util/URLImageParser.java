@@ -50,7 +50,7 @@ public class URLImageParser implements Html.ImageGetter {
         String finalUrl;
 
         if (source.contains("emoticons")) {
-            finalUrl = Config.BASE_URL + source;
+            finalUrl = Config.WRITE_URL + source;
         } else finalUrl = source;
 
         if (imagesHandler != null) {

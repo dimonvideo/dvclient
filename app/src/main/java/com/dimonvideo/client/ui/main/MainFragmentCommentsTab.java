@@ -182,8 +182,8 @@ public class MainFragmentCommentsTab extends Fragment {
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
                             jsonFeed.setPost_id(json.getInt(Config.TAG_POST_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

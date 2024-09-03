@@ -152,7 +152,7 @@ public class ButtonsActions {
                         }
                     }, error -> showErrorToast(context, error)
             );
-
+            stringRequest.setShouldCache(false);
             AppController.getInstance().addToRequestQueue(stringRequest);
         });
     }
@@ -189,6 +189,7 @@ public class ButtonsActions {
                     }, error -> showErrorToast(context, error)
             );
 
+            stringRequest.setShouldCache(false);
             AppController.getInstance().addToRequestQueue(stringRequest);
         });
     }
@@ -291,7 +292,7 @@ public class ButtonsActions {
 
             // переход в профиль
             bt_go.setOnClickListener(view -> {
-                String url = Config.BASE_URL + "/0/name/" + login_name;
+                String url = Config.WRITE_URL + "/0/name/" + login_name;
 
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 
@@ -303,7 +304,7 @@ public class ButtonsActions {
 
             // переход в настройки сайта
             bt_sett.setOnClickListener(view -> {
-                String url = Config.BASE_URL + "/set";
+                String url = Config.WRITE_URL + "/set";
 
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 
