@@ -298,11 +298,11 @@ public class AppController extends Application {
 
 
     public void putThemeLight() {
-        putSharedPreferences().putString("dvc_theme_list", "false").apply();
+        putSharedPreferences().putString("dvc_theme_list", "none").apply();
     }
 
     public void putThemeDark() {
-        putSharedPreferences().putString("dvc_theme_list", "true").apply();
+        putSharedPreferences().putString("dvc_theme_list", "on").apply();
     }
 
     public void putToken(String token) {

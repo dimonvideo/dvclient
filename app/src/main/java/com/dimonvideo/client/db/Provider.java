@@ -172,7 +172,7 @@ public class Provider extends ContentProvider {
     public static void clearDB_OLD(){
         sqlDB = database.getWritableDatabase();
 
-        String selectQuery = "DELETE FROM "+Table.TABLE_NAME+" WHERE "+Table.COLUMN_TIMESTAMP+" >= date('now','-100 day')";
+        String selectQuery = "DELETE FROM "+Table.TABLE_NAME+" WHERE "+Table.COLUMN_TIMESTAMP+" >= date('now','-30 day')";
         sqlDB.execSQL(selectQuery);
         sqlDB.close();
     }

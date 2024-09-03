@@ -21,7 +21,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -88,16 +87,72 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
 
     public static ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
-    private Fragment homeFrag;
-    static String razdel = "10";
-    private RequestPermissionHandler mRequestPermissionHandler;
-    private AppBarConfiguration mAppBarConfiguration;
     public static ActivityMainBinding binding;
     public static NavigationView navigationView;
     @SuppressLint("StaticFieldLeak")
     public static NavController navController;
     @SuppressLint("StaticFieldLeak")
     public static TextView fab_badge;
+    public static String[] permissions = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    public static String[] permissions_33 = {
+            Manifest.permission.READ_MEDIA_IMAGES,
+            Manifest.permission.READ_MEDIA_AUDIO,
+            Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.POST_NOTIFICATIONS
+    };
+    static String razdel = "10";
+    private Fragment homeFrag;
+    private RequestPermissionHandler mRequestPermissionHandler;
+    private AppBarConfiguration mAppBarConfiguration;
+
+    // поворот если необходимо
+    private static Bitmap rotateImageIfRequired(Context context, Bitmap img, Uri selectedImage) throws IOException {
+
+        InputStream input = context.getContentResolver().openInputStream(selectedImage);
+        ExifInterface ei = null;
+        if (Build.VERSION.SDK_INT > 23)
+            if (input != null) {
+                ei = new ExifInterface(input);
+            } else ei = new ExifInterface(Objects.requireNonNull(selectedImage.getPath()));
+
+        int orientation = 0;
+        if (ei != null) {
+            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+        }
+
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                return rotateImage(img, 90);
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                return rotateImage(img, 180);
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                return rotateImage(img, 270);
+            default:
+                return img;
+        }
+    }
+
+    private static Bitmap rotateImage(Bitmap img, int degree) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+        img.recycle();
+        return rotatedImg;
+    }
+
+    public static String[] permissions() {
+        String[] p;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            p = permissions_33;
+        } else {
+            p = permissions;
+        }
+        return p;
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
@@ -200,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
             if (Integer.parseInt(main_razdel) == 7) navGraph.setStartDestination(R.id.nav_articles);
             if (Integer.parseInt(main_razdel) == 14) navGraph.setStartDestination(R.id.nav_tracker);
             if (Integer.parseInt(main_razdel) == 15) navGraph.setStartDestination(R.id.nav_blog);
-            if (Integer.parseInt(main_razdel) == 16) navGraph.setStartDestination(R.id.nav_suploader);
+            if (Integer.parseInt(main_razdel) == 16)
+                navGraph.setStartDestination(R.id.nav_suploader);
             if (Integer.parseInt(main_razdel) == 17) navGraph.setStartDestination(R.id.nav_device);
             if (Integer.parseInt(main_razdel) == 18) navGraph.setStartDestination(R.id.nav_new);
 
@@ -232,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
 
         // иконка темы
         theme_icon.setOnClickListener(view -> {
-            if (is_dark.equals("true")) AppController.getInstance().putThemeLight();
+            if (is_dark.equals("on")) AppController.getInstance().putThemeLight();
             else AppController.getInstance().putThemeDark();
             finishAffinity();
             Intent intent = new Intent(this, MainActivity.class);
@@ -324,55 +380,30 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(Config.INTENT_READ_PM);
         filter.addAction(Config.INTENT_DELETE_PM);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
-                        Log.e(Config.TAG, "Auth broadcast");
-                        String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
-                        String is_pm = AppController.getInstance().isPm();
-                        String image_url = AppController.getInstance().imageUrl();
-                        Glide.with(getApplicationContext())
-                                .load(image_url)
-                                .apply(RequestOptions.circleCropTransform())
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                .centerCrop()
-                                .into(avatar);
-                        status.setImageResource(R.drawable.ic_status_green);
-                        Login_Name.setText(getString(R.string.sign_as));
-                        Login_Name.append(auth_name);
-                        avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
-                        if ((!is_pm.equals("off")) && (binding != null))
-                            binding.appBarMain.fab.setVisibility(View.VISIBLE);
-                    }
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
+                    Log.e(Config.TAG, "Auth broadcast");
+                    String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+                    String is_pm = AppController.getInstance().isPm();
+                    String image_url = AppController.getInstance().imageUrl();
+                    Glide.with(getApplicationContext())
+                            .load(image_url)
+                            .apply(RequestOptions.circleCropTransform())
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .centerCrop()
+                            .into(avatar);
+                    status.setImageResource(R.drawable.ic_status_green);
+                    Login_Name.setText(getString(R.string.sign_as));
+                    Login_Name.append(auth_name);
+                    avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
+                    if ((!is_pm.equals("off")) && (binding != null))
+                        binding.appBarMain.fab.setVisibility(View.VISIBLE);
                 }
-            }, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    if ((intent != null) && (Objects.equals(intent.getAction(), Config.INTENT_AUTH))) {
-                        Log.e(Config.TAG, "Auth broadcast");
-                        String auth_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
-                        String is_pm = AppController.getInstance().isPm();
-                        String image_url = AppController.getInstance().imageUrl();
-                        Glide.with(getApplicationContext())
-                                .load(image_url)
-                                .apply(RequestOptions.circleCropTransform())
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                .centerCrop()
-                                .into(avatar);
-                        status.setImageResource(R.drawable.ic_status_green);
-                        Login_Name.setText(getString(R.string.sign_as));
-                        Login_Name.append(auth_name);
-                        avatar.setOnClickListener(v -> ButtonsActions.loadProfile(context, auth_name, image_url));
-                        if ((!is_pm.equals("off")) && (binding != null))
-                            binding.appBarMain.fab.setVisibility(View.VISIBLE);
-                    }
-                }
-            }, filter);
-        }
+            }
+        }, filter, Context.RECEIVER_NOT_EXPORTED);
+
 
         // скрываем пункты бокового меню
         if (!is_uploader) navigationView.getMenu().removeItem(R.id.nav_uploader);
@@ -478,42 +509,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // поворот если необходимо
-    private static Bitmap rotateImageIfRequired(Context context, Bitmap img, Uri selectedImage) throws IOException {
-
-        InputStream input = context.getContentResolver().openInputStream(selectedImage);
-        ExifInterface ei = null;
-        if (Build.VERSION.SDK_INT > 23)
-            if (input != null) {
-                ei = new ExifInterface(input);
-            }
-        else ei = new ExifInterface(Objects.requireNonNull(selectedImage.getPath()));
-
-        int orientation = 0;
-        if (ei != null) {
-            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-        }
-
-        switch (orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                return rotateImage(img, 90);
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                return rotateImage(img, 180);
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                return rotateImage(img, 270);
-            default:
-                return img;
-        }
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
-    }
-
     @Override
     public boolean onSupportNavigateUp() {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
@@ -538,7 +533,6 @@ public class MainActivity extends AppCompatActivity {
         metrics.scaledDensity = configuration.fontScale * metrics.density;
         getBaseContext().getResources().updateConfiguration(configuration, metrics);
     }
-
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
@@ -601,7 +595,6 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
     // menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -641,26 +634,13 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_mark) {
 
             String key = GetRazdelName.getRazdelName(razdel, 0);
-            new Handler(Looper.getMainLooper()).post(() -> {
-
+            try {
                 Provider.markAllRead(key);
-                Toast.makeText(this, this.getString(R.string.success), Toast.LENGTH_LONG).show();
-            });
-
-            FragmentManager fragmentManager = getSupportFragmentManager();
-
-            homeFrag = new MainFragment();
-            if (razdel != null) {
-                if (razdel.equals("8")) homeFrag = new ForumFragmentTopics(); // forum
-                if (razdel.equals("13")) homeFrag = new PmFragmentTabs(); // pm
-                if (razdel.equals("0")) homeFrag = new MainFragmentAddFile(); // pm
+            } catch (Throwable ignored) {
             }
-            EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
+            Toast.makeText(this, this.getString(R.string.success), Toast.LENGTH_LONG).show();
 
-            fragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, homeFrag)
-                    .addToBackStack(null)
-                    .commit();
+            recreate();
         }
 
         // other apps
@@ -804,29 +784,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, getString(R.string.perm_invalid), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    public static String[] permissions = {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-    };
-
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    public static String[] permissions_33 = {
-            Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_MEDIA_AUDIO,
-            Manifest.permission.READ_MEDIA_VIDEO,
-            Manifest.permission.POST_NOTIFICATIONS
-    };
-
-    public static String[] permissions() {
-        String[] p;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            p = permissions_33;
-        } else {
-            p = permissions;
-        }
-        return p;
     }
 
 }
