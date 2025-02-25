@@ -20,3 +20,14 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keepnames class androidx.navigation.fragment.NavHostFragment
+# Сохранить все классы Firebase
+-keep class com.google.firebase.** { *; }
+-keep interface com.google.firebase.** { *; }
+
+# Для Firebase Messaging
+-keep class com.google.firebase.messaging.** { *; }
+
+# Предотвратить удаление методов и полей
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes Exceptions

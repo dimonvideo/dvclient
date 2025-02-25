@@ -71,6 +71,7 @@ public class GetToken {
 
             } catch (Exception ignored) {
             }
+            Log.e("---", "token");
 
         });
     }

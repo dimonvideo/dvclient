@@ -151,16 +151,18 @@ dependencies {
     implementation 'com.github.omfine:imagePicker:v1.0.0'
 
     // Google
-    DVClient_GoogleImplementation('com.google.firebase:firebase-messaging:24.1.0')
+    // Импорт BoM для Firebase
+    implementation platform('com.google.firebase:firebase-bom:33.9.0')
+    DVClient_GoogleImplementation 'com.google.firebase:firebase-messaging'
 
     // RuStore
-    DVClient_RuStoreImplementation('com.google.firebase:firebase-messaging:24.1.0')
+    DVClient_RuStoreImplementation 'com.google.firebase:firebase-messaging'
 
     // NashStore
-    DVClient_NashStoreImplementation('com.google.firebase:firebase-messaging:24.1.0')
+    DVClient_NashStoreImplementation 'com.google.firebase:firebase-messaging'
 
     // Samsung
-    DVClient_SamsungImplementation('com.google.firebase:firebase-messaging:24.1.0')
+    DVClient_SamsungImplementation 'com.google.firebase:firebase-messaging'
 
     // HUAWEI
     DVClient_HuaweiImplementation 'com.huawei.agconnect:agconnect-core:1.9.1.301'
