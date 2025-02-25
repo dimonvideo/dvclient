@@ -216,6 +216,8 @@ public class SetPrefsBackup extends AppCompatActivity {
                                       AppController.putSharedPreferences().putString(key, (String) value).apply();
                                     }
 
+                                    GetToken.getToken(this);
+
                                 } catch (JSONException ignored) {
 
                                 }
