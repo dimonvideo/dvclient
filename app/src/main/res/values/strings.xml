@@ -228,4 +228,6 @@
     <string name="menu_backup_sum">backup and restore settings</string>
     <string name="prefs_date_copy">Backup date:</string>
     <string name="prefs_date_restore">Restore date:</string>
+    <string name="token_refresh">Refresh device token</string>
+    <string name="token_refresh_sum">if device changed</string>
 </resources>

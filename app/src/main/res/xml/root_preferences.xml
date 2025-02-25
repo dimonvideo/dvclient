@@ -47,6 +47,12 @@
             android:summary="@string/disable_pm_arc"
             app:useSimpleSummaryProvider="true"
             app:title="@string/disable_pm_arc" />
+        <Preference
+            android:dependency="dvc_pm"
+            android:key="dvc_new_token"
+            android:summary="@string/token_refresh_sum"
+            app:useSimpleSummaryProvider="true"
+            android:title="@string/token_refresh" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/web">

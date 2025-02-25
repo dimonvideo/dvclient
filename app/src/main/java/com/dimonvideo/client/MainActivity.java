@@ -310,50 +310,47 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // быстрые ярлыки
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+        try {
+            ShortcutManager shortcutManager = (ShortcutManager) getSystemService(SHORTCUT_SERVICE);
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            notificationIntent.putExtra("action", "PmFragmentTabs");
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
-            try {
-                ShortcutManager shortcutManager = (ShortcutManager) getSystemService(SHORTCUT_SERVICE);
-                Intent notificationIntent = new Intent(this, MainActivity.class);
-                notificationIntent.putExtra("action", "PmFragmentTabs");
-                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
+                    .setShortLabel(getString(R.string.tab_pm))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(notificationIntent.setAction(Intent.ACTION_VIEW))
+                    .build();
 
-                ShortcutInfo webShortcut = new ShortcutInfo.Builder(this, "shortcut_help")
-                        .setShortLabel(getString(R.string.tab_pm))
-                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                        .setIntent(notificationIntent.setAction(Intent.ACTION_VIEW))
-                        .build();
+            Intent forumIntent = new Intent(this, MainActivity.class);
+            forumIntent.putExtra("action", "ForumFragment");
+            forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            ShortcutInfo forumShortcut = new ShortcutInfo.Builder(this, "shortcut_forum")
+                    .setShortLabel(getString(R.string.tab_forums))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(forumIntent.setAction(Intent.ACTION_VIEW))
+                    .build();
 
-                Intent forumIntent = new Intent(this, MainActivity.class);
-                forumIntent.putExtra("action", "ForumFragment");
-                forumIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                ShortcutInfo forumShortcut = new ShortcutInfo.Builder(this, "shortcut_forum")
-                        .setShortLabel(getString(R.string.tab_forums))
-                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                        .setIntent(forumIntent.setAction(Intent.ACTION_VIEW))
-                        .build();
+            ShortcutInfo logShortcut = new ShortcutInfo.Builder(this, "shortcut_visit")
+                    .setShortLabel(getString(R.string.action_page))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.WRITE_URL)))
+                    .build();
 
-                ShortcutInfo logShortcut = new ShortcutInfo.Builder(this, "shortcut_visit")
-                        .setShortLabel(getString(R.string.action_page))
-                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                        .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.WRITE_URL)))
-                        .build();
+            ShortcutInfo opdsShortcut = new ShortcutInfo.Builder(this, "shortcut_opds")
+                    .setShortLabel(getString(R.string.action_opds))
+                    .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
+                    .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.OPDS_URL)))
+                    .build();
 
-                ShortcutInfo opdsShortcut = new ShortcutInfo.Builder(this, "shortcut_opds")
-                        .setShortLabel(getString(R.string.action_opds))
-                        .setIcon(Icon.createWithResource(this, R.mipmap.ic_launcher))
-                        .setIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(Config.OPDS_URL)))
-                        .build();
+            if (auth_state > 0) {
+                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
 
-                if (auth_state > 0) {
-                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(webShortcut, forumShortcut, logShortcut, opdsShortcut))).start();
+            } else {
+                new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
 
-                } else {
-                    new Thread(() -> shortcutManager.setDynamicShortcuts(Arrays.asList(forumShortcut, logShortcut, opdsShortcut))).start();
-
-                }
-            } catch (Throwable ignored) {
             }
+        } catch (Throwable ignored) {
         }
 
         if (auth_state > 0) {

@@ -39,8 +39,7 @@ import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.snackbar.Snackbar;
-import com.like.LikeButton;
-import com.like.OnLikeListener;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -128,10 +127,6 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         Button dismiss2 = binding.dismiss2;
         Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share, btn_odob;
 
-        LikeButton likeButton, starButton;
-        likeButton = binding.thumbButton;
-
-        starButton = binding.starButton;
 
         btn_comms = binding.btnComment;
         btn_download = binding.btnDownload;
@@ -254,38 +249,6 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
         // скачать
         btn_download.setOnClickListener(v -> DownloadFile.download(context, link, razdel));
-
-        // лайк и избранное
-        starButton.setOnLikeListener(new OnLikeListener() {
-            @Override
-            public void liked(LikeButton starButton) {
-                Snackbar.make(views, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 1); // в избранное
-            }
-
-            @Override
-            public void unLiked(LikeButton starButton) {
-                Snackbar.make(views, context.getString(R.string.unfavorites_btn), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 2); // из избранного
-            }
-        });
-
-        likeButton.setOnLikeListener(new OnLikeListener() {
-            @Override
-            public void liked(LikeButton likeButton) {
-                Snackbar.make(views, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, razdel, Integer.parseInt(lid), 1);
-                txt_plus.setText(String.valueOf(plus + 1));
-
-            }
-
-            @Override
-            public void unLiked(LikeButton likeButton) {
-                Snackbar.make(views, context.getString(R.string.unlike), Snackbar.LENGTH_LONG).show();
-                ButtonsActions.like_file(context, razdel, Integer.parseInt(lid), 2);
-                txt_plus.setText(String.valueOf(plus - 1));
-            }
-        });
 
         // скрытие лишнего
         if ((razdel != null) && (razdel.equals(Config.TRACKER_RAZDEL)))

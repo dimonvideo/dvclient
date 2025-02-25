@@ -8,9 +8,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -18,6 +21,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcher;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,6 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
+    private boolean doubleBackToExitPressedOnce = false, THEME;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +69,25 @@ public class SettingsActivity extends AppCompatActivity {
         final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String value = sharedPrefs.getString("dvc_scale", "1.0f");
         adjustFontScale(getResources().getConfiguration(), this, value);
+
+        // onBackPressed
+        Intent intent = new Intent(this, MainActivity.class);
+        OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (doubleBackToExitPressedOnce) {
+                    finish();
+                    startActivity(intent);
+                }
+                SettingsActivity.this.doubleBackToExitPressedOnce = true;
+                Toast.makeText(getApplicationContext(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
+                new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+            }
+        };
+
+        OnBackPressedDispatcher onBackPressedDispatcher = getOnBackPressedDispatcher();
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback);
+
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat implements
@@ -197,6 +222,14 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
+            Preference sett_token = findPreference("dvc_new_token");
+            assert sett_token != null;
+            sett_token.setOnPreferenceClickListener(preference -> {
+
+                GetToken.getToken(requireContext());
+                Snackbar.make(requireView(), this.getString(R.string.success), Snackbar.LENGTH_LONG).show();
+                return true;
+            });
 
         }
 
@@ -333,5 +366,17 @@ public class SettingsActivity extends AppCompatActivity {
         metrics.scaledDensity = configuration.fontScale * metrics.density;
         context.getResources().updateConfiguration(configuration, metrics);
         Log.e("---", value);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == android.R.id.home) {
+            Intent intent = new Intent(this, MainActivity.class);
+            finish();
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

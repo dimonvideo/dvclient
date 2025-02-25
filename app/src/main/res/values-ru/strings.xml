@@ -124,8 +124,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - добавлена возможность сохранения - восстановления настроек (после авторизации)\n
-        - оптимизация работы
+        - оптимизация для Android 15+\n
+        - новая настройка для смены токена
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -225,5 +225,7 @@
     <string name="menu_backup_sum">настройки сохоанятся в облаке</string>
     <string name="prefs_date_copy">Бэкап от:</string>
     <string name="prefs_date_restore">Копия от:</string>
+    <string name="token_refresh">Обновить токен</string>
+    <string name="token_refresh_sum">при смене устройства</string>
 
 </resources>

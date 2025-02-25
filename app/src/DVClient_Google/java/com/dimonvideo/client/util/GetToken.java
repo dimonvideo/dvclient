@@ -42,7 +42,7 @@ public class GetToken {
                                 return;
                             }
                             String token = task.getResult();
-                            Log.w("TAG", "Fetching FCM registration token " + token);
+                            Log.w("---", "Fetching FCM registration token " + token);
 
                             AppController.getInstance().putToken(token);
 
@@ -51,7 +51,7 @@ public class GetToken {
                                 try {
                                     JSONObject jsonObject = new JSONObject(response);
                                     String state = jsonObject.getString("state");
-                                    Log.e("tag", state);
+                                    Log.e("---", state);
 
                                 } catch (JSONException ignored) {
 
