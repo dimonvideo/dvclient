@@ -7,7 +7,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.8.1'
+        classpath 'com.android.tools.build:gradle:8.9.1'
         classpath 'com.google.gms:google-services:4.4.2'
         if (getGradle().getStartParameter().getTaskNames().toString().toLowerCase().contains("huawei")) {
             classpath 'com.huawei.agconnect:agcp:1.9.1.300'

@@ -135,16 +135,16 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
-    implementation 'androidx.navigation:navigation-fragment:2.8.7'
-    implementation 'androidx.navigation:navigation-ui:2.8.7'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.navigation:navigation-fragment:2.8.9'
+    implementation 'androidx.navigation:navigation-ui:2.8.9'
     implementation 'androidx.preference:preference:1.2.1'
-    implementation(platform('org.jetbrains.kotlin:kotlin-bom:2.1.10'))
-    implementation 'androidx.activity:activity:1.10.0'
+    implementation(platform('org.jetbrains.kotlin:kotlin-bom:2.1.20'))
+    implementation 'androidx.activity:activity:1.10.1'
 
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
-    implementation 'com.google.firebase:firebase-messaging:24.1.0'
+    implementation 'com.google.firebase:firebase-messaging:24.1.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 
     implementation 'org.greenrobot:eventbus:3.3.1'
@@ -154,26 +154,26 @@ dependencies {
 
     // Google
     // Импорт BoM для Firebase
-    implementation platform('com.google.firebase:firebase-bom:33.9.0')
+    implementation platform('com.google.firebase:firebase-bom:33.12.0')
     DVClient_GoogleImplementation 'com.google.firebase:firebase-messaging'
-    DVClient_GoogleImplementation 'com.google.android.gms:play-services-base:18.5.0'
+    DVClient_GoogleImplementation 'com.google.android.gms:play-services-base:18.6.0'
 
     // RuStore
     DVClient_RuStoreImplementation 'com.google.firebase:firebase-messaging'
-    DVClient_RuStoreImplementation 'com.google.android.gms:play-services-base:18.5.0'
+    DVClient_RuStoreImplementation 'com.google.android.gms:play-services-base:18.6.0'
 
     // NashStore
     DVClient_NashStoreImplementation 'com.google.firebase:firebase-messaging'
-    DVClient_NashStoreImplementation 'com.google.android.gms:play-services-base:18.5.0'
+    DVClient_NashStoreImplementation 'com.google.android.gms:play-services-base:18.6.0'
 
     // Samsung
     DVClient_SamsungImplementation 'com.google.firebase:firebase-messaging'
-    DVClient_SamsungImplementation 'com.google.android.gms:play-services-base:18.5.0'
+    DVClient_SamsungImplementation 'com.google.android.gms:play-services-base:18.6.0'
 
     // HUAWEI
     DVClient_HuaweiImplementation 'com.huawei.agconnect:agconnect-core:1.9.1.301'
     DVClient_HuaweiImplementation 'com.huawei.hms:hianalytics:6.12.0.300'
     DVClient_HuaweiImplementation 'com.huawei.hms:push:6.11.0.300'
 
-    implementation('org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0')
+    implementation('org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1')
 }
