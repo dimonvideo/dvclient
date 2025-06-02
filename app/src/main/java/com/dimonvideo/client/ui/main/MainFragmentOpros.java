@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -27,8 +28,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 public class MainFragmentOpros extends BottomSheetDialogFragment {
     private OprosListBinding binding;
 
-
-    public MainFragmentOpros(){
+    public MainFragmentOpros() {
         // Required empty public constructor
     }
 
@@ -46,7 +46,6 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
         TextView title = binding.title;
         if (this.getArguments() != null) {
             String vote_title = getArguments().getString(Config.TAG_TITLE);
@@ -54,13 +53,10 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
         }
 
         final String login_name = AppController.getInstance().userName("dvclient");
-
-        final String url = Config.VOTE_URL_VIEW+login_name;
+        final String url = Config.VOTE_URL_VIEW + login_name;
         WebView webView = binding.webview;
-        webView.setWebViewClient(new WebViewClient());
 
         WebSettings settings = webView.getSettings();
-
         settings.setJavaScriptEnabled(true);
         webView.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
         webView.getSettings().setBuiltInZoomControls(true);
@@ -71,15 +67,15 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                // Получаем URL из объекта WebResourceRequest
+                view.loadUrl(request.getUrl().toString());
                 return true;
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-
                 if (ProgressHelper.isDialogVisible()) {
                     ProgressHelper.dismissDialog();
                 }
@@ -97,7 +93,7 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
             bundle.putString(Config.TAG_ID, "1728149578");
             bundle.putString(Config.TAG_RAZDEL, "8");
             fragment.setArguments(bundle);
-            fragment.show(((AppCompatActivity)requireContext()).getSupportFragmentManager(), "ForumFragmentPosts");
+            fragment.show(((AppCompatActivity) requireContext()).getSupportFragmentManager(), "ForumFragmentPosts");
             dismiss();
         });
 
@@ -108,19 +104,13 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
             bundle.putString(Config.TAG_ID, "1728131216");
             bundle.putString(Config.TAG_RAZDEL, "8");
             fragment.setArguments(bundle);
-            fragment.show(((AppCompatActivity)requireContext()).getSupportFragmentManager(), "ForumFragmentPosts");
+            fragment.show(((AppCompatActivity) requireContext()).getSupportFragmentManager(), "ForumFragmentPosts");
             dismiss();
         });
-
 
         ImageView imageDismiss = binding.dismiss;
-        imageDismiss.setOnClickListener(v -> {
-            dismiss();
-        });
-
+        imageDismiss.setOnClickListener(v -> dismiss());
     }
-
-
 
     @Override
     public void onDestroy() {
@@ -150,6 +140,4 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
     public void onDestroyView() {
         super.onDestroyView();
     }
-
-
 }

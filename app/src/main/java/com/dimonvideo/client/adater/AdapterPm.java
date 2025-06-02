@@ -9,7 +9,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.Html;
-import android.text.Spanned;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +24,7 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -39,57 +40,139 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
-import com.dimonvideo.client.util.URLImageParser;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.xml.sax.XMLReader;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
 
-    private Context context;
-    String image_uploaded;
+    private final Context context;
+    private List<FeedPm> jsonFeed;
+    private String image_uploaded;
 
-    List<FeedPm> jsonFeed;
-
-    public AdapterPm(List<FeedPm> JsonFeed, Context context){
-        super();
-        this.jsonFeed = JsonFeed;
+    public AdapterPm(List<FeedPm> jsonFeed, Context context) {
+        this.jsonFeed = new ArrayList<>(jsonFeed);
         this.context = context;
     }
 
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        image_uploaded = event.image_uploaded;
+    public void updateData(List<FeedPm> newList) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return jsonFeed.size();
+            }
 
+            @Override
+            public int getNewListSize() {
+                return newList.size();
+            }
+
+            @Override
+            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                return jsonFeed.get(oldItemPosition).getId() == newList.get(newItemPosition).getId();
+            }
+
+            @Override
+            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                return jsonFeed.get(oldItemPosition).equals(newList.get(newItemPosition));
+            }
+        });
+        jsonFeed = new ArrayList<>(newList);
+        diffResult.dispatchUpdatesTo(this);
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        image_uploaded = event.image_uploaded;
     }
 
     public static class TagHandler implements Html.TagHandler {
         @Override
-        public void handleTag(boolean opening, String tag,
-                              Editable output, XMLReader xmlReader) {
+        public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
             if (!opening && tag.equals("ul")) {
                 output.append("\n");
             }
             if (opening && tag.equals("li")) {
-                output.append("\n\u2022");
+                output.append("\n•");
             }
         }
     }
+
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_pm, parent, false);
         return new ItemViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
+        FeedPm feed = jsonFeed.get(position);
+        final boolean isOpenLink = AppController.getInstance().isOpenLinks();
+        final boolean isVuploaderPlayListtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        populateItemRows((ItemViewHolder) holder, position);
+        // Установка основных данных
+        holder.textViewTitle.setText(feed.getTitle());
+        holder.textViewDate.setText(feed.getDate());
+        holder.textViewNames.setText(feed.getLast_poster_name());
+        holder.textViewText.setText(feed.getSpannedFullText());
+        holder.status_logo.setImageResource(feed.getIs_new() > 0 ? R.drawable.ic_status_green : R.drawable.ic_status_gray);
+        holder.itemView.setBackgroundColor(feed.getIs_new() > 0 ? Color.parseColor("#992301") : 0x00000000);
+        holder.textViewText.setTypeface(null, feed.getIs_new() > 0 ? Typeface.BOLD : Typeface.NORMAL);
 
+        // Загрузка изображения
+        Glide.with(context)
+                .load(feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.baseline_image_20)
+                .error(R.drawable.baseline_image_20)
+                .apply(RequestOptions.circleCropTransform())
+                .override(100, 100)
+                .into(holder.imageView);
+
+        // Обработчики событий
+        holder.itemView.setOnClickListener(v -> {
+            if (holder.btns.getVisibility() == View.VISIBLE) {
+                holder.btns.setVisibility(View.GONE);
+            } else {
+                holder.btns.setVisibility(View.VISIBLE);
+                showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
+                holder.status_logo.setImageResource(R.drawable.ic_status_gray);
+                holder.itemView.setBackgroundColor(0x00000000);
+            }
+        });
+
+        holder.imagePick.setOnClickListener(v -> MainActivity.pickMedia.launch(
+                new PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                        .build()
+        ));
+
+        holder.send.setOnClickListener(v -> {
+            showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
+            holder.btns.setVisibility(View.GONE);
+            String text = holder.textInput.getText().toString();
+            NetworkUtils.sendPm(context, feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
+        });
+
+        holder.send.setOnLongClickListener(v -> {
+            showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
+            holder.btns.setVisibility(View.GONE);
+            String text = holder.textInput.getText().toString();
+            NetworkUtils.sendPm(context, feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
+            removeItem(holder.getBindingAdapterPosition());
+            return true;
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            showDialog(holder, holder.getBindingAdapterPosition());
+            return true;
+        });
     }
 
     @Override
@@ -124,203 +207,125 @@ public class AdapterPm extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    private void populateItemRows(ItemViewHolder holder, int position) {
-
-        final boolean is_open_link = AppController.getInstance().isOpenLinks();
-        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
-
-        final FeedPm Feed =  jsonFeed.get(position);
-
-        holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-
-        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
-
-        Glide.with(holder.itemView.getContext())
-                .load(Feed.getImageUrl())
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.baseline_image_20)
-                .error(R.drawable.baseline_image_20)
-                .apply(RequestOptions.circleCropTransform())
-                .into(holder.imageView);
-
-        holder.textViewTitle.setText(Feed.getTitle());
-        holder.textViewDate.setText(Feed.getDate());
-        holder.textViewNames.setText(Feed.getLast_poster_name());
-
+    private void showFullText(ItemViewHolder holder, boolean isOpenLink, boolean isVuploaderPlayListtext, FeedPm feed) {
         try {
-            Spanned spanned = Html.fromHtml(Feed.getFullText(), null, null);
-            holder.textViewText.setText(spanned);
-        } catch (Throwable ignored) {
-        }
-        holder.itemView.setBackgroundColor(0x00000000);
-
-        if (Feed.getIs_new() > 0) {
-            holder.status_logo.setImageResource(R.drawable.ic_status_green);
-            holder.itemView.setBackgroundColor(Color.parseColor("#992301"));
-            holder.textViewText.setTypeface(null, Typeface.BOLD);
-        }
-
-        holder.itemView.setOnClickListener(v -> {
-
-            if (holder.btns.getVisibility()==View.VISIBLE) holder.btns.setVisibility(View.GONE); else holder.btns.setVisibility(View.VISIBLE);
-
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
-
-            holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-            holder.itemView.setBackgroundColor(0x00000000);
-
-        });
-
-        holder.imagePick.setOnClickListener(v -> {
-            MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
-                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                    .build());
-
-        });
-
-        holder.send.setOnClickListener(v -> {
-
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
-            holder.btns.setVisibility(View.GONE);
-            String text = holder.textInput.getText().toString();
-            NetworkUtils.sendPm(context, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
-
-        });
-        holder.send.setOnLongClickListener(v -> {
-
-            showFullText(holder, is_open_link, is_vuploader_play_listtext, Feed);
-            holder.btns.setVisibility(View.GONE);
-            String text = holder.textInput.getText().toString();
-            NetworkUtils.sendPm(context, Feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
-            try {
-                jsonFeed.remove(holder.getBindingAdapterPosition());
-            } catch (Throwable ignored) {}
-            return true;
-        });
-        // show dialog
-        holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, holder.getBindingAdapterPosition());
-            return true;
-        });
-
-
-    }
-
-
-
-    // show full
-    private void showFullText(ItemViewHolder holder, boolean is_open_link, boolean is_vuploader_play_listtext, FeedPm Feed) {
-        try {
-            URLImageParser parser = new URLImageParser(holder.textViewText);
-            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new TagHandler());
-            holder.textViewText.setText(spanned);
-
-            if (Feed.getIs_new() > 0) NetworkUtils.readPm(context, Feed.getId());
-
+            holder.textViewText.setText(feed.getSpannedText());
+            if (feed.getIs_new() > 0) {
+                NetworkUtils.readPm(context, feed.getId());
+            }
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, "pm");
+                    OpenUrl.open_url(url, isOpenLink, isVuploaderPlayListtext, context, "pm");
                 }
             });
-        } catch (Throwable ignored) {
+        } catch (Exception e) {
+            Log.e("AdapterPm", "Error showing full text", e);
         }
     }
 
-    // dialog
-    private void show_dialog(ItemViewHolder holder, final int position){
-        final CharSequence[] items = {context.getString(R.string.action_open), context.getString(R.string.copy_listtext), context.getString(R.string.pm_delete)};
-        final FeedPm Feed =  jsonFeed.get(position);
+    private void showDialog(ItemViewHolder holder, final int position) {
+        final CharSequence[] items = {
+                context.getString(R.string.action_open),
+                context.getString(R.string.copy_listtext),
+                context.getString(R.string.pm_delete)
+        };
+        final FeedPm feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        holder.url = Config.WRITE_URL + "/pm/6/" + Feed.getId();
+        holder.url = Config.WRITE_URL + "/pm/6/" + feed.getId();
+        holder.myClipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 
-        holder.myClipboard = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
-
-        builder.setTitle(Feed.getTitle());
+        builder.setTitle(feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
-
             if (item == 0) { // browser
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
                 try {
                     context.startActivity(browserIntent);
-                } catch (Throwable ignored) {
+                } catch (Exception e) {
+                    Log.e("AdapterPm", "Error opening browser", e);
                 }
-            }
-            if (item == 1) { // copy text
-                try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
+            } else if (item == 1) { // copy text
+                try {
+                    holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY).toString());
                     holder.myClipboard.setPrimaryClip(holder.myClip);
-                } catch (Throwable ignored) {
+                    Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Log.e("AdapterPm", "Error copying text", e);
                 }
-                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
-            }
-            if (item == 2) { // delete
+            } else if (item == 2) { // delete
                 try {
                     removeItem(position);
                     Toast.makeText(context, context.getString(R.string.msg_removed), Toast.LENGTH_SHORT).show();
-
-                } catch (Throwable ignored) {
+                } catch (Exception e) {
+                    Log.e("AdapterPm", "Error deleting item", e);
                 }
-                Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
         });
         builder.show();
     }
 
-    // swipe to delete
     public void removeItem(int position) {
-        try {
-            if (position >= 0) {
-                FeedPm Feed = jsonFeed.get(position);
-                jsonFeed.remove(position);
-                NetworkUtils.deletePm(context, Feed.getId(), 0);
-                notifyItemRemoved(position);
-            }
-        } catch (Throwable ignored) {}
-
+        if (position >= 0 && position < jsonFeed.size()) {
+            FeedPm feed = jsonFeed.get(position);
+            jsonFeed = new ArrayList<>(jsonFeed);
+            jsonFeed.remove(position);
+            NetworkUtils.deletePm(context, feed.getId(), 0);
+            notifyItemRemoved(position);
+        } else {
+            Log.e("AdapterPm", "Invalid position for removeItem: " + position);
+        }
     }
 
-    // swipe to restore
     public void restoreItem(int position) {
-        try {
-            if (position >= 0) {
-                FeedPm Feed = jsonFeed.get(position);
-                jsonFeed.remove(position);
-                NetworkUtils.deletePm(context, Feed.getId(), 1);
-                notifyItemRemoved(position);
-            }
-        } catch (Throwable ignored) {}
-
-
+        if (position >= 0 && position < jsonFeed.size()) {
+            FeedPm feed = jsonFeed.get(position);
+            jsonFeed = new ArrayList<>(jsonFeed);
+            jsonFeed.remove(position);
+            NetworkUtils.deletePm(context, feed.getId(), 1);
+            notifyItemRemoved(position);
+        } else {
+            Log.e("AdapterPm", "Invalid position for restoreItem: " + position);
+        }
     }
 
-    // swipe to archive
     public void archiveItem(int position) {
-        try {
-            if (position >= 0) {
-                FeedPm Feed = jsonFeed.get(position);
-                jsonFeed.remove(position);
-                NetworkUtils.deletePm(context, Feed.getId(), 2);
-                notifyItemRemoved(position);
-            }
-        } catch (Throwable ignored) {}
-
-
+        if (position >= 0 && position < jsonFeed.size()) {
+            FeedPm feed = jsonFeed.get(position);
+            jsonFeed = new ArrayList<>(jsonFeed);
+            jsonFeed.remove(position);
+            NetworkUtils.deletePm(context, feed.getId(), 2);
+            notifyItemRemoved(position);
+        } else {
+            Log.e("AdapterPm", "Invalid position for archiveItem: " + position);
+        }
     }
 
-
-    // swipe to restore from archive
     public void restoreFromArchiveItem(int position) {
-        try {
-            if (position >= 0) {
-                FeedPm Feed = jsonFeed.get(position);
-                jsonFeed.remove(position);
-                NetworkUtils.deletePm(context, Feed.getId(), 3);
-                notifyItemRemoved(position);
-            }
-        } catch (Throwable ignored) {}
-
-
+        if (position >= 0 && position < jsonFeed.size()) {
+            FeedPm feed = jsonFeed.get(position);
+            jsonFeed = new ArrayList<>(jsonFeed);
+            jsonFeed.remove(position);
+            NetworkUtils.deletePm(context, feed.getId(), 3);
+            notifyItemRemoved(position);
+        } else {
+            Log.e("AdapterPm", "Invalid position for restoreFromArchiveItem: " + position);
+        }
     }
 
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+    }
 }

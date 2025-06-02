@@ -48,6 +48,7 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
     private String story, t_name;
     private CommentsListBinding binding;
     private RecyclerView recyclerView;
+    private AppController controller;
 
     public ForumFragmentPostSearch(){
         // Required empty public constructor
@@ -65,10 +66,12 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         if (this.getArguments() != null) {
-            tid = (String) getArguments().getString(Config.TAG_ID);
-            story = (String) getArguments().getString(Config.TAG_STORY);
-            t_name = (String) getArguments().getString(Config.TAG_TITLE);
+            tid = getArguments().getString(Config.TAG_ID);
+            story = getArguments().getString(Config.TAG_STORY);
+            t_name = getArguments().getString(Config.TAG_TITLE);
         }
+
+        controller = AppController.getInstance();
 
         recyclerView = binding.recyclerView;
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -104,7 +107,7 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -191,7 +194,7 @@ public class ForumFragmentPostSearch extends BottomSheetDialogFragment {
     // получение данных и увеличение номера страницы
     private void getData() {
         progressBar.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

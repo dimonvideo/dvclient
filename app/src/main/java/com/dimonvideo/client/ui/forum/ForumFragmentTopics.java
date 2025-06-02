@@ -56,6 +56,7 @@ public class ForumFragmentTopics extends Fragment {
     private int id = 0;
     private SwipeRefreshLayout swipLayout;
     private FragmentHomeBinding binding;
+    private AppController controller;
 
     public ForumFragmentTopics() {
         // Required empty public constructor
@@ -73,6 +74,8 @@ public class ForumFragmentTopics extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
+
+        controller = AppController.getInstance();
 
         if (this.getArguments() != null) {
             tab_title = getArguments().getString("tab");
@@ -116,7 +119,7 @@ public class ForumFragmentTopics extends Fragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -167,7 +170,7 @@ public class ForumFragmentTopics extends Fragment {
             s_url = "&story=" + story;
         }
 
-        final String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
+        final String login_name = controller.userName(getString(R.string.nav_header_title));
 
         if (id > 0) {
             s_url = "&id=" + id;
@@ -223,7 +226,7 @@ public class ForumFragmentTopics extends Fragment {
     // получение данных и увеличение номера страницы
     private void getData() {
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

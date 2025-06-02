@@ -52,6 +52,7 @@ public class MainFragmentCommentsTab extends Fragment {
     private FragmentHomeBinding binding;
     private RecyclerView recyclerView;
     private  String url = Config.COMMENTS_READS_URL;
+    private AppController controller;
 
     public MainFragmentCommentsTab() {
         // Required empty public constructor
@@ -84,6 +85,8 @@ public class MainFragmentCommentsTab extends Fragment {
 
         listFeed = new ArrayList<>();
 
+        controller = AppController.getInstance();
+
         progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
         ProgressBarBottom = binding.ProgressBarBottom;
@@ -109,7 +112,7 @@ public class MainFragmentCommentsTab extends Fragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -201,7 +204,7 @@ public class MainFragmentCommentsTab extends Fragment {
     // получение данных и увеличение номера страницы
     private void getData() {
         ProgressBarBottom.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

@@ -29,8 +29,8 @@ public class GetToken {
             try {
                 password = URLEncoder.encode(password, "utf-8");
                 is_name = URLEncoder.encode(is_name, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+            } catch (UnsupportedEncodingException ignored) {
+
             }
 
             try {
@@ -54,8 +54,8 @@ public class GetToken {
                                     String state = jsonObject.getString("state");
                                     Log.e("tag", state);
 
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                } catch (JSONException ignored) {
+
                                 }
                             }, Throwable::printStackTrace) {
 

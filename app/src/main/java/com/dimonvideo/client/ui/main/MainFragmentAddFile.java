@@ -37,6 +37,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.android.volley.Request;
@@ -81,24 +83,25 @@ public class MainFragmentAddFile extends Fragment {
     private String screenName, screen, logo;
     private String categoryId;
     private AlertDialog alert;
-    AlertDialog.Builder builder;
+    private AlertDialog.Builder builder;
     private ClipboardManager myClipboard;
     private ClipData myClip;
-    private boolean doubleBackToExitPressedOnce = false;
     private InputMethodManager imm;
+    private final AppController controller = AppController.getInstance();
+    private NavController navController;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     public MainFragmentAddFile() {
-
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         Bitmap bitmap = event.bitmap;
-        login_name = AppController.getInstance().userName(null);
+        login_name = controller.userName(null);
         screen = event.image_uploaded;
         screenName = Config.THUMB_URL + login_name + File.separator + screen;
         logo = Config.THUMB_URL + login_name + File.separator + "thumbs" + File.separator + screen;
-        // если скриншот загружен на сервер
+
         if (bitmap != null) {
             CircularProgressDrawable drawable = new CircularProgressDrawable(requireContext());
             drawable.setColorSchemeColors(R.color.colorDelete, R.color.colorPrimary, R.color.colorAccent);
@@ -106,7 +109,7 @@ public class MainFragmentAddFile extends Fragment {
             drawable.setStrokeWidth(5f);
             drawable.start();
             Glide.with(this)
-                    .load(Config.THUMB_URL+login_name+File.separator+screen)
+                    .load(screenName)
                     .placeholder(drawable)
                     .into(new DrawableImageViewTarget(imgBtn));
 
@@ -125,7 +128,6 @@ public class MainFragmentAddFile extends Fragment {
 
             note.setVisibility(View.INVISIBLE);
 
-            // кнопка удалить
             imgDelete.setOnClickListener(v -> {
                 imgBtn.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.outline_image_24));
                 imgDelete.setVisibility(View.INVISIBLE);
@@ -136,23 +138,8 @@ public class MainFragmentAddFile extends Fragment {
                 desc.setVisibility(View.INVISIBLE);
             });
 
-            // кнопка Закрыть
-            btnClose.setOnClickListener(v -> {
-                builder = new AlertDialog.Builder(requireContext());
-                builder.setTitle(getString(R.string.warning));
-                builder.setMessage(getString(R.string.warning_message));
-                builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
-                    requestToServer(Config.DELETE_URL, screen, null);
-                    dialog.dismiss();
-                    MainActivity.navController.navigate(R.id.nav_home);
-                });
-                builder.setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss());
-                alert = builder.create();
-                alert.show();
+            btnClose.setOnClickListener(v -> showCloseConfirmationDialog());
 
-            });
-
-            // кнопка Отправить
             btnSend.setOnClickListener(v -> {
                 builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle(getString(R.string.warning));
@@ -169,24 +156,17 @@ public class MainFragmentAddFile extends Fragment {
     }
 
     private void requestToServer(String url, String image_url, String logo_url) {
-        new Handler(Looper.getMainLooper()).post(() -> {
-
-            Log.v("---", "image_url: " + image_url + " logo_url: " + logo_url + " login_name: " + login_name + " url: " + url);
+        handler.post(() -> {
             StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
-
-                Log.v("---", "response: " + response);
-
-                JSONObject obj;
                 try {
-                    obj = new JSONObject(response);
-
+                    JSONObject obj = new JSONObject(response);
                     String msg = obj.getString(Config.TAG_LINK);
                     String err = obj.getString("error");
 
                     if (err.equals("false")) {
-                        Toast.makeText(requireContext(), requireContext().getString(R.string.success), Toast.LENGTH_LONG).show();
+                        Toast.makeText(requireContext(), getString(R.string.success), Toast.LENGTH_LONG).show();
                         if (url.equals(Config.UPLOAD_FILE_URL)) {
-                            MainActivity.navController.navigate(R.id.nav_home);
+                            navigateToHome();
                             try {
                                 myClipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
                                 myClip = ClipData.newPlainText("text", msg);
@@ -195,41 +175,43 @@ public class MainFragmentAddFile extends Fragment {
                             }
                         }
                     }
-                    if (err.equals("true"))
+                    if (err.equals("true")) {
                         Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
+                    }
                     ProgressHelper.dismissDialog();
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    Log.e("MainFragmentAddFile", "Response parsing error", e);
                     ProgressHelper.dismissDialog();
                 }
             }, error -> {
-                Toast.makeText(getContext(), "Error"+error, Toast.LENGTH_SHORT).show();
-                Log.e("---", "error: "+error);
-
+                Toast.makeText(requireContext(), "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("MainFragmentAddFile", "Volley error", error);
+                ProgressHelper.dismissDialog();
             }) {
                 @Override
                 protected Map<String, String> getParams() {
                     Map<String, String> postMap = new HashMap<>();
                     if (login_name != null) postMap.put("send_user", login_name);
-                    if (listFeedRazdel.get(0) != null) postMap.put("send_razdel", listFeedRazdel.get(0));
+                    if (!listFeedRazdel.isEmpty()) postMap.put("send_razdel", listFeedRazdel.get(0));
                     if (categoryId != null) postMap.put("send_category", categoryId);
                     if (title.getText() != null) postMap.put("send_title", title.getText().toString());
                     if (desc.getText() != null) postMap.put("send_desc", desc.getText().toString());
                     if (image_url != null) postMap.put("send_screen", image_url);
                     if (catalog.getText() != null) postMap.put("send_catalog", catalog.getText().toString());
-                    if (logo_url != null) postMap.put("send_logo", logo_url); // превью
+                    if (logo_url != null) postMap.put("send_logo", logo_url);
                     if (ist.getText() != null) postMap.put("send_ist", ist.getText().toString());
-                    if (login_name != null) postMap.put("send_id", login_name); // для удаления
+                    if (login_name != null) postMap.put("send_id", login_name);
                     return postMap;
                 }
 
                 @Override
                 public Map<String, String> getHeaders() {
-                    Map<String,String> params = new HashMap<>();
-                    params.put("Content-Type","application/x-www-form-urlencoded");
+                    Map<String, String> params = new HashMap<>();
+                    params.put("Content-Type", "application/x-www-form-urlencoded");
                     return params;
                 }
             };
-            AppController.getInstance().addToRequestQueue(stringRequest);
+            controller.addToRequestQueue(stringRequest);
         });
     }
 
@@ -239,19 +221,23 @@ public class MainFragmentAddFile extends Fragment {
         return binding.getRoot();
     }
 
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
+        // Инициализация NavController
+        try {
+            navController = Navigation.findNavController(view);
+        } catch (IllegalStateException e) {
+            Log.e("MainFragment", "Failed to find NavController", e);
+        }
+
         EventBus.getDefault().postSticky(new MessageEvent("0", null, null, null, null, null));
 
-        // проверка имени пользователя
-        login_name = AppController.getInstance().userName(null);
-        if (login_name == null) MainActivity.navController.navigate(R.id.nav_home);
+        login_name = controller.userName(null);
+        if (login_name == null) navigateToHome();
 
         Spinner razdelList = binding.razdel;
         razdelList.setVisibility(View.INVISIBLE);
@@ -261,17 +247,14 @@ public class MainFragmentAddFile extends Fragment {
         sv.post(() -> sv.fullScroll(View.FOCUS_UP));
 
         ist = binding.ist;
-
         istFrame = binding.istLayout;
         istFrame.setVisibility(View.INVISIBLE);
 
         imgDelete = binding.imgDelete;
-
         screenFrame = binding.screen;
         screenFrame.setVisibility(View.INVISIBLE);
 
         selectScreen = binding.screenText;
-
         btnClose = binding.dismiss;
         btnSend = binding.save;
 
@@ -285,31 +268,25 @@ public class MainFragmentAddFile extends Fragment {
         title.requestFocus();
         imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(title, InputMethodManager.SHOW_IMPLICIT);
-        // название файла
-        title.setOnEditorActionListener(
-                (v, actionId, event) -> {
-                    if (actionId == EditorInfo.IME_ACTION_SEARCH ||
-                            actionId == EditorInfo.IME_ACTION_DONE ||
-                            event != null &&
-                                    event.getAction() == KeyEvent.ACTION_DOWN &&
-                                    event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                        if (event == null || !event.isShiftPressed()) {
 
-                            if (TextUtils.isEmpty(title.getText().toString().trim())) {
-                                Toast.makeText(requireContext(), getString(R.string.title_retry), Toast.LENGTH_SHORT).show();
-                            } else {
-                                razdelList.setVisibility(View.VISIBLE);
-                                imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                                imm.hideSoftInputFromWindow(title.getWindowToken(), 0);
-                            }
-
-                            return true;
-                        }
+        title.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    actionId == EditorInfo.IME_ACTION_DONE ||
+                    event != null &&
+                            event.getAction() == KeyEvent.ACTION_DOWN &&
+                            event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                if (event == null || !event.isShiftPressed()) {
+                    if (TextUtils.isEmpty(title.getText().toString().trim())) {
+                        Toast.makeText(requireContext(), getString(R.string.title_retry), Toast.LENGTH_SHORT).show();
+                    } else {
+                        razdelList.setVisibility(View.VISIBLE);
+                        imm.hideSoftInputFromWindow(title.getWindowToken(), 0);
                     }
-                    return false;
+                    return true;
                 }
-        );
-
+            }
+            return false;
+        });
 
         categoryList = binding.categories;
         categoryList.setVisibility(View.INVISIBLE);
@@ -321,54 +298,40 @@ public class MainFragmentAddFile extends Fragment {
         note = binding.note;
         note.setMovementMethod(LinkMovementMethod.getInstance());
 
-        // выбор раздела
         ArrayAdapter<CharSequence> razdelListAdapter = ArrayAdapter
                 .createFromResource(requireContext(), R.array.add_razdel,
                         android.R.layout.simple_spinner_item);
-        razdelListAdapter
-                .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        razdelListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         razdelList.setAdapter(razdelListAdapter);
         razdelList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long id) {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position > 0) {
                     listFeedRazdel = new ArrayList<>();
                     categoryList.setVisibility(View.VISIBLE);
                     if (position == 1) {
                         razdel = Config.NEWS_RAZDEL;
                         listFeedRazdel.add(razdel);
-                    }
-                    if (position == 2) {
+                    } else if (position == 2) {
                         razdel = Config.GALLERY_RAZDEL;
                         istFrame.setVisibility(View.INVISIBLE);
                         listFeedRazdel.add(razdel);
-                    }
-                    if (position == 3) {
+                    } else if (position == 3) {
                         razdel = Config.BLOG_RAZDEL;
                         listFeedRazdel.add(razdel);
                         istFrame.setVisibility(View.INVISIBLE);
-                    }
-                    if (position == 4) {
+                    } else if (position == 4) {
                         razdel = Config.ARTICLES_RAZDEL;
                         istFrame.setVisibility(View.INVISIBLE);
                         listFeedRazdel.add(razdel);
-                    }
-                    if (position == 5) {
-                        razdel = Config.COMMENTS_RAZDEL;
+                    } else if (position == 5) {
+                        razdel = controller.isUserGroup() == 1 ? Config.COMMENTS_RAZDEL : Config.NEWS_RAZDEL;
                         istFrame.setVisibility(View.INVISIBLE);
-                        if (AppController.getInstance().isUserGroup() != 1) {
-                            razdel = Config.NEWS_RAZDEL;
-                            listFeedRazdel.add(Config.NEWS_RAZDEL);
-                        } else listFeedRazdel.add(Config.NEWS_RAZDEL);
-                    }
-                    if (position == 6) {
-                        razdel = Config.VOTE_RAZDEL;
+                        listFeedRazdel.add(razdel);
+                    } else if (position == 6) {
+                        razdel = controller.isUserGroup() == 1 ? Config.VOTE_RAZDEL : Config.NEWS_RAZDEL;
                         istFrame.setVisibility(View.INVISIBLE);
-                        if (AppController.getInstance().isUserGroup() != 1) {
-                            razdel = Config.NEWS_RAZDEL;
-                            listFeedRazdel.add(Config.NEWS_RAZDEL);
-                        } else listFeedRazdel.add(Config.VOTE_RAZDEL);
+                        listFeedRazdel.add(razdel);
                     }
                     getData();
                 }
@@ -379,29 +342,21 @@ public class MainFragmentAddFile extends Fragment {
             }
         });
 
-
-        // перехват кнопки назад.
+        // Обработка кнопки "Назад"
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-
-                if (doubleBackToExitPressedOnce) {
-                    requestToServer(Config.DELETE_URL, screen, null);
-                    MainActivity.navController.navigate(R.id.nav_home);
-                    return;
+                if (screen != null && !screen.isEmpty()) {
+                    showCloseConfirmationDialog();
+                } else {
+                    navigateToHome();
                 }
-
-                doubleBackToExitPressedOnce = true;
-                Toast.makeText(requireContext(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
-
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
     }
 
     private JsonArrayRequest getDataFromServer() {
-
         ProgressHelper.showDialog(requireContext(), getString(R.string.please_wait));
         String key = GetRazdelName.getRazdelName(razdel, 0);
         String url = Config.CATEGORY_URL;
@@ -413,47 +368,39 @@ public class MainFragmentAddFile extends Fragment {
                 response -> {
                     for (int i = 0; i < response.length(); i++) {
                         FeedCats jsonFeed = new FeedCats();
-                        JSONObject json;
                         try {
-                            json = response.getJSONObject(i);
+                            JSONObject json = response.getJSONObject(i);
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setCid(json.getInt(Config.TAG_ID));
                         } catch (JSONException ignored) {
-
                         }
-                        listFeed.add(String.valueOf(jsonFeed.getTitle()));
+                        listFeed.add(jsonFeed.getTitle());
                         listFeedCategory.add(String.valueOf(jsonFeed.getCid()));
 
-                        // выбор подкатегории
-                        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, listFeed);
-                        categoryAdapter.setDropDownViewResource(
-                                android.R.layout.simple_spinner_dropdown_item);
+                        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(requireContext(),
+                                android.R.layout.simple_spinner_item, listFeed);
+                        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                         categoryList.setAdapter(categoryAdapter);
                         ProgressHelper.dismissDialog();
                         categoryList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                             @Override
-                            public void onItemSelected(AdapterView<?> parent, View view,
-                                                       int position, long id) {
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 if (position > 0) {
                                     screenFrame.setVisibility(View.VISIBLE);
-
                                     categoryId = listFeedCategory.get(position);
 
                                     if (listFeedRazdel.get(0).equals(Config.NEWS_RAZDEL)) {
                                         istFrame.setVisibility(View.VISIBLE);
-                                    } else istFrame.setVisibility(View.INVISIBLE);
+                                    } else {
+                                        istFrame.setVisibility(View.INVISIBLE);
+                                    }
 
-                                    // загрузка скриншота
-                                    imgBtn.setOnClickListener(v -> {
-                                        MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
-                                                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                                                .build());
-                                    });
-                                    selectScreen.setOnClickListener(v -> {
-                                        MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
-                                                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                                                .build());
-                                    });
+                                    imgBtn.setOnClickListener(v -> MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
+                                            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                                            .build()));
+                                    selectScreen.setOnClickListener(v -> MainActivity.pickMedia.launch(new PickVisualMediaRequest.Builder()
+                                            .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                                            .build()));
                                 }
                             }
 
@@ -463,13 +410,38 @@ public class MainFragmentAddFile extends Fragment {
                         });
                     }
                 },
-                error -> {
-                    ProgressHelper.dismissDialog();
-                });
+                error -> ProgressHelper.dismissDialog());
     }
 
     private void getData() {
-        AppController.getInstance().addToRequestQueue(getDataFromServer());
+        controller.addToRequestQueue(getDataFromServer());
+    }
+
+    private void showCloseConfirmationDialog() {
+        builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle(getString(R.string.warning));
+        builder.setMessage(getString(R.string.warning_message));
+        builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+            requestToServer(Config.DELETE_URL, screen, null);
+            dialog.dismiss();
+            navigateToHome();
+        });
+        builder.setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss());
+        alert = builder.create();
+        alert.show();
+    }
+
+    private void navigateToHome() {
+        if (navController != null) {
+            navController.navigate(R.id.nav_home);
+        } else {
+            navigateToHomeFallback();
+        }
+    }
+
+    private void navigateToHomeFallback() {
+        Log.e("MainFragmentAddFile", "NavController is null, falling back to activity finish");
+        requireActivity().finish();
     }
 
     @Override
@@ -483,9 +455,7 @@ public class MainFragmentAddFile extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+        if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
     }
 
     @Override
@@ -499,4 +469,9 @@ public class MainFragmentAddFile extends Fragment {
         super.onDetach();
     }
 
+    @Override
+    public void onDestroyView() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroyView();
+    }
 }

@@ -60,28 +60,20 @@ public class SetPrefsBackup extends AppCompatActivity {
 
         // save all prefs
         ResultArray = null;
-        try {
-            JSONObject infoObj = new JSONObject();
-            ResultArray = new JSONArray();
-            Map<String, ?> allEntries = AppController.getSharedPreferences().getAll();
-            for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
-                infoObj.put(entry.getKey(), entry.getValue().toString());
-                if (entry.getValue().toString().equals("true") || entry.getValue().toString().equals("false")) {
-                    Log.e(Config.TAG, "NOW BOOLEAN key is: " + entry.getKey() + " " + entry.getValue().toString());
-                }else if (entry.getValue().toString().contains("[")){
-                    Log.e(Config.TAG, "NOW LIST key is: " + entry.getKey() + " " + entry.getValue().toString());
-                } else if (!entry.getValue().toString().isEmpty()) {
-                    Log.e(Config.TAG, "NOW STRING key is: " + entry.getKey() + " " + entry.getValue().toString());
-                }
 
+        try {
+            JSONObject prefsObj = new JSONObject();
+            Map<String, Object> allEntries = AppController.getInstance().getAllPreferences();
+            for (Map.Entry<String, Object> entry : allEntries.entrySet()) {
+                prefsObj.put(entry.getKey(), entry.getValue().toString());
                 count++;
             }
-
-            ResultArray.put(infoObj);
-
-        } catch (Exception ignored) {
-
+            ResultArray = new JSONArray();
+            ResultArray.put(prefsObj);
+        } catch (Exception e) {
+            Log.e(Config.TAG, "Ошибка подготовки настроек: " + e.getMessage());
         }
+
 
         Log.d(Config.TAG, String.valueOf(ResultArray));
 

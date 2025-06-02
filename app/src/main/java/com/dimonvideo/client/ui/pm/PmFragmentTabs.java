@@ -1,7 +1,5 @@
 package com.dimonvideo.client.ui.pm;
 
-import static com.dimonvideo.client.MainActivity.navController;
-
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Bundle;
@@ -19,6 +17,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.MainActivity;
@@ -44,6 +44,8 @@ public class PmFragmentTabs extends Fragment {
     private FragmentTabsBinding binding;
     private String razdel = "13";
     private boolean doubleBackToExitPressedOnce = false;
+    private NavController navController;
+    private static final long DOUBLE_BACK_PRESS_DELAY = 2000; // Задержка в мс
 
     public PmFragmentTabs() {
         // Required empty public constructor
@@ -74,6 +76,13 @@ public class PmFragmentTabs extends Fragment {
         TabLayout tabs = binding.tabLayout;
         ViewPager2 viewPager = binding.viewPager;
         AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
+
+        // Инициализация NavController
+        try {
+            navController = Navigation.findNavController(view);
+        } catch (IllegalStateException e) {
+            Log.e("MainFragment", "Failed to find NavController", e);
+        }
 
         tabTiles.add(getString(R.string.tab_inbox));
         tabIcons.add(R.drawable.outline_inbox_24);
@@ -199,31 +208,30 @@ public class PmFragmentTabs extends Fragment {
         UpdatePm.update(requireContext(), razdel, MainActivity.binding.getRoot());
 
 
-
-        // перехват кнопки назад.
+        // Регистрация OnBackPressedCallback
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-
-                if (viewPager.getCurrentItem() != 0) {
-                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                if (viewPager.getCurrentItem() > 0) {
+                    // Переключение на предыдущую вкладку
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1, false);
                 } else {
-                    requireActivity().getOnBackPressedDispatcher().addCallback(requireActivity(), new OnBackPressedCallback(true) {
-                        @Override
-                        public void handleOnBackPressed() {
-                            Log.e("---", "Back pressed - " + doubleBackToExitPressedOnce);
-                            navController.navigate(R.id.nav_home);
-                            doubleBackToExitPressedOnce = true;
-                            Toast.makeText(requireActivity(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
-                            new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
-                            if (doubleBackToExitPressedOnce) {
-                                requireActivity().finishAffinity();
-                                return;
-                            }
+                    // Проверка, находимся ли мы на главном экране
+                    if (navController.getCurrentDestination() != null &&
+                            navController.getCurrentDestination().getId() != R.id.nav_home) {
+                        navController.navigate(R.id.nav_home);
+                    } else {
+                        // Логика двойного нажатия для выхода
+                        if (doubleBackToExitPressedOnce) {
+                            requireActivity().finishAffinity();
+                            return;
                         }
-                    });
+                        doubleBackToExitPressedOnce = true;
+                        Toast.makeText(requireContext(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
+                        new Handler(Looper.getMainLooper()).postDelayed(() ->
+                                doubleBackToExitPressedOnce = false, DOUBLE_BACK_PRESS_DELAY);
+                    }
                 }
-
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);

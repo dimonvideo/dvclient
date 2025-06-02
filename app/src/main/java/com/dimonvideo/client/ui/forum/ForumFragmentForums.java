@@ -164,8 +164,8 @@ public class ForumFragmentForums extends Fragment   {
                             jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
                             jsonFeed.setTime(json.getLong(Config.TAG_TIME));
                             jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }

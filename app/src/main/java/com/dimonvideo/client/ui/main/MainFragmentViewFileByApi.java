@@ -27,7 +27,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.databinding.BottomDetailBinding;
-import com.dimonvideo.client.db.Provider;
+import com.dimonvideo.client.db.ReadMarkEntity;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
@@ -38,8 +38,6 @@ import com.dimonvideo.client.util.ProgressHelper;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.snackbar.Snackbar;
-
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,8 +52,8 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
     private String logourl;
     private String mod;
     private String link;
-    private int plus;
     private Context context;
+    private AppController controller;
 
     public MainFragmentViewFileByApi() {
         // Required empty public constructor
@@ -76,9 +74,8 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
     @SuppressLint("SetTextI18n")
     @Override
     public void onViewCreated(@NonNull View views, @Nullable Bundle savedInstanceState) {
-
         context = requireContext();
-
+        controller = AppController.getInstance();
 
         if (this.getArguments() != null) {
             razdel = getArguments().getString(Config.TAG_RAZDEL);
@@ -86,12 +83,16 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         }
 
         if (lid != null) {
-            Provider.updateStatus(Integer.parseInt(lid), razdel, 1);
+            controller.getExecutor().execute(() -> {
+                ReadMarkEntity readMark = new ReadMarkEntity();
+                readMark.lid = Integer.parseInt(lid);
+                readMark.razdel = razdel;
+                readMark.status = 1;
+                controller.getDatabase().readMarkDao().insert(readMark);
+            });
         }
 
-        Log.e("---", "razdel single: " + razdel);
         getData(views);
-
     }
 
     @SuppressLint("SetTextI18n")
@@ -99,7 +100,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         file_title = jsonFeed.getTitle();
         String category = jsonFeed.getCategory();
         String date = jsonFeed.getDate();
-        plus = jsonFeed.getPlus();
+        int plus = jsonFeed.getPlus();
         String user = jsonFeed.getUser();
         String text = jsonFeed.getText();
         logourl = jsonFeed.getImageUrl();
@@ -109,9 +110,9 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         link = jsonFeed.getLink();
         String size = jsonFeed.getSize();
 
-        final boolean is_open_link = AppController.getInstance().isOpenLinks();
-        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
-        final boolean is_share_btn = AppController.getInstance().isShareBtn();
+        final boolean is_open_link = controller.isOpenLinks();
+        final boolean is_vuploader_play_listtext = controller.isVuploaderPlayListtext();
+        final boolean is_share_btn = controller.isShareBtn();
 
         TextView textViewTitle = binding.title;
         textViewTitle.setText(file_title);
@@ -137,7 +138,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         btn_odob.setVisibility(View.GONE);
 
         Log.e("---", "status: " + status);
-        if ((status == 0) && (AppController.getInstance().isUserGroup() <= 2)) {
+        if ((status == 0) && (controller.isUserGroup() <= 2)) {
             btn_odob.setVisibility(View.VISIBLE);
             btn_odob.setOnClickListener(v -> {
                 NetworkUtils.getOdob(razdel, Integer.parseInt(lid));
@@ -148,7 +149,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         TextView textViewText = binding.text;
         try {
             URLImageParser parser = new URLImageParser(textViewText);
-            Spanned spanned = Html.fromHtml(text, parser, new TagHandler());
+            Spanned spanned = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
             textViewText.setText(spanned);
             textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
@@ -313,7 +314,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
     // получение данных и увеличение номера страницы
     private void getData(View views) {
-        AppController.getInstance().addToRequestQueue(getDataFromServer(views));
+       controller.addToRequestQueue(getDataFromServer(views));
     }
 
     public static class TagHandler implements Html.TagHandler {
@@ -324,13 +325,14 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
                 output.append("\n");
             }
             if (opening && tag.equals("li")) {
-                output.append("\n\u2022");
+                output.append("\n•");
             }
         }
     }
 
     @Override
     public void onDestroy() {
+        controller.getRequestQueueV().cancelAll(this);
         if (ProgressHelper.isDialogVisible()) ProgressHelper.dismissDialog();
         super.onDestroy();
         binding = null;

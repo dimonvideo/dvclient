@@ -1,6 +1,5 @@
 package com.dimonvideo.client.util;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,8 +11,6 @@ import androidx.annotation.NonNull;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.dimonvideo.client.Config;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
@@ -29,12 +26,7 @@ public class GetToken {
 
     public static void getToken(Context context){
 
-        int resultCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            Log.e("FCM", "Google Play Services unavailable");
-            // Показать пользователю диалог для обновления Play Services
-            Objects.requireNonNull(GoogleApiAvailability.getInstance().getErrorDialog((Activity) context, resultCode, 1)).show();
-        } else {
+
 
 
             new Handler(Looper.getMainLooper()).post(() -> {
@@ -75,7 +67,7 @@ public class GetToken {
                 Log.e("---", "token");
 
             });
-        }
+
     }
 
     @NonNull

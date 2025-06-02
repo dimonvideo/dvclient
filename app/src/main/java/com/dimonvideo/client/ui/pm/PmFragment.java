@@ -1,6 +1,5 @@
 package com.dimonvideo.client.ui.pm;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -65,6 +64,8 @@ public class PmFragment extends Fragment {
     private List<FeedPm> listFeed;
     private int requestCount = 1;
     private String tab_title;
+    private AppController controller;
+
 
     public PmFragment() {
         // Required empty public constructor
@@ -95,6 +96,8 @@ public class PmFragment extends Fragment {
         if (this.getArguments() != null) {
             tab_title = getArguments().getString("tab");
         }
+
+        controller = AppController.getInstance();
 
         listFeed = new ArrayList<>();
 
@@ -131,7 +134,7 @@ public class PmFragment extends Fragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -307,10 +310,9 @@ public class PmFragment extends Fragment {
     }
 
     // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
-        String pass = AppController.getInstance().userPassword();
+        String login_name = controller.userName(getString(R.string.nav_header_title));
+        String pass = controller.userPassword();
         try {
             pass = URLEncoder.encode(pass, "utf-8");
             login_name = URLEncoder.encode(login_name, "utf-8");
@@ -346,11 +348,17 @@ public class PmFragment extends Fragment {
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
+                    if (response.length() == 0) {
+                        swipLayout.setRefreshing(false);
+                        return;
+                    } else emptyView.setVisibility(View.GONE);
+
+
+                    List<FeedPm> newItems = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         FeedPm jsonFeed = new FeedPm();
-                        JSONObject json;
                         try {
-                            json = response.getJSONObject(i);
+                            JSONObject json = response.getJSONObject(i);
                             jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
                             jsonFeed.setImageUrl(json.getString(Config.TAG_CATEGORY));
                             jsonFeed.setId(json.getInt(Config.TAG_ID));
@@ -359,35 +367,27 @@ public class PmFragment extends Fragment {
                             jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
                             jsonFeed.setText(json.getString(Config.TAG_TEXT));
                             jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
-
-                        } catch (JSONException ignored) {
-
+                            newItems.add(jsonFeed);
+                        } catch (JSONException e) {
+                            Log.e("PmFragment", "JSON parsing error", e);
                         }
-                        listFeed.add(jsonFeed);
                     }
-                    recyclerView.post(() -> {
-                        adapter.notifyDataSetChanged();
-                    });
-                    if (adapter.getItemCount() == 0) {
-                        emptyLayout.setVisibility(View.VISIBLE);
-                        emptyView.setVisibility(View.VISIBLE);
-                    } else {
-                        emptyLayout.setVisibility(View.GONE);
-                        emptyView.setVisibility(View.GONE);
-                    }
-                    Log.e(Config.TAG, "Adapter PM: "+ adapter.getItemCount());
-
+                    listFeed.addAll(newItems);
+                    recyclerView.post(() -> adapter.updateData(listFeed));
+                    swipLayout.setRefreshing(false);
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
                     progressBarBottom.setVisibility(View.GONE);
+                    swipLayout.setRefreshing(false);
+                    Log.e("PmFragment", "Volley error", error);
                 });
     }
 
     // получение данных и увеличение номера страницы
     private void getData() {
         progressBarBottom.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

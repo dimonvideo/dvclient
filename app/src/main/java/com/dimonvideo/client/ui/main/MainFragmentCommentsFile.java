@@ -61,12 +61,12 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
     private String razdel, lid;
     private int requestCount = 1;
     private ProgressBar progressBar, ProgressBarBottom;
-    @SuppressLint("StaticFieldLeak")
-    public static CommentsListBinding binding;
+    private CommentsListBinding binding;
     private String story = null;
     private ImageView imagePick;
     private EditText textInput;
     private RecyclerView recyclerView;
+    private AppController controller;
 
     public MainFragmentCommentsFile(){
         // Required empty public constructor
@@ -109,17 +109,19 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        final int auth_state = AppController.getInstance().isAuth();
+        controller = AppController.getInstance();
+
+        final int auth_state = controller.isAuth();
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
         if (this.getArguments() != null) {
-            file_title = (String) getArguments().getString(Config.TAG_TITLE);
-            comm_url = (String) getArguments().getString(Config.TAG_LINK);
-            razdel = (String) getArguments().getString(Config.TAG_RAZDEL);
-            lid = (String) getArguments().getString(Config.TAG_ID);
+            file_title = getArguments().getString(Config.TAG_TITLE);
+            comm_url = getArguments().getString(Config.TAG_LINK);
+            razdel = getArguments().getString(Config.TAG_RAZDEL);
+            lid = getArguments().getString(Config.TAG_ID);
         }
 
         if (image_uploaded != null) EventBus.getDefault().postSticky(new MessageEvent(razdel, story, image_uploaded, null, null, null));
@@ -159,7 +161,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -265,7 +267,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
     // получение данных и увеличение номера страницы
     private void getData() {
         progressBar.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 

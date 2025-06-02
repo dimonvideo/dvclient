@@ -26,17 +26,17 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.databinding.BottomDetailBinding;
-import com.dimonvideo.client.db.Provider;
+import com.dimonvideo.client.db.ReadMarkEntity;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
+import com.dimonvideo.client.util.ProgressHelper;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.snackbar.Snackbar;
-
 
 import org.xml.sax.XMLReader;
 
@@ -45,6 +45,8 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
     private BottomDetailBinding binding;
     private String razdel, lid, file_title, date, category, user, text, logourl, mod, link, size;
     private int plus, comments, status;
+    private AppController controller;
+
 
     public MainFragmentViewFile(){
         // Required empty public constructor
@@ -65,6 +67,7 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
     @SuppressLint("SetTextI18n")
     @Override
     public void onViewCreated(@NonNull View views, @Nullable Bundle savedInstanceState) {
+        controller = AppController.getInstance();
 
         if (this.getArguments() != null) {
             file_title = getArguments().getString(Config.TAG_TITLE);
@@ -78,21 +81,26 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
             logourl = getArguments().getString(Config.TAG_IMAGE_URL);
             mod = getArguments().getString(Config.TAG_MOD);
             comments = getArguments().getInt(Config.TAG_COMMENTS);
-            status = getArguments().getInt(Config.TAG_STATUS);
             link = getArguments().getString(Config.TAG_LINK);
             size = getArguments().getString(Config.TAG_SIZE);
         }
 
         if (lid != null) {
-            Provider.updateStatus(Integer.parseInt(lid), razdel, 1);
+            controller.getExecutor().execute(() -> {
+                ReadMarkEntity readMark = new ReadMarkEntity();
+                readMark.lid = Integer.parseInt(lid);
+                readMark.razdel = razdel;
+                readMark.status = 1;
+                controller.getDatabase().readMarkDao().insert(readMark);
+            });
         }
 
         Context context = requireContext();
 
 
-        final boolean is_open_link = AppController.getInstance().isOpenLinks();
-        final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
-        final boolean is_share_btn = AppController.getInstance().isShareBtn();
+        final boolean is_open_link = controller.isOpenLinks();
+        final boolean is_vuploader_play_listtext = controller.isVuploaderPlayListtext();
+        final boolean is_share_btn = controller.isShareBtn();
 
         TextView textViewTitle = binding.title;
         textViewTitle.setText(file_title);
@@ -121,7 +129,7 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
         btn_odob.setVisibility(View.GONE);
 
         Log.e("---", "status: "+status);
-        if ((status == 0) && (AppController.getInstance().isUserGroup() <= 2)){
+        if ((status == 0) && (controller.isUserGroup() <= 2)){
             btn_odob.setVisibility(View.VISIBLE);
             btn_odob.setOnClickListener(v -> {
                 NetworkUtils.getOdob(razdel, Integer.parseInt(lid));
@@ -132,7 +140,7 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
         TextView textViewText = binding.text;
         try {
             URLImageParser parser = new URLImageParser(textViewText);
-            Spanned spanned = Html.fromHtml(text, parser, new TagHandler());
+            Spanned spanned = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
             textViewText.setText(spanned);
             textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
@@ -268,13 +276,15 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
                 output.append("\n");
             }
             if (opening && tag.equals("li")) {
-                output.append("\n\u2022");
+                output.append("\n•");
             }
         }
     }
 
     @Override
     public void onDestroy() {
+        controller.getRequestQueueV().cancelAll(this);
+        if (ProgressHelper.isDialogVisible()) ProgressHelper.dismissDialog();
         super.onDestroy();
         binding = null;
     }

@@ -1,7 +1,5 @@
 package com.dimonvideo.client.ui.forum;
 
-import static com.dimonvideo.client.MainActivity.navController;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,6 +18,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.Config;
@@ -30,7 +30,6 @@ import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -48,11 +47,12 @@ public class ForumFragment extends Fragment  {
     public static ViewPager2 viewPager;
     private final ArrayList<String> tabTiles = new ArrayList<>();
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
-    FloatingActionButton fab;
     private FragmentTabsBinding binding;
     private final Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
     private TextView opros;
     private boolean doubleBackToExitPressedOnce = false;
+    private NavController navController;
+    private static final long DOUBLE_BACK_PRESS_DELAY = 2000; // Задержка в мс
 
     public ForumFragment() {
         // Required empty public constructor
@@ -75,22 +75,30 @@ public class ForumFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
+        AppController controller = AppController.getInstance();
         razdel = "8";
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
         opros = binding.oprosText;
         if (!Objects.equals(razdel, "13")) opros.setVisibility(View.VISIBLE);
-        final boolean is_opros = AppController.getInstance().isOpros();
+        final boolean is_opros = controller.isOpros();
         if (!is_opros) opros.setVisibility(View.GONE);
-        String login = AppController.getInstance().userName("");
-        final boolean dvc_tab_inline = AppController.getInstance().isTabsInline();
-        final boolean tab_topics_no_posts = AppController.getInstance().isTopicsNoPosts();
-        final boolean is_favor = AppController.getInstance().isTabFavor();
-        final boolean dvc_tab_icons = AppController.getInstance().isTabIcons();
+        String login = controller.userName("");
+        final boolean dvc_tab_inline = controller.isTabsInline();
+        final boolean tab_topics_no_posts = controller.isTopicsNoPosts();
+        final boolean is_favor = controller.isTabFavor();
+        final boolean dvc_tab_icons = controller.isTabIcons();
 
         TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
         viewPager = binding.viewPager;
         AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
+
+        // Инициализация navController
+        try {
+            navController = Navigation.findNavController(view);
+        } catch (IllegalStateException e) {
+            Log.e("MainFragment", "Failed to find NavController", e);
+        }
 
         // вкладки
         tabTiles.add(getString(R.string.tab_topics));
@@ -191,30 +199,30 @@ public class ForumFragment extends Fragment  {
 
         tabLayoutMediator.attach();
 
-        // перехват кнопки назад.
+        // Регистрация OnBackPressedCallback
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-
-                if (viewPager.getCurrentItem() != 0) {
-                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1,false);
+                if (viewPager.getCurrentItem() > 0) {
+                    // Переключение на предыдущую вкладку
+                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1, false);
                 } else {
-                    requireActivity().getOnBackPressedDispatcher().addCallback(requireActivity(), new OnBackPressedCallback(true) {
-                        @Override
-                        public void handleOnBackPressed() {
-                            Log.e("---", "Back pressed - " + doubleBackToExitPressedOnce);
-                            navController.navigate(R.id.nav_home);
-                            doubleBackToExitPressedOnce = true;
-                            Toast.makeText(requireActivity(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
-                            new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
-                            if (doubleBackToExitPressedOnce) {
-                                requireActivity().finishAffinity();
-                                return;
-                            }
+                    // Проверка, находимся ли мы на главном экране
+                    if (navController.getCurrentDestination() != null &&
+                            navController.getCurrentDestination().getId() != R.id.nav_home) {
+                        navController.navigate(R.id.nav_home);
+                    } else {
+                        // Логика двойного нажатия для выхода
+                        if (doubleBackToExitPressedOnce) {
+                            requireActivity().finishAffinity();
+                            return;
                         }
-                    });
+                        doubleBackToExitPressedOnce = true;
+                        Toast.makeText(requireContext(), getString(R.string.press_twice), Toast.LENGTH_SHORT).show();
+                        new Handler(Looper.getMainLooper()).postDelayed(() ->
+                                doubleBackToExitPressedOnce = false, DOUBLE_BACK_PRESS_DELAY);
+                    }
                 }
-
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);

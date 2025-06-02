@@ -44,7 +44,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        if (remoteMessage.getData().size() > 0) {
+        if (!remoteMessage.getData().isEmpty()) {
             Log.e("---", remoteMessage.getData().toString());
             String action = remoteMessage.getData().get("action");
             String count_pm = remoteMessage.getData().get("count_pm");
@@ -113,13 +113,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String channelId = "dimonvideo.client";
         String channelName = "PM";
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel mChannel = new NotificationChannel(
-                    channelId, channelName, importance);
-            assert notificationManager != null;
-            notificationManager.createNotificationChannel(mChannel);
-        }
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        NotificationChannel mChannel = new NotificationChannel(
+                channelId, channelName, importance);
+        assert notificationManager != null;
+        notificationManager.createNotificationChannel(mChannel);
 
 
         Log.e(Config.TAG, "Notify new PM #" + id);
@@ -161,7 +159,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         mBuilder.addAction(android.R.drawable.ic_delete, getString(R.string.pm_delete), pIntentDelete);
 
-        assert notificationManager != null;
         notificationManager.notify(id, mBuilder.build());
     }
 

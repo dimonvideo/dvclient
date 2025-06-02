@@ -52,13 +52,13 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
         try {
             // populate text payload
             Map<String, String> params = getParams();
-            if (params != null && params.size() > 0) {
+            if (params != null && !params.isEmpty()) {
                 textParse(dos, params, getParamsEncoding());
             }
 
             // populate data byte payload
             Map<String, DataPart> data = getByteData();
-            if (data != null && data.size() > 0) {
+            if (data != null && !data.isEmpty()) {
                 dataParse(dos, data);
             }
 

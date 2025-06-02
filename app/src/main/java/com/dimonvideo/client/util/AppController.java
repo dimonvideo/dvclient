@@ -1,10 +1,14 @@
 package com.dimonvideo.client.util;
 
-import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.util.Log;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -12,32 +16,41 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.db.AppDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class AppController extends Application {
-    @SuppressLint("StaticFieldLeak")
+
     private static AppController sInstance;
     private RequestQueue mRequestQueue;
     private static SharedPreferences sharedPrefs;
     private static SharedPreferences.Editor editor;
     public static final String TAG = AppController.class.getSimpleName();
-    @SuppressLint("StaticFieldLeak")
-    private static Context mCtx;
+    /** Экземпляр базы данных приложения */
+    private AppDatabase db;
+    /** Пул потоков для фоновых задач */
+    private ExecutorService executor;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mCtx = this;
         sInstance = this;
-    }
 
-    public static synchronized AppController getInstance() {
-        return sInstance;
+        // Инициализация базы данных
+        db = AppDatabase.getInstance(this);
+        applyTheme();
+
     }
 
     public RequestQueue getRequestQueueV() {
 
         if (mRequestQueue == null) {
-            mRequestQueue = Volley.newRequestQueue(mCtx);
+            mRequestQueue = Volley.newRequestQueue(this);
             mRequestQueue.getCache().clear();
         }
 
@@ -55,14 +68,129 @@ public class AppController extends Application {
         getRequestQueueV().add(req);
     }
 
-    public static SharedPreferences getSharedPreferences() {
-
-        if (sharedPrefs == null) {
-            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(mCtx);
+    /**
+     * Настраивает масштаб шрифта приложения, пересоздавая активность с новой конфигурацией.
+     *
+     * @param context Контекст активности или приложения, должен быть экземпляром {@link Activity}.
+     */
+    public void adjustFontScale(Context context) {
+        if (!(context instanceof Activity)) {
+            Log.w(TAG, "Context is not an Activity, cannot adjust font scale");
+            return;
         }
 
+        Activity activity = (Activity) context;
+        Resources resources = context.getResources();
+        Configuration currentConfig = resources.getConfiguration();
+
+        try {
+            float newFontScale = Float.parseFloat(scaleFont());
+            if (newFontScale != currentConfig.fontScale) {
+                Log.d(TAG, "Applying new font scale: " + newFontScale);
+
+                // Создаём новую конфигурацию
+                Configuration newConfig = new Configuration(currentConfig);
+                newConfig.fontScale = newFontScale;
+
+                // Применяем новую конфигурацию через пересоздание активности
+                // Сохраняем масштаб в SharedPreferences или другом хранилище
+                SharedPreferences prefs = activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+                prefs.edit().putFloat("font_scale", newFontScale).apply();
+
+                // Пересоздаём активность для применения изменений
+                activity.recreate();
+            } else {
+                Log.d(TAG, "Font scale is already set to: " + newFontScale);
+            }
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "Invalid font scale value: " + scaleFont(), e);
+            // Устанавливаем значение по умолчанию
+            SharedPreferences prefs = activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+            prefs.edit().putFloat("font_scale", 1.0f).apply();
+            activity.recreate();
+        }
+    }
+
+    /**
+     * Получить экземпляр базы данных приложения.
+     * @return Экземпляр AppDatabase
+     */
+    public synchronized AppDatabase getDatabase() {
+        if (db == null) {
+            db = AppDatabase.getInstance(this);
+            Log.w(Config.TAG, "Database initialized in getDatabase");
+        }
+        return db;
+    }
+
+    /**
+     * Получить экземпляр ExecutorService для выполнения фоновых задач.
+     * @return Экземпляр ExecutorService
+     */
+    public ExecutorService getExecutor() {
+        if (executor == null || executor.isShutdown()) {
+            executor = Executors.newSingleThreadExecutor();
+        }
+        return executor;
+    }
+
+    /**
+     * Закрыть базу данных приложения.
+     * После вызова повторное получение через getDatabase создаст новый экземпляр.
+     */
+    public void closeDatabase() {
+        if (db != null && db.isOpen()) {
+            db.close();
+            Log.d(TAG, "Database closed");
+            db = null; // Устанавливаем в null, чтобы избежать дальнейших обращений
+        }
+    }
+
+    /**
+     * Применить выбранную пользователем тему приложения (тёмная/светлая/системная).
+     */
+    public void applyTheme() {
+        String darkMode = isDark();
+        Log.d(Config.TAG, "Applying theme: " + darkMode);
+        switch (darkMode) {
+            case "true":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            case "false":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case "system":
+            default:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                break;
+        }
+        Log.d(TAG, "Applied theme mode: " + darkMode);
+    }
+
+    // Получение всех настроек
+    public Map<String, Object> getAllPreferences() {
+        return new HashMap<>(getSharedPreferences().getAll());
+    }
+
+    /**
+     * Получить глобальный экземпляр AppController.
+     * @return Экземпляр AppController
+     */
+    public static synchronized AppController getInstance() {
+        return sInstance;
+    }
+
+    /**
+     * Получить объект SharedPreferences для хранения настроек приложения.
+     * @return Экземпляр SharedPreferences
+     */
+    public SharedPreferences getSharedPreferences() {
+        if (sharedPrefs == null) {
+            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        }
         return sharedPrefs;
     }
+
     public static SharedPreferences.Editor putSharedPreferences() {
 
         if (editor == null) {
@@ -75,7 +203,7 @@ public class AppController extends Application {
 
     // ===================================== preferences ========================================================= //
     public String isDark() {
-        return getSharedPreferences().getString("dvc_theme_list", "none");
+        return getSharedPreferences().getString("dvc_theme_list", "false");
     }
 
     public String mainRazdel() {
@@ -298,11 +426,11 @@ public class AppController extends Application {
 
 
     public void putThemeLight() {
-        putSharedPreferences().putString("dvc_theme_list", "none").apply();
+        putSharedPreferences().putString("dvc_theme_list", "false").apply();
     }
 
     public void putThemeDark() {
-        putSharedPreferences().putString("dvc_theme_list", "on").apply();
+        putSharedPreferences().putString("dvc_theme_list", "true").apply();
     }
 
     public void putToken(String token) {
@@ -356,4 +484,29 @@ public class AppController extends Application {
     public void putPmUnread(int pm_unread) {
         putSharedPreferences().putInt("pm_unread", pm_unread).apply();
     }
+
+    /**
+     * Метод жизненного цикла приложения. Вызывается при завершении работы приложения.
+     * Закрывает базу данных, завершает ExecutorService и останавливает TTS.
+     */
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        closeDatabase(); // Закрываем базу данных при завершении приложения
+
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        Log.w(Config.TAG, "AppController terminated");
+    }
+
 }

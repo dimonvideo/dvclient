@@ -1,6 +1,5 @@
 package com.dimonvideo.client.ui.pm;
 
-import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,86 +51,68 @@ public class PmFragmentMembers extends Fragment {
     private AdapterPmFriends adapter;
     private SwipeRefreshLayout swipLayout;
     private int requestCount = 1;
-    private ProgressBar progressBar, ProgressBarBottom;
+    private ProgressBar progressBar, progressBarBottom;
     private String razdel = "13";
     private String url = Config.MEMBERS_URL;
     private String story, tab_title;
     private String s_url = "";
     private FragmentHomeBinding binding;
+    private AppController controller;
 
     public PmFragmentMembers() {
         // Required empty public constructor
     }
 
-
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
+    public void onMessageEvent(MessageEvent event) {
         razdel = "13";
         story = event.story;
     }
 
-    @SuppressLint({"DetachAndAttachSameFragment", "NotifyDataSetChanged"})
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
-        requestCount = 1;
-
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
 
         if (this.getArguments() != null) {
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
+            story = getArguments().getString(Config.TAG_STORY);
             tab_title = getArguments().getString("tab");
         }
 
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
 
         recyclerView = binding.recyclerView;
-
-
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                if (isLastItemDisplaying(recyclerView)) {
-                    getData();
-                }
-
-            }
-        });
+        controller = AppController.getInstance();
         listFeed = new ArrayList<>();
+        adapter = new AdapterPmFriends(listFeed, getContext());
 
         progressBar = binding.progressbar;
         progressBar.setVisibility(View.VISIBLE);
-        ProgressBarBottom = binding.ProgressBarBottom;
-        ProgressBarBottom.setVisibility(View.GONE);
-        // получение данных
-        adapter = new AdapterPmFriends(listFeed, getContext());
-        getData();
+        progressBarBottom = binding.ProgressBarBottom;
+        progressBarBottom.setVisibility(View.GONE);
 
-        // разделитель позиций
+        // Разделитель позиций
         DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
         Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
         assert horizontalDivider != null;
         horizontalDecoration.setDrawable(horizontalDivider);
         recyclerView.addItemDecoration(horizontalDecoration);
+
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
-        // показ кнопки наверх
+
+        // Показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean isTop = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -139,119 +120,121 @@ public class PmFragmentMembers extends Fragment {
                     new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
-                    if (!is_top) fab.setVisibility(View.GONE);
+                    if (!isTop) fab.setVisibility(View.GONE);
                 }
             }
 
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-
-                // подгрузка ленты
                 if (isLastItemDisplaying(recyclerView)) {
                     getData();
                 }
             }
         });
-        fab.setOnClickListener(views -> {
-            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
-        });
-        // обновление
+
+        fab.setOnClickListener(views -> recyclerView.post(() -> recyclerView.smoothScrollToPosition(0)));
+
+        // Обновление
         swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(this::update);
+
+        // Получение данных
+        recyclerView.post(this::getData);
     }
 
     private void update() {
         requestCount = 1;
+        listFeed.clear();
+        adapter.updateData(listFeed);
         getData();
-        TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
-        fab_badge.setVisibility(View.GONE);
+        TextView fabBadge = MainActivity.binding.appBarMain.fabBadge;
+        fabBadge.setVisibility(View.GONE);
         swipLayout.setRefreshing(false);
     }
 
-    // запрос к серверу апи
-    @SuppressLint("NotifyDataSetChanged")
     private JsonArrayRequest getDataFromServer(int requestCount) {
-        String login_name = AppController.getInstance().userName(getString(R.string.nav_header_title));
-        String pass = AppController.getInstance().userPassword();
+        String loginName = controller.userName(getString(R.string.nav_header_title));
+        String pass = controller.userPassword();
         try {
             pass = URLEncoder.encode(pass, "utf-8");
-            login_name = URLEncoder.encode(login_name, "utf-8");
-        } catch (UnsupportedEncodingException ignored) {
-
+            loginName = URLEncoder.encode(loginName, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.e("PmFragmentMembers", "Encoding error", e);
         }
         String finalPass = pass;
-        String finalLogin = login_name;
+        String finalLogin = loginName;
 
         if (!TextUtils.isEmpty(story)) {
             url = Config.MEMBERS_SEARCH_URL;
-
             try {
                 story = URLEncoder.encode(story, "utf-8");
-            } catch (UnsupportedEncodingException ignored) {
-
+            } catch (UnsupportedEncodingException e) {
+                Log.e("PmFragmentMembers", "Story encoding error", e);
             }
             s_url = "&story=" + story;
-            Log.e("---", "story real - " + story);
-
+            Log.d("PmFragmentMembers", "story real - " + story);
         }
 
-        String final_url = url + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass  + s_url;
+        String finalUrl = url + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass + s_url;
 
-        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_friends)))) {
-            final_url = Config.PM_URL + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass;
-        }
-        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_ignore)))) {
-            final_url = Config.PM_URL + requestCount + "&pm=7&login_name=" + finalLogin + "&login_password=" + finalPass;
+        if (tab_title != null && tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_friends))) {
+            finalUrl = Config.PM_URL + requestCount + "&pm=6&login_name=" + finalLogin + "&login_password=" + finalPass;
+        } else if (tab_title != null && tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_ignore))) {
+            finalUrl = Config.PM_URL + requestCount + "&pm=7&login_name=" + finalLogin + "&login_password=" + finalPass;
         }
 
-        return new JsonArrayRequest(final_url,
+        return new JsonArrayRequest(finalUrl,
                 response -> {
+                    progressBar.setVisibility(View.GONE);
+                    progressBarBottom.setVisibility(View.GONE);
+
+                    if (response.length() == 0) {
+                        swipLayout.setRefreshing(false);
+                        return;
+                    }
 
                     if (requestCount == 1) {
                         listFeed.clear();
                         recyclerView.post(() -> recyclerView.scrollToPosition(0));
                     }
 
-                    progressBar.setVisibility(View.GONE);
-                    ProgressBarBottom.setVisibility(View.GONE);
+                    List<FeedPm> newItems = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         FeedPm jsonFeed = new FeedPm();
-                        JSONObject json;
                         try {
-                            json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE)); // имя
-                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL)); // автарка
-                            jsonFeed.setId(json.getInt(Config.TAG_ID)); // user_id
-                            jsonFeed.setDate(json.getString(Config.TAG_DATE)); // последний визит
-                            jsonFeed.setTime(json.getLong(Config.TAG_TIME)); // последний визит
-                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_USER)); // фраза Был на сайте
-                            jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT)); // ранг
-                            jsonFeed.setText(json.getString(Config.TAG_TEXT)); // фраза Нажмите чтоб написать сообщение
-
-                        } catch (JSONException ignored) {
-
+                            JSONObject json = response.getJSONObject(i);
+                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                            jsonFeed.setId(json.getInt(Config.TAG_ID));
+                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_USER));
+                            jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
+                            jsonFeed.setText(json.getString(Config.TAG_TEXT));
+                            newItems.add(jsonFeed);
+                        } catch (JSONException e) {
+                            Log.e("PmFragmentMembers", "JSON parsing error", e);
                         }
-                        listFeed.add(jsonFeed);
                     }
-                    recyclerView.post(() -> {
-                        adapter.notifyDataSetChanged();
-                    });
+                    listFeed.addAll(newItems);
+                    recyclerView.post(() -> adapter.updateData(listFeed));
+                    swipLayout.setRefreshing(false);
                 },
                 error -> {
                     progressBar.setVisibility(View.GONE);
-                    ProgressBarBottom.setVisibility(View.GONE);
+                    progressBarBottom.setVisibility(View.GONE);
+                    swipLayout.setRefreshing(false);
+                    Log.e("PmFragmentMembers", "Volley error", error);
                 });
     }
 
-    // получение данных и увеличение номера страницы
     private void getData() {
-        ProgressBarBottom.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        progressBarBottom.setVisibility(View.VISIBLE);
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 
-    // опредление последнего элемента
     private boolean isLastItemDisplaying(RecyclerView recyclerView) {
         if (Objects.requireNonNull(recyclerView.getAdapter()).getItemCount() != 0) {
             int lastVisibleItemPosition = ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).findLastCompletelyVisibleItemPosition();

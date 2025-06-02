@@ -114,10 +114,6 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_launcher_round" />
 
-        <provider
-            android:name=".db.Provider"
-            android:authorities="com.dimonvideo.client"
-            android:exported="false" />
     </application>
     <uses-permission android:name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS"
         tools:ignore="ManifestOrder,ProtectedPermissions" />

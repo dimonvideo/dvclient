@@ -1,5 +1,6 @@
 package com.dimonvideo.client.adater;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -54,7 +55,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
                 output.append("\n");
             }
             if (opening && tag.equals("li")) {
-                output.append("\n\u2022");
+                output.append("\n•");
             }
         }
     }
@@ -79,6 +80,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     }
 
 
+    @SuppressLint("SetTextI18n")
     public void onBindViewHold(ViewHolder holder, int position) {
 
         final FeedForum feed = jsonFeed.get(position);
@@ -118,7 +120,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         TextView textViewText = holder.textViewText;
         try {
             URLImageParser parser = new URLImageParser(textViewText);
-            Spanned spanned = Html.fromHtml(feed.getText(), parser, new AdapterComments.TagHandler());
+            Spanned spanned = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
             textViewText.setText(spanned);
             textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
@@ -195,7 +197,8 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         builder.setItems(items, (dialog, item) -> {
 
             if (item == 0) { // copy text
-                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText()).toString());
+
+                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }

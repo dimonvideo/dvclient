@@ -1,7 +1,5 @@
 package com.dimonvideo.client.util;
 
-import static com.dimonvideo.client.util.NetworkUtils.showErrorToast;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -21,7 +19,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcher;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.android.volley.Request;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -195,10 +198,8 @@ public class ButtonsActions {
     }
 
 
-    // проиграть видео в окне диалога
     public static void PlayVideo(Context context, String url) {
         new Handler(Looper.getMainLooper()).post(() -> {
-
             final boolean is_aspect = AppController.getInstance().isAspectRatio();
             final boolean is_external_video = AppController.getInstance().isExternalPlayer();
             String link = url;
@@ -207,7 +208,7 @@ public class ButtonsActions {
             } catch (Throwable ignored) {
             }
 
-            if ((is_external_video) && (!link.isEmpty())) {
+            if (is_external_video && !link.isEmpty()) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.parse(link), "video/*");
                 try {
@@ -217,29 +218,49 @@ public class ButtonsActions {
             } else {
                 final Dialog dialog = new Dialog(context);
                 Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialog.setContentView(R.layout.video);
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 
                 AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
 
-                if (is_aspect) andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
-                else andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
+                if (is_aspect) {
+                    andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
+                } else {
+                    andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
+                }
 
                 if (!link.isEmpty()) {
                     HashMap<String, String> map = new HashMap<>();
                     map.put("link", link);
                     andExoPlayerView.setSource(link, map);
                     dialog.show();
-                    dialog.setOnKeyListener((arg0, keyCode, event) -> {
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            andExoPlayerView.stopPlayer();
-                            dialog.dismiss();
-                        }
-                        return true;
-                    });
+
+                    // Обработка нажатия кнопки "назад"
+                    if (context instanceof AppCompatActivity) {
+                        OnBackPressedDispatcher dispatcher = ((AppCompatActivity) context).getOnBackPressedDispatcher();
+                        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+                            @Override
+                            public void handleOnBackPressed() {
+                                andExoPlayerView.stopPlayer();
+                                dialog.dismiss();
+                                this.setEnabled(false); // Отключаем коллбэк
+                            }
+                        };
+                        dispatcher.addCallback(callback);
+                        dialog.setOnDismissListener(d -> callback.setEnabled(false));
+                    } else {
+                        // Запасной вариант для случаев, когда context не является AppCompatActivity
+                        dialog.setOnKeyListener((arg0, keyCode, event) -> {
+                            if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                                andExoPlayerView.stopPlayer();
+                                dialog.dismiss();
+                                return true;
+                            }
+                            return false;
+                        });
+                    }
                 }
             }
         });
@@ -314,5 +335,12 @@ public class ButtonsActions {
                 }
             });
         });
+    }
+
+    private static void showErrorToast(Context context, VolleyError error) {
+
+        if (context != null) {
+            Toast.makeText(context, "ERROR: "+error, Toast.LENGTH_LONG).show();
+        }
     }
 }

@@ -1,12 +1,19 @@
 package com.dimonvideo.client.model;
 
+import android.text.Html;
+import android.text.Spanned;
+
 import com.dimonvideo.client.Config;
+import com.dimonvideo.client.adater.AdapterPm;
+import com.dimonvideo.client.util.URLImageParser;
 
 public class FeedPm {
     //Data Variables
-    private String imageUrl, title, full_text, date, last_poster_name, text;
+    private String imageUrl, title, full_text, date, last_poster_name, text, fullText;
     private int id, Is_new;
     private Long time;
+    private Spanned spannedText;
+    private Spanned spannedFullText;
 
     //Getters and Setters
 
@@ -79,5 +86,19 @@ public class FeedPm {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Spanned getSpannedText() {
+        if (spannedText == null) {
+            spannedText = Html.fromHtml(getText(), Html.FROM_HTML_MODE_LEGACY, new URLImageParser(null), new AdapterPm.TagHandler());
+        }
+        return spannedText;
+    }
+
+    public Spanned getSpannedFullText() {
+        if (spannedFullText == null) {
+            spannedFullText = Html.fromHtml(getFullText(), Html.FROM_HTML_MODE_LEGACY, new URLImageParser(null), new AdapterPm.TagHandler());
+        }
+        return spannedFullText;
     }
 }

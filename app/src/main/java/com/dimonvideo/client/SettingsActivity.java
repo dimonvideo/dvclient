@@ -6,12 +6,10 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.Window;
@@ -30,7 +28,6 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.android.volley.Request;
@@ -66,9 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String value = sharedPrefs.getString("dvc_scale", "1.0f");
-        adjustFontScale(getResources().getConfiguration(), this, value);
+
 
         // onBackPressed
         Intent intent = new Intent(this, MainActivity.class);
@@ -121,7 +116,7 @@ public class SettingsActivity extends AppCompatActivity {
             assert dvc_scale != null;
             dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
-                adjustFontScale(getResources().getConfiguration(), requireContext(), (String) newValue);
+
                 return true;
             });
 
@@ -356,17 +351,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onStop();
     }
 
-    // масштабирование шрифтов
-    static void adjustFontScale(Configuration configuration, Context context, String value) {
-        configuration.fontScale = Float.parseFloat(value);
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        WindowManager wm = (WindowManager) context.getSystemService(WINDOW_SERVICE);
-        assert wm != null;
-        wm.getDefaultDisplay().getMetrics(metrics);
-        metrics.scaledDensity = configuration.fontScale * metrics.density;
-        context.getResources().updateConfiguration(configuration, metrics);
-        Log.e("---", value);
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

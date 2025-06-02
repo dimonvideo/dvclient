@@ -6,11 +6,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
-import com.dimonvideo.client.databinding.ActivityMainBinding;
-
-import java.util.concurrent.Executors;
 
 public class UpdatePm {
 
@@ -26,7 +22,7 @@ public class UpdatePm {
 
             // обновляем счетчик лс
             TextView fab_badge = view.findViewById(R.id.fab_badge);
-            Executors.newSingleThreadExecutor().execute(() -> {
+            AppController.getInstance().getExecutor().execute(() -> {
 
                 Handler mainHandler = new Handler(Looper.getMainLooper());
 

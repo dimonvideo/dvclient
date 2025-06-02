@@ -68,7 +68,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
                 output.append("\n");
             }
             if (opening && tag.equals("li")) {
-                output.append("\n\u2022");
+                output.append("\n•");
             }
         }
     }
@@ -95,7 +95,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
             EventBus.getDefault().register(this);
         }
 
-        final FeedForum Feed = jsonFeed.get(position);
+        final FeedForum feed = jsonFeed.get(position);
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -104,7 +104,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         holder.status_logo.setImageResource(R.drawable.ic_status_gray);
 
         try {
-            if (Feed.getTime() > cal.getTimeInMillis() / 1000L)
+            if (feed.getTime() > cal.getTimeInMillis() / 1000L)
                 holder.status_logo.setImageResource(R.drawable.ic_status_green);
         } catch (Throwable ignored) {
 
@@ -113,26 +113,26 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         Glide.with(holder.itemView.getContext()).clear(holder.imageView);
 
         Glide.with(holder.itemView.getContext())
-                .load(Feed.getImageUrl())
+                .load(feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.baseline_image_20)
                 .error(R.drawable.baseline_image_20)
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
-        holder.textViewTitle.setText(Feed.getTitle());
+        holder.textViewTitle.setText(feed.getTitle());
 
         final int auth_state = AppController.getInstance().isAuth();
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        holder.textViewDate.setText(Feed.getDate());
-        holder.textViewNames.setText(Feed.getLast_poster_name());
-        holder.textViewCategory.setText(Feed.getCategory());
-        holder.textViewComments.setText(String.valueOf(Feed.getComments()));
+        holder.textViewDate.setText(feed.getDate());
+        holder.textViewNames.setText(feed.getLast_poster_name());
+        holder.textViewCategory.setText(feed.getCategory());
+        holder.textViewComments.setText(String.valueOf(feed.getComments()));
         holder.textViewComments.setVisibility(View.VISIBLE);
         holder.rating_logo.setVisibility(View.VISIBLE);
 
-        if (Feed.getComments() == 0) {
+        if (feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
@@ -142,13 +142,13 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         try {
             URLImageParser parser = new URLImageParser(holder.textViewText);
-            Spanned spanned = Html.fromHtml(Feed.getText(), parser, new AdapterMainRazdel.TagHandler());
+            Spanned spanned = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
             holder.textViewText.setText(spanned);
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
                     // open links from listtext
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, Feed.getRazdel());
+                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, feed.getRazdel());
                 }
             });
         } catch (Throwable ignored) {
@@ -156,7 +156,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         // цитирование
         holder.itemView.setOnClickListener(view -> {
             if (auth_state > 0) {
-                EventBus.getDefault().post(new MessageEvent("8", null, null, null, "[b]" + Feed.getLast_poster_name() + "[/b], ", null));
+                EventBus.getDefault().post(new MessageEvent("8", null, null, null, "[b]" + feed.getLast_poster_name() + "[/b], ", null));
             }
         });
 
@@ -173,14 +173,14 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
     private void show_dialog(ItemViewHolder holder, int position){
         final CharSequence[] items = {mContext.getString(R.string.menu_share_title), mContext.getString(R.string.action_open),
                 mContext.getString(R.string.action_like), mContext.getString(R.string.copy_listtext)};
-        FeedForum Feed = jsonFeed.get(position);
+        FeedForum feed = jsonFeed.get(position);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        holder.url = Config.WRITE_URL + "/forum/post_" + Feed.getId();
+        holder.url = Config.WRITE_URL + "/forum/post_" + feed.getId();
 
         holder.myClipboard = (ClipboardManager)mContext.getSystemService(Context.CLIPBOARD_SERVICE);
 
-        builder.setTitle(Feed.getTitle());
+        builder.setTitle(feed.getTitle());
         builder.setItems(items, (dialog, item) -> {
 
             if (item == 0) { // share
@@ -189,7 +189,7 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
                 sendIntent.putExtra(Intent.EXTRA_TEXT, holder.url);
                 sendIntent.setType("text/plain");
 
-                Intent shareIntent = Intent.createChooser(sendIntent, Feed.getTitle());
+                Intent shareIntent = Intent.createChooser(sendIntent, feed.getTitle());
                 try {
                     mContext.startActivity(shareIntent);
                 } catch (Throwable ignored) {
@@ -203,11 +203,12 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
                 }
             }
             if (item == 2) { // like
-                ButtonsActions.like_forum_post(mContext, Feed.getId(), 1);
+                ButtonsActions.like_forum_post(mContext, feed.getId(), 1);
             }
             if (item == 3) { // copy text
-                try { holder.myClip = ClipData.newPlainText("text", Html.fromHtml(Feed.getText()).toString());
-                holder.myClipboard.setPrimaryClip(holder.myClip);
+                try {
+                    holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY).toString());
+                    holder.myClipboard.setPrimaryClip(holder.myClip);
                 } catch (Throwable ignored) {
                 }
                 Toast.makeText(mContext, mContext.getString(R.string.success), Toast.LENGTH_SHORT).show();

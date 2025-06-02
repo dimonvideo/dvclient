@@ -69,6 +69,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     private String image_uploaded, razdel;
     private EditText textInput;
     private RecyclerView recyclerView;
+    private AppController controller;
 
     public ForumFragmentPosts(){
         // Required empty public constructor
@@ -106,7 +107,9 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        final int auth_state = AppController.getInstance().isAuth();
+        controller = AppController.getInstance();
+
+        final int auth_state = controller.isAuth();
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
@@ -159,7 +162,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
 
         // показ кнопки наверх
         FloatingActionButton fab = binding.fabTop;
-        boolean is_top = AppController.getInstance().isOnTop();
+        boolean is_top = controller.isOnTop();
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -276,8 +279,8 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
                             jsonFeed.setNewtopic(json.getInt(Config.TAG_NEW_TOPIC));
                             jsonFeed.setTopic_id(json.getInt(Config.TAG_TOPIC_ID));
                             jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException ignored) {
+
                         }
                         listFeed.add(jsonFeed);
                     }
@@ -294,7 +297,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     // получение данных и увеличение номера страницы
     private void getData() {
         progressBar.setVisibility(View.VISIBLE);
-        AppController.getInstance().addToRequestQueue(getDataFromServer(requestCount));
+        controller.addToRequestQueue(getDataFromServer(requestCount));
         requestCount++;
     }
 
