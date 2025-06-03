@@ -1,11 +1,7 @@
 package com.dimonvideo.client.util;
 
-import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -44,7 +40,6 @@ public class AppController extends Application {
         // Инициализация базы данных
         db = AppDatabase.getInstance(this);
         applyTheme();
-
     }
 
     public RequestQueue getRequestQueueV() {
@@ -66,49 +61,6 @@ public class AppController extends Application {
 
         req.setShouldCache(false);
         getRequestQueueV().add(req);
-    }
-
-    /**
-     * Настраивает масштаб шрифта приложения, пересоздавая активность с новой конфигурацией.
-     *
-     * @param context Контекст активности или приложения, должен быть экземпляром {@link Activity}.
-     */
-    public void adjustFontScale(Context context) {
-        if (!(context instanceof Activity)) {
-            Log.w(TAG, "Context is not an Activity, cannot adjust font scale");
-            return;
-        }
-
-        Activity activity = (Activity) context;
-        Resources resources = context.getResources();
-        Configuration currentConfig = resources.getConfiguration();
-
-        try {
-            float newFontScale = Float.parseFloat(scaleFont());
-            if (newFontScale != currentConfig.fontScale) {
-                Log.d(TAG, "Applying new font scale: " + newFontScale);
-
-                // Создаём новую конфигурацию
-                Configuration newConfig = new Configuration(currentConfig);
-                newConfig.fontScale = newFontScale;
-
-                // Применяем новую конфигурацию через пересоздание активности
-                // Сохраняем масштаб в SharedPreferences или другом хранилище
-                SharedPreferences prefs = activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-                prefs.edit().putFloat("font_scale", newFontScale).apply();
-
-                // Пересоздаём активность для применения изменений
-                activity.recreate();
-            } else {
-                Log.d(TAG, "Font scale is already set to: " + newFontScale);
-            }
-        } catch (NumberFormatException e) {
-            Log.e(TAG, "Invalid font scale value: " + scaleFont(), e);
-            // Устанавливаем значение по умолчанию
-            SharedPreferences prefs = activity.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-            prefs.edit().putFloat("font_scale", 1.0f).apply();
-            activity.recreate();
-        }
     }
 
     /**
@@ -429,6 +381,10 @@ public class AppController extends Application {
 
     public void putThemeLight() {
         putSharedPreferences().putString("dvc_theme_new", "no").apply();
+    }
+
+    public void putScale(String scale) {
+        putSharedPreferences().putString("dvc_scale", scale).apply();
     }
 
     public void putThemeDark() {

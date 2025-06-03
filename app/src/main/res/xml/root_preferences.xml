@@ -164,13 +164,7 @@
             android:summary="@string/btn_share_switch_more"
             app:key="dvc_btn_share"
             app:title="@string/btn_share_switch" />
-        <ListPreference
-            app:defaultValue="1.0f"
-            app:entries="@array/size_entries"
-            app:entryValues="@array/size_values"
-            app:key="dvc_scale"
-            app:title="@string/scale_title"
-            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <!-- New Preference -->

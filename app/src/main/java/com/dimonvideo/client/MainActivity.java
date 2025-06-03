@@ -149,8 +149,6 @@ public class MainActivity extends AppCompatActivity {
 
         fab_badge = binding.appBarMain.fabBadge;
 
-        controller.adjustFontScale(this);
-
         setSupportActionBar(binding.appBarMain.toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
