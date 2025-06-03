@@ -105,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
             // переключение темы на лету
             assert dvc_theme != null;
             dvc_theme.setOnPreferenceChangeListener((preference, newValue) -> {
-                if (newValue.equals("on")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                if (newValue.equals("yes")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 else if (newValue.equals("system")) AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                 else AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();

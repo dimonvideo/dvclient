@@ -222,16 +222,17 @@ public class MainActivity extends AppCompatActivity {
 
         // иконка темы
         theme_icon.setOnClickListener(view -> {
-            String currentTheme = controller.isDark();
-            if (currentTheme.equals("true")) {
-                controller.putThemeLight();
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-            } else {
-                controller.putThemeDark();
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            }
-            Log.d("MainActivity", "Theme changed to: " + controller.isDark());
-            recreate();
+            try {
+                String currentTheme = controller.isDark();
+                if (currentTheme.equals("yes")) {
+                    controller.putThemeLight();
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                } else {
+                    controller.putThemeDark();
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                }
+                recreate();
+            } catch (Exception ignored) {}
         });
 
         // слушаем изменение темы в настройках

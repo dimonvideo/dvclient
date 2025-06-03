@@ -150,21 +150,23 @@ public class AppController extends Application {
      * Применить выбранную пользователем тему приложения (тёмная/светлая/системная).
      */
     public void applyTheme() {
-        String darkMode = isDark();
-        Log.d(Config.TAG, "Applying theme: " + darkMode);
-        switch (darkMode) {
-            case "true":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                break;
-            case "false":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            case "system":
-            default:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-                break;
-        }
-        Log.d(TAG, "Applied theme mode: " + darkMode);
+        try {
+            String darkMode = isDark();
+            Log.d(Config.TAG, "Applying theme: " + darkMode);
+            switch (darkMode) {
+                case "yes":
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    break;
+                case "no":
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    break;
+                case "system":
+                default:
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                    break;
+            }
+        } catch (Exception ignored) {}
+
     }
 
     // Получение всех настроек
@@ -203,7 +205,7 @@ public class AppController extends Application {
 
     // ===================================== preferences ========================================================= //
     public String isDark() {
-        return getSharedPreferences().getString("dvc_theme_list", "false");
+        return getSharedPreferences().getString("dvc_theme_list", "no");
     }
 
     public String mainRazdel() {
@@ -426,11 +428,11 @@ public class AppController extends Application {
 
 
     public void putThemeLight() {
-        putSharedPreferences().putString("dvc_theme_list", "false").apply();
+        putSharedPreferences().putString("dvc_theme_list", "no").apply();
     }
 
     public void putThemeDark() {
-        putSharedPreferences().putString("dvc_theme_list", "true").apply();
+        putSharedPreferences().putString("dvc_theme_list", "yes").apply();
     }
 
     public void putToken(String token) {

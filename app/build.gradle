@@ -15,11 +15,22 @@ try {
 }
 android {
 
+    signingConfigs {
+
+        debug {
+            storeFile file('D:/Android/.dv.keystore/beep_591977')
+            storePassword '591977'
+            keyAlias 'dimonvideo'
+            keyPassword '591977'
+            v1SigningEnabled true
+        }
+    }
+
     defaultConfig {
         applicationId "com.dimonvideo.client"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 300000075
+        versionCode 300000076
         versionName "4.2"
 
         setProperty("archivesBaseName", applicationId + "-v" + versionCode)
