@@ -91,7 +91,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            Preference dvc_theme = findPreference("dvc_theme_list");
+            Preference dvc_theme = findPreference("dvc_theme_new");
             Preference dvc_password = findPreference("dvc_password");
             Preference dvc_login = findPreference("dvc_login");
             Preference dvc_pm = findPreference("dvc_pm");

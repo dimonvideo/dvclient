@@ -30,7 +30,7 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 300000076
+        versionCode 300000077
         versionName "4.2"
 
         setProperty("archivesBaseName", applicationId + "-v" + versionCode)

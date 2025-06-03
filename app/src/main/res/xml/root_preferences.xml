@@ -116,7 +116,7 @@
 
         <ListPreference
             app:defaultValue="false"
-            app:key="dvc_theme_list"
+            app:key="dvc_theme_new"
             app:title="@string/theme_black"
             android:entries="@array/theme_list"
             android:entryValues="@array/theme_list_values"

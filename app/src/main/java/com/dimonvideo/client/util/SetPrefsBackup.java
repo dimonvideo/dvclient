@@ -194,6 +194,7 @@ public class SetPrefsBackup extends AppCompatActivity {
                                     if (key.equalsIgnoreCase("auth_last")) continue;
                                     if (key.equalsIgnoreCase("auth_foto")) continue;
                                     if (key.equalsIgnoreCase("current_token")) continue;
+                                    if (key.equalsIgnoreCase("dvc_theme_list")) continue;
 
 
                                     if (value.equals("true") || value.equals("false")) {

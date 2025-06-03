@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
         // слушаем изменение темы в настройках
         controller.getSharedPreferences().registerOnSharedPreferenceChangeListener((prefs, key) -> {
-            if ("dvc_theme_list".equals(key)) {
+            if ("dvc_theme_new".equals(key)) {
                 controller.applyTheme();
                 recreate();
             }

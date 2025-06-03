@@ -205,7 +205,7 @@ public class AppController extends Application {
 
     // ===================================== preferences ========================================================= //
     public String isDark() {
-        return getSharedPreferences().getString("dvc_theme_list", "no");
+        return getSharedPreferences().getString("dvc_theme_new", "no");
     }
 
     public String mainRazdel() {
@@ -428,11 +428,11 @@ public class AppController extends Application {
 
 
     public void putThemeLight() {
-        putSharedPreferences().putString("dvc_theme_list", "no").apply();
+        putSharedPreferences().putString("dvc_theme_new", "no").apply();
     }
 
     public void putThemeDark() {
-        putSharedPreferences().putString("dvc_theme_list", "yes").apply();
+        putSharedPreferences().putString("dvc_theme_new", "yes").apply();
     }
 
     public void putToken(String token) {
