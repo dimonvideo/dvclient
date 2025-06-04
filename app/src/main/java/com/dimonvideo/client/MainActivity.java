@@ -41,6 +41,10 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -121,7 +125,17 @@ public class MainActivity extends AppCompatActivity {
         Analytics.init(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
         setContentView(binding.getRoot());
+
+        View root = binding.getRoot();
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, statusBarInsets.top, 0, statusBarInsets.bottom);
+            return insets;
+        });
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
