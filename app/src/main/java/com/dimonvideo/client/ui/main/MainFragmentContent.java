@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,10 +25,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -132,15 +135,10 @@ public class MainFragmentContent extends Fragment {
         ProgressBarBottom.setVisibility(View.GONE);
 
         adapter = new AdapterMainRazdel(listFeed, requireContext(), (AppCompatActivity) requireActivity(), database);
-        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
-        if (horizontalDivider != null) {
-            horizontalDecoration.setDrawable(horizontalDivider);
-        }
-        recyclerView.addItemDecoration(horizontalDecoration);
+
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setNestedScrollingEnabled(true);
+        recyclerView.setItemViewCacheSize(10);
         ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
 
@@ -258,15 +256,15 @@ public class MainFragmentContent extends Fragment {
             urlFinal = url + requestCount + "&c=limit,10," + categoryString + s_url + st_url;
         }
         if (tab_title != null && tab_title.equalsIgnoreCase(getString(R.string.tab_favorites))) {
-            urlFinal = url + requestCount + s_url + "&fav=1&login=" + loginName;
+            urlFinal = url + requestCount + s_url + "&fav=1&login_name=" + loginName;
         }
 
-        Activity activity = getActivity();
         Log.d("MainFragmentContent", "URL: " + urlFinal);
 
         return new JsonArrayRequest(urlFinal,
                 response -> {
-                    if (activity == null) return;
+                    Activity activity = getActivity();
+                    if (activity == null || !isAdded() || binding == null) return;
 
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);
@@ -335,10 +333,10 @@ public class MainFragmentContent extends Fragment {
                     }
                 },
                 error -> {
-                    if (activity != null) {
-                        progressBar.setVisibility(View.GONE);
-                        ProgressBarBottom.setVisibility(View.GONE);
-                    }
+                    Activity activity = getActivity();
+                    if (activity == null || !isAdded() || binding == null) return;
+                    progressBar.setVisibility(View.GONE);
+                    ProgressBarBottom.setVisibility(View.GONE);
                     Log.e("MainFragmentContent", "Volley error", error);
                 });
 

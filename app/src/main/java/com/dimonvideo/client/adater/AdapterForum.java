@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.annotation.SuppressLint;
@@ -20,6 +26,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragmentPosts;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.ButtonsActions;
 
 import java.util.Calendar;
@@ -62,21 +69,57 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
             holder.status_logo.setImageResource(R.drawable.ic_status_green);
         }
 
-        holder.textViewTitle.setText(Feed.getTitle());
-        holder.textViewText.setText(Feed.getText());
-        holder.textViewText.setTextColor(context.getColor(R.color.year));
-        holder.textViewNames.setTextColor(context.getColor(R.color.year));
-        holder.textViewDate.setText(Feed.getDate());
-        holder.textViewNames.setText(Feed.getLast_poster_name());
-        holder.textViewCategory.setText(Feed.getCategory());
-        holder.textViewComments.setText(String.valueOf(Feed.getComments()));
-        holder.textViewComments.setVisibility(View.VISIBLE);
-        holder.rating_logo.setVisibility(View.VISIBLE);
         if (Feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
+
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+        holder.textViewTitle.setText(Feed.getTitle());
+        holder.textViewText.setText(Feed.getText());
+        holder.textViewDate.setText(Feed.getDate());
+        holder.textViewName.setText(Feed.getLast_poster_name());
+        holder.textViewCategory.setText(Feed.getCategory());
+        holder.textViewComments.setText(String.valueOf(Feed.getComments()));
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewCategory,
+                holder.textViewComments,
+                holder.textViewName,
+                holder.textViewHits
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12, 12, 12, 12};
+        float[] sizesSmall    = {16, 15, 14, 14, 14, 14, 14};
+        float[] sizesNormal   = {18, 17, 16, 16, 16, 16, 16};
+        float[] sizesLarge    = {20, 19, 18, 18, 18, 18, 18};
+        float[] sizesLargest  = {24, 23, 22, 22, 22, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+
+
+        holder.textViewText.setTextColor(context.getColor(R.color.year));
+        holder.textViewName.setTextColor(context.getColor(R.color.year));
+        holder.textViewComments.setVisibility(View.VISIBLE);
+        holder.rating_logo.setVisibility(View.VISIBLE);
+
         holder.itemView.setOnClickListener(v -> {
             ForumFragmentPosts fragment = new ForumFragmentPosts();
             Bundle bundle = new Bundle();
@@ -147,7 +190,7 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         //Views
-        public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewNames;
+        public TextView textViewTitle, textViewText, textViewDate, textViewComments, textViewCategory, textViewHits, textViewName;
         public ImageView rating_logo, status_logo, fav_star;
         public String url;
 
@@ -162,7 +205,7 @@ public class AdapterForum extends RecyclerView.Adapter<AdapterForum.ViewHolder> 
             textViewComments = itemView.findViewById(R.id.rating);
             textViewCategory = itemView.findViewById(R.id.category);
             textViewHits = itemView.findViewById(R.id.views_count);
-            textViewNames = itemView.findViewById(R.id.names);
+            textViewName = itemView.findViewById(R.id.names);
             fav_star = itemView.findViewById(R.id.fav);
 
         }

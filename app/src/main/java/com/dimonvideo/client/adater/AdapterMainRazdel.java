@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.content.ClipData;
@@ -115,7 +121,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         String cacheKey = feed.getId() + "_" + feed.getRazdel();
         Integer cachedStatus = statusCache.getOrDefault(cacheKey, 0);
-        holder.status_logo.setImageResource(cachedStatus == 1 ? R.drawable.ic_status_gray : R.drawable.ic_status_green);
+        int status = cachedStatus != null ? cachedStatus : 0;
+        holder.status_logo.setImageResource(status == 1 ? R.drawable.ic_status_gray : R.drawable.ic_status_green);
 
         if (feed.getState() == 0 && appController.isUserGroup() <= 2) {
             holder.btn_odob.setVisibility(View.VISIBLE);
@@ -143,15 +150,49 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 .into(holder.imageView);
 
         holder.textViewTitle.setText(feed.getTitle());
+
         holder.textViewText.setText(Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY));
+
         holder.textViewDate.setText(feed.getDate());
         holder.textViewCategory.setText(feed.getCategory());
         holder.textViewComments.setText(String.valueOf(feed.getComments()));
-        holder.textViewComments.setVisibility(feed.getComments() == 0 ? View.INVISIBLE : View.VISIBLE);
-        holder.rating_logo.setVisibility(feed.getComments() == 0 ? View.INVISIBLE : View.VISIBLE);
         holder.textViewName.setText(feed.getUser());
         holder.textViewHits.setText(String.valueOf(feed.getHits()));
 
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewCategory,
+                holder.textViewComments,
+                holder.textViewName,
+                holder.textViewHits
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12, 12, 12, 12};
+        float[] sizesSmall    = {16, 15, 14, 14, 14, 14, 14};
+        float[] sizesNormal   = {18, 17, 16, 16, 16, 16, 16};
+        float[] sizesLarge    = {20, 19, 18, 18, 18, 18, 18};
+        float[] sizesLargest  = {24, 23, 22, 22, 22, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+
+        holder.textViewComments.setVisibility(feed.getComments() == 0 ? View.INVISIBLE : View.VISIBLE);
+        holder.rating_logo.setVisibility(feed.getComments() == 0 ? View.INVISIBLE : View.VISIBLE);
         holder.fav_star.setVisibility(feed.getFav() > 0 ? View.VISIBLE : View.GONE);
         holder.fav_star.setOnClickListener(v -> removeFav(holder.getBindingAdapterPosition()));
 

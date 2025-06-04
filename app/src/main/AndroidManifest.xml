@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Для Android 12L (API 32) и ниже -->
+    <!-- Разрешения для хранения -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-
-    <!-- Для Android 13 (API 33) и выше -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
-    <!-- Для Android 14+ (API 34) для частичного доступа -->
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
+    <!-- Другие разрешения -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS"
+        tools:ignore="ProtectedPermissions" />
 
     <queries>
         <package android:name="com.dv.adm.AEditor" />
@@ -33,6 +37,7 @@
         <package android:name="idm.internet.download.manager.plus" />
         <package android:name="idm.internet.download.manager.adm.lite" />
     </queries>
+
     <application
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
@@ -53,30 +58,37 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         tools:ignore="DiscouragedApi">
 
-
-        <receiver android:name=".util.DownloadBroadcastReceiver"
+        <!-- Ресивер для обработки загрузок -->
+        <receiver
+            android:name=".util.DownloadBroadcastReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
             </intent-filter>
         </receiver>
+
+        <!-- Settings Activity -->
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:launchMode="singleInstance"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            android:exported="false">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:configChanges="screenSize|orientation|uiMode|locale"
             android:resizeableActivity="true"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.NoActionBar"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -88,6 +100,7 @@
             </intent-filter>
         </activity>
 
+        <!-- Firebase Messaging Service -->
         <service
             android:name=".MyFirebaseMessagingService"
             android:exported="false">
@@ -95,13 +108,18 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <!-- Backup Activity -->
         <activity
             android:name=".util.SetPrefsBackup"
             android:exported="true"
             android:label="@string/menu_backup"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <receiver android:name=".util.ActionReceiver"
+
+        <!-- Action Receiver -->
+        <receiver
+            android:name=".util.ActionReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -109,13 +127,10 @@
             </intent-filter>
         </receiver>
 
-
+        <!-- Firebase Notification Icon -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_launcher_round" />
 
     </application>
-    <uses-permission android:name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS"
-        tools:ignore="ManifestOrder,ProtectedPermissions" />
-
 </manifest>

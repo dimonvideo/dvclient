@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.ui.pm;
 
 import android.app.NotificationManager;
@@ -20,7 +26,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -120,15 +125,10 @@ public class PmFragment extends Fragment {
         getData();
         adapter = new AdapterPm(listFeed, getContext());
 
-        // разделитель позиций
-        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(requireContext(), R.drawable.divider);
-        assert horizontalDivider != null;
-        horizontalDecoration.setDrawable(horizontalDivider);
-        recyclerView.addItemDecoration(horizontalDecoration);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setItemViewCacheSize(10);
         ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
 

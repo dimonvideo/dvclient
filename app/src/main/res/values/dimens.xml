@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>

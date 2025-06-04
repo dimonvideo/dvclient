@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {

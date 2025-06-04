@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.util;
 
 import android.app.Application;
@@ -16,6 +22,7 @@ import com.dimonvideo.client.db.AppDatabase;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +32,6 @@ public class AppController extends Application {
     private static AppController sInstance;
     private RequestQueue mRequestQueue;
     private static SharedPreferences sharedPrefs;
-    private static SharedPreferences.Editor editor;
     public static final String TAG = AppController.class.getSimpleName();
     /** Экземпляр базы данных приложения */
     private AppDatabase db;
@@ -145,19 +151,30 @@ public class AppController extends Application {
         return sharedPrefs;
     }
 
-    public static SharedPreferences.Editor putSharedPreferences() {
-
-        if (editor == null) {
-            editor = sharedPrefs.edit();
+    // Запись настройки
+    public void putPreference(String key, Object value) {
+        SharedPreferences.Editor editor = getSharedPreferences().edit();
+        Log.d("AppController", "Saving preference: key=" + key + ", value=" + value);
+        if (value.toString().contains("[")) {
+            String[] clear = value.toString().replaceAll("[^A-Za-z0-9,]","").split(",");
+            editor.putStringSet(key, Set.of(clear));
+        } else if (value instanceof String) {
+            editor.putString(key, (String) value);
+        } else if (value instanceof Boolean) {
+            editor.putBoolean(key, (Boolean) value);
+        } else if (value instanceof Integer) {
+            editor.putInt(key, (Integer) value);
+        } else if (value instanceof Float) {
+            editor.putFloat(key, (Float) value);
+        } else if (value instanceof Long) {
+            editor.putLong(key, (Long) value);
         }
-
-        return editor;
+        editor.apply();
     }
-
 
     // ===================================== preferences ========================================================= //
     public String isDark() {
-        return getSharedPreferences().getString("dvc_theme_new", "no");
+        return getSharedPreferences().getString("dvc_theme_new", "yes");
     }
 
     public String mainRazdel() {
@@ -178,10 +195,6 @@ public class AppController extends Application {
 
     public String isPm() {
         return getSharedPreferences().getString("dvc_pm", "off");
-    }
-
-    public String scaleFont() {
-        return getSharedPreferences().getString("dvc_scale", "1.0f");
     }
 
     public String isRang() {
@@ -376,71 +389,75 @@ public class AppController extends Application {
         return getSharedPreferences().getBoolean("dvc_add_vote", true);
     }
 
+    /**
+     * Получить выбранный размер шрифта.
+     * @return Строка с размером ("normal", "small", "large" и т.д.)
+     */
+    public String isFontSize() {
+        return getSharedPreferences().getString("font_size", "normal");
+    }
+
     // =============================================== put preferences ================================================================== //
 
 
     public void putThemeLight() {
-        putSharedPreferences().putString("dvc_theme_new", "no").apply();
-    }
-
-    public void putScale(String scale) {
-        putSharedPreferences().putString("dvc_scale", scale).apply();
+        getSharedPreferences().edit().putString("dvc_theme_new", "no").apply();
     }
 
     public void putThemeDark() {
-        putSharedPreferences().putString("dvc_theme_new", "yes").apply();
+        getSharedPreferences().edit().putString("dvc_theme_new", "yes").apply();
     }
 
     public void putToken(String token) {
-        putSharedPreferences().putString("current_token", token).apply();
+        getSharedPreferences().edit().putString("current_token", token).apply();
     }
 
     public void putImage(String image) {
-        putSharedPreferences().putString("auth_foto", image).apply();
+        getSharedPreferences().edit().putString("auth_foto", image).apply();
     }
 
     public void putRang(String status) {
-        putSharedPreferences().putString("auth_rang", status).apply();
+        getSharedPreferences().edit().putString("auth_rang", status).apply();
     }
 
     public void putLastDate(String lastdate) {
-        putSharedPreferences().putString("auth_last", lastdate).apply();
+        getSharedPreferences().edit().putString("auth_last", lastdate).apply();
     }
 
     public void putReputation(String rep) {
-        putSharedPreferences().putString("auth_rep", rep).apply();
+        getSharedPreferences().edit().putString("auth_rep", rep).apply();
     }
 
     public void putRegDate(String reg) {
-        putSharedPreferences().putString("auth_reg", reg).apply();
+        getSharedPreferences().edit().putString("auth_reg", reg).apply();
     }
 
     public void putRating(String rat) {
-        putSharedPreferences().putString("auth_rat", rat).apply();
+        getSharedPreferences().edit().putString("auth_rat", rat).apply();
     }
 
     public void putPosts(String posts) {
-        putSharedPreferences().putString("auth_posts", posts).apply();
+        getSharedPreferences().edit().putString("auth_posts", posts).apply();
     }
 
     public void putVersionCode(int versionCode) {
-        putSharedPreferences().putInt("last_version_code", versionCode).apply();
+        getSharedPreferences().edit().putInt("last_version_code", versionCode).apply();
     }
 
     public void putAuthState(int state) {
-        putSharedPreferences().putInt("auth_state", state).apply();
+        getSharedPreferences().edit().putInt("auth_state", state).apply();
     }
 
     public void putUserId(int uid) {
-        putSharedPreferences().putInt("user_id", uid).apply();
+        getSharedPreferences().edit().putInt("user_id", uid).apply();
     }
 
     public void putUserGroup(int user_group) {
-        putSharedPreferences().putInt("user_group", user_group).apply();
+        getSharedPreferences().edit().putInt("user_group", user_group).apply();
     }
 
     public void putPmUnread(int pm_unread) {
-        putSharedPreferences().putInt("pm_unread", pm_unread).apply();
+        getSharedPreferences().edit().putInt("pm_unread", pm_unread).apply();
     }
 
     /**

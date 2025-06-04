@@ -1,21 +1,25 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.model;
 
 import android.text.Html;
 import android.text.Spanned;
+import android.widget.TextView;
 
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.util.URLImageParser;
 
 public class FeedPm {
-    //Data Variables
-    private String imageUrl, title, full_text, date, last_poster_name, text, fullText;
+    private String imageUrl, title, date, last_poster_name, text, full_text;
     private int id, Is_new;
     private Long time;
     private Spanned spannedText;
     private Spanned spannedFullText;
-
-    //Getters and Setters
 
     public String getImageUrl() {
         return imageUrl;
@@ -39,29 +43,33 @@ public class FeedPm {
     public int getId() {
         return id;
     }
-    public void setIs_new(int Is_new) {
-        this.Is_new = Is_new;
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getIs_new() {
         return Is_new;
     }
+
+    public void setIs_new(int Is_new) {
+        this.Is_new = Is_new;
+    }
+
     public String getDate() {
         return date;
-    }
-    public Long getTime() {
-        return time;
-    }
-    public void setTime(Long time) {
-        this.time = time;
     }
 
     public void setDate(String date) {
         this.date = date;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public Long getTime() {
+        return time;
+    }
+
+    public void setTime(Long time) {
+        this.time = time;
     }
 
     public String getLast_poster_name() {
@@ -88,17 +96,17 @@ public class FeedPm {
         this.text = text;
     }
 
-    public Spanned getSpannedText() {
-        if (spannedText == null) {
-            spannedText = Html.fromHtml(getText(), Html.FROM_HTML_MODE_LEGACY, new URLImageParser(null), new AdapterPm.TagHandler());
+    public Spanned getSpannedText(TextView textView) {
+        if (spannedText == null && textView != null) {
+            spannedText = Html.fromHtml(getText(), Html.FROM_HTML_MODE_LEGACY, new URLImageParser(textView), new AdapterPm.TagHandler());
         }
-        return spannedText;
+        return spannedText != null ? spannedText : Html.fromHtml(getText(), Html.FROM_HTML_MODE_LEGACY, null, new AdapterPm.TagHandler());
     }
 
-    public Spanned getSpannedFullText() {
-        if (spannedFullText == null) {
-            spannedFullText = Html.fromHtml(getFullText(), Html.FROM_HTML_MODE_LEGACY, new URLImageParser(null), new AdapterPm.TagHandler());
+    public Spanned getSpannedFullText(TextView textView) {
+        if (spannedFullText == null && textView != null) {
+            spannedFullText = Html.fromHtml(getFullText(), Html.FROM_HTML_MODE_LEGACY, new URLImageParser(textView), new AdapterPm.TagHandler());
         }
-        return spannedFullText;
+        return spannedFullText != null ? spannedFullText : Html.fromHtml(getFullText(), Html.FROM_HTML_MODE_LEGACY, null, new AdapterPm.TagHandler());
     }
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.annotation.SuppressLint;
@@ -119,17 +125,49 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
                 .error(R.drawable.baseline_image_20)
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
-        holder.textViewTitle.setText(feed.getTitle());
 
         final int auth_state = AppController.getInstance().isAuth();
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
+        holder.textViewTitle.setText(feed.getTitle());
         holder.textViewDate.setText(feed.getDate());
         holder.textViewNames.setText(feed.getLast_poster_name());
         holder.textViewCategory.setText(feed.getCategory());
         holder.textViewComments.setText(String.valueOf(feed.getComments()));
         holder.textViewComments.setVisibility(View.VISIBLE);
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewCategory,
+                holder.textViewComments,
+                holder.textViewHits
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12, 12, 12};
+        float[] sizesSmall    = {16, 15, 14, 14, 14, 14};
+        float[] sizesNormal   = {18, 17, 16, 16, 16, 16};
+        float[] sizesLarge    = {20, 19, 18, 18, 18, 18};
+        float[] sizesLargest  = {24, 23, 22, 22, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+
         holder.rating_logo.setVisibility(View.VISIBLE);
 
         if (feed.getComments() == 0) {

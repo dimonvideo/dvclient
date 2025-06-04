@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?><data-extraction-rules>
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
+<data-extraction-rules>
     <cloud-backup>
 >
     </cloud-backup>

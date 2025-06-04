@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <resources>
     <string name="app_name">dimonvideo.ru.client</string>
     <string name="nav_header_title">Login or register</string>
@@ -230,4 +236,11 @@
     <string name="prefs_date_restore">Restore date:</string>
     <string name="token_refresh">Refresh device token</string>
     <string name="token_refresh_sum">if device changed</string>
+    <string-array name="font_size_list">
+        <item>Smallest</item>
+        <item>Small</item>
+        <item>Normal</item>
+        <item>Large</item>
+        <item>Largest</item>
+    </string-array>
 </resources>

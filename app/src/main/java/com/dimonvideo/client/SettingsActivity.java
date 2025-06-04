@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client;
 
 import static androidx.preference.PreferenceManager.getDefaultSharedPreferences;
@@ -112,13 +118,6 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             });
 
-            // изменение размера шрифтов
-            assert dvc_scale != null;
-            dvc_scale.setOnPreferenceChangeListener((preference, newValue) -> {
-                Snackbar.make(requireView(), this.getString(R.string.restart_app), Snackbar.LENGTH_LONG).show();
-
-                return true;
-            });
 
             assert dvc_favor != null;
             dvc_favor.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -284,7 +283,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url, response -> {
 
-                    Log.e("Volley Result", "" + response);
+                    Log.e(Config.TAG, response);
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         String state = jsonObject.getString("state");

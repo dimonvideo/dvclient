@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.Editable;
@@ -120,10 +125,57 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         holder.textViewTitle.setText(feed.getTitle());
         holder.textViewDate.setText(feed.getDate());
         holder.textViewNames.setText(feed.getLast_poster_name());
-        holder.textViewText.setText(feed.getSpannedFullText());
-        holder.status_logo.setImageResource(feed.getIs_new() > 0 ? R.drawable.ic_status_green : R.drawable.ic_status_gray);
-        holder.itemView.setBackgroundColor(feed.getIs_new() > 0 ? Color.parseColor("#992301") : 0x00000000);
+        holder.textViewText.setText(feed.getSpannedFullText(holder.textViewText));
+
         holder.textViewText.setTypeface(null, feed.getIs_new() > 0 ? Typeface.BOLD : Typeface.NORMAL);
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewNames
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12};
+        float[] sizesSmall = {16, 15, 14, 14};
+        float[] sizesNormal = {18, 17, 16, 16};
+        float[] sizesLarge = {20, 19, 18, 18};
+        float[] sizesLargest = {24, 23, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest":
+                selectedSizes = sizesSmallest;
+                break;
+            case "small":
+                selectedSizes = sizesSmall;
+                break;
+            case "large":
+                selectedSizes = sizesLarge;
+                break;
+            case "largest":
+                selectedSizes = sizesLargest;
+                break;
+            default:
+                selectedSizes = sizesNormal;
+                break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+        holder.status_logo.setImageResource(feed.getIs_new() > 0 ? R.drawable.ic_status_green : R.drawable.ic_status_gray);
+
+        int color;
+        if (feed.getIs_new() > 0) {
+            color = context.getResources().getColor(R.color.colorDelete, context.getTheme());
+        } else {
+            color = context.getResources().getColor(R.color.colorList, context.getTheme());
+        }
+        holder.cardView.setBackgroundColor(color);
 
         // Загрузка изображения
         Glide.with(context)
@@ -143,7 +195,7 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
                 holder.btns.setVisibility(View.VISIBLE);
                 showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
                 holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-                holder.itemView.setBackgroundColor(0x00000000);
+                holder.cardView.setBackgroundColor(context.getResources().getColor(R.color.colorList, context.getTheme()));
             }
         });
 
@@ -191,6 +243,7 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         public ClipboardManager myClipboard;
         public ClipData myClip;
         public ImageView imagePick;
+        public LinearLayout cardView;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -204,12 +257,13 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
             send = itemView.findViewById(R.id.btnSend);
             textInput = itemView.findViewById(R.id.textInput);
             imagePick = itemView.findViewById(R.id.img_btn);
+            cardView = itemView.findViewById(R.id.card_content);
         }
     }
 
     private void showFullText(ItemViewHolder holder, boolean isOpenLink, boolean isVuploaderPlayListtext, FeedPm feed) {
         try {
-            holder.textViewText.setText(feed.getSpannedText());
+            holder.textViewText.setText(feed.getSpannedText(holder.textViewText));
             if (feed.getIs_new() > 0) {
                 NetworkUtils.readPm(context, feed.getId());
             }
@@ -221,6 +275,7 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
             });
         } catch (Exception e) {
             Log.e("AdapterPm", "Error showing full text", e);
+            Toast.makeText(context, R.string.error_network, Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -1,56 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
-    android:layout_width="fill_parent"
+    android:id="@+id/card_root"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:layout_margin="4dp"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="2dp"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardUseCompatPadding="true">
 
-    <!-- status -->
-    <ImageView
-        android:id="@+id/status"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginEnd="5dip"
-        android:layout_marginTop="5dip"
-        android:layout_marginStart="1dip"
-        android:layout_alignParentStart="true"
-        android:contentDescription="@string/Comments"
-        android:src="@drawable/ic_status_green" />
-
-    <!-- Title -->
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
+    <!-- Внутренний контейнер для минимальных отступов -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@+id/status"
-        android:textSize="@dimen/title"
-        android:textStyle="bold"
-        tools:ignore="SpUsage" />
+        android:orientation="vertical"
+        android:padding="6dp">
 
-    <!-- category -->
-    <TextView
-        android:id="@+id/category_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:text="@string/cats_text"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
-    <TextView
-        android:id="@+id/category"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:layout_toEndOf="@+id/category_text"
-        android:layout_marginTop="5dp"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
+        <!-- status + title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="2dp">
 
+            <ImageView
+                android:id="@+id/status"
+                android:layout_width="@dimen/text"
+                android:layout_height="@dimen/text"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/ic_status_green" />
 
-</RelativeLayout>
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/title"
+                android:textStyle="bold"
+                tools:text="Заголовок" />
+        </LinearLayout>
+
+        <!-- category строка -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="2dp">
+
+            <TextView
+                android:id="@+id/category_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cats_text"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/date"
+                android:layout_marginEnd="4dp"
+                tools:text="Категория:" />
+
+            <TextView
+                android:id="@+id/category"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/date"
+                tools:text="Новости" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

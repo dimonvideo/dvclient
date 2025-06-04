@@ -1,28 +1,47 @@
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
+<!-- app/src/main/res/values-night/styles.xml -->
 <resources>
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight">
-        <!-- Customize your theme here. -->
+    <!-- Базовая тема приложения для тёмного режима -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/black</item>
-
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/colorPrimaryDark</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSecondary">@color/colorAccent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/colorAccent</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorSurface">@color/colorList</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="android:windowBackground">@color/colorList</item>
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <!-- Добавляем стили для ссылок -->
+        <item name="android:textColorLink">@color/link_color</item>
+        <item name="android:textColorHighlight">@color/link_highlight_color</item>
     </style>
 
-    <style name="NavDrawerTextStyle" parent="AppTheme">
-        <item name="android:textColor">@color/colorAccent</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
+    <!-- Стиль без ActionBar -->
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <!-- Стиль для Navigation Drawer -->
+    <style name="NavDrawerTextStyle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
-    
+    <!-- Стиль для AppBar -->
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3.Dark" />
 
+    <!-- Стиль для Popup -->
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3.Dark" />
 </resources>

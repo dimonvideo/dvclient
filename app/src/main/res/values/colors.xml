@@ -1,18 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <resources>
+    <!-- Основные цвета -->
     <color name="colorPrimary">#3394e6</color>
     <color name="colorPrimaryDark">#2A73B1</color>
     <color name="colorAccent">#66AEEC</color>
+    <!-- Дополнительные цвета -->
     <color name="colorPm">#337ab7</color>
-    <color name="colorPmSend">#419641 </color>
+    <color name="colorPmSend">#419641</color>
     <color name="colorDelete">#F44336</color>
-
+    <!-- Цвета для поверхностей и текста -->
     <color name="colorList">#FFFFFF</color>
-    <color name="text">#D22C2C2C</color>
+    <color name="text">#2C2C2C</color>
     <color name="category">#666666</color>
     <color name="year">#888888</color>
-    <color name="list_row_start_color">#ffffff</color>
-    <color name="list_row_end_color">#ffffff</color>
-    <color name="list_row_hover_start_color">#ebeef0</color>
-    <color name="list_row_hover_end_color">#ebeef0</color>
+    <color name="list_row_start_color">#FFFFFF</color>
+    <color name="list_row_end_color">#FFFFFF</color>
+    <color name="list_row_hover_start_color">#EBEEF0</color>
+    <color name="list_row_hover_end_color">#EBEEF0</color>
+    <!-- Дополнительные цвета для Material 3 -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="link_color">#2962FF</color>
+    <color name="link_highlight_color">#304FFE</color>
 </resources>

@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <resources>
     <!-- Reply Preference -->
     <string-array name="pm_entries">
@@ -10,29 +16,6 @@
         <item>on</item>
     </string-array>
 
-    <!-- Scale Preference -->
-    <string-array name="size_entries">
-        <item>Микро</item>
-        <item>Уменьшенный</item>
-        <item>Обычный</item>
-        <item>Увеличенный</item>
-        <item>Большой</item>
-        <item>Огромный</item>
-        <item>Огроменный</item>
-        <item>XXXXL</item>
-    </string-array>
-
-    <string-array name="size_values">
-        <item>0.7f</item>
-        <item>0.8f</item>
-        <item>1.0f</item>
-        <item>1.2f</item>
-        <item>1.3f</item>
-        <item>1.4f</item>
-        <item>1.6f</item>
-        <item>1.8f</item>
-    </string-array>
-
     <string-array name="default_values"><item>all</item></string-array>
 
     <!-- Theme Preference -->
@@ -40,12 +23,6 @@
         <item>@string/no</item>
         <item>@string/ok</item>
         <item>@string/theme_system</item>
-    </string-array>
-
-    <string-array name="theme_list_values">
-        <item>none</item>
-        <item>on</item>
-        <item>system</item>
     </string-array>
 
     <!-- Uploader Preference -->

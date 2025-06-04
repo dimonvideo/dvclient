@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <resources>
     <string name="app_name">DVClient</string>
     <string name="nav_header_title">Войдите или зарегистрируйтесь</string>
@@ -124,7 +130,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - оптимизация
+        - изменена настройка выбора размера шрифтов и исправлены ошибки\n
+        - обновлен внешний вид.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -226,5 +233,6 @@
     <string name="prefs_date_restore">Копия от:</string>
     <string name="token_refresh">Обновить токен</string>
     <string name="token_refresh_sum">при смене устройства</string>
+    <string-array name="font_size_list"><item>Наименьший</item><item>Мелкий</item><item>Нормальный</item><item>Большой</item><item>Наибольший</item></string-array>
 
 </resources>

@@ -1,154 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
-    android:layout_width="fill_parent"
+    android:id="@+id/card_root"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp" >
+    android:layout_margin="5dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="1dp"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="?attr/colorSurface">
 
-    <!-- status -->
-    <ImageView
-        android:id="@+id/status"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginEnd="5dip"
-        android:layout_marginTop="5dip"
-        android:layout_marginStart="1dip"
-        android:layout_alignParentStart="true"
-        android:contentDescription="@string/Comments"
-        android:src="@drawable/ic_status_green" />
+    <!-- Контейнер содержимого для выделения цветом -->
+    <LinearLayout
+        android:id="@+id/card_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:background="?attr/colorSurface">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toEndOf="@+id/status"
-        android:maxLines="1"
-        android:ellipsize="marquee"
-        android:textSize="@dimen/title"
-        android:textStyle="bold"
-        tools:ignore="SpUsage" />
+        <!-- Верхняя строка: статус + заголовок -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-    <!-- category -->
-    <TextView
-        android:id="@+id/category"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:layout_marginTop="5dp"
-        android:maxLines="1"
-        android:ellipsize="marquee"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
+            <ImageView
+                android:id="@+id/status"
+                android:layout_width="@dimen/text"
+                android:layout_height="@dimen/text"
+                android:layout_marginEnd="5dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/ic_status_green" />
 
-    <!-- favorites -->
-    <ImageView
-        android:id="@+id/fav"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:visibility="gone"
-        android:layout_alignParentTop="@+id/category"
-        android:layout_marginTop="5dp"
-        android:contentDescription="@string/favorites_btn"
-        android:textColor="@color/colorAccent"
-        android:layout_alignParentEnd="true"
-        android:textSize="@dimen/date"
-        app:srcCompat="@android:drawable/star_big_on"
-        tools:ignore="SpUsage" />
-    <!-- text -->
-    <TextView
-        android:id="@+id/listtext"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/category"
-        android:layout_marginTop="5dp"
-        android:textColor="@color/category"
-        android:textStyle="italic"
-        android:textSize="@dimen/text"
-        tools:ignore="SpUsage" />
-    <!-- autor -->
-    <TextView
-        android:id="@+id/names"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:gravity="center_vertical|end"
-        android:maxLines="1"
-        android:ellipsize="marquee"
-        android:layout_below="@id/listtext"
-        android:textSize="@dimen/text"
-        android:text="@string/menu_forum"
-        tools:ignore="SpUsage" />
-    <!-- views -->
-    <ImageView
-        android:id="@+id/views_logo"
-        android:layout_width="@dimen/title"
-        android:layout_height="@dimen/title"
-        android:layout_marginEnd="3dip"
-        android:layout_marginTop="3dip"
-        android:layout_below="@id/names"
-        android:contentDescription="@string/Comments"
-        app:srcCompat="@android:drawable/ic_menu_view"
-        tools:src="@android:drawable/ic_menu_view"
-        tools:srcCompat="@android:drawable/ic_menu_view"
-        app:tint="@color/colorAccent" />
-    <TextView
-        android:id="@+id/views_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dip"
-        android:layout_toEndOf="@+id/views_logo"
-        android:maxLines="1"
-        android:ellipsize="marquee"
-        android:layout_below="@id/names"
-        android:textSize="@dimen/date"
-        android:textColor="@color/colorAccent"
-        tools:ignore="SpUsage" />
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:textSize="@dimen/title"
+                android:textStyle="bold"
+                tools:text="Заголовок" />
+        </LinearLayout>
 
-    <!-- comments -->
-    <ImageView
-        android:id="@+id/rating_logo"
-        android:layout_width="@dimen/text"
-        android:layout_height="@dimen/text"
-        android:layout_marginEnd="3dip"
-        android:layout_marginTop="6dip"
-        android:layout_marginStart="15dip"
-        android:layout_below="@id/names"
-        app:tint="@color/colorAccent"
-        android:layout_toEndOf="@+id/views_count"
-        android:contentDescription="@string/Comments"
-        app:srcCompat="@android:drawable/sym_action_chat"
-        tools:src="@android:drawable/sym_action_chat"
-        tools:srcCompat="@android:drawable/sym_action_chat" />
-    <TextView
-        android:id="@+id/rating"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/names"
-        android:textColor="@color/colorAccent"
-        android:textStyle="bold"
-        android:maxLines="1"
-        android:ellipsize="marquee"
-        android:layout_marginTop="3dip"
-        android:layout_toEndOf="@+id/rating_logo"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
+        <!-- Категория и избранное -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-    <!-- Date -->
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:maxLines="1"
-        android:ellipsize="marquee"
-        android:textColor="@color/colorAccent"
-        android:textSize="@dimen/date"
-        tools:ignore="SpUsage" />
+            <TextView
+                android:id="@+id/category"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/date"
+                android:layout_marginTop="5dp"
+                tools:text="Категория" />
 
-</RelativeLayout>
+            <ImageView
+                android:id="@+id/fav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:contentDescription="@string/favorites_btn"
+                android:visibility="gone"
+                app:srcCompat="@android:drawable/star_big_on" />
+        </LinearLayout>
+
+        <!-- Основной текст -->
+        <TextView
+            android:id="@+id/listtext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/category"
+            android:textStyle="italic"
+            android:textSize="@dimen/text"
+            tools:text="Основной текст темы" />
+
+        <!-- Автор -->
+        <TextView
+            android:id="@+id/names"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="end|center_vertical"
+            android:maxLines="1"
+            android:ellipsize="marquee"
+            android:textSize="@dimen/text"
+            android:text="@string/menu_forum"
+            tools:text="Автор" />
+
+        <!-- Нижняя панель: просмотры, комментарии, дата -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <ImageView
+                android:id="@+id/views_logo"
+                android:layout_width="@dimen/title"
+                android:layout_height="@dimen/title"
+                android:layout_marginEnd="3dp"
+                android:contentDescription="@string/Comments"
+                app:srcCompat="@android:drawable/ic_menu_view"
+                app:tint="@color/colorAccent" />
+
+            <TextView
+                android:id="@+id/views_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:textSize="@dimen/date"
+                android:textColor="@color/colorAccent"
+                tools:text="123" />
+
+            <ImageView
+                android:id="@+id/rating_logo"
+                android:layout_width="@dimen/text"
+                android:layout_height="@dimen/text"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="3dp"
+                android:layout_marginTop="3dp"
+                app:tint="@color/colorAccent"
+                android:contentDescription="@string/Comments"
+                app:srcCompat="@android:drawable/sym_action_chat" />
+
+            <TextView
+                android:id="@+id/rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorAccent"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:textSize="@dimen/date"
+                tools:text="12" />
+
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/date"
+                tools:text="01.01.2025" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

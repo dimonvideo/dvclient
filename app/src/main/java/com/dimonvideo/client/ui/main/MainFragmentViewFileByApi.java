@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.ui.main;
 
 import android.annotation.SuppressLint;
@@ -11,7 +17,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -38,6 +43,8 @@ import com.dimonvideo.client.util.ProgressHelper;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.URLImageParser;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,6 +66,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         // Required empty public constructor
     }
 
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = BottomDetailBinding.inflate(inflater, container, false);
@@ -69,7 +77,6 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -115,38 +122,79 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         final boolean is_share_btn = controller.isShareBtn();
 
         TextView textViewTitle = binding.title;
-        textViewTitle.setText(file_title);
         TextView textViewDate = binding.date;
-        textViewDate.setText(date);
         TextView textViewCategory = binding.category;
+        TextView txt_plus = binding.txtPlus; // Обновлено: txtPlus
+        TextView textViewAuthor = binding.byName; // Обновлено: byName
+        TextView textViewText = binding.text;
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                textViewTitle,
+                textViewText,
+                textViewDate,
+                textViewCategory,
+                txt_plus,
+                textViewAuthor,
+                textViewText
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12, 12, 12, 12};
+        float[] sizesSmall = {16, 15, 14, 14, 14, 14, 14};
+        float[] sizesNormal = {18, 17, 16, 16, 16, 16, 16};
+        float[] sizesLarge = {20, 19, 18, 18, 18, 18, 18};
+        float[] sizesLargest = {24, 23, 22, 22, 22, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest":
+                selectedSizes = sizesSmallest;
+                break;
+            case "small":
+                selectedSizes = sizesSmall;
+                break;
+            case "large":
+                selectedSizes = sizesLarge;
+                break;
+            case "largest":
+                selectedSizes = sizesLargest;
+                break;
+            default:
+                selectedSizes = sizesNormal;
+                break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+        textViewTitle.setText(file_title);
+        textViewDate.setText(date);
         textViewCategory.setText(category);
-        TextView txt_plus = binding.txtPlus;
         txt_plus.setText(String.valueOf(plus));
-        TextView textViewAuthor = binding.byName;
         textViewAuthor.setText(String.valueOf(user));
 
-        Button dismiss2 = binding.dismiss2;
-        Button btn_comms, btn_download, btn_mod, btn_mp4, btn_share, btn_odob;
+        MaterialButton dismiss2 = binding.dismiss2; // Обновлено: MaterialButton
+        MaterialButton btn_comms = binding.btnComment; // Обновлено: btnComment
+        MaterialButton btn_download = binding.btnDownload; // Обновлено: btnDownload
+        MaterialButton btn_mod = binding.btnMod; // Обновлено: btnMod
+        MaterialButton btn_mp4 = binding.btnMp4; // Обновлено: btnMp4
+        MaterialButton btn_share = binding.btnShare; // Обновлено: btnShare
+        MaterialButton btn_odob = binding.btnOdob; // Обновлено: btnOdob
+        ImageView starButton = binding.starButton; // Добавлено: starButton
+        ImageView likeButton = binding.thumbButton; // Добавлено: thumbButton
+        ImageView imageView = binding.logo;
+        ImageView imageDismiss = binding.dismiss;
 
-
-        btn_comms = binding.btnComment;
-        btn_download = binding.btnDownload;
-        btn_mod = binding.btnMod;
-        btn_share = binding.btnShare;
-        btn_mp4 = binding.btnMp4;
-        btn_odob = binding.btnOdob;
         btn_odob.setVisibility(View.GONE);
-
         Log.e("---", "status: " + status);
         if ((status == 0) && (controller.isUserGroup() <= 2)) {
             btn_odob.setVisibility(View.VISIBLE);
-            btn_odob.setOnClickListener(v -> {
-                NetworkUtils.getOdob(razdel, Integer.parseInt(lid));
-            });
+            btn_odob.setOnClickListener(v -> NetworkUtils.getOdob(razdel, Integer.parseInt(lid)));
         }
 
-        // html textview
-        TextView textViewText = binding.text;
+        // HTML textview
         try {
             URLImageParser parser = new URLImageParser(textViewText);
             Spanned spanned = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
@@ -160,9 +208,6 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         } catch (Throwable ignored) {
         }
 
-        ImageView imageView = binding.logo;
-        ImageView imageDismiss = binding.dismiss;
-
         Glide.with(context).load(logourl)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .transform(new FitCenter(), new RoundedCorners(15))
@@ -170,13 +215,8 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
         imageView.setOnClickListener(v -> ButtonsActions.loadScreen(context, logourl));
 
-        imageDismiss.setOnClickListener(v -> {
-            dismiss();
-        });
-        dismiss2.setOnClickListener(v -> {
-            dismiss();
-        });
-
+        imageDismiss.setOnClickListener(v -> dismiss());
+        dismiss2.setOnClickListener(v -> dismiss());
 
         btn_comms.setOnClickListener(v -> {
             String comm_url = Config.COMMENTS_READS_URL + razdel + "&lid=" + lid + "&min=";
@@ -190,7 +230,8 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
             fragment.show(((AppCompatActivity) context).getSupportFragmentManager(), "MainFragmentCommentsFile");
             dismiss();
         });
-        // комментарии
+
+        // Комментарии
         String comText;
         if (comments > 0) {
             comText = context.getResources().getString(R.string.Comments) + " " + comments;
@@ -198,18 +239,21 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
             comText = context.getResources().getString(R.string.Comments) + " " + 0;
         }
         btn_comms.setText(comText);
-        // смотреть онлайн
+
+        // Смотреть онлайн
         if ((razdel != null) && (razdel.equals(Config.VUPLOADER_RAZDEL))) {
             btn_mp4.setVisibility(View.VISIBLE);
             btn_mp4.setOnClickListener(v -> ButtonsActions.PlayVideo(context, link));
         }
-        // слушать онлайн
+
+        // Слушать онлайн
         if ((razdel != null) && (razdel.equals(Config.MUZON_RAZDEL))) {
             btn_mp4.setVisibility(View.VISIBLE);
             btn_mp4.setText(R.string.listen_online);
             btn_mp4.setOnClickListener(v -> ButtonsActions.PlayVideo(context, link));
         }
-        // если нет размера файла
+
+        // Если нет размера файла
         if ((size == null) || (size.startsWith("0"))) {
             btn_download.setVisibility(View.GONE);
             btn_mod.setVisibility(View.GONE);
@@ -217,20 +261,20 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
             btn_download.setText(context.getString(R.string.download) + " " + size);
             btn_download.setVisibility(View.VISIBLE);
         }
-        // если нет mod
+
+        // Если есть mod
         if ((mod != null) && (!mod.startsWith("null"))) {
             btn_mod.setVisibility(View.VISIBLE);
             btn_mod.setOnClickListener(v -> DownloadFile.download(context, mod, razdel));
         }
 
-        // поделится
+        // Поделиться
         try {
             if (!is_share_btn) btn_share.setVisibility(View.VISIBLE);
         } catch (Throwable ignored) {
         }
 
         btn_share.setOnClickListener(v -> {
-
             String url = Config.WRITE_URL + "/" + razdel + "/" + lid;
             if (razdel != null && razdel.equals(Config.COMMENTS_RAZDEL))
                 url = Config.WRITE_URL + "/" + lid + "-news.html";
@@ -245,26 +289,37 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
                 context.startActivity(shareIntent);
             } catch (Throwable ignored) {
             }
-
         });
 
-        // скачать
+        // Скачать
         btn_download.setOnClickListener(v -> DownloadFile.download(context, link, razdel));
 
-        // скрытие лишнего
-        if ((razdel != null) && (razdel.equals(Config.TRACKER_RAZDEL)))
+        // Лайк и избранное
+        starButton.setOnClickListener(v -> {
+            Snackbar.make(views, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
+            ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 1);
+        });
+
+        likeButton.setOnClickListener(v -> {
+            Snackbar.make(views, context.getString(R.string.like), Snackbar.LENGTH_LONG).show();
+            ButtonsActions.like_file(context, razdel, Integer.parseInt(lid), 1);
+            txt_plus.setText(String.valueOf(plus + 1));
+        });
+
+        // Скрытие лишнего
+        if ((razdel != null) && (razdel.equals(Config.TRACKER_RAZDEL))) {
             btn_comms.setVisibility(View.GONE);
-        else btn_comms.setVisibility(View.VISIBLE);
-        if ((razdel != null) && (razdel.equals(Config.TRACKER_RAZDEL)))
             btn_share.setVisibility(View.GONE);
-        else btn_share.setVisibility(View.VISIBLE);
+        } else {
+            btn_comms.setVisibility(View.VISIBLE);
+            btn_share.setVisibility(View.VISIBLE);
+        }
 
         if (is_share_btn) btn_share.setVisibility(View.GONE);
     }
 
-    // запрос к серверу апи
+    // Запрос к серверу API
     private JsonArrayRequest getDataFromServer(View views) {
-
         String url_final = Config.SINGLE_FILE_URL + razdel + "&lid=" + lid;
 
         Log.e("---", url_final);
@@ -272,55 +327,48 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
         return new JsonArrayRequest(url_final,
                 response -> {
-
-            Feed jsonFeed = new Feed();
-                        JSONObject json;
-                        try {
-                            json = response.getJSONObject(0);
-                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            jsonFeed.setText(json.getString(Config.TAG_FULL_TEXT));
-                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
-                            jsonFeed.setHits(json.getInt(Config.TAG_HITS));
-                            jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
-                            jsonFeed.setLink(json.getString(Config.TAG_LINK));
-                            jsonFeed.setMod(json.getString(Config.TAG_MOD));
-                            jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
-                            jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
-                            jsonFeed.setUser(json.getString(Config.TAG_USER));
-                            jsonFeed.setSize(json.getString(Config.TAG_SIZE));
-                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
-                            jsonFeed.setId(json.getInt(Config.TAG_ID));
-                            jsonFeed.setMin(json.getInt(Config.TAG_MIN));
-                            jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
-                            jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
-                        } catch (JSONException ignored) {
-
-                        }
+                    Feed jsonFeed = new Feed();
+                    JSONObject json;
+                    try {
+                        json = response.getJSONObject(0);
+                        jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
+                        jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
+                        jsonFeed.setText(json.getString(Config.TAG_FULL_TEXT));
+                        jsonFeed.setDate(json.getString(Config.TAG_DATE));
+                        jsonFeed.setComments(json.getInt(Config.TAG_COMMENTS));
+                        jsonFeed.setHits(json.getInt(Config.TAG_HITS));
+                        jsonFeed.setRazdel(json.getString(Config.TAG_RAZDEL));
+                        jsonFeed.setLink(json.getString(Config.TAG_LINK));
+                        jsonFeed.setMod(json.getString(Config.TAG_MOD));
+                        jsonFeed.setCategory(json.getString(Config.TAG_CATEGORY));
+                        jsonFeed.setHeaders(json.getString(Config.TAG_HEADERS));
+                        jsonFeed.setUser(json.getString(Config.TAG_USER));
+                        jsonFeed.setSize(json.getString(Config.TAG_SIZE));
+                        jsonFeed.setTime(json.getLong(Config.TAG_TIME));
+                        jsonFeed.setId(json.getInt(Config.TAG_ID));
+                        jsonFeed.setMin(json.getInt(Config.TAG_MIN));
+                        jsonFeed.setPlus(json.getInt(Config.TAG_PLUS));
+                        jsonFeed.setStatus(json.getInt(Config.TAG_STATUS));
+                    } catch (JSONException ignored) {
+                    }
 
                     if (ProgressHelper.isDialogVisible()) ProgressHelper.dismissDialog();
 
                     buildFile(views, context, jsonFeed);
-
-
                 },
                 error -> {
-
                     if (ProgressHelper.isDialogVisible()) ProgressHelper.dismissDialog();
-
                 });
     }
 
-    // получение данных и увеличение номера страницы
+    // Получение данных
     private void getData(View views) {
-       controller.addToRequestQueue(getDataFromServer(views));
+        controller.addToRequestQueue(getDataFromServer(views));
     }
 
     public static class TagHandler implements Html.TagHandler {
         @Override
-        public void handleTag(boolean opening, String tag,
-                              Editable output, XMLReader xmlReader) {
+        public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
             if (!opening && tag.equals("ul")) {
                 output.append("\n");
             }

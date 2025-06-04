@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.util;
 
 import android.content.Context;
@@ -92,6 +98,9 @@ public class NetworkUtils {
         String url = Config.CHECK_AUTH_URL + "&login_name=" + authData[0] + "&login_password=" + authData[1];
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
+
+            Log.e(Config.TAG, "Check pass: "+response);
+
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         int state = jsonObject.getInt(Config.TAG_STATE);
@@ -145,6 +154,8 @@ public class NetworkUtils {
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + authData[1];
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
+                    Log.e(Config.TAG, "Check login: "+response);
+
                     try {
                         JSONObject jsonObject = new JSONObject(response);
                         int state = jsonObject.getInt(Config.TAG_STATE);

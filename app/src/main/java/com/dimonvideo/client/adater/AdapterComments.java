@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.annotation.SuppressLint;
@@ -10,7 +16,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -110,7 +115,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
                 .apply(new RequestOptions().override(80, 80))
                 .into(holder.imageView);
 
-        holder.textViewCategory.setText(feed.getCategory());
         holder.textViewNames.setVisibility(View.GONE);
 
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
@@ -132,13 +136,45 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         }
 
 
-        Log.v("---", String.valueOf(feed.getMin()));
+        holder.textViewCategory.setText(feed.getCategory());
         holder.textViewTitle.setText("#"+ (position + 1)+" ");
-        holder.textViewTitle.append(feed.getUser());
         holder.textViewDate.setText(feed.getDate());
+        holder.textViewHits.setText(feed.getTitle());
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewCategory,
+                holder.textViewComments,
+                holder.textViewHits
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12, 12, 12};
+        float[] sizesSmall    = {16, 15, 14, 14, 14, 14};
+        float[] sizesNormal   = {18, 17, 16, 16, 16, 16};
+        float[] sizesLarge    = {20, 19, 18, 18, 18, 18};
+        float[] sizesLargest  = {24, 23, 22, 22, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+
+        holder.textViewTitle.append(feed.getUser());
         holder.textViewComments.setVisibility(View.GONE);
         holder.rating_logo.setVisibility(View.GONE);
-        holder.textViewHits.setText(feed.getTitle());
 
         // просмотр описания файла
         holder.textViewHits.setOnClickListener(view -> {

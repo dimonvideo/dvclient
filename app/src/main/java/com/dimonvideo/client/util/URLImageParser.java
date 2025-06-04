@@ -1,5 +1,12 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.util;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
@@ -22,6 +29,7 @@ import java.lang.ref.WeakReference;
 
 public class URLImageParser implements Html.ImageGetter {
     private final WeakReference<TextView> container;
+    private final Context context; // Добавлено для получения Resources
     private final boolean matchParentWidth;
     private final HtmlImagesHandler imagesHandler;
     private float density = 1.0f;
@@ -35,23 +43,25 @@ public class URLImageParser implements Html.ImageGetter {
     }
 
     public URLImageParser(TextView textView, boolean matchParentWidth, boolean densityAware,
-                            @Nullable HtmlImagesHandler imagesHandler) {
+                          @Nullable HtmlImagesHandler imagesHandler) {
         this.container = new WeakReference<>(textView);
+        this.context = textView != null ? textView.getContext().getApplicationContext() : null;
         this.matchParentWidth = matchParentWidth;
         this.imagesHandler = imagesHandler;
-        if (densityAware) {
-            density = container.get().getResources().getDisplayMetrics().density;
+        if (densityAware && textView != null) {
+            density = textView.getResources().getDisplayMetrics().density;
         }
     }
 
     @Override
     public Drawable getDrawable(String source) {
-
         String finalUrl;
 
         if (source.contains("emoticons")) {
             finalUrl = Config.WRITE_URL + source;
-        } else finalUrl = source;
+        } else {
+            finalUrl = source;
+        }
 
         if (imagesHandler != null) {
             imagesHandler.addImage(finalUrl);
@@ -59,12 +69,15 @@ public class URLImageParser implements Html.ImageGetter {
 
         BitmapDrawablePlaceholder drawable = new BitmapDrawablePlaceholder();
 
-        Log.e("---", "URLImageParser: "+finalUrl);
-
-        container.get().post(() -> Glide.with(container.get().getContext())
-                .asBitmap()
-                .load(finalUrl)
-                .into(drawable));
+        TextView textView = container.get();
+        if (textView != null) {
+            textView.post(() -> Glide.with(textView.getContext())
+                    .asBitmap()
+                    .load(finalUrl)
+                    .into(drawable));
+        } else {
+            Log.w("URLImageParser", "TextView is null, skipping image load for URL: " + finalUrl);
+        }
 
         return drawable;
     }
@@ -74,8 +87,10 @@ public class URLImageParser implements Html.ImageGetter {
         protected Drawable drawable;
 
         BitmapDrawablePlaceholder() {
-            super(container.get().getResources(),
-                    Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888));
+            super(context != null ? context.getResources() : null, Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888));
+            if (context == null) {
+                Log.w("URLImageParser", "Context is null, using fallback bitmap");
+            }
         }
 
         @Override
@@ -87,10 +102,16 @@ public class URLImageParser implements Html.ImageGetter {
 
         private void setDrawable(Drawable drawable) {
             this.drawable = drawable;
+            TextView textView = container.get();
+            if (textView == null) {
+                Log.w("URLImageParser", "TextView is null, cannot set drawable bounds");
+                return;
+            }
+
             int drawableWidth = (int) (drawable.getIntrinsicWidth() * density);
             int drawableHeight = (int) (drawable.getIntrinsicHeight() * density);
-            int maxWidth = container.get().getMeasuredWidth();
-            if ((drawableWidth > maxWidth) || matchParentWidth) {
+            int maxWidth = textView.getMeasuredWidth();
+            if ((drawableWidth > maxWidth && maxWidth > 0) || matchParentWidth) {
                 int calculatedHeight = maxWidth * drawableHeight / drawableWidth;
                 drawable.setBounds(0, 0, maxWidth, calculatedHeight);
                 setBounds(0, 0, maxWidth, calculatedHeight);
@@ -99,12 +120,12 @@ public class URLImageParser implements Html.ImageGetter {
                 setBounds(0, 0, drawableWidth, drawableHeight);
             }
 
-            container.get().setText(container.get().getText());
+            textView.setText(textView.getText());
         }
 
         @Override
         public void onLoadStarted(@Nullable Drawable placeholderDrawable) {
-            if(placeholderDrawable != null) {
+            if (placeholderDrawable != null) {
                 setDrawable(placeholderDrawable);
             }
         }
@@ -118,16 +139,17 @@ public class URLImageParser implements Html.ImageGetter {
 
         @Override
         public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
-            try {
-                setDrawable(new BitmapDrawable(container.get().getResources(), bitmap));
-            } catch(Exception ignored){
-
+            TextView textView = container.get();
+            if (textView != null) {
+                setDrawable(new BitmapDrawable(textView.getResources(), bitmap));
+            } else {
+                Log.w("URLImageParser", "TextView is null, cannot set bitmap drawable");
             }
         }
 
         @Override
         public void onLoadCleared(@Nullable Drawable placeholderDrawable) {
-            if(placeholderDrawable != null) {
+            if (placeholderDrawable != null) {
                 setDrawable(placeholderDrawable);
             }
         }
@@ -157,7 +179,6 @@ public class URLImageParser implements Html.ImageGetter {
 
         @Override
         public void onDestroy() {}
-
     }
 
     public interface HtmlImagesHandler {

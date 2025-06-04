@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
@@ -28,10 +34,10 @@ android {
 
     defaultConfig {
         applicationId "com.dimonvideo.client"
-        minSdkVersion 26
+        minSdkVersion 27
         targetSdkVersion 36
-        versionCode 300000077
-        versionName "4.2"
+        versionCode 300000079
+        versionName "4.3"
 
         setProperty("archivesBaseName", applicationId + "-v" + versionCode)
         buildConfigField("String", "BASE64_ENCODED_PUBLIC_KEY", "\"" + localProperties['base64EncodedPublicKey'] + "\"")

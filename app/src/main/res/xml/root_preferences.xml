@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -115,12 +121,21 @@
     <PreferenceCategory app:title="@string/view_header">
 
         <ListPreference
-            app:defaultValue="false"
+            app:defaultValue="yes"
             app:key="dvc_theme_new"
             app:title="@string/theme_black"
             android:entries="@array/theme_list"
             android:entryValues="@array/theme_list_values"
             android:summary="%s"/>
+        <ListPreference
+            android:defaultValue="normal"
+            android:entries="@array/font_size_list"
+            android:entryValues="@array/font_size_list_values"
+            android:key="font_size"
+            android:summary="%s"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/scale_title" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
             android:summary="@string/is_more"

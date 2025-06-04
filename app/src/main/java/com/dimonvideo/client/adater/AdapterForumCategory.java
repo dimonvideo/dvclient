@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
@@ -20,6 +26,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.ui.forum.ForumFragment;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
+import com.dimonvideo.client.util.AppController;
 
 import java.util.Calendar;
 import java.util.List;
@@ -64,21 +71,56 @@ public class AdapterForumCategory extends RecyclerView.Adapter<AdapterForumCateg
 
         }
 
-        holder.textViewTitle.setText(Feed.getTitle());
-        holder.textViewText.setVisibility(View.GONE);
-        holder.textViewDate.setText(Feed.getDate());
-        holder.textViewNames.setVisibility(View.GONE);
-        holder.textViewText.setTextColor(context.getColor(R.color.year));
-        holder.textViewNames.setTextColor(context.getColor(R.color.year));
-        holder.textViewCategory.setText(Feed.getCategory());
-        holder.textViewComments.setText(String.valueOf(Feed.getComments()));
-        holder.textViewComments.setVisibility(View.VISIBLE);
-        holder.rating_logo.setVisibility(View.VISIBLE);
         if (Feed.getComments() == 0) {
             holder.textViewComments.setVisibility(View.INVISIBLE);
             holder.rating_logo.setVisibility(View.INVISIBLE);
         }
+
         holder.textViewHits.setText(String.valueOf(Feed.getHits()));
+        holder.textViewTitle.setText(Feed.getTitle());
+        holder.textViewDate.setText(Feed.getDate());
+        holder.textViewCategory.setText(Feed.getCategory());
+        holder.textViewComments.setText(String.valueOf(Feed.getComments()));
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewCategory,
+                holder.textViewComments,
+                holder.textViewHits
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12, 12, 12};
+        float[] sizesSmall    = {16, 15, 14, 14, 14, 14};
+        float[] sizesNormal   = {18, 17, 16, 16, 16, 16};
+        float[] sizesLarge    = {20, 19, 18, 18, 18, 18};
+        float[] sizesLargest  = {24, 23, 22, 22, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
+
+        holder.textViewText.setTextColor(context.getColor(R.color.year));
+        holder.textViewNames.setTextColor(context.getColor(R.color.year));
+        holder.textViewText.setVisibility(View.GONE);
+        holder.textViewNames.setVisibility(View.GONE);
+        holder.textViewComments.setVisibility(View.VISIBLE);
+        holder.rating_logo.setVisibility(View.VISIBLE);
+
+
 
         holder.itemView.setOnClickListener(v -> {
             Fragment fragment = new ForumFragmentTopics();

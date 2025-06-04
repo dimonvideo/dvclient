@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.util;
 
 import android.os.Bundle;
@@ -26,12 +32,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class SetPrefsBackup extends AppCompatActivity {
 
@@ -198,15 +202,10 @@ public class SetPrefsBackup extends AppCompatActivity {
 
 
                                     if (value.equals("true") || value.equals("false")) {
-                                      //  Log.e(Config.TAG, "BACKUP BOOLEAN key is: " + key + " " + value);
-                                         AppController.putSharedPreferences().putBoolean(key, Boolean.parseBoolean(value.toString())).apply();
-                                    }else if (value.toString().contains("[")){
-                                        String[] clear = value.toString().replaceAll("[^A-Za-z0-9,]","").split(",");
-                                        Log.e(Config.TAG, "BACKUP LIST key is: " + key + " " + Arrays.toString(clear));
-                                        AppController.putSharedPreferences().putStringSet(key, Set.of(clear)).apply();
-                                    } else if (value != "") {
-                                     //   Log.e(Config.TAG, "BACKUP STRING key is: " + key + " " + value);
-                                      AppController.putSharedPreferences().putString(key, (String) value).apply();
+                                        AppController.getInstance().putPreference(key, Boolean.parseBoolean(value.toString()));
+                                    } else if (!value.equals("")) {
+                                        AppController.getInstance().putPreference(key, value.toString());
+
                                     }
 
                                     GetToken.getToken(this);
@@ -217,7 +216,7 @@ public class SetPrefsBackup extends AppCompatActivity {
                             }
 
                             info.append("\n" + getString(R.string.restart_app));
-                            finishAffinity();
+                            // finishAffinity();
                         } catch (Exception ignored) {
 
                         }

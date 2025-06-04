@@ -1,252 +1,229 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
-    android:layout_width="fill_parent"
+    android:id="@+id/card_root"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="4dp">
+    android:layout_margin="5dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="1dp"
+    app:cardUseCompatPadding="true">
 
-    <RelativeLayout
-        android:id="@+id/block0"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <!-- status -->
-        <ImageView
-            android:id="@+id/status"
-            android:layout_width="@dimen/text"
-            android:layout_height="@dimen/text"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="5dip"
-            android:layout_marginTop="5dip"
-            android:layout_marginEnd="5dip"
-            android:layout_marginBottom="4dp"
-            android:contentDescription="@string/Comments"
-            android:src="@drawable/ic_status_green" />
-
-        <!-- Title -->
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:layout_toEndOf="@+id/status"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/text"
-            android:textSize="@dimen/title"
-            android:textStyle="bold"
-            tools:ignore="SpUsage" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/block"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/block0">
+        android:padding="10dp"
+        android:orientation="vertical">
 
-        <!-- Thumbnail Image -->
-        <ImageView
-            android:id="@+id/thumbnail"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:contentDescription="@string/action_screen" />
-
-
-        <!-- category -->
-        <TextView
-            android:id="@+id/category"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="@+id/thumbnail"
-            android:layout_toEndOf="@+id/thumbnail"
-            android:textColor="@color/colorAccent"
-            android:textSize="@dimen/date"
-            tools:ignore="SpUsage" />
-
-        <!-- favorites -->
-        <ImageView
-            android:id="@+id/fav"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/thumbnail"
-            android:layout_marginTop="5dp"
-            android:layout_toStartOf="@+id/listtext"
-            android:contentDescription="@string/favorites_btn"
-            android:textColor="@color/colorAccent"
-            android:textSize="@dimen/date"
-            android:visibility="gone"
-            app:srcCompat="@android:drawable/star_big_on"
-            tools:ignore="SpUsage" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
+        <!-- Верхняя строка: статус и заголовок -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="15dp"
-            android:layout_below="@id/category"
-            android:layout_marginTop="7dp"
-            android:layout_marginBottom="7dp"
-            android:layout_toEndOf="@+id/thumbnail"
-            android:indeterminate="true"
-            android:visibility="gone" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            tools:ignore="UseCompoundDrawables">
 
-        <!-- author -->
+            <ImageView
+                android:id="@+id/status"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="10dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/ic_status_green" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/title"
+                android:textStyle="bold"
+                tools:text="Заголовок" />
+        </LinearLayout>
+
+        <!-- Основная часть: изображение + текст + категория -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <ImageView
+                android:id="@+id/thumbnail"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="@string/action_screen"
+                android:scaleType="centerCrop"
+                android:background="?attr/colorSurfaceVariant" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/category"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/date"
+                    android:textStyle="bold"
+                    tools:text="Категория" />
+
+                <TextView
+                    android:id="@+id/listtext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/text"
+                    android:ellipsize="end"
+                    android:layout_marginTop="4dp"
+                    tools:text="Описание или основной текст карточки..." />
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Автор, дата, избранное -->
         <LinearLayout
             android:id="@+id/name_layout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/progressBar"
-            android:layout_gravity="center_horizontal|center"
-            android:layout_marginTop="5dp"
-            android:layout_toEndOf="@+id/thumbnail"
             android:orientation="horizontal"
-            android:visibility="gone"
-            tools:ignore="ExtraText">
+            android:gravity="center_vertical"
+            android:layout_marginTop="6dp"
+            android:visibility="visible">
 
-            <!-- Added by -->
             <TextView
                 android:id="@+id/added_by"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/added_by"
-                android:textColor="@color/text"
-                android:textSize="@dimen/date"
-                tools:ignore="SpUsage" />
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/date" />
 
-            <!-- name -->
             <TextView
                 android:id="@+id/by_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="3dp"
-                android:textColor="@color/colorAccent"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="@dimen/date"
                 android:textStyle="bold"
-                tools:ignore="SpUsage" />
+                android:layout_marginStart="3dp"
+                tools:text="Автор" />
+
+            <ImageView
+                android:id="@+id/fav"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/favorites_btn"
+                android:src="@android:drawable/star_big_on"
+                android:visibility="gone" />
         </LinearLayout>
 
-        <!-- text -->
-        <TextView
-            android:id="@+id/listtext"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/name_layout"
-            android:layout_marginTop="5dp"
-            android:layout_toEndOf="@+id/thumbnail"
-            android:textColor="@color/text"
-            android:textSize="@dimen/text"
-            tools:ignore="SpUsage" />
-
+        <!-- Кнопка одобрения (если нужна) -->
         <Button
             android:id="@+id/btn_odob"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/listtext"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/btn_green_shape"
             android:text="@string/odob"
-            android:textColor="@color/text"
+            android:textColor="?attr/colorOnPrimary"
             android:textStyle="bold"
             android:visibility="gone" />
-    </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/block1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/block"
-        android:layout_marginTop="3dip">
-        <!-- views -->
-        <ImageView
-            android:id="@+id/views_logo"
-            android:layout_width="@dimen/title"
-            android:layout_height="@dimen/title"
-            android:layout_marginTop="3dip"
-            android:layout_marginEnd="3dip"
-            android:contentDescription="@string/Comments"
-            app:srcCompat="@drawable/baseline_visibility_24"
-            tools:src="@drawable/baseline_visibility_24"
-            tools:srcCompat="@drawable/baseline_visibility_24" />
-
-        <TextView
-            android:id="@+id/views_count"
-            android:layout_width="wrap_content"
+        <!-- Нижняя панель: просмотры, комментарии, дата, share, download -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dip"
-            android:layout_toEndOf="@+id/views_logo"
-            android:textColor="@color/colorAccent"
-            android:textSize="@dimen/date"
-            tools:ignore="SpUsage" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical|end"
+            android:layout_marginTop="10dp">
 
-        <!-- comments -->
-        <ImageView
-            android:id="@+id/rating_logo"
-            android:layout_width="@dimen/text"
-            android:layout_height="@dimen/text"
-            android:layout_marginStart="15dip"
-            android:layout_marginTop="6dip"
-            android:layout_marginEnd="3dip"
-            android:layout_toEndOf="@+id/views_count"
-            android:contentDescription="@string/Comments"
-            app:srcCompat="@drawable/baseline_chat_24"
-            tools:src="@drawable/baseline_chat_24"
-            tools:srcCompat="@drawable/baseline_chat_24" />
+            <ImageView
+                android:id="@+id/views_logo"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/baseline_visibility_24" />
 
-        <TextView
-            android:id="@+id/rating"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dip"
-            android:layout_toEndOf="@+id/rating_logo"
-            android:textColor="@color/colorAccent"
-            android:textSize="@dimen/date"
-            android:textStyle="bold"
-            tools:ignore="SpUsage" />
+            <TextView
+                android:id="@+id/views_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/date"
+                android:layout_marginStart="2dp"
+                tools:text="123" />
 
-        <!-- share -->
-        <ImageView
-            android:id="@+id/small_share"
-            android:layout_width="@dimen/text"
-            android:layout_height="@dimen/text"
-            android:layout_marginStart="15dip"
-            android:layout_marginTop="6dip"
-            android:layout_marginEnd="3dip"
-            android:layout_toEndOf="@+id/rating"
-            android:contentDescription="@string/Comments"
-            app:srcCompat="@drawable/baseline_share_24"
-            tools:src="@drawable/baseline_share_24"
-            tools:srcCompat="@drawable/baseline_share_24" />
+            <ImageView
+                android:id="@+id/rating_logo"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/baseline_chat_24" />
 
-        <!-- download -->
-        <ImageView
-            android:id="@+id/small_download"
-            android:layout_width="@dimen/text"
-            android:layout_height="@dimen/text"
-            android:layout_marginStart="15dip"
-            android:layout_marginTop="6dip"
-            android:layout_marginEnd="3dip"
-            android:layout_toEndOf="@+id/small_share"
-            android:contentDescription="@string/Comments"
-            app:srcCompat="@drawable/baseline_file_download_24"
-            tools:src="@drawable/baseline_file_download_24"
-            tools:srcCompat="@drawable/baseline_file_download_24" />
-        <!-- Date -->
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:textColor="@color/colorAccent"
-            android:textSize="@dimen/date"
-            tools:ignore="SpUsage" />
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/date"
+                android:textStyle="bold"
+                android:layout_marginStart="2dp"
+                tools:text="45" />
 
-</RelativeLayout>
+            <ImageView
+                android:id="@+id/small_share"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/baseline_share_24" />
+
+            <ImageView
+                android:id="@+id/small_download"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="12dp"
+                android:contentDescription="@string/Comments"
+                android:src="@drawable/baseline_file_download_24" />
+
+            <!-- Дата справа -->
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/date"
+                android:layout_marginStart="16dp"
+                tools:text="01.01.2025" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

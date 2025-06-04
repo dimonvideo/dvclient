@@ -1,289 +1,350 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/colorList"
+    android:background="?attr/colorSurface"
     tools:context=".MainActivity">
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:overScrollMode="never"
-        >
-    <RelativeLayout
-        android:id="@+id/wrapper"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <View
-            android:id="@+id/border"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/wrapper"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:layout_alignParentStart="true"
-            android:background="@color/colorAccent" />
-
-        <RelativeLayout
-            android:id="@+id/title_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/border"
-            android:background="@color/colorPrimary"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
-                android:layout_toStartOf="@id/dismiss"
-                android:ellipsize="end"
-                android:lineSpacingExtra="5sp"
-                android:maxLines="3"
-                android:textColor="@color/text"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-            <ImageView
-                android:id="@+id/dismiss"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_margin="8dp"
-                android:background="@android:drawable/ic_menu_close_clear_cancel"
-                android:contentDescription="@string/no" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_margin="5dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/title_layout">
+            android:padding="8dp">
 
-            <ImageView
-                android:id="@+id/logo"
+            <!-- Border -->
+            <View
+                android:id="@+id/border"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
-                android:contentDescription="@string/action_screen" />
+                android:layout_height="3dp"
+                android:background="@color/colorAccent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-
-
-            <TextView
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
+            <!-- Title Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/title_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textSize="12sp"
-                android:textColor="@color/colorAccent"
-                android:layout_below="@id/logo" />
+                app:cardBackgroundColor="@color/colorPrimary"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/border">
 
-            <TextView
-                android:id="@+id/category"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginStart="12dp"
-                android:textSize="12sp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/text"
-                android:layout_toEndOf="@id/date"
-                android:layout_below="@id/logo" />
-
-            <!-- author -->
-            <LinearLayout
-                android:id="@+id/name_layout"
-                android:layout_width="wrap_content"
-                android:layout_below="@id/category"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="5dp"
-                android:layout_gravity="center_horizontal|center"
-                tools:ignore="ExtraText">
-
-                <!-- Added by -->
-                <TextView
-                    android:id="@+id/added_by"
-                    android:layout_width="wrap_content"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text"
-                    android:text="@string/added_by"
-                    android:textSize="@dimen/date"
-                    tools:ignore="SpUsage" />
+                    android:padding="8dp">
 
-                <!-- name -->
-                <TextView
-                    android:id="@+id/by_name"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="5sp"
+                        android:maxLines="3"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toStartOf="@id/dismiss"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/dismiss"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:contentDescription="@string/no"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
+                        app:tint="@color/colorAccent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Content Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title_layout">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="3dp"
-                    android:textColor="@color/colorAccent"
-                    android:textStyle="bold"
-                    android:textSize="@dimen/date"
-                    tools:ignore="SpUsage" />
-            </LinearLayout>
+                    android:padding="8dp">
 
+                    <!-- Logo -->
+                    <ImageView
+                        android:id="@+id/logo"
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp"
+                        android:layout_margin="8dp"
+                        android:contentDescription="@string/action_screen"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/name_layout"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/text"
-                android:lineSpacingExtra="10sp"
-                android:textSize="16sp" />
+                    <!-- Date -->
+                    <TextView
+                        android:id="@+id/date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="12sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/logo" />
 
+                    <!-- Category -->
+                    <TextView
+                        android:id="@+id/category"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="8dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="12sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/date"
+                        app:layout_constraintTop_toTopOf="@id/date" />
 
+                    <!-- Author Layout -->
+                    <LinearLayout
+                        android:id="@+id/name_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/date"
+                        tools:ignore="ExtraText">
 
-            <LinearLayout
-                android:id="@+id/like_layout"
-                android:layout_width="match_parent"
-                android:layout_below="@id/text"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:gravity="center"
-                android:layout_gravity="center_horizontal"
-                tools:ignore="ExtraText">
+                        <TextView
+                            android:id="@+id/added_by"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/added_by"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="@dimen/date"
+                            tools:ignore="SpUsage" />
 
-                <ImageView
-                    android:id="@+id/star_button"
-                    android:contentDescription="@string/app_name"
-                    android:src="@drawable/star_24px"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:tint="@color/category" />
+                        <TextView
+                            android:id="@+id/by_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="3dp"
+                            android:textColor="@color/colorAccent"
+                            android:textSize="@dimen/date"
+                            android:textStyle="bold"
+                            tools:ignore="SpUsage" />
+                    </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/thumb_button"
-                    android:contentDescription="@string/app_name"
-                    android:layout_marginStart="10dp"
-                    android:src="@drawable/thumb_up_24px"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:tint="@color/category" />
+                    <!-- Text -->
+                    <TextView
+                        android:id="@+id/text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:lineSpacingExtra="10sp"
+                        android:textSize="16sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/name_layout" />
 
-                <TextView
-                    android:id="@+id/txt_plus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="5dp"
-                    android:textColor="@color/text"
-                    android:gravity="left"
-                    tools:ignore="RtlHardcoded"/>
-            </LinearLayout>
-            <Button
-                android:id="@+id/btn_odob"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp"
-                android:visibility="gone"
-                android:background="@drawable/btn_green"
-                android:layout_below="@id/like_layout"
-                android:textColor="@color/text"
-                android:text="@string/odob"
-                android:textStyle="bold"/>
+                    <!-- Like Layout -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/like_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/text">
 
-            <Button
-                android:id="@+id/btn_comment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/btn"
-                android:layout_below="@id/btn_odob"
-                android:textColor="@color/text"
-                android:text="@string/Comments"
-                android:textStyle="bold"/>
+                        <ImageView
+                            android:id="@+id/star_button"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:contentDescription="@string/app_name"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/star_24px"
+                            app:tint="@color/category" />
 
-            <Button
-                android:id="@+id/btn_download"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_margin="10dp"
-                android:layout_below="@id/btn_comment"
-                android:background="@drawable/btn"
-                android:textColor="@color/text"
-                android:visibility="gone"
-                android:text="@string/download"
-                android:textStyle="bold"/>
+                        <ImageView
+                            android:id="@+id/thumb_button"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginStart="16dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:contentDescription="@string/app_name"
+                            app:layout_constraintStart_toEndOf="@id/star_button"
+                            app:layout_constraintTop_toTopOf="@id/star_button"
+                            app:srcCompat="@drawable/thumb_up_24px"
+                            app:tint="@color/category" />
 
-            <Button
-                android:id="@+id/btn_mod"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_below="@id/btn_download"
-                android:visibility="gone"
-                android:layout_margin="10dp"
-                android:textColor="@color/text"
-                android:background="@drawable/btn"
-                android:text="@string/download_mod"
-                android:textStyle="bold"/>
+                        <TextView
+                            android:id="@+id/txt_plus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:textSize="@dimen/date"
+                            app:layout_constraintBaseline_toBaselineOf="@id/thumb_button"
+                            app:layout_constraintStart_toEndOf="@id/thumb_button" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                    <!-- Buttons -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_odob"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/odob"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/colorPmSend"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/like_layout"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
 
-            <Button
-                android:id="@+id/btn_mp4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_below="@id/btn_mod"
-                android:visibility="gone"
-                android:layout_margin="10dp"
-                android:textColor="@color/text"
-                android:background="@drawable/btn"
-                android:text="@string/download_mp4"
-                android:textStyle="bold"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_comment"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/Comments"
+                        android:textColor="?attr/colorOnPrimary"
+                        app:backgroundTint="@color/colorPrimary"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_odob"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
 
-            <Button
-                android:id="@+id/btn_share"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_below="@id/btn_mp4"
-                android:layout_margin="10dp"
-                android:textColor="@color/text"
-                android:background="@drawable/btn"
-                android:visibility="gone"
-                android:text="@string/menu_share_title"
-                android:textStyle="bold"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_download"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/download"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/colorPrimary"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_comment"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
 
-            <Button
-                android:id="@+id/dismiss2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/btn_share"
-                android:layout_margin="10dp"
-                android:textColor="@color/text"
-                android:background="@drawable/btn_red"
-                android:gravity="center"
-                android:padding="15dp"
-                android:text="@string/close"
-                android:textSize="16sp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_mod"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/download_mod"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/colorPrimary"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_download"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
 
-        </RelativeLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_mp4"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/download_mp4"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/colorPrimary"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_mod"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
 
-    </RelativeLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_share"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/menu_share_title"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/colorPrimary"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_mp4"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/dismiss2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="16dp"
+                        android:padding="15dp"
+                        android:text="@string/close"
+                        android:textColor="?attr/colorOnPrimary"
+                        android:textSize="16sp"
+                        app:backgroundTint="@color/colorDelete"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/btn_share"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Rounded" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

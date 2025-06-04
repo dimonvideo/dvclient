@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.content.Context;
@@ -20,6 +26,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedCats;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentContent;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -65,6 +72,33 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
 
         holder.textViewTitle.setText(feed.getTitle());
         holder.textViewCategory.setText(String.valueOf(feed.getCount()));
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewCategory
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13};
+        float[] sizesSmall    = {16, 15};
+        float[] sizesNormal   = {18, 17};
+        float[] sizesLarge    = {20, 19};
+        float[] sizesLargest  = {24, 23};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             Fragment fragment = new MainFragmentContent();
             Bundle bundle = new Bundle();

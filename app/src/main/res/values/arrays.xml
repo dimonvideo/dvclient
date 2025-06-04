@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  ~ Разработано для сайта dimonvideo.ru
+  ~ При использовании кода ссылка на проект обязательна.
+  -->
+
 <resources>
     <!-- PM Preference -->
     <string-array name="pm_entries">
@@ -9,30 +15,13 @@
         <item>off</item>
         <item>on</item>
     </string-array>
-
-    <!-- Scale Preference -->
-    <string-array name="size_entries">
-        <item>Smallest</item>
-        <item>Smaller</item>
-        <item>Normal</item>
-        <item>Bigger</item>
-        <item>Large</item>
-        <item>Largest</item>
-        <item>XXXL</item>
-        <item>XXXXL</item>
+    <string-array name="font_size_list_values">
+        <item>smallest</item>
+        <item>small</item>
+        <item>normal</item>
+        <item>large</item>
+        <item>largest</item>
     </string-array>
-
-    <string-array name="size_values">
-        <item>0.7f</item>
-        <item>0.8f</item>
-        <item>1.0f</item>
-        <item>1.2f</item>
-        <item>1.3f</item>
-        <item>1.4f</item>
-        <item>1.6f</item>
-        <item>1.8f</item>
-    </string-array>
-
     <!-- Razdel Preference -->
     <string-array name="razdel_list">
         <item>@string/menu_home</item>
@@ -80,6 +69,7 @@
         <item>yes</item>
         <item>system</item>
     </string-array>
+
 
     <string-array name="default_values"><item>all</item></string-array>
 

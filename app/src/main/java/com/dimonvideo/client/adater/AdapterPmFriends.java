@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+ * Разработано для сайта dimonvideo.ru
+ * При использовании кода ссылка на проект обязательна.
+ */
+
 package com.dimonvideo.client.adater;
 
 import android.content.ClipData;
@@ -31,6 +37,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.BBCodes;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
@@ -109,7 +116,35 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         holder.textViewTitle.setText(feed.getTitle());
         holder.textViewDate.setText(String.format("%s %s", feed.getLast_poster_name(), feed.getDate()));
         holder.textViewNames.setText(feed.getFullText());
-        holder.textViewText.setText(feed.getSpannedText());
+        holder.textViewText.setText(feed.getSpannedText(holder.textViewText));
+
+        // Массив всех нужных TextView
+        TextView[] textViews = {
+                holder.textViewTitle,
+                holder.textViewText,
+                holder.textViewDate,
+                holder.textViewNames
+        };
+
+        // Массивы размеров для каждого режима
+        float[] sizesSmallest = {14, 13, 12, 12};
+        float[] sizesSmall    = {16, 15, 14, 14};
+        float[] sizesNormal   = {18, 17, 16, 16};
+        float[] sizesLarge    = {20, 19, 18, 18};
+        float[] sizesLargest  = {24, 23, 22, 22};
+
+        float[] selectedSizes;
+
+        switch (AppController.getInstance().isFontSize()) {
+            case "smallest": selectedSizes = sizesSmallest; break;
+            case "small":    selectedSizes = sizesSmall;    break;
+            case "large":    selectedSizes = sizesLarge;    break;
+            case "largest":  selectedSizes = sizesLargest;  break;
+            default:         selectedSizes = sizesNormal;   break;
+        }
+        for (int i = 0; i < textViews.length; i++) {
+            textViews[i].setTextSize(selectedSizes[i]);
+        }
 
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -140,7 +175,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         });
 
         holder.send.setOnClickListener(v -> {
-            holder.textViewText.setText(feed.getSpannedText());
+            holder.textViewText.setText(feed.getSpannedText(holder.textViewText));
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.GONE);
             String text = holder.textInput.getText().toString();
