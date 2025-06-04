@@ -228,7 +228,7 @@
     <string name="menu_backup_explain">Настройки можно сохранить и восстановить на другом устройстве, на котором выполнен вход в учетную запись пользователя</string>
     <string name="prefs_count">Настроек:</string>
     <string name="menu_backup">Сохранение и восстановление настроек</string>
-    <string name="menu_backup_sum">настройки сохоанятся в облаке</string>
+    <string name="menu_backup_sum">настройки сохранятся в облаке</string>
     <string name="prefs_date_copy">Бэкап от:</string>
     <string name="prefs_date_restore">Копия от:</string>
     <string name="token_refresh">Обновить токен</string>
