@@ -16,10 +16,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +41,7 @@ import com.dimonvideo.client.util.BBCodes;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.google.android.material.card.MaterialCardView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -255,13 +255,13 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         public TextView textViewTitle, textViewDate, textViewNames;
         public ImageView status_logo, imageView;
         public TextView textViewText;
-        public LinearLayout btns;
-        public ImageButton send;
+        public MaterialCardView btns;
+        public Button send;
         public EditText textInput;
         public String url;
         public ClipboardManager myClipboard;
         public ClipData myClip;
-        public ImageView imagePick;
+        public Button imagePick;
 
         public ViewHolder(View itemView) {
             super(itemView);

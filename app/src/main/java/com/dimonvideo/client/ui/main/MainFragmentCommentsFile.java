@@ -17,10 +17,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -46,6 +45,7 @@ import com.dimonvideo.client.util.BBCodes;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
@@ -69,7 +69,7 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
     private ProgressBar progressBar, ProgressBarBottom;
     private CommentsListBinding binding;
     private String story = null;
-    private ImageView imagePick;
+    private Button imagePick;
     private EditText textInput;
     private RecyclerView recyclerView;
     private AppController controller;
@@ -193,10 +193,10 @@ public class MainFragmentCommentsFile extends BottomSheetDialogFragment {
             recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
         });
 
-        LinearLayout post_layout = binding.post.linearLayout1;
+        MaterialCardView post_layout = binding.post.linearLayout1;
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
-        ImageButton btnSend = binding.post.btnSend;
+        Button btnSend = binding.post.btnSend;
         textInput = binding.post.textInput;
         textInput.requestFocus();
 

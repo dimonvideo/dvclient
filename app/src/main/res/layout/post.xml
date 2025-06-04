@@ -1,75 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
-  ~ Разработано для сайта dimonvideo.ru
-  ~ При использовании кода ссылка на проект обязательна.
-  -->
+  Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  Разработано для сайта dimonvideo.ru
+  При использовании кода ссылка на проект обязательна.
+-->
 
-<LinearLayout
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/linearLayout1"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
     android:visibility="gone"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:baselineAligned="true"
-    android:orientation="horizontal"
-    android:weightSum="1">
+    android:layout_margin="8dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="18dp"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="1dp"
+    android:backgroundTint="@android:color/transparent">
 
     <LinearLayout
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="1dip"
         android:gravity="center_vertical"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
 
-        <ImageButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/img_btn"
-            app:backgroundTint="@color/colorPmSend"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@drawable/outline_image_24"
-            android:scaleType="fitXY"
-            android:layout_margin="5dp"
-            android:text="@string/download_started"
-            android:contentDescription="@string/download_started" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            app:icon="@drawable/outline_image_24"
+            app:iconTint="@color/colorPmSend"
+            android:contentDescription="@string/download_started"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
-        <EditText
-            android:id="@+id/textInput"
-            android:layout_width="0dip"
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:padding="5dp"
-            android:background="@drawable/shape_post"
-            android:minLines="1"
-            android:textColor="@color/text"
-            android:labelFor="@id/btnSend"
-            android:autofillHints="@string/post_description"
-            android:gravity="start|center_vertical"
-            android:hint="@string/post_description"
-            android:lineSpacingExtra="7sp"
-            android:imeOptions="actionDone"
-            android:inputType="textImeMultiLine|textMultiLine|textCapSentences"
-            android:focusable="true"
-            android:maxLines="15"
-            android:cursorVisible="true"
-            android:focusableInTouchMode="true"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            app:boxCornerRadiusTopStart="10dp"
+            app:boxCornerRadiusTopEnd="10dp"
+            app:boxCornerRadiusBottomStart="10dp"
+            app:boxCornerRadiusBottomEnd="10dp"
+            app:boxStrokeColor="@color/colorPmSend"
+            app:hintTextColor="@color/colorPmSend"
+            app:boxStrokeWidth="1dp"
             >
-        </EditText>
 
-        <ImageButton
-            style="@style/Widget.AppCompat.Button.Colored"
-            android:text="@string/pm_send"
-            android:layout_height="35dp"
-            android:src="@drawable/outline_send_24"
-            android:layout_width="35dp"
-            android:layout_marginStart="5dp"
-            android:background="@drawable/circle_shape"
-            app:backgroundTint="@color/colorPmSend"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/textInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minLines="1"
+                android:maxLines="15"
+                android:padding="8dp"
+                android:background="@android:color/transparent"
+                android:textColor="@color/text"
+                android:gravity="start|center_vertical"
+                android:hint="@string/post_description"
+                android:imeOptions="actionDone"
+                android:inputType="textMultiLine|textCapSentences"
+                android:cursorVisible="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:lineSpacingExtra="7sp"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSend"
-            android:contentDescription="@string/pm_send"/>
-    </LinearLayout>
-</LinearLayout>
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/outline_send_24"
+            app:icon="@drawable/outline_send_24"
+            app:iconTint="@color/colorPmSend"
+            android:contentDescription="@string/pm_send"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            />
 
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

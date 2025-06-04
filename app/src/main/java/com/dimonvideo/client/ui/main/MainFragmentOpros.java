@@ -16,7 +16,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -114,7 +113,7 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
             dismiss();
         });
 
-        ImageView imageDismiss = binding.dismiss;
+        Button imageDismiss = binding.dismiss;
         imageDismiss.setOnClickListener(v -> dismiss());
     }
 

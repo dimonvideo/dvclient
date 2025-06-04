@@ -19,10 +19,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -49,6 +48,7 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.ProgressHelper;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.greenrobot.eventbus.EventBus;
@@ -69,7 +69,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     private ProgressBar progressBar, ProgressBarBottom;
     private String s_url = "", t_name;
     private String tid = "1728146606";
-    private ImageView imagePick;
+    private Button imagePick;
     @SuppressLint("StaticFieldLeak")
     public static CommentsListBinding binding;
     private String image_uploaded, razdel;
@@ -125,7 +125,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
         toolbar.setNavigationIcon(R.drawable.ic_back_button);
 
 
-        LinearLayout post_layout = binding.post.linearLayout1;
+        MaterialCardView post_layout = binding.post.linearLayout1;
         imagePick = binding.post.imgBtn;
 
         imagePick.setOnClickListener(v -> {
@@ -196,7 +196,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
 
         if (auth_state > 0) post_layout.setVisibility(View.VISIBLE);
         // отправка ответа
-        ImageButton btnSend = binding.post.btnSend;
+        Button btnSend = binding.post.btnSend;
         textInput = binding.post.textInput;
 
         btnSend.setOnClickListener(v -> {

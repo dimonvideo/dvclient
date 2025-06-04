@@ -1,176 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
-  ~ Разработано для сайта dimonvideo.ru
-  ~ При использовании кода ссылка на проект обязательна.
-  -->
+  Copyright (c) 2025. Разработчик: Дмитрий Вороной.
+  Разработано для сайта dimonvideo.ru
+  При использовании кода ссылка на проект обязательна.
+-->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_profile"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <View
-        android:id="@+id/view"
+    <!-- Верхний цветной header -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginBottom="5dp"
+        android:layout_height="180dp"
         android:background="@color/colorPrimary" />
 
-    <ScrollView
-        android:id="@+id/scrolView_account"
+    <!-- Основное содержимое профиля -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView_account"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:layout_marginTop="0dp"
+        android:fitsSystemWindows="true">
 
-
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/linear_account"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
 
-            <LinearLayout
+            <!-- Блок аватара -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="vertical">
+                android:layout_gravity="center_horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="55dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <ImageView
+                        android:id="@+id/avatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/app_name"
+                        android:src="@mipmap/ic_launcher"/>
+                </com.google.android.material.card.MaterialCardView>
+            </FrameLayout>
+
+            <!-- Имя пользователя -->
+            <TextView
+                android:id="@+id/login_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="@color/text"
+                tools:text="dimonvideo" />
+
+            <!-- Основная информация о пользователе -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginTop="100dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
                     <TextView
+                        android:id="@+id/status"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:gravity="center|center_horizontal"
-                        android:id="@+id/login_name"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:textStyle="bold"
+                        android:textColor="@color/text"
+                        android:textSize="16sp"
+                        tools:text="Аккаунт активен" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="2dp"
-                        android:layout_weight="1"
-                        android:id="@+id/status"
-                        android:layout_gravity="center_vertical"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginBottom="2dp"
-                        android:layout_weight="1"
                         android:id="@+id/last_date"
-                        android:layout_gravity="center_vertical"/>
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/text"
+                        android:textSize="15sp"
+                        tools:text="Последний визит: 2025-06-04" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginBottom="2dp"
-                        android:layout_weight="1"
                         android:id="@+id/reg"
-                        android:layout_gravity="center_vertical"/>
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/text"
+                        android:textSize="15sp"
+                        tools:text="Регистрация: 2024-05-01" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginBottom="2dp"
-                        android:layout_weight="1"
                         android:id="@+id/rep"
-                        android:layout_gravity="center_vertical"/>
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/text"
+                        android:textSize="15sp"
+                        tools:text="Репутация: 100" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginBottom="2dp"
-                        android:layout_weight="1"
                         android:id="@+id/rat"
-                        android:layout_gravity="center_vertical"/>
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/text"
+                        android:textSize="15sp"
+                        tools:text="Рейтинг: 250" />
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="0dp"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginBottom="2dp"
-                        android:layout_weight="1"
                         android:id="@+id/posts"
-                        android:layout_gravity="center_vertical"/>
-
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/text"
+                        android:textSize="15sp"
+                        tools:text="Постов: 500" />
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <Button
-                    android:id="@+id/btn_go"
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:layout_margin="10dp"
-                    android:background="@color/colorPrimary"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center|center_horizontal"
-                    android:text="@string/btn_profile"
-                    android:textStyle="bold" />
-
-                <Button
-                    android:id="@+id/btn_setting"
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:layout_margin="10dp"
-                    android:background="@color/colorPrimary"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center|center_horizontal"
-                    android:text="@string/btn_sett"
-                    android:textStyle="bold" />
-
-                <Button
-                    android:id="@+id/btn_close"
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:layout_margin="10dp"
-                    android:background="@color/colorPrimary"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center|center_horizontal"
-                    android:text="@string/close"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <RelativeLayout
+            <!-- Кнопки действий -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_go"
+                style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true">
+                android:layout_height="48dp"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/btn_profile"
+                app:cornerRadius="12dp"
+                app:iconGravity="textStart"
+                android:textStyle="bold" />
 
-                <ImageView
-                    android:id="@+id/avatar"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true"
-                    android:src="@mipmap/ic_launcher"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_setting"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/btn_sett"
+                app:cornerRadius="12dp"
+                app:iconGravity="textStart"
+                android:textStyle="bold" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_close"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/close"
+                app:cornerRadius="12dp"
+                app:iconGravity="textStart"
+                android:textStyle="bold" />
 
-
-            </RelativeLayout>
-
-
-        </RelativeLayout>
-    </ScrollView>
-
-</RelativeLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

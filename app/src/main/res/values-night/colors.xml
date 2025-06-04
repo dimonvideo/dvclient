@@ -9,7 +9,7 @@
     <!-- Основные цвета для тёмного режима -->
     <color name="colorPrimary">#292929</color>
     <color name="colorPrimaryDark">#000000</color>
-    <color name="colorAccent">#5FA4E1</color>
+    <color name="colorAccent">#E2E0E0</color>
     <!-- Дополнительные цвета -->
     <color name="colorPm">#337ab7</color>
     <color name="colorPmSend">#419641</color>

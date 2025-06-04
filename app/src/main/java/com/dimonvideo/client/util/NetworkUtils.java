@@ -96,6 +96,7 @@ public class NetworkUtils {
         if (getEncodedAuthData(appController, authData, context)) return;
 
         String url = Config.CHECK_AUTH_URL + "&login_name=" + authData[0] + "&login_password=" + authData[1];
+        Log.w(Config.TAG, url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
 
@@ -152,6 +153,7 @@ public class NetworkUtils {
         if (getEncodedAuthData(appController, authData, context)) return;
 
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + authData[1];
+        Log.w(Config.TAG, url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     Log.e(Config.TAG, "Check login: "+response);
