@@ -39,6 +39,7 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.db.AppDatabase;
+import com.dimonvideo.client.db.FeedDao;
 import com.dimonvideo.client.db.FeedEntity;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
@@ -209,7 +210,8 @@ public class MainFragmentContent extends Fragment {
             recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
             if (is_top_mark) {
                 controller.getExecutor().execute(() -> {
-                    database.readMarkDao().markAllRead(key);
+                    FeedDao feedDao = controller.getDatabase().feedDao();
+                    database.readMarkDao().markAllRead(key, feedDao);
                     requireActivity().runOnUiThread(() ->
                             Toast.makeText(getContext(), getString(R.string.success), Toast.LENGTH_LONG).show());
                 });
@@ -259,12 +261,14 @@ public class MainFragmentContent extends Fragment {
             urlFinal = url + requestCount + s_url + "&fav=1&login_name=" + loginName;
         }
 
-        Log.d("MainFragmentContent", "URL: " + urlFinal);
+        Log.d(Config.TAG, "URL: " + urlFinal);
 
         return new JsonArrayRequest(urlFinal,
                 response -> {
                     Activity activity = getActivity();
                     if (activity == null || !isAdded() || binding == null) return;
+
+                    Log.w(Config.TAG, "RESPONSE "+response);
 
                     progressBar.setVisibility(View.GONE);
                     ProgressBarBottom.setVisibility(View.GONE);

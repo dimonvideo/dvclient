@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -142,6 +143,7 @@ public class ButtonsActions {
             }
 
             String url = Config.CHECK_AUTH_URL + "&login_name=" + is_name + "&login_password=" + pass + "&razdel=" + razdel + "&id=" + id + "&addfav=" + type;
+            Log.w(Config.TAG, "FAV: "+type+" | RAZDEL: "+razdel+" | URL: "+url);
             StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                     response -> {
                         try {

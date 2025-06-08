@@ -50,7 +50,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
-    private boolean doubleBackToExitPressedOnce = false, THEME;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +71,8 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() {
 
+                Intent i = new Intent(SettingsActivity.this, MainActivity.class);
+                startActivity(i);
                 finish();
             }
         };

@@ -236,6 +236,7 @@
     <string name="prefs_date_restore">Restore date:</string>
     <string name="token_refresh">Refresh device token</string>
     <string name="token_refresh_sum">if device changed</string>
+    <string name="menu_unfav">Из избранного</string>
     <string-array name="font_size_list">
         <item>Smallest</item>
         <item>Small</item>

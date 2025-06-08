@@ -313,10 +313,11 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         bundle.putString(Config.TAG_TEXT, feed.getFull_text());
         bundle.putString(Config.TAG_IMAGE_URL, feed.getImageUrl());
         bundle.putString(Config.TAG_MOD, feed.getMod());
-        bundle.putInt(Config.TAG_STATUS, feed.getState());
+        bundle.putInt(Config.TAG_STATUS, feed.getStatus());
         bundle.putInt(Config.TAG_COMMENTS, feed.getComments());
         bundle.putString(Config.TAG_LINK, feed.getLink());
         bundle.putString(Config.TAG_SIZE, feed.getSize());
+        bundle.putInt(Config.TAG_FAV, feed.getFav());
         fragment.setArguments(bundle);
         fragment.show(activity.getSupportFragmentManager(), "MainFragmentViewFile");
     }
@@ -335,10 +336,11 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
     private void show_dialog(ViewHolder holder, int position) {
         final Feed feed = jsonFeed.get(position);
+        String message = feed.getFav() > 0 ? context.getString(R.string.menu_unfav) : context.getString(R.string.menu_fav);
         final CharSequence[] items = {
                 context.getString(R.string.menu_share_title),
                 context.getString(R.string.action_open),
-                context.getString(R.string.menu_fav),
+                message,
                 context.getString(R.string.action_like),
                 context.getString(R.string.action_screen),
                 context.getString(R.string.download),
@@ -366,7 +368,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url)));
                     break;
                 case 2: // fav
-                    ButtonsActions.add_to_fav_file(context, feed.getRazdel(), feed.getId(), 1);
+                    int invertedFav = (feed.getFav() == 1) ? 2 : 1;
+                    ButtonsActions.add_to_fav_file(context, feed.getRazdel(), feed.getId(), invertedFav);
                     break;
                 case 3: // like
                     ButtonsActions.like_file(context, feed.getRazdel(), feed.getId(), 1);

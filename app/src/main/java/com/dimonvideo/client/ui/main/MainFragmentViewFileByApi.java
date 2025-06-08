@@ -116,6 +116,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         int status = jsonFeed.getStatus();
         link = jsonFeed.getLink();
         String size = jsonFeed.getSize();
+        int fav = jsonFeed.getFav();
 
         final boolean is_open_link = controller.isOpenLinks();
         final boolean is_vuploader_play_listtext = controller.isVuploaderPlayListtext();
@@ -186,6 +187,9 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         ImageView likeButton = binding.thumbButton; // Добавлено: thumbButton
         ImageView imageView = binding.logo;
         ImageView imageDismiss = binding.dismiss;
+        starButton.setImageResource(fav == 1 ? R.drawable.favorite_24px_fill : R.drawable.favorite_24px);
+
+        Log.w(Config.TAG, "FAV file api: "+fav);
 
         btn_odob.setVisibility(View.GONE);
         Log.e("---", "status: " + status);
@@ -296,8 +300,9 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
 
         // Лайк и избранное
         starButton.setOnClickListener(v -> {
-            Snackbar.make(views, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-            ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 1);
+            int invertedFav = (fav == 0) ? 1 : 2;
+            ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), invertedFav);
+            starButton.setImageResource(fav == 1 ? R.drawable.favorite_24px : R.drawable.favorite_24px_fill);
         });
 
         likeButton.setOnClickListener(v -> {

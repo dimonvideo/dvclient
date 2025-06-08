@@ -130,8 +130,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - изменена настройка выбора размера шрифтов и исправлены ошибки\n
-        - обновлен внешний вид.
+        - исправлена отметка просмотренных записей\n
+        - улучшено управление избранным.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -233,6 +233,7 @@
     <string name="prefs_date_restore">Копия от:</string>
     <string name="token_refresh">Обновить токен</string>
     <string name="token_refresh_sum">при смене устройства</string>
+    <string name="menu_unfav">Из избранного</string>
     <string-array name="font_size_list"><item>Наименьший</item><item>Мелкий</item><item>Нормальный</item><item>Большой</item><item>Наибольший</item></string-array>
 
 </resources>

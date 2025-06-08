@@ -58,6 +58,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
+import com.dimonvideo.client.db.FeedDao;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentAddFile;
@@ -497,7 +498,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // очистка старого
         controller.getExecutor().execute(() -> controller.getDatabase().feedDao().clearDBOld());
+        controller.getExecutor().execute(() -> controller.getDatabase().readMarkDao().clearAll());
+
     }
 
     private void requestPermissions() {
@@ -671,7 +675,8 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_mark) {
             String key = GetRazdelName.getRazdelName(razdel, 0);
             try {
-                controller.getExecutor().execute(() -> controller.getDatabase().readMarkDao().markAllRead(key));
+                FeedDao feedDao = controller.getDatabase().feedDao();
+                controller.getExecutor().execute(() -> controller.getDatabase().readMarkDao().markAllRead(key, feedDao));
             } catch (Throwable ignored) {
             }
             Toast.makeText(this, R.string.success, Toast.LENGTH_LONG).show();

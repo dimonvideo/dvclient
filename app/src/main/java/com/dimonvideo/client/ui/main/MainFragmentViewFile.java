@@ -50,7 +50,7 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
 
     private BottomDetailBinding binding;
     private String razdel, lid, file_title, date, category, user, text, logourl, mod, link, size;
-    private int plus, comments, status;
+    private int plus, comments, fav, status;
     private AppController controller;
 
     public MainFragmentViewFile() {
@@ -88,6 +88,8 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
             comments = getArguments().getInt(Config.TAG_COMMENTS);
             link = getArguments().getString(Config.TAG_LINK);
             size = getArguments().getString(Config.TAG_SIZE);
+            fav = getArguments().getInt(Config.TAG_FAV);
+            status = getArguments().getInt(Config.TAG_STATUS);
         }
 
         if (lid != null) {
@@ -171,9 +173,11 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
         ImageView starButton = binding.starButton; // Обновлено: starButton
         ImageView imageView = binding.logo;
         ImageView imageDismiss = binding.dismiss;
+        starButton.setImageResource(fav == 1 ? R.drawable.favorite_24px_fill : R.drawable.favorite_24px);
+
+        Log.w(Config.TAG, "FAV file: "+fav);
 
         btn_odob.setVisibility(View.GONE);
-        Log.e("---", "status: " + status);
         if ((status == 0) && (controller.isUserGroup() <= 2)) {
             btn_odob.setVisibility(View.VISIBLE);
             btn_odob.setOnClickListener(v -> NetworkUtils.getOdob(razdel, Integer.parseInt(lid)));
@@ -281,8 +285,9 @@ public class MainFragmentViewFile extends BottomSheetDialogFragment {
 
         // Лайк и избранное
         starButton.setOnClickListener(v -> {
-            Snackbar.make(views, context.getString(R.string.favorites_btn), Snackbar.LENGTH_LONG).show();
-            ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), 1);
+            int invertedFav = (fav == 0) ? 1 : 2;
+            ButtonsActions.add_to_fav_file(context, razdel, Integer.parseInt(lid), invertedFav);
+            starButton.setImageResource(fav == 1 ? R.drawable.favorite_24px : R.drawable.favorite_24px_fill);
         });
 
         likeButton.setOnClickListener(v -> {
