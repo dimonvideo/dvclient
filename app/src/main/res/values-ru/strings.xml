@@ -130,8 +130,8 @@
     <string name="muzon_play_behavior">Прослушать трек по нажатию на скриншот</string>
     <string name="whats_new_title">Что нового?</string>
     <string name="whats_new_text">
-        - исправлена отметка просмотренных записей\n
-        - улучшено управление избранным.
+        - исправлены несколько вылетов\n
+        - переработан раздел ЛС и другие исправления стабильности.
     </string>
     <string name="export">Экспорт настроек на SD</string>
     <string name="export_success">Экспорт прошел успешно!</string>
@@ -234,6 +234,9 @@
     <string name="token_refresh">Обновить токен</string>
     <string name="token_refresh_sum">при смене устройства</string>
     <string name="menu_unfav">Из избранного</string>
+    <string name="downloading">Загрузка файла</string>
+    <string name="download_channel_name">DV download</string>
+    <string name="download_channel_description">Download from dvclient</string>
     <string-array name="font_size_list"><item>Наименьший</item><item>Мелкий</item><item>Нормальный</item><item>Большой</item><item>Наибольший</item></string-array>
 
 </resources>

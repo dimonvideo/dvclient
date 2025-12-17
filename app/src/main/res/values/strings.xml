@@ -237,6 +237,9 @@
     <string name="token_refresh">Refresh device token</string>
     <string name="token_refresh_sum">if device changed</string>
     <string name="menu_unfav">Из избранного</string>
+    <string name="downloading">Downloading</string>
+    <string name="download_channel_name">DV download</string>
+    <string name="download_channel_description">Download from dvclient</string>
     <string-array name="font_size_list">
         <item>Smallest</item>
         <item>Small</item>

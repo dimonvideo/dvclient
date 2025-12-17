@@ -66,6 +66,20 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     private final Map<String, Integer> statusCache = new HashMap<>();
     private final List<StatusUpdate> pendingStatusUpdates = new ArrayList<>();
     private static final int MAX_CACHE_SIZE = 300;
+    private static final Object PAYLOAD_STATUS_ONLY = new Object();
+
+    public void markAllReadInUi() {
+        flushStatusUpdates();
+
+        for (Feed feed : jsonFeed) {
+            String razdel = feed.getRazdel();
+            String cacheKey = feed.getId() + "_" + (razdel == null ? "" : razdel);
+            statusCache.put(cacheKey, 1);
+        }
+
+        notifyItemRangeChanged(0, getItemCount(), PAYLOAD_STATUS_ONLY);
+    }
+
 
     public AdapterMainRazdel(List<Feed> jsonFeed, Context context, AppCompatActivity activity, AppDatabase database) {
         this.jsonFeed = new ArrayList<>(jsonFeed);
@@ -110,19 +124,42 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         }
         return 0;
     }
+    private int getCachedStatus(@NonNull Feed feed) {
+        String razdel = feed.getRazdel();
+        String cacheKey = feed.getId() + "_" + (razdel == null ? "" : razdel);
+        Integer status = statusCache.get(cacheKey);
+        return status != null ? status : 0;
+    }
+
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (!payloads.isEmpty() && payloads.contains(PAYLOAD_STATUS_ONLY)) {
+            Feed feed = jsonFeed.get(position);
+            int status = getCachedStatus(feed);
+            holder.status_logo.setImageResource(status == 1 ? R.drawable.ic_status_gray : R.drawable.ic_status_green);
+            return;
+        }
+        // если payload не наш — делаем полный bind
+        onBindViewHolder(holder, position);
+    }
+
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+
         Feed feed = jsonFeed.get(position);
 
         final boolean is_vuploader_play = appController.isVuploaderPlay();
         final boolean is_muzon_play = appController.isMuzonPlay();
         final boolean is_share_btn = appController.isShareBtn();
 
-        String cacheKey = feed.getId() + "_" + feed.getRazdel();
-        Integer cachedStatus = statusCache.getOrDefault(cacheKey, 0);
-        int status = cachedStatus != null ? cachedStatus : 0;
-        holder.status_logo.setImageResource(status == 1 ? R.drawable.ic_status_gray : R.drawable.ic_status_green);
+        int status = getCachedStatus(feed);
+        holder.status_logo.setImageResource(
+                status == 1 ? R.drawable.ic_status_gray : R.drawable.ic_status_green
+        );
+
+
 
         if (feed.getState() == 0 && appController.isUserGroup() <= 2) {
             holder.btn_odob.setVisibility(View.VISIBLE);
@@ -130,7 +167,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 NetworkUtils.getOdob(feed.getRazdel(), feed.getId());
                 jsonFeed.remove(position);
                 notifyItemRemoved(position);
-                statusCache.remove(cacheKey);
+                //  statusCache.remove(cacheKey);
                 executor.execute(() -> database.readMarkDao().delete(feed.getId(), feed.getRazdel()));
             });
         } else {
@@ -400,7 +437,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
     @Override
     public long getItemId(int position) {
-        return position;
+        Feed f = jsonFeed.get(position);
+        return (f.getRazdel() + "_" + f.getId()).hashCode();
     }
 
     public void removeFav(int position) {

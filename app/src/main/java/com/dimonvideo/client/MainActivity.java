@@ -766,11 +766,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        String is_pm = controller.isPm();
-        boolean is_pm_notify = controller.isPmNotify();
-        if (is_pm.equals("on") && is_pm_notify) {
-            requestPermissions();
-        }
     }
 
     @Override

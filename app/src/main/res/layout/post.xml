@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Copyright (c) 2025. Разработчик: Дмитрий Вороной.
-  Разработано для сайта dimonvideo.ru
-  При использовании кода ссылка на проект обязательна.
--->
-
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/linearLayout1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:visibility="gone"
-    android:layout_margin="8dp"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="18dp"
+    app:cardElevation="0dp"
+    android:id="@+id/linearLayout1"
+    app:cardCornerRadius="14dp"
     app:strokeColor="?attr/colorPrimary"
     app:strokeWidth="1dp"
     android:backgroundTint="@android:color/transparent">
@@ -50,8 +42,7 @@
             app:boxCornerRadiusBottomEnd="10dp"
             app:boxStrokeColor="@color/colorPmSend"
             app:hintTextColor="@color/colorPmSend"
-            app:boxStrokeWidth="1dp"
-            >
+            app:boxStrokeWidth="1dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textInput"
@@ -66,7 +57,6 @@
                 android:hint="@string/post_description"
                 android:imeOptions="actionDone"
                 android:inputType="textMultiLine|textCapSentences"
-                android:cursorVisible="true"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:lineSpacingExtra="7sp"/>
@@ -76,12 +66,9 @@
             android:id="@+id/btnSend"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/outline_send_24"
             app:icon="@drawable/outline_send_24"
             app:iconTint="@color/colorPmSend"
             android:contentDescription="@string/pm_send"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            />
-
+            android:background="?attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

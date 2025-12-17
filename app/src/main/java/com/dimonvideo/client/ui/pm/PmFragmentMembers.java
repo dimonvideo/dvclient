@@ -181,10 +181,13 @@ public class PmFragmentMembers extends Fragment {
             finalUrl = Config.PM_URL + requestCount + "&pm=7&login_name=" + finalLogin + "&login_password=" + finalPass;
         }
 
+        Log.w(Config.TAG, "URL: " + finalUrl);
+
         return new JsonArrayRequest(finalUrl,
                 response -> {
                     progressBar.setVisibility(View.GONE);
                     progressBarBottom.setVisibility(View.GONE);
+                    Log.w(Config.TAG, "JS: " + response);
 
                     if (response.length() == 0) {
                         swipLayout.setRefreshing(false);
@@ -201,15 +204,25 @@ public class PmFragmentMembers extends Fragment {
                         FeedPm jsonFeed = new FeedPm();
                         try {
                             JSONObject json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            jsonFeed.setImageUrl(json.getString(Config.TAG_IMAGE_URL));
-                            jsonFeed.setId(json.getInt(Config.TAG_ID));
-                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setTime(json.getLong(Config.TAG_TIME));
-                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_USER));
-                            jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
-                            jsonFeed.setText(json.getString(Config.TAG_TEXT));
+
+                            jsonFeed.setTitle(json.optString(Config.TAG_TITLE, ""));
+                            jsonFeed.setImageUrl(json.optString(Config.TAG_IMAGE_URL, ""));
+                            jsonFeed.setId(json.optInt(Config.TAG_ID, 0));
+                            jsonFeed.setDate(json.optString(Config.TAG_DATE, ""));
+                            jsonFeed.setLast_poster_name(json.optString(Config.TAG_USER, ""));
+                            jsonFeed.setFullHtml(json.optString(Config.TAG_FULL_TEXT, ""));
+                            jsonFeed.setPreviewHtml(json.optString(Config.TAG_TEXT, ""));
+
+    // FIX: time может быть null
+                            long timeSafe = 0L;
+                            if (!json.isNull(Config.TAG_TIME)) {
+                                // optLong выдержит число/строку, но не null (поэтому сначала isNull)
+                                timeSafe = json.optLong(Config.TAG_TIME, 0L);
+                            }
+                            jsonFeed.setTime(timeSafe);
+
                             newItems.add(jsonFeed);
+
                         } catch (JSONException e) {
                             Log.e("PmFragmentMembers", "JSON parsing error", e);
                         }

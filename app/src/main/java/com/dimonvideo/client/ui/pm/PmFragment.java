@@ -353,7 +353,7 @@ public class PmFragment extends Fragment {
                         return;
                     } else emptyView.setVisibility(View.GONE);
 
-
+                    Log.w(Config.TAG, "RESPONSE: " + response);
                     List<FeedPm> newItems = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         FeedPm jsonFeed = new FeedPm();
@@ -365,8 +365,8 @@ public class PmFragment extends Fragment {
                             jsonFeed.setDate(json.getString(Config.TAG_DATE));
                             jsonFeed.setIs_new(json.getInt(Config.TAG_HITS));
                             jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
-                            jsonFeed.setText(json.getString(Config.TAG_TEXT));
-                            jsonFeed.setFullText(json.getString(Config.TAG_FULL_TEXT));
+                            jsonFeed.setFullHtml(json.getString(Config.TAG_TEXT));
+                            jsonFeed.setPreviewHtml(json.getString(Config.TAG_FULL_TEXT));
                             newItems.add(jsonFeed);
                         } catch (JSONException e) {
                             Log.e("PmFragment", "JSON parsing error", e);

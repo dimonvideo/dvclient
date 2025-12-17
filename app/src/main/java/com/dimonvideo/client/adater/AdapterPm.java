@@ -1,11 +1,6 @@
-/*
- * Copyright (c) 2025. Разработчик: Дмитрий Вороной.
- * Разработано для сайта dimonvideo.ru
- * При использовании кода ссылка на проект обязательна.
- */
-
 package com.dimonvideo.client.adater;
 
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -21,14 +16,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,6 +54,9 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
     private List<FeedPm> jsonFeed;
     private String image_uploaded;
 
+    // раскрыт только один элемент
+    private int expandedId = -1;
+
     public AdapterPm(List<FeedPm> jsonFeed, Context context) {
         this.jsonFeed = new ArrayList<>(jsonFeed);
         this.context = context;
@@ -68,25 +64,10 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
 
     public void updateData(List<FeedPm> newList) {
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-            @Override
-            public int getOldListSize() {
-                return jsonFeed.size();
-            }
-
-            @Override
-            public int getNewListSize() {
-                return newList.size();
-            }
-
-            @Override
-            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                return jsonFeed.get(oldItemPosition).getId() == newList.get(newItemPosition).getId();
-            }
-
-            @Override
-            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-                return jsonFeed.get(oldItemPosition).equals(newList.get(newItemPosition));
-            }
+            @Override public int getOldListSize() { return jsonFeed.size(); }
+            @Override public int getNewListSize() { return newList.size(); }
+            @Override public boolean areItemsTheSame(int o, int n) { return jsonFeed.get(o).getId() == newList.get(n).getId(); }
+            @Override public boolean areContentsTheSame(int o, int n) { return jsonFeed.get(o).equals(newList.get(n)); }
         });
         jsonFeed = new ArrayList<>(newList);
         diffResult.dispatchUpdatesTo(this);
@@ -100,12 +81,8 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
     public static class TagHandler implements Html.TagHandler {
         @Override
         public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
-            if (!opening && tag.equals("ul")) {
-                output.append("\n");
-            }
-            if (opening && tag.equals("li")) {
-                output.append("\n•");
-            }
+            if (!opening && tag.equals("ul")) output.append("\n");
+            if (opening && tag.equals("li")) output.append("\n•");
         }
     }
 
@@ -119,14 +96,37 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         FeedPm feed = jsonFeed.get(position);
+
         final boolean isOpenLink = AppController.getInstance().isOpenLinks();
         final boolean isVuploaderPlayListtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        // Установка основных данных
         holder.textViewTitle.setText(feed.getTitle());
         holder.textViewDate.setText(feed.getDate());
         holder.textViewNames.setText(feed.getLast_poster_name());
-        holder.textViewText.setText(feed.getSpannedFullText(holder.textViewText));
+
+        // индикатор нового
+        holder.statusDot.setVisibility(feed.getIs_new() > 0 ? View.VISIBLE : View.GONE);
+
+        // аватар
+        Glide.with(context)
+                .load(feed.getImageUrl())
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.baseline_image_20)
+                .error(R.drawable.baseline_image_20)
+                .apply(RequestOptions.circleCropTransform())
+                .override(40, 40)
+                .into(holder.imageView);
+
+        // сброс состояния (обязательно!)
+        boolean expanded = (feed.getId() == expandedId);
+        holder.btns.setVisibility(expanded ? View.VISIBLE : View.GONE);
+
+        if (expanded) {
+            applyFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
+        } else {
+            holder.textViewText.setText(feed.getSpannedPreview(holder.textViewText)); // ПРЕВЬЮ
+            holder.textViewText.setMovementMethod(null);
+        }
 
         holder.textViewText.setTypeface(null, feed.getIs_new() > 0 ? Typeface.BOLD : Typeface.NORMAL);
 
@@ -168,38 +168,19 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
             textViews[i].setTextSize(selectedSizes[i]);
         }
 
-        holder.status_logo.setImageResource(feed.getIs_new() > 0 ? R.drawable.ic_status_green : R.drawable.ic_status_gray);
-
-        int color;
-        if (feed.getIs_new() > 0) {
-            color = context.getResources().getColor(R.color.colorDelete, context.getTheme());
-        } else {
-            color = context.getResources().getColor(R.color.colorList, context.getTheme());
-        }
-        holder.cardView.setBackgroundColor(color);
-
-        // Загрузка изображения
-        Glide.with(context)
-                .load(feed.getImageUrl())
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.baseline_image_20)
-                .error(R.drawable.baseline_image_20)
-                .apply(RequestOptions.circleCropTransform())
-                .override(100, 100)
-                .into(holder.imageView);
-
-        // Обработчики событий
         holder.itemView.setOnClickListener(v -> {
-            if (holder.btns.getVisibility() == View.VISIBLE) {
-                holder.btns.setVisibility(View.GONE);
-            } else {
-                holder.btns.setVisibility(View.VISIBLE);
-                showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
-                holder.status_logo.setImageResource(R.drawable.ic_status_gray);
-                holder.cardView.setBackgroundColor(context.getResources().getColor(R.color.colorList, context.getTheme()));
+            int oldExpandedId = expandedId;
+            expandedId = (feed.getId() == expandedId) ? -1 : feed.getId();
+
+            // обновим старый и новый элементы
+            if (oldExpandedId != -1) {
+                int oldPos = findPositionById(oldExpandedId);
+                if (oldPos != RecyclerView.NO_POSITION) notifyItemChanged(oldPos);
             }
+            notifyItemChanged(holder.getBindingAdapterPosition());
         });
 
+        // пикер изображений
         holder.imagePick.setOnClickListener(v -> MainActivity.pickMedia.launch(
                 new PickVisualMediaRequest.Builder()
                         .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
@@ -207,18 +188,16 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         ));
 
         holder.send.setOnClickListener(v -> {
-            showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
-            holder.btns.setVisibility(View.GONE);
-            String text = holder.textInput.getText().toString();
+            String text = holder.textInput.getText() != null ? holder.textInput.getText().toString() : "";
             NetworkUtils.sendPm(context, feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
+            holder.btns.setVisibility(View.GONE);
+            expandedId = -1;
+            notifyItemChanged(holder.getBindingAdapterPosition());
         });
 
         holder.send.setOnLongClickListener(v -> {
-            showFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
-            holder.btns.setVisibility(View.GONE);
-            String text = holder.textInput.getText().toString();
+            String text = holder.textInput.getText() != null ? holder.textInput.getText().toString() : "";
             NetworkUtils.sendPm(context, feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
-            removeItem(holder.getBindingAdapterPosition());
             return true;
         });
 
@@ -228,46 +207,16 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         });
     }
 
-    @Override
-    public int getItemCount() {
-        return jsonFeed == null ? 0 : jsonFeed.size();
-    }
-
-    public static class ItemViewHolder extends RecyclerView.ViewHolder {
-        public TextView textViewTitle, textViewDate, textViewNames;
-        public ImageView status_logo, imageView;
-        public TextView textViewText;
-        public MaterialCardView btns;
-        public Button send;
-        public EditText textInput;
-        public String url;
-        public ClipboardManager myClipboard;
-        public ClipData myClip;
-        public Button imagePick;
-        public LinearLayout cardView;
-
-        public ItemViewHolder(@NonNull View itemView) {
-            super(itemView);
-            imageView = itemView.findViewById(R.id.thumbnail);
-            status_logo = itemView.findViewById(R.id.status);
-            textViewTitle = itemView.findViewById(R.id.title);
-            textViewText = itemView.findViewById(R.id.listtext);
-            textViewDate = itemView.findViewById(R.id.date);
-            textViewNames = itemView.findViewById(R.id.name);
-            btns = itemView.findViewById(R.id.linearLayout1);
-            send = itemView.findViewById(R.id.btnSend);
-            textInput = itemView.findViewById(R.id.textInput);
-            imagePick = itemView.findViewById(R.id.img_btn);
-            cardView = itemView.findViewById(R.id.card_content);
-        }
-    }
-
-    private void showFullText(ItemViewHolder holder, boolean isOpenLink, boolean isVuploaderPlayListtext, FeedPm feed) {
+    private void applyFullText(ItemViewHolder holder, boolean isOpenLink, boolean isVuploaderPlayListtext, FeedPm feed) {
         try {
-            holder.textViewText.setText(feed.getSpannedText(holder.textViewText));
+            holder.textViewText.setText(feed.getSpannedFull(holder.textViewText)); // ПОЛНЫЙ
+            holder.textViewText.setTypeface(null, Typeface.NORMAL);
+
             if (feed.getIs_new() > 0) {
                 NetworkUtils.readPm(context, feed.getId());
+                holder.statusDot.setVisibility(View.GONE);
             }
+
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
@@ -277,6 +226,51 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         } catch (Exception e) {
             Log.e("AdapterPm", "Error showing full text", e);
             Toast.makeText(context, R.string.error_network, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private int findPositionById(int id) {
+        for (int i = 0; i < jsonFeed.size(); i++) {
+            if (jsonFeed.get(i).getId() == id) return i;
+        }
+        return RecyclerView.NO_POSITION;
+    }
+
+    @Override
+    public int getItemCount() {
+        return jsonFeed == null ? 0 : jsonFeed.size();
+    }
+
+    public static class ItemViewHolder extends RecyclerView.ViewHolder {
+        public TextView textViewTitle, textViewDate, textViewNames, textViewText;
+        public ImageView imageView;
+        public View statusDot;
+        public MaterialCardView btns;
+
+        public Button send;
+        public EditText textInput;
+        public Button imagePick;
+        public String url;
+        public ClipboardManager myClipboard;
+        public ClipData myClip;
+
+        public ItemViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            imageView = itemView.findViewById(R.id.thumbnail);
+            statusDot = itemView.findViewById(R.id.status_dot);
+
+            textViewTitle = itemView.findViewById(R.id.title);
+            textViewText  = itemView.findViewById(R.id.listtext);
+            textViewDate  = itemView.findViewById(R.id.date);
+            textViewNames = itemView.findViewById(R.id.name);
+
+            btns = itemView.findViewById(R.id.linearLayout1);
+
+            // из include @layout/post
+            send = itemView.findViewById(R.id.btnSend);
+            textInput = itemView.findViewById(R.id.textInput);
+            imagePick = itemView.findViewById(R.id.img_btn);
         }
     }
 
@@ -303,7 +297,7 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
                 }
             } else if (item == 1) { // copy text
                 try {
-                    holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY).toString());
+                    holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getFullHtml(), Html.FROM_HTML_MODE_LEGACY).toString());
                     holder.myClipboard.setPrimaryClip(holder.myClip);
                     Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
@@ -319,6 +313,22 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
             }
         });
         builder.show();
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
     }
 
     public void removeItem(int position) {
@@ -366,22 +376,6 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
             notifyItemRemoved(position);
         } else {
             Log.e("AdapterPm", "Invalid position for restoreFromArchiveItem: " + position);
-        }
-    }
-
-    @Override
-    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onAttachedToRecyclerView(recyclerView);
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
-    }
-
-    @Override
-    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        super.onDetachedFromRecyclerView(recyclerView);
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
         }
     }
 }

@@ -104,19 +104,18 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final FeedPm feed = jsonFeed.get(position);
 
-        holder.status_logo.setImageResource(R.drawable.ic_status_gray);
         Glide.with(context)
                 .load(feed.getImageUrl())
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .placeholder(R.drawable.baseline_image_20)
                 .apply(RequestOptions.circleCropTransform())
-                .override(100, 100)
+                .override(40, 40)
                 .into(holder.imageView);
 
         holder.textViewTitle.setText(feed.getTitle());
         holder.textViewDate.setText(String.format("%s %s", feed.getLast_poster_name(), feed.getDate()));
-        holder.textViewNames.setText(feed.getFullText());
-        holder.textViewText.setText(feed.getSpannedText(holder.textViewText));
+        holder.textViewNames.setText(feed.getSpannedFull(holder.textViewNames));
+        holder.textViewText.setText(feed.getSpannedPreview(holder.textViewText));
 
         // Массив всех нужных TextView
         TextView[] textViews = {
@@ -152,13 +151,6 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        try {
-            if (feed.getTime() > cal.getTimeInMillis() / 1000L) {
-                holder.status_logo.setImageResource(R.drawable.ic_status_green);
-            }
-        } catch (Exception e) {
-            Log.e("AdapterPmFriends", "Error checking time", e);
-        }
 
         holder.itemView.setOnClickListener(v -> {
             if (holder.btns.getVisibility() == View.VISIBLE) {
@@ -175,7 +167,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         });
 
         holder.send.setOnClickListener(v -> {
-            holder.textViewText.setText(feed.getSpannedText(holder.textViewText));
+            holder.textViewText.setText(feed.getSpannedFull(holder.textViewText));
             holder.textViewText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.btns.setVisibility(View.GONE);
             String text = holder.textInput.getText().toString();

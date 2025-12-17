@@ -1,126 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
-  ~ Разработано для сайта dimonvideo.ru
-  ~ При использовании кода ссылка на проект обязательна.
-  -->
-
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root"
+    android:id="@+id/pm_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
     android:clickable="true"
-    android:focusable="true"
-    android:layout_margin="6dp"
-    app:cardCornerRadius="18dp"
-    app:cardElevation="3dp"
-    app:strokeColor="?attr/colorPrimary"
+    android:focusable="false"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="1dp"
     app:strokeWidth="1dp"
-    app:cardBackgroundColor="?attr/colorSurface"
-    app:cardUseCompatPadding="true">
+    app:cardUseCompatPadding="false"
+    app:cardBackgroundColor="?attr/colorSurface">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/card_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp"
-        android:gravity="top">
+        android:descendantFocusability="afterDescendants"
+        android:padding="10dp">
 
-        <!-- Миниатюра в круглом контейнере -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/container_card"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center"
-            android:layout_marginEnd="10dp"
-            app:cardCornerRadius="25dp"
-            app:cardElevation="0dp">
+        <!-- Аватар -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/action_screen"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/baseline_image_20" />
 
-            <ImageView
-                android:id="@+id/thumbnail"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/action_screen" />
-        </com.google.android.material.card.MaterialCardView>
+        <!-- Индикатор нового (точка) -->
+        <View
+            android:id="@+id/status_dot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/status_dot_bg"
+            app:layout_constraintEnd_toEndOf="@id/thumbnail"
+            app:layout_constraintTop_toTopOf="@id/thumbnail" />
 
-        <!-- Контейнер для текста и прочих элементов -->
-        <LinearLayout
+        <!-- Заголовок -->
+        <TextView
+            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginStart="10dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/text"
+            app:layout_constraintStart_toEndOf="@id/thumbnail"
+            app:layout_constraintTop_toTopOf="@id/thumbnail"
+            app:layout_constraintEnd_toStartOf="@id/date"
+            tools:text="Заголовок сообщения" />
 
-            <!-- Первая строка: статус + заголовок -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+        <!-- Дата справа (коротко) -->
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/colorAccent"
+            app:layout_constraintTop_toTopOf="@id/title"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="01.01" />
 
-                <ImageView
-                    android:id="@+id/status"
-                    android:layout_width="@dimen/text"
-                    android:layout_height="@dimen/text"
-                    android:layout_marginEnd="6dp"
-                    android:contentDescription="@string/Comments"
-                    android:src="@drawable/ic_status_green" />
+        <!-- Имя/собеседник -->
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textSize="12sp"
+            android:textColor="@color/colorAccent"
+            app:layout_constraintStart_toEndOf="@id/thumbnail"
+            app:layout_constraintTop_toBottomOf="@id/title"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Собеседник" />
 
-                <TextView
-                    android:id="@+id/title"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textSize="@dimen/title"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="@color/text"
-                    tools:text="Заголовок" />
-            </LinearLayout>
+        <!-- Превью текста (1 строка) -->
+        <TextView
+            android:id="@+id/listtext"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:textSize="13sp"
+            android:textColor="@color/text"
+            app:layout_constraintStart_toEndOf="@id/thumbnail"
+            app:layout_constraintTop_toBottomOf="@id/name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Превью текста сообщения…" />
 
-            <!-- Категория (имя) -->
-            <TextView
-                android:id="@+id/name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/colorAccent"
-                android:textSize="@dimen/date"
-                tools:text="Категория" />
+        <!-- Контейнер действий/ответа (показывается только при раскрытии) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/linearLayout1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:layout_constraintStart_toStartOf="@id/listtext"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/listtext">
 
-            <!-- Дата -->
-            <TextView
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/colorAccent"
-                android:textSize="@dimen/date"
-                android:layout_marginTop="2dp"
-                tools:text="01.01.2025" />
-
-            <!-- Основной текст -->
-            <TextView
-                android:id="@+id/listtext"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="@android:style/TextAppearance.Small"
-                android:layout_marginTop="5dp"
-                android:textSize="@dimen/text"
-                android:textColor="@color/text"
-                android:maxLines="4"
-                android:ellipsize="end"
-                tools:text="Основной текст карточки" />
-
-            <!-- Включение вложенного layout если нужно -->
             <include
                 layout="@layout/post"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
+        </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

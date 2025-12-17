@@ -141,6 +141,8 @@ public class MainFragmentContent extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemViewCacheSize(10);
         ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
+        adapter.setHasStableIds(true);
+
         recyclerView.setAdapter(adapter);
 
         // Загрузка данных из Room
@@ -193,7 +195,7 @@ public class MainFragmentContent extends Fragment {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) {
-                    handler.postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                    handler.postDelayed(() -> fab.setVisibility(View.GONE), 12000);
                 } else if (dy < 0) {
                     fab.setVisibility(is_top ? View.VISIBLE : View.GONE);
                 }
@@ -207,16 +209,21 @@ public class MainFragmentContent extends Fragment {
             }
         });
         fab.setOnClickListener(v -> {
-            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
-            if (is_top_mark) {
-                controller.getExecutor().execute(() -> {
-                    FeedDao feedDao = controller.getDatabase().feedDao();
-                    database.readMarkDao().markAllRead(key, feedDao);
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), getString(R.string.success), Toast.LENGTH_LONG).show());
+            recyclerView.post(() -> recyclerView.scrollToPosition(0));
+
+            if (!is_top_mark) return;
+
+            controller.getExecutor().execute(() -> {
+                FeedDao feedDao = controller.getDatabase().feedDao();
+                database.readMarkDao().markAllRead(key, feedDao);
+
+                requireActivity().runOnUiThread(() -> {
+                    adapter.markAllReadInUi();
+                    Toast.makeText(getContext(), getString(R.string.success), Toast.LENGTH_LONG).show();
                 });
-            }
+            });
         });
+
 
         swipLayout = binding.swipeLayout;
         swipLayout.setOnRefreshListener(() -> {
