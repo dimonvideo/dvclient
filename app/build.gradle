@@ -36,8 +36,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 27
         targetSdkVersion 36
-        versionCode 300000082
-        versionName "4.5"
+        versionCode 300000083
+        versionName "4.6"
 
         setProperty("archivesBaseName", applicationId + "-v" + versionCode)
         buildConfigField("String", "BASE64_ENCODED_PUBLIC_KEY", "\"" + localProperties['base64EncodedPublicKey'] + "\"")
@@ -151,7 +151,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui:2.9.6'
     implementation 'androidx.preference:preference:1.2.1'
     implementation(platform('org.jetbrains.kotlin:kotlin-bom:2.1.21'))
-    implementation 'androidx.activity:activity:1.12.1'
+    implementation 'androidx.activity:activity:1.12.2'
 
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'com.github.bumptech.glide:glide:5.0.5'
