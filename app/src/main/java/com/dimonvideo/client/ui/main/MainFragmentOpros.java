@@ -118,31 +118,20 @@ public class MainFragmentOpros extends BottomSheetDialogFragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        WebView webView = binding != null ? binding.webview : null;
+        if (webView != null) {
+            webView.stopLoading();
+            webView.setWebViewClient(null);
+            webView.loadUrl("about:blank");
+            webView.clearHistory();
+            webView.removeAllViews();
+            webView.destroy();
+        }
         if (ProgressHelper.isDialogVisible()) {
             ProgressHelper.dismissDialog();
         }
         binding = null;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
-
-    @Override
-    public void onDestroyView() {
         super.onDestroyView();
     }
 }

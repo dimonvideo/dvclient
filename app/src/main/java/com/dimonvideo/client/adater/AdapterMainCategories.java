@@ -50,6 +50,9 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
         super();
         this.jsonFeed = jsonFeed;
         this.context = context;
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     @NonNull
@@ -63,10 +66,6 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         final FeedCats feed =  jsonFeed.get(holder.getBindingAdapterPosition());
-
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
 
         EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
 
@@ -121,6 +120,14 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
     @Override
     public int getItemCount() {
         return jsonFeed.size();
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+        super.onDetachedFromRecyclerView(recyclerView);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
