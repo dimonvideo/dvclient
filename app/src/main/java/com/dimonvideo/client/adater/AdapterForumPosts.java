@@ -60,6 +60,9 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
     public AdapterForumPosts(List<FeedForum> jsonFeed) {
         super();
         this.jsonFeed = jsonFeed;
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
@@ -96,10 +99,6 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     private void populateItemRows(ItemViewHolder holder, int position) {
-
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
 
         final FeedForum feed = jsonFeed.get(position);
         Calendar cal = Calendar.getInstance();
@@ -259,6 +258,14 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public int getItemCount() {
         return jsonFeed.size();
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+        super.onDetachedFromRecyclerView(recyclerView);
     }
 
     public static class ItemViewHolder extends RecyclerView.ViewHolder {

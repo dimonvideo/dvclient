@@ -6,6 +6,7 @@
 
 package com.dimonvideo.client.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.Gravity;
@@ -18,12 +19,25 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 
+import java.lang.ref.WeakReference;
+
 public class ProgressHelper {
 
-    private static AlertDialog dialog = null;
+    private static WeakReference<AlertDialog> dialogRef = new WeakReference<>(null);
 
     public static void showDialog(Context context, String message) {
-        if(dialog == null){
+        AlertDialog activeDialog = dialogRef.get();
+        if (activeDialog != null && activeDialog.isShowing()) {
+            return;
+        }
+
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            if (activity.isFinishing() || activity.isDestroyed()) {
+                return;
+            }
+        }
+
             int llPadding = 30;
             LinearLayout ll = new LinearLayout(context);
             ll.setOrientation(LinearLayout.HORIZONTAL);
@@ -56,8 +70,9 @@ public class ProgressHelper {
             builder.setCancelable(true);
             builder.setView(ll);
 
-            dialog = builder.create();
+            AlertDialog dialog = builder.create();
             dialog.show();
+            dialogRef = new WeakReference<>(dialog);
             Window window = dialog.getWindow();
             if (window != null) {
                 WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
@@ -66,21 +81,18 @@ public class ProgressHelper {
                 layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
                 dialog.getWindow().setAttributes(layoutParams);
             }
-        }
     }
 
     public static  boolean isDialogVisible(){
-        if(dialog != null){
-            return dialog.isShowing();
-        }else {
-            return false;
-        }
+        AlertDialog dialog = dialogRef.get();
+        return dialog != null && dialog.isShowing();
     }
 
     public static  void dismissDialog(){
+        AlertDialog dialog = dialogRef.get();
         if(dialog != null){
             dialog.dismiss();
-            dialog = null;
         }
+        dialogRef.clear();
     }
 }
