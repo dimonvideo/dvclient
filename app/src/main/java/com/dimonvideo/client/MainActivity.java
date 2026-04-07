@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(binding.getRoot());
 
-        View contentRoot = binding.appBarMain.getRoot();
+        View contentRoot = binding.getRoot();
         ViewCompat.setOnApplyWindowInsetsListener(contentRoot, (v, insets) -> {
             Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(0, statusBarInsets.top, 0, statusBarInsets.bottom);
