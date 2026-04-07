@@ -13,12 +13,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
-import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,21 +40,17 @@ import com.dimonvideo.client.ui.main.MainFragmentViewFileByApi;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
+import com.dimonvideo.client.util.URLImageParser;
 
 import org.xml.sax.XMLReader;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHolder> {
 
     Context context;
     private final List<FeedForum> jsonFeed;
-    private final LruCache<String, Spanned> htmlCache = new LruCache<>(200);
-    private final ExecutorService htmlExecutor = Executors.newSingleThreadExecutor();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public static class TagHandler implements Html.TagHandler {
         @Override
@@ -70,15 +63,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
                 output.append("\n•");
             }
         }
-    }
-
-    private Spanned parseCommentHtml(String source) {
-        Spanned firstPass = Html.fromHtml(source, Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
-        String decoded = firstPass.toString();
-        if (decoded.contains("<") && decoded.contains(">")) {
-            return Html.fromHtml(decoded, Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
-        }
-        return firstPass;
     }
 
     //Constructor of this class
@@ -139,24 +123,9 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         // html textview
         TextView textViewText = holder.textViewText;
         try {
-            String htmlKey = buildHtmlCacheKey(feed);
-            textViewText.setTag(htmlKey);
-            Spanned cached = htmlCache.get(htmlKey);
-            if (cached != null) {
-                textViewText.setText(cached);
-            } else {
-                textViewText.setText(feed.getText());
-                htmlExecutor.execute(() -> {
-                    Spanned parsed = parseCommentHtml(feed.getText());
-                    htmlCache.put(htmlKey, parsed);
-                    mainHandler.post(() -> {
-                        Object currentTag = textViewText.getTag();
-                        if (htmlKey.equals(currentTag)) {
-                            textViewText.setText(parsed);
-                        }
-                    });
-                });
-            }
+            URLImageParser parser = new URLImageParser(textViewText);
+            Spanned spanned = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
+            textViewText.setText(spanned);
             textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
@@ -265,7 +234,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
             if (item == 0) { // copy text
 
-                holder.myClip = ClipData.newPlainText("text", parseCommentHtml(feed.getText()).toString());
+                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
@@ -283,17 +252,6 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     @Override
     public int getItemCount() {
         return jsonFeed.size();
-    }
-
-    @Override
-    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        htmlCache.evictAll();
-        htmlExecutor.shutdownNow();
-        super.onDetachedFromRecyclerView(recyclerView);
-    }
-
-    private String buildHtmlCacheKey(FeedForum feed) {
-        return feed.getId() + "_" + feed.getText().hashCode() + "_" + AppController.getInstance().isFontSize();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
