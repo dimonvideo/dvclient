@@ -72,6 +72,15 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         }
     }
 
+    private Spanned parseCommentHtml(String source) {
+        Spanned firstPass = Html.fromHtml(source, Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
+        String decoded = firstPass.toString();
+        if (decoded.contains("<") && decoded.contains(">")) {
+            return Html.fromHtml(decoded, Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
+        }
+        return firstPass;
+    }
+
     //Constructor of this class
     public AdapterComments(List<FeedForum> jsonFeed, Context context) {
         super();
@@ -138,7 +147,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
             } else {
                 textViewText.setText(feed.getText());
                 htmlExecutor.execute(() -> {
-                    Spanned parsed = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
+                    Spanned parsed = parseCommentHtml(feed.getText());
                     htmlCache.put(htmlKey, parsed);
                     mainHandler.post(() -> {
                         Object currentTag = textViewText.getTag();
@@ -256,7 +265,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
             if (item == 0) { // copy text
 
-                holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY).toString());
+                holder.myClip = ClipData.newPlainText("text", parseCommentHtml(feed.getText()).toString());
                 holder.myClipboard.setPrimaryClip(holder.myClip);
                 Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
             }
