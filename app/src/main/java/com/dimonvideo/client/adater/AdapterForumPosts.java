@@ -12,9 +12,12 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spanned;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +41,6 @@ import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
-import com.dimonvideo.client.util.URLImageParser;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -47,12 +49,17 @@ import org.xml.sax.XMLReader;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
     String image_uploaded;
     int razdel = 8;
+    private final LruCache<String, Spanned> htmlCache = new LruCache<>(200);
+    private final ExecutorService htmlExecutor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     //List to store all
     List<FeedForum> jsonFeed;
@@ -178,9 +185,24 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         holder.views_logo.setVisibility(View.INVISIBLE);
 
         try {
-            URLImageParser parser = new URLImageParser(holder.textViewText);
-            Spanned spanned = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
-            holder.textViewText.setText(spanned);
+            String htmlKey = buildHtmlCacheKey(feed);
+            holder.textViewText.setTag(htmlKey);
+            Spanned cached = htmlCache.get(htmlKey);
+            if (cached != null) {
+                holder.textViewText.setText(cached);
+            } else {
+                holder.textViewText.setText(feed.getText());
+                htmlExecutor.execute(() -> {
+                    Spanned parsed = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
+                    htmlCache.put(htmlKey, parsed);
+                    mainHandler.post(() -> {
+                        Object currentTag = holder.textViewText.getTag();
+                        if (htmlKey.equals(currentTag)) {
+                            holder.textViewText.setText(parsed);
+                        }
+                    });
+                });
+            }
             holder.textViewText.setMovementMethod(new TextViewClickMovement() {
                 @Override
                 public void onLinkClick(String url) {
@@ -265,7 +287,13 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
+        htmlCache.evictAll();
+        htmlExecutor.shutdownNow();
         super.onDetachedFromRecyclerView(recyclerView);
+    }
+
+    private String buildHtmlCacheKey(FeedForum feed) {
+        return feed.getId() + "_" + feed.getText().hashCode() + "_" + AppController.getInstance().isFontSize();
     }
 
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
