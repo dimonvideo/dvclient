@@ -64,15 +64,6 @@ android {
     flavorDimensions = ["dimonvideo"]
 
     productFlavors {
-        DVClient_NashStore {
-            dimension = 'dimonvideo'
-            buildConfigField "boolean", "HUAWEI", "false"
-            buildConfigField "boolean", "SAMSUNG", "false"
-            buildConfigField "boolean", "NASHSTORE", "true"
-            buildConfigField "boolean", "RUSTORE", "false"
-            buildConfigField "boolean", "GOOGLE", "false"
-            versionNameSuffix "-nashstore"
-        }
         DVClient_RuStore {
             dimension = 'dimonvideo'
             buildConfigField "boolean", "HUAWEI", "false"
@@ -116,11 +107,6 @@ android {
     sourceSets {
         main {
             java.srcDirs += 'src/main/java'
-        }
-
-        DVClient_NashStore {
-            java.srcDirs += 'src/DVClient_NashStore/java'
-            manifest.srcFile 'src/main/AndroidManifest.xml'
         }
         DVClient_RuStore {
             java.srcDirs += 'src/DVClient_RuStore/java'
@@ -177,9 +163,6 @@ dependencies {
 
     // RuStore
     DVClient_RuStoreImplementation 'com.google.firebase:firebase-messaging'
-
-    // NashStore
-    DVClient_NashStoreImplementation 'com.google.firebase:firebase-messaging'
 
     // Samsung
     DVClient_SamsungImplementation 'com.google.firebase:firebase-messaging'
