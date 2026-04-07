@@ -131,8 +131,8 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(binding.getRoot());
 
-        View root = binding.getRoot();
-        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+        View contentRoot = binding.appBarMain.getRoot();
+        ViewCompat.setOnApplyWindowInsetsListener(contentRoot, (v, insets) -> {
             Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(0, statusBarInsets.top, 0, statusBarInsets.bottom);
             return insets;
@@ -189,6 +189,12 @@ public class MainActivity extends AppCompatActivity {
 
         DrawerLayout drawerLayout = binding.drawerLayout;
         navigationView = binding.navView;
+
+        ViewCompat.setOnApplyWindowInsetsListener(navigationView, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), statusBarInsets.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_new, R.id.nav_forum, R.id.nav_news,

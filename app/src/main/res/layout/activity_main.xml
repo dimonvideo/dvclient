@@ -27,7 +27,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="?attr/colorSurface"
-        android:fitsSystemWindows="true"
+        android:fitsSystemWindows="false"
         app:headerLayout="@layout/nav_header_main"
         app:itemIconTint="@color/year"
         app:itemTextColor="@color/text"
