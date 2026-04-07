@@ -15,6 +15,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Html;
+import android.text.Spanned;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,8 +52,10 @@ import com.dimonvideo.client.util.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.ViewHolder> {
@@ -64,6 +68,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     private final AppController appController;
     private final Executor executor;
     private final Map<String, Integer> statusCache = new HashMap<>();
+    private final LruCache<String, Spanned> htmlCache = new LruCache<>(300);
+    private final Set<String> inFlightHtmlKeys = new HashSet<>();
     private final List<StatusUpdate> pendingStatusUpdates = new ArrayList<>();
     private static final int MAX_CACHE_SIZE = 300;
     private static final Object PAYLOAD_STATUS_ONLY = new Object();
@@ -89,6 +95,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.appController = AppController.getInstance();
         this.executor = appController.getExecutor();
+        setHasStableIds(true);
         preloadStatuses(jsonFeed);
     }
 
@@ -99,6 +106,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         jsonFeed.addAll(newFeed);
         diffResult.dispatchUpdatesTo(this);
         preloadStatuses(newFeed);
+        synchronized (inFlightHtmlKeys) {
+            inFlightHtmlKeys.clear();
+        }
     }
 
     public void addToCache(String key, int status) {
@@ -188,7 +198,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
 
         holder.textViewTitle.setText(feed.getTitle());
 
-        holder.textViewText.setText(Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY));
+        bindHtmlTextAsync(holder, feed);
 
         holder.textViewDate.setText(feed.getDate());
         holder.textViewCategory.setText(feed.getCategory());
@@ -304,6 +314,49 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             }
             mainHandler.post(this::notifyDataSetChanged);
         });
+    }
+
+    private void bindHtmlTextAsync(@NonNull ViewHolder holder, @NonNull Feed feed) {
+        String sourceText = feed.getText() == null ? "" : feed.getText();
+        String htmlKey = buildHtmlCacheKey(feed);
+        holder.textViewText.setTag(htmlKey);
+
+        Spanned cached = htmlCache.get(htmlKey);
+        if (cached != null) {
+            holder.textViewText.setText(cached);
+            return;
+        }
+
+        holder.textViewText.setText(sourceText);
+        boolean shouldSchedule;
+        synchronized (inFlightHtmlKeys) {
+            shouldSchedule = inFlightHtmlKeys.add(htmlKey);
+        }
+        if (!shouldSchedule) {
+            return;
+        }
+
+        executor.execute(() -> {
+            try {
+                Spanned parsed = Html.fromHtml(sourceText, Html.FROM_HTML_MODE_LEGACY);
+                htmlCache.put(htmlKey, parsed);
+                mainHandler.post(() -> {
+                    Object currentTag = holder.textViewText.getTag();
+                    if (htmlKey.equals(currentTag)) {
+                        holder.textViewText.setText(parsed);
+                    }
+                });
+            } finally {
+                synchronized (inFlightHtmlKeys) {
+                    inFlightHtmlKeys.remove(htmlKey);
+                }
+            }
+        });
+    }
+
+    private String buildHtmlCacheKey(@NonNull Feed feed) {
+        String sourceText = feed.getText() == null ? "" : feed.getText();
+        return feed.getId() + "_" + sourceText.hashCode() + "_" + appController.isFontSize();
     }
 
     private void queueStatusUpdate(int lid, String razdel) {
@@ -441,6 +494,15 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         return (f.getRazdel() + "_" + f.getId()).hashCode();
     }
 
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        htmlCache.evictAll();
+        synchronized (inFlightHtmlKeys) {
+            inFlightHtmlKeys.clear();
+        }
+    }
+
     public void removeFav(int position) {
         Feed feed = jsonFeed.get(position);
         jsonFeed.remove(position);
@@ -531,5 +593,9 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     public void cleanup() {
         flushStatusUpdates();
         statusCache.clear();
+        htmlCache.evictAll();
+        synchronized (inFlightHtmlKeys) {
+            inFlightHtmlKeys.clear();
+        }
     }
 }
