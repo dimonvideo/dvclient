@@ -73,15 +73,6 @@ android {
             buildConfigField "boolean", "GOOGLE", "false"
             versionNameSuffix "-rustore"
         }
-        DVClient_Samsung {
-            dimension = 'dimonvideo'
-            buildConfigField "boolean", "HUAWEI", "false"
-            buildConfigField "boolean", "SAMSUNG", "true"
-            buildConfigField "boolean", "NASHSTORE", "false"
-            buildConfigField "boolean", "RUSTORE", "false"
-            buildConfigField "boolean", "GOOGLE", "false"
-            versionNameSuffix "-samsung"
-        }
 
         DVClient_Huawei {
             dimension = 'dimonvideo'
@@ -114,10 +105,6 @@ android {
         }
         DVClient_Google {
             java.srcDirs += 'src/DVClient_Google/java'
-            manifest.srcFile 'src/main/AndroidManifest.xml'
-        }
-        DVClient_Samsung {
-            java.srcDirs += 'src/DVClient_Samsung/java'
             manifest.srcFile 'src/main/AndroidManifest.xml'
         }
         DVClient_Huawei {
@@ -163,9 +150,6 @@ dependencies {
 
     // RuStore
     DVClient_RuStoreImplementation 'com.google.firebase:firebase-messaging'
-
-    // Samsung
-    DVClient_SamsungImplementation 'com.google.firebase:firebase-messaging'
 
     // HUAWEI
     DVClient_HuaweiImplementation 'com.huawei.agconnect:agconnect-core:1.9.1.304'
