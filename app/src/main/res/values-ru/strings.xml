@@ -26,7 +26,6 @@
     <string name="action_feedback">Обратная связь</string>
     <string name="app_mail">admin@dimonvideo.ru</string>
 
-    <string name="messages_header">Основная информация</string>
     <string name="signature_title">Логин на сайте</string>
     <string name="password_title">Пароль на сайте</string>
     <string name="pm_title">Личные сообщения</string>
@@ -239,7 +238,6 @@
     <string-array name="font_size_list"><item>Наименьший</item><item>Мелкий</item><item>Нормальный</item><item>Большой</item><item>Наибольший</item></string-array>
 
     <string name="pm_attach_image">Прикрепить изображение</string>
-    <string name="pm_reply">Ответить</string>
     <string name="pm_write_to">Написать %1$s</string>
     <string name="pm_send_and_delete">Отправить и удалить</string>
     <string name="pm_empty_reply">Введите текст сообщения перед отправкой</string>
@@ -250,6 +248,21 @@
     <string name="pm_delete_expired">За 6 часов удаление не подтвердилось. Обновите список и попробуйте снова.</string>
     <string name="pm_load_more_failed">Не удалось загрузить сообщения. Текущий список сохранён.</string>
     <string name="pm_retry">Повторить</string>
+    <string name="pm_message_text">Сообщение</string>
+    <string name="pm_reply_text">Ваш ответ</string>
+    <string name="site_login_title">Вход на сайт</string>
+    <string name="site_login_summary">Введите логин и пароль DimonVideo.ru</string>
+    <string name="site_login_signed_in">Вы вошли как %1$s</string>
+    <string name="site_login_name">Логин</string>
+    <string name="site_login_password">Пароль</string>
+    <string name="site_login_required_login">Введите логин</string>
+    <string name="site_login_required_password">Введите пароль</string>
+    <string name="site_login_rejected">Неверный логин или пароль. Проверьте данные и повторите вход.</string>
+    <string name="site_login_network_error">Не удалось проверить данные. Проверьте интернет и повторите вход.</string>
+    <string name="site_login_in_progress">Выполняется вход…</string>
+    <string name="site_login_session_changed">Во время входа аккаунт изменился. Проверьте данные и повторите вход.</string>
+    <string name="site_login_cancel">Отмена</string>
+    <string name="site_login_submit">ОК</string>
     <string name="pm_recipient_loading">Поиск получателя…</string>
     <string name="pm_recipient_unavailable">Не удалось проверить получателя. Повторите при наличии интернета.</string>
     <string name="pm_members_load_failed">Не удалось загрузить пользователей. Текущий список сохранён.</string>

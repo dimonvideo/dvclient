@@ -1,0 +1,17 @@
+<resources>
+    <!-- Form colors are independent of the intentionally dark navigation/app-bar primary. -->
+    <style name="ThemeOverlay.DVClient.FormDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/form_primary</item>
+        <item name="colorOnPrimary">@color/form_on_primary</item>
+        <item name="colorSurface">@color/form_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/form_surface</item>
+        <item name="colorOnSurface">@color/form_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/form_on_surface_variant</item>
+        <item name="colorOutline">@color/form_outline</item>
+        <item name="colorError">@color/form_error</item>
+        <item name="android:textColorPrimary">@color/form_on_surface</item>
+        <item name="android:textColorSecondary">@color/form_on_surface_variant</item>
+        <item name="colorControlActivated">@color/form_primary</item>
+        <item name="colorControlNormal">@color/form_on_surface_variant</item>
+    </style>
+</resources>

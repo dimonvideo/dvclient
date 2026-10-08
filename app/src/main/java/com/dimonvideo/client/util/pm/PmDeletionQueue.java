@@ -27,6 +27,13 @@ public final class PmDeletionQueue {
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
+    /** Separates durable intent acceptance from best-effort background work scheduling. */
+    interface Scheduler {
+        /** Persists the worker request or throws while leaving the accepted intent available for recovery. */
+        void schedule(Context context, PmDeletionStore.Entry entry,
+                      ExistingWorkPolicy policy) throws Exception;
+    }
+
     /** Prevents instantiation of the process-wide queue coordinator. */
     private PmDeletionQueue() { }
 
@@ -39,8 +46,8 @@ public final class PmDeletionQueue {
 
     /**
      * Persists an account-bound intent off the main thread, then accepts local UI removal.
-     * A failed database write keeps the message visible. Scheduling is also awaited before
-     * acceptance; recovery re-enqueues saved intents after an interrupted app process.
+     * A failed database write keeps the message visible. Once saved, the intent is accepted
+     * even if scheduling fails; recovery re-enqueues it after the scheduler becomes available.
      */
     public static void enqueue(Context context, int messageId, Runnable onAccepted) {
         enqueue(context, messageId, 0, 1, onAccepted, null);
@@ -61,6 +68,13 @@ public final class PmDeletionQueue {
     /** Persists source hints and completes either acceptance or rejection on the main thread. */
     public static void enqueue(Context context, int messageId, int sourceFolder, int sourcePage,
                                 Runnable onAccepted, Runnable onRejected) {
+        enqueue(context, messageId, sourceFolder, sourcePage, onAccepted, onRejected,
+                PmDeletionQueue::schedule);
+    }
+
+    /** Uses the real durable store while allowing scheduling failures to be verified independently. */
+    static void enqueue(Context context, int messageId, int sourceFolder, int sourcePage,
+                        Runnable onAccepted, Runnable onRejected, Scheduler scheduler) {
         Context appContext = context.getApplicationContext();
         String accountKey = currentAccountKey();
         int userId = AppController.getInstance().isUserId();
@@ -69,26 +83,34 @@ public final class PmDeletionQueue {
             return;
         }
         IO.execute(() -> {
+            PmDeletionStore.Entry entry;
             try {
                 PmDeletionStore store = PmDeletionStore.get(appContext);
                 long now = System.currentTimeMillis();
-                PmDeletionStore.Entry entry = store.insert(
+                entry = store.insert(
                         accountKey, userId, messageId, now, sourceFolder, sourcePage);
-                // Unique work includes the intent generation, so an old running/expired worker
-                // cannot make KEEP discard a fresh explicit request for the same message.
-                schedule(appContext, entry, ExistingWorkPolicy.KEEP);
-                MAIN.post(() -> {
-                    if (!accountKey.equals(currentAccountKey())) {
-                        if (onRejected != null) onRejected.run();
-                        return;
-                    }
-                    if (onAccepted != null) onAccepted.run();
-                    Toast.makeText(appContext, R.string.pm_delete_queued, Toast.LENGTH_SHORT).show();
-                });
             } catch (Exception exception) {
+                // No durable intent was accepted, so keep the message visible.
                 // Never include request URLs, credentials, or server response text in logs.
                 reject(appContext, onRejected);
+                return;
             }
+            try {
+                // Unique work includes the intent generation, so an old running/expired worker
+                // cannot make KEEP discard a fresh explicit request for the same message.
+                scheduler.schedule(appContext, entry, ExistingWorkPolicy.KEEP);
+            } catch (Exception exception) {
+                // The saved intent remains accepted and recoverable. Reporting rejection here
+                // would allow a later resume to delete a message the UI still showed as unqueued.
+            }
+            MAIN.post(() -> {
+                if (!accountKey.equals(currentAccountKey())) {
+                    if (onRejected != null) onRejected.run();
+                    return;
+                }
+                if (onAccepted != null) onAccepted.run();
+                Toast.makeText(appContext, R.string.pm_delete_queued, Toast.LENGTH_SHORT).show();
+            });
         });
     }
 
@@ -102,14 +124,23 @@ public final class PmDeletionQueue {
 
     /** Repairs the save/schedule crash window and expires old intents when the app starts. */
     public static void resume(Context context) {
+        resume(context, PmDeletionQueue::schedule);
+    }
+
+    /** Retries each saved intent independently so one unavailable work request cannot block others. */
+    static void resume(Context context, Scheduler scheduler) {
         Context appContext = context.getApplicationContext();
         IO.execute(() -> {
             try {
                 for (PmDeletionStore.Entry entry : PmDeletionStore.get(appContext).entries()) {
-                    if (PmDeletionRetryPolicy.isExpired(entry.createdAt, System.currentTimeMillis())) {
-                        finish(appContext, entry, PmDeletionEvent.Outcome.EXPIRED);
-                    } else {
-                        schedule(appContext, entry, ExistingWorkPolicy.KEEP);
+                    try {
+                        if (PmDeletionRetryPolicy.isExpired(entry.createdAt, System.currentTimeMillis())) {
+                            finish(appContext, entry, PmDeletionEvent.Outcome.EXPIRED);
+                        } else {
+                            scheduler.schedule(appContext, entry, ExistingWorkPolicy.KEEP);
+                        }
+                    } catch (Exception exception) {
+                        // Keep this accepted intent for a later recovery and continue with others.
                     }
                 }
             } catch (Exception exception) {

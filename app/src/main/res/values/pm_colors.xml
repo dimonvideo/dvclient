@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Form roles stay readable independently of the application's toolbar colors. -->
+    <color name="form_surface">#FFFFFF</color>
+    <color name="form_on_surface">#202124</color>
+    <color name="form_on_surface_variant">#5F6368</color>
+    <color name="form_primary">#1565C0</color>
+    <color name="form_on_primary">#FFFFFF</color>
+    <color name="form_outline">#747A84</color>
+    <color name="form_error">#B3261E</color>
+</resources>

@@ -143,6 +143,7 @@ public class AdapterPmFriends extends RecyclerView.Adapter<AdapterPmFriends.View
         if (!accountState.isCurrent(account)) return;
         if (messageDialog != null) messageDialog.dismiss();
         final PmMessageDialog.Draft draft = accountState.draft(member.getId());
+        if (PmComposerFragment.open(context, member, true, draft)) return;
         messageDialog = new PmMessageDialog(context, member, true, draft, () -> { }, () -> {
             accountState.discardEmptyDraft(account, member.getId(), draft);
             messageDialog = null;

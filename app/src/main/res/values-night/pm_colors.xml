@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="form_surface">#1E1F24</color>
+    <color name="form_on_surface">#F1F1F4</color>
+    <color name="form_on_surface_variant">#C5C8D0</color>
+    <color name="form_primary">#9CCBFF</color>
+    <color name="form_on_primary">#00315B</color>
+    <color name="form_outline">#91969F</color>
+    <color name="form_error">#FFB4AB</color>
+</resources>

@@ -17,6 +17,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewTreeLifecycleOwner;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -43,6 +46,7 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
     private List<FeedPm> submittedItems = new ArrayList<>();
     private OnMessageRemovedListener removedListener;
     private PmMessageDialog messageDialog;
+    private FragmentActivity resultActivity;
     private int deletionSourceFolder;
 
     /** Receives accepted removals by identity so the pager does not reintroduce a deleted message. */
@@ -143,13 +147,15 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         if (!accountState.isCurrent(account)) return;
         if (messageDialog != null) messageDialog.dismiss();
         final PmMessageDialog.Draft draft = accountState.draft(feed.getId());
-        messageDialog = new PmMessageDialog(context, feed, false, draft,
-                () -> { if (accountState.isCurrent(account)) removeAccepted(feed.getId(), account); },
-                () -> {
-                    accountState.discardEmptyDraft(account, feed.getId(), draft);
-                    messageDialog = null;
-                });
-        messageDialog.show();
+        if (!PmComposerFragment.open(context, feed, false, draft)) {
+            messageDialog = new PmMessageDialog(context, feed, false, draft,
+                    () -> { if (accountState.isCurrent(account)) removeAccepted(feed.getId(), account); },
+                    () -> {
+                        accountState.discardEmptyDraft(account, feed.getId(), draft);
+                        messageDialog = null;
+                    });
+            messageDialog.show();
+        }
         if (!feed.isOutgoing() && feed.getIs_new() > 0 && accountState.beginRead(account, feed.getId())) {
             NetworkUtils.readPm(context, feed.getId(), new NetworkUtils.PmOperationCallback() {
                 /** Records acknowledgement only in the originating account's visible list. */
@@ -228,6 +234,16 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         super.onAttachedToRecyclerView(recyclerView);
         renderer.activate();
         synchronizeAccount();
+        resultActivity = PmComposerFragment.activity(context);
+        if (resultActivity != null) {
+            LifecycleOwner owner = ViewTreeLifecycleOwner.get(recyclerView);
+            resultActivity.getSupportFragmentManager().setFragmentResultListener(
+                    PmComposerFragment.deletionResultKey(deletionSourceFolder),
+                    owner != null ? owner : resultActivity, (key, result) -> {
+                        String account = result.getString("account");
+                        if (accountState.isCurrent(account)) removeAccepted(result.getInt("message"), account);
+                    });
+        }
         AppController controller = AppController.getInstance();
         if (controller != null) {
             observedPreferences = controller.getSharedPreferences();
@@ -238,6 +254,11 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
     /** Saves the composer draft and releases rendering/image resources when the list leaves the screen. */
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        if (resultActivity != null) {
+            resultActivity.getSupportFragmentManager().clearFragmentResultListener(
+                    PmComposerFragment.deletionResultKey(deletionSourceFolder));
+            resultActivity = null;
+        }
         if (observedPreferences != null) {
             observedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener);
             observedPreferences = null;
