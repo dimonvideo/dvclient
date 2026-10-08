@@ -247,6 +247,7 @@
         <item>Largest</item>
     </string-array>
     <string name="pm_attach_image">Attach image</string>
+    <string name="pm_attachment_unavailable">Could not open image selection. Wait for current uploads and try again.</string>
     <string name="pm_write_to">Write to %1$s</string>
     <string name="pm_send_and_delete">Send and delete</string>
     <string name="pm_empty_reply">Enter a message before sending</string>

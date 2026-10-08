@@ -238,6 +238,7 @@
     <string-array name="font_size_list"><item>Наименьший</item><item>Мелкий</item><item>Нормальный</item><item>Большой</item><item>Наибольший</item></string-array>
 
     <string name="pm_attach_image">Прикрепить изображение</string>
+    <string name="pm_attachment_unavailable">Не удалось открыть выбор изображения. Дождитесь текущих загрузок и повторите попытку.</string>
     <string name="pm_write_to">Написать %1$s</string>
     <string name="pm_send_and_delete">Отправить и удалить</string>
     <string name="pm_empty_reply">Введите текст сообщения перед отправкой</string>

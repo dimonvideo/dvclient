@@ -250,6 +250,36 @@ public class PmComposerFragmentTest {
         assertNull(result.filename);
     }
 
+    /** Reopening a capacity-evicted request releases its waiting controls without erasing the saved draft. */
+    @Test
+    public void reopeningEvictedAttachmentKeepsDraftAndAllowsSendingAgain() {
+        openPending(true);
+        input().setText("Retain this unsent message");
+        PmComposerFragment.State state = new ViewModelProvider(fragment()).get(PmComposerFragment.State.class);
+        state.draft.attachment = "previous-file.png";
+        owner.beginUpload("original-request", account);
+        fragment().dismissNow();
+        owner.complete("original-request", account, "abandoned-file.png", PmAttachmentEvent.Outcome.READY, account);
+        for (int index = 0; index < 31; index++) {
+            String request = "other-message-" + index;
+            assertTrue(owner.beginPicker(request, account));
+            owner.beginUpload(request, account);
+            owner.complete(request, account, index + ".png", PmAttachmentEvent.Outcome.READY, account);
+        }
+        assertTrue(owner.beginPicker("new-message", account));
+        assertNull(owner.result("original-request", account));
+        FeedPm recipient = new FeedPm();
+        recipient.setId(42);
+        recipient.setTitle("Original recipient");
+        assertTrue(PmComposerFragment.open(activity.get(), recipient, true, new PmMessageDialog.Draft()));
+        ShadowLooper.shadowMainLooper().idle();
+        PmComposerFragment.State restored = new ViewModelProvider(fragment()).get(PmComposerFragment.State.class);
+        assertEquals("Retain this unsent message", input().getText().toString());
+        assertEquals("previous-file.png", restored.draft.attachment);
+        assertNull(restored.draft.attachmentRequest);
+        assertTrue(send().isEnabled());
+    }
+
     /** Starts a real lifecycle-owned sheet with an outstanding picker, without invoking external UI or HTTP. */
     private void openPending(boolean member) {
         FeedPm feed = new FeedPm();
