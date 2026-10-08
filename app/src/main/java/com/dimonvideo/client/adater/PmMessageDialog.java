@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -12,6 +11,9 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
@@ -27,6 +29,7 @@ import com.dimonvideo.client.util.pm.PmDeletionQueue;
 import com.dimonvideo.client.util.pm.PmRecipientResolver;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -56,11 +59,20 @@ public final class PmMessageDialog {
     private boolean sending;
     private boolean sent;
     private boolean released;
+    private final Observer<Integer> draftObserver = ignored -> refreshDraftState();
 
     /** Stores a view-free draft so rows can be recycled without mixing recipients. */
     static final class Draft {
         String text = "";
         String attachment;
+        String attachmentRequest;
+        boolean sending;
+        boolean acknowledged;
+        int resolvedRecipientId;
+        final MutableLiveData<Integer> updates = new MutableLiveData<>(0);
+
+        /** Notifies the currently attached sheet after a retained send changes shared draft state. */
+        void changed() { updates.setValue(updates.getValue() + 1); }
     }
 
     /** Separates UI state from network/picker side effects so account and failure paths can be tested. */
@@ -86,28 +98,37 @@ public final class PmMessageDialog {
                 new RuntimeOperations(context), PmRowViewHolder.fontSizeBase());
     }
 
-    /** Builds the same UI with explicit operations, allowing failure tests without network access. */
+    /** Builds a themed, content-sized sheet with a single input label and testable network boundaries. */
     PmMessageDialog(Context context, FeedPm feed, boolean member, Draft draft,
                     Runnable onSentAndDeleted, Runnable onDismiss, Operations operations, float fontSize) {
         this.context = context;
         this.feed = new FeedPm(feed);
+        if (draft.resolvedRecipientId > 0) this.feed.setRecipientId(draft.resolvedRecipientId);
         this.member = member;
         this.draft = draft;
+        sending = draft.sending;
+        attachmentRequest = draft.attachmentRequest;
+        awaitingAttachment = attachmentRequest != null;
         this.operations = operations;
         accountKey = operations.currentAccountKey();
         this.onSentAndDeleted = onSentAndDeleted;
         this.onDismiss = onDismiss;
-        dialog = new BottomSheetDialog(context);
-        View content = LayoutInflater.from(context).inflate(
-                R.layout.dialog_pm_detail, new FrameLayout(context), false);
+        dialog = new BottomSheetDialog(context, R.style.ThemeOverlay_DVClient_PmDialog);
+        Context themedContext = dialog.getContext();
+        View content = LayoutInflater.from(themedContext).inflate(
+                R.layout.dialog_pm_detail, new FrameLayout(themedContext), false);
         dialog.setContentView(content);
         TextView title = content.findViewById(R.id.pm_detail_title);
         TextView sender = content.findViewById(R.id.pm_detail_sender);
         TextView body = content.findViewById(R.id.pm_detail_body);
         title.setText(member ? context.getString(R.string.pm_write_to, feed.getTitle()) : feed.getTitle());
         title.setTextSize(fontSize + 6);
-        sender.setText(joinMetadata(feed.getLast_poster_name(), feed.getDate()));
+        String metadata = joinMetadata(feed.getLast_poster_name(), feed.getDate());
+        sender.setText(metadata);
+        sender.setVisibility(metadata.isEmpty() ? View.GONE : View.VISIBLE);
         body.setTextSize(fontSize + 3);
+        body.setVisibility(feed.getFullHtml() == null || feed.getFullHtml().isEmpty()
+                ? View.GONE : View.VISIBLE);
         renderer.bind(body, feed.getFullHtml(), true);
         body.setMovementMethod(new TextViewClickMovement() {
             /** Opens links with the same user preferences as other private-message screens. */
@@ -119,7 +140,9 @@ public final class PmMessageDialog {
             }
         });
         input = content.findViewById(R.id.pm_reply_input);
-        input.setHint(member ? R.string.post_description : R.string.pm_reply);
+        TextInputLayout replyLayout = content.findViewById(R.id.pm_reply_layout);
+        replyLayout.setHint(themedContext.getString(member
+                ? R.string.pm_message_text : R.string.pm_reply_text));
         input.setText(draft.text);
         attachmentStatus = content.findViewById(R.id.pm_attachment_status);
         attachmentStatus.setVisibility(draft.attachment == null ? View.GONE : View.VISIBLE);
@@ -137,31 +160,43 @@ public final class PmMessageDialog {
         close.setOnClickListener(view -> dismiss());
         dialog.setOnDismissListener(ignored -> release());
         dialog.setOnShowListener(ignored -> {
-            View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-            if (sheet != null) {
-                ViewGroup.LayoutParams params = sheet.getLayoutParams();
-                params.height = Math.round(context.getResources().getDisplayMetrics().heightPixels * 0.9f);
-                sheet.setLayoutParams(params);
-            }
             dialog.getBehavior().setSkipCollapsed(true);
             dialog.getBehavior().setState(BottomSheetBehavior.STATE_EXPANDED);
         });
+        // Cap long messages while allowing short messages and member composers to wrap their content.
+        dialog.getBehavior().setMaxHeight(Math.round(
+                themedContext.getResources().getDisplayMetrics().heightPixels * 0.9f));
+        dialog.getBehavior().setMaxWidth(Math.round(
+                640 * themedContext.getResources().getDisplayMetrics().density));
     }
 
     /** Combines optional author and date labels without displaying null values. */
     private static String joinMetadata(String author, String date) {
         String safeAuthor = author == null ? "" : author;
         String safeDate = date == null ? "" : date;
-        return safeAuthor.isEmpty() ? safeDate : safeAuthor + " · " + safeDate;
+        if (safeAuthor.isEmpty()) return safeDate;
+        return safeDate.isEmpty() ? safeAuthor : safeAuthor + " · " + safeDate;
     }
 
     /** Opens only for the original account and listens to future, correlated upload results. */
     void show() {
         if (released || !ensureAccount()) return;
-        EventBus.getDefault().register(this);
         dialog.show();
+        startForFragment();
+    }
+
+    /** Exposes the themed sheet to DialogFragment, which restores its own lifecycle and window. */
+    BottomSheetDialog dialogForFragment() { return dialog; }
+
+    /** Activates a shown/restored sheet without opening a second dialog or replacing its dismiss listener. */
+    void startForFragment() {
+        if (released || !ensureAccount()) return;
+        if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
+        draft.updates.removeObserver(draftObserver);
+        draft.updates.observeForever(draftObserver);
         Window window = dialog.getWindow();
         if (window != null) window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        setSendingEnabled(!sending);
         if (!member && feed.isOutgoing()) resolveOutgoingRecipient();
     }
 
@@ -174,12 +209,24 @@ public final class PmMessageDialog {
     /** Saves an unacknowledged draft and releases EventBus/rendering resources exactly once. */
     private void release() {
         if (released) return;
-        released = true;
+        releaseForRecreation();
+        onDismiss.run();
+    }
+
+    /** Copies text before saved-state capture without changing the open or pending-upload intent. */
+    void saveDraft() {
         if (!sent) draft.text = input.getText().toString();
+    }
+
+    /** Detaches obsolete views/subscriptions while leaving view-free state available to the recreated sheet. */
+    void releaseForRecreation() {
+        if (released) return;
+        released = true;
+        saveDraft();
         renderer.release();
         if (recipientLookup != null) recipientLookup.cancel();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
-        onDismiss.run();
+        draft.updates.removeObserver(draftObserver);
     }
 
     /** Rejects actions and callbacks for an account different from the one that opened the sheet. */
@@ -206,6 +253,7 @@ public final class PmMessageDialog {
                         if (released || !ensureAccount()) return;
                         resolvingRecipient = false;
                         feed.setRecipientId(positiveUid);
+                        draft.resolvedRecipientId = positiveUid;
                         recipientStatus.setVisibility(View.GONE);
                         recipientRetry.setVisibility(View.GONE);
                         setSendingEnabled(true);
@@ -227,6 +275,7 @@ public final class PmMessageDialog {
         if (released || !Objects.equals(attachmentRequest, event.requestId)
                 || !Objects.equals(accountKey, event.accountKey) || !ensureAccount()) return;
         attachmentRequest = null;
+        draft.attachmentRequest = null;
         awaitingAttachment = false;
         if (event.outcome == PmAttachmentEvent.Outcome.READY && event.filename != null) {
             draft.attachment = event.filename;
@@ -239,10 +288,12 @@ public final class PmMessageDialog {
     private void pickImage() {
         if (sending || awaitingAttachment || !ensureAccount()) return;
         attachmentRequest = UUID.randomUUID().toString();
+        draft.attachmentRequest = attachmentRequest;
         awaitingAttachment = true;
         setSendingEnabled(true);
         if (!operations.pickImage(attachmentRequest, accountKey)) {
             attachmentRequest = null;
+            draft.attachmentRequest = null;
             awaitingAttachment = false;
             setSendingEnabled(true);
         }
@@ -260,6 +311,9 @@ public final class PmMessageDialog {
         draft.text = text;
         final String submittedAttachment = draft.attachment;
         sending = true;
+        draft.sending = true;
+        draft.acknowledged = false;
+        draft.changed();
         setSendingEnabled(false);
         operations.send(feed, member, text, submittedAttachment,
                 new NetworkUtils.PmOperationCallback() {
@@ -269,18 +323,13 @@ public final class PmMessageDialog {
                         if (!ensureAccount()) return;
                         draft.text = "";
                         if (Objects.equals(draft.attachment, submittedAttachment)) draft.attachment = null;
+                        draft.sending = false;
+                        draft.acknowledged = draft.attachment == null || deleteAfterSend;
+                        draft.changed();
                         if (deleteAfterSend) {
                             operations.enqueueDeletion(feed, () -> {
                                 if (accountKey.equals(operations.currentAccountKey())) onSentAndDeleted.run();
                             });
-                        }
-                        if (draft.attachment == null || deleteAfterSend || released) {
-                            sent = true;
-                            dismiss();
-                        } else {
-                            input.setText("");
-                            sending = false;
-                            setSendingEnabled(true);
                         }
                     }
 
@@ -288,9 +337,24 @@ public final class PmMessageDialog {
                     @Override
                     public void onError() {
                         sending = false;
+                        draft.sending = false;
+                        draft.changed();
                         if (!released && ensureAccount()) setSendingEnabled(true);
                     }
                 });
+    }
+
+    /** Keeps a replacement sheet disabled during the original send and applies its eventual acknowledgement. */
+    private void refreshDraftState() {
+        if (released) return;
+        sending = draft.sending;
+        if (draft.acknowledged) {
+            sent = true;
+            dismiss();
+        } else {
+            if (!sending && draft.text.isEmpty()) input.setText("");
+            setSendingEnabled(!sending);
+        }
     }
 
     /** Prevents duplicate sends, omitted pending uploads, and edits during a send request. */

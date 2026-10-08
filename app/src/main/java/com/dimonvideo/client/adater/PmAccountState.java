@@ -63,7 +63,8 @@ final class PmAccountState {
     /** Discards only an empty draft belonging to the exact sheet that has just closed. */
     void discardEmptyDraft(String capturedAccount, int id, PmMessageDialog.Draft draft) {
         String key = key(capturedAccount, id);
-        if (draft.text.isEmpty() && draft.attachment == null && drafts.get(key) == draft) drafts.remove(key);
+        if (draft.text.isEmpty() && draft.attachment == null && draft.attachmentRequest == null
+                && drafts.get(key) == draft) drafts.remove(key);
     }
 
     /** Removes the accepted message's draft without touching another user's same-ID draft. */

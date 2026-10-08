@@ -8,24 +8,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/messages_header">
-
-        <EditTextPreference
-            app:key="dvc_login"
-            app:title="@string/signature_title"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            android:dependency="dvc_login"
-            app:key="dvc_password"
-            app:title="@string/password_title"
-            android:inputType="textPassword"
-            app:useSimpleSummaryProvider="false" />
-    </PreferenceCategory>
+    <Preference
+        app:key="dvc_site_login"
+        app:order="-1"
+        app:title="@string/site_login_title"
+        app:summary="@string/site_login_summary"
+        app:icon="@drawable/ic_site_login" />
 
     <PreferenceCategory app:title="@string/tab_pm">
 
         <ListPreference
-            android:dependency="dvc_password"
             app:defaultValue="off"
             app:entries="@array/pm_entries"
             app:entryValues="@array/pm_values"
@@ -33,21 +25,18 @@
             app:title="@string/pm_title"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
-            android:dependency="dvc_password"
             app:defaultValue="false"
             app:key="dvc_pm_notify"
             android:summary="@string/disable_pm_notify"
             app:useSimpleSummaryProvider="true"
             app:title="@string/disable_pm_notify" />
         <SwitchPreferenceCompat
-            android:dependency="dvc_password"
             app:defaultValue="true"
             app:key="dvc_pm_outbox"
             android:summary="@string/disable_pm_outbox"
             app:useSimpleSummaryProvider="true"
             app:title="@string/disable_pm_outbox" />
         <SwitchPreferenceCompat
-            android:dependency="dvc_password"
             app:key="dvc_pm_arc"
             app:defaultValue="false"
             android:summary="@string/disable_pm_arc"
@@ -67,14 +56,12 @@
             android:key="dvc_register"
             android:title="@string/register" />
         <Preference
-            android:dependency="dvc_password"
             android:key="dvc_clear_login"
             android:title="@string/clear_login" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/app_functions">
         <Preference
             android:key="sett_cloud_backup"
-            android:dependency="dvc_password"
             android:title="@string/menu_backup"
             android:summary="@string/menu_backup_sum" />
 
@@ -187,7 +174,6 @@
     <PreferenceCategory app:title="@string/menu_new">
 
         <SwitchPreferenceCompat
-            android:dependency="dvc_password"
             app:defaultValue="false"
             app:key="dvc_new_files"
             app:useSimpleSummaryProvider="true"
@@ -441,7 +427,6 @@
     <PreferenceCategory app:title="@string/menu_add_file">
 
         <SwitchPreferenceCompat
-            android:dependency="dvc_password"
             app:defaultValue="true"
             app:key="dvc_add_file"
             app:title="@string/menu_add_file" />

@@ -8,6 +8,7 @@ package com.dimonvideo.client.util;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -56,11 +57,64 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class NetworkUtils {
 
     private static final String UTF_8 = "utf-8";
+
+    /** Retains the session that owns an asynchronous legacy authentication refresh. */
+    private static final class AuthSession {
+        private final SharedPreferences preferences;
+        private final Object login;
+        private final Object password;
+        private final Object state;
+        private final Object userId;
+        private final SharedPreferences.OnSharedPreferenceChangeListener listener;
+        private boolean invalidated, closed;
+
+        /** Captures identity and tracks replacements even when a later sign-in restores the same values. */
+        AuthSession(SharedPreferences preferences) {
+            this.preferences = preferences;
+            Map<String, ?> snapshot = preferences.getAll();
+            login = snapshot.get("dvc_login");
+            password = snapshot.get("dvc_password");
+            state = snapshot.get("auth_state");
+            userId = snapshot.get("user_id");
+            listener = (changedPreferences, key) -> {
+                synchronized (AuthSession.this) {
+                    if (!closed && (key == null || "dvc_login".equals(key)
+                            || "dvc_password".equals(key) || "auth_state".equals(key)
+                            || "user_id".equals(key))) invalidated = true;
+                }
+            };
+            preferences.registerOnSharedPreferenceChangeListener(listener);
+        }
+
+        /** Rejects responses whose original credentials or authenticated identity were replaced. */
+        synchronized boolean matches() {
+            Map<String, ?> current = preferences.getAll();
+            return !closed && !invalidated && Objects.equals(login, current.get("dvc_login"))
+                    && Objects.equals(password, current.get("dvc_password"))
+                    && Objects.equals(state, current.get("auth_state"))
+                    && Objects.equals(userId, current.get("user_id"));
+        }
+
+        /** Claims one owned terminal callback and unsubscribes before its own session writes occur. */
+        synchronized boolean finishIfCurrent() {
+            boolean current = matches();
+            close();
+            return current;
+        }
+
+        /** Releases the listener after response, error, cancellation, or a request that cannot be queued. */
+        synchronized void close() {
+            if (closed) return;
+            closed = true;
+            preferences.unregisterOnSharedPreferenceChangeListener(listener);
+        }
+    }
 
     /** Encodes existing account credentials for the legacy authenticated API. */
     private static boolean getEncodedAuthData(AppController appController, String[] authData, Context context) {
@@ -86,7 +140,7 @@ public class NetworkUtils {
         }
     }
 
-    /** Refreshes account metadata after validating credentials without logging them. */
+    /** Refreshes metadata only while the originating credentials and session still own the response. */
     public static void checkPassword(Context context, String password, String razdel) {
         AppController appController = AppController.getInstance();
         View view = MainActivity.binding.getRoot();
@@ -96,12 +150,17 @@ public class NetworkUtils {
             return;
         }
 
+        AuthSession session = new AuthSession(appController.getSharedPreferences());
         String[] authData = new String[2];
-        if (getEncodedAuthData(appController, authData, context)) return;
+        if (getEncodedAuthData(appController, authData, context) || !session.matches()) {
+            session.close();
+            return;
+        }
 
         String url = Config.CHECK_AUTH_URL + "&login_name=" + authData[0] + "&login_password=" + authData[1];
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
+                    if (!session.finishIfCurrent()) return;
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
@@ -135,13 +194,31 @@ public class NetworkUtils {
                     } catch (JSONException e) {
                         Log.e(Config.TAG, "JSON parsing error: " + e.getMessage());
                     }
-                }, error -> showErrorToast(context, error));
+                }, error -> {
+                    if (session.finishIfCurrent()) showErrorToast(context, error);
+                }) {
+            /** Unsubscribes immediately because Volley does not deliver a callback for cancelled requests. */
+            @Override
+            public void cancel() {
+                session.close();
+                super.cancel();
+            }
+
+            /** Keeps Volley debug and cancellation messages free of the authenticated request URL. */
+            @Override
+            public String toString() { return "Site account refresh"; }
+        };
 
         stringRequest.setShouldCache(false);
-        appController.addToRequestQueue(stringRequest);
+        try {
+            appController.addToRequestQueue(stringRequest);
+        } catch (RuntimeException exception) {
+            stringRequest.cancel();
+            throw exception;
+        }
     }
 
-    /** Verifies the entered login without exposing its authenticated URL to logs. */
+    /** Verifies a legacy login only while its original saved session still owns the response. */
     public static void checkLogin(Context context, String login) {
         AppController appController = AppController.getInstance();
         View view = MainActivity.binding.getRoot();
@@ -151,12 +228,17 @@ public class NetworkUtils {
             return;
         }
 
+        AuthSession session = new AuthSession(appController.getSharedPreferences());
         String[] authData = new String[2];
-        if (getEncodedAuthData(appController, authData, context)) return;
+        if (getEncodedAuthData(appController, authData, context) || !session.matches()) {
+            session.close();
+            return;
+        }
 
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + authData[1];
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
+                    if (!session.finishIfCurrent()) return;
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
@@ -174,10 +256,28 @@ public class NetworkUtils {
                     } catch (JSONException e) {
                         Log.e(Config.TAG, "JSON parsing error: " + e.getMessage());
                     }
-                }, error -> showErrorToast(context, error));
+                }, error -> {
+                    if (session.finishIfCurrent()) showErrorToast(context, error);
+                }) {
+            /** Unsubscribes immediately when the legacy request is cancelled without a Volley callback. */
+            @Override
+            public void cancel() {
+                session.close();
+                super.cancel();
+            }
+
+            /** Keeps the legacy login's credential-bearing URL out of Volley diagnostic messages. */
+            @Override
+            public String toString() { return "Site login verification"; }
+        };
 
         stringRequest.setShouldCache(false);
-        appController.addToRequestQueue(stringRequest);
+        try {
+            appController.addToRequestQueue(stringRequest);
+        } catch (RuntimeException exception) {
+            stringRequest.cancel();
+            throw exception;
+        }
     }
 
     /** Queues deletion durably, or performs one acknowledged restore/archive operation. */

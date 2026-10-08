@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ThemeOverlay.DVClient.PmDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="colorSurface">@color/form_surface</item>
+        <item name="colorSurfaceContainerLow">@color/form_surface</item>
+        <item name="colorOnSurface">@color/form_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/form_on_surface_variant</item>
+        <item name="colorPrimary">@color/form_primary</item>
+        <item name="colorOnPrimary">@color/form_on_primary</item>
+        <item name="colorOutline">@color/form_outline</item>
+        <item name="colorError">@color/form_error</item>
+        <item name="android:textColorLink">@color/form_primary</item>
+        <item name="android:navigationBarColor">@color/form_surface</item>
+    </style>
+</resources>

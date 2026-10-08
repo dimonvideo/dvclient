@@ -3,14 +3,27 @@ package com.dimonvideo.client.adater;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Dialog;
+import android.content.res.Configuration;
+import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import androidx.core.graphics.ColorUtils;
+import androidx.core.widget.NestedScrollView;
 
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.pm.PmAttachmentEvent;
 import com.dimonvideo.client.util.pm.PmRecipientResolver;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.shape.MaterialShapeDrawable;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.junit.After;
@@ -24,9 +37,11 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.util.ReflectionHelpers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /** Exercises real composer UI and EventBus delivery without credentials, uploads or a server. */
@@ -199,6 +214,151 @@ public class PmMessageDialogTest {
         assertFalse(dialog().isShowing());
         operations.deletionAccepted.run();
         assertEquals(1, deleted);
+    }
+
+    /** Actual day-mode action, input, hint and metadata colors must remain readable on the sheet. */
+    @Test
+    @Config(qualifiers = "notnight")
+    public void lightThemeFormMeetsTextAndActionContrast() {
+        showComposer();
+        assertFormContrast();
+    }
+
+    /** The application's dark toolbar primary must not make composer actions disappear into its surface. */
+    @Test
+    @Config(qualifiers = "night")
+    public void darkThemeFormMeetsTextAndActionContrast() {
+        showComposer();
+        assertFormContrast();
+    }
+
+    /** Only the outlined container draws a reply label; a second child hint would overlap it. */
+    @Test
+    public void replyUsesOneFloatingLabelWithoutChildHint() {
+        showComposer();
+        TextInputLayout reply = dialog().findViewById(R.id.pm_reply_layout);
+        EditText editor = reply.getEditText();
+        assertEquals(activityController.get().getString(R.string.pm_reply_text), reply.getHint());
+        assertTrue(reply.isProvidingHint());
+        assertNull(ReflectionHelpers.getField(editor, "mHint"));
+        assertFalse(ReflectionHelpers.callInstanceMethod(reply, "isHintExpanded"));
+        editor.setText("");
+        View content = dialog().findViewById(R.id.pm_detail_scroll);
+        content.setFocusableInTouchMode(true);
+        content.requestFocus();
+        ShadowLooper.shadowMainLooper().idle();
+        assertTrue(ReflectionHelpers.callInstanceMethod(reply, "isHintExpanded"));
+    }
+
+    /** A member composer labels new text correctly and sizes itself to its content without an empty reader. */
+    @Test
+    public void shortMemberComposerWrapsContentAndUsesMessageLabel() {
+        FeedPm member = new FeedPm();
+        member.setId(88);
+        member.setTitle("belinda");
+        composer = new PmMessageDialog(activityController.get(), member, true, draft,
+                () -> deleted++, () -> dismissed++, operations, 14);
+        composer.show();
+        ShadowLooper.shadowMainLooper().idle();
+        TextInputLayout reply = dialog().findViewById(R.id.pm_reply_layout);
+        assertEquals(activityController.get().getString(R.string.pm_message_text), reply.getHint());
+        assertNull(ReflectionHelpers.getField(reply.getEditText(), "mHint"));
+        assertEquals(View.GONE, dialog().findViewById(R.id.pm_detail_body).getVisibility());
+        assertEquals(View.GONE, button(R.id.pm_reply_send_delete).getVisibility());
+        View sheet = dialog().findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, sheet.getLayoutParams().height);
+        NestedScrollView content = dialog().findViewById(R.id.pm_detail_scroll);
+        content.measure(View.MeasureSpec.makeMeasureSpec(dp(320), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST));
+        assertTrue("Short composer should not reserve a full-screen message reader",
+                content.getMeasuredHeight() < dp(500));
+    }
+
+    /** Large text and a long body can scroll all actions into view inside a narrow keyboard-sized viewport. */
+    @Test
+    @Config(qualifiers = "w320dp-h640dp")
+    public void narrowLargeFontComposerKeepsFooterReachableByScrolling() {
+        Configuration largeFont = new Configuration(activityController.get().getResources().getConfiguration());
+        largeFont.fontScale = 1.6f;
+        ContextThemeWrapper themed = new ContextThemeWrapper(activityController.get(), R.style.AppTheme);
+        themed.applyOverrideConfiguration(largeFont);
+        FeedPm message = new FeedPm();
+        message.setId(42);
+        message.setTitle("A longer subject wraps on a narrow screen");
+        message.setFullHtml("Full message");
+        composer = new PmMessageDialog(themed, message, false, draft,
+                () -> deleted++, () -> dismissed++, operations, 22);
+        composer.show();
+        ShadowLooper.shadowMainLooper().idle();
+        TextView body = dialog().findViewById(R.id.pm_detail_body);
+        body.setText("Long message line\n".repeat(40));
+        NestedScrollView content = dialog().findViewById(R.id.pm_detail_scroll);
+        content.measure(View.MeasureSpec.makeMeasureSpec(dp(320), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(dp(240), View.MeasureSpec.EXACTLY));
+        content.layout(0, 0, content.getMeasuredWidth(), content.getMeasuredHeight());
+        content.scrollTo(0, content.getChildAt(0).getHeight());
+        assertTrue(content.canScrollVertically(-1));
+        assertTrue("Close action must be reachable after scrolling",
+                button(R.id.pm_detail_close).getBottom() - content.getScrollY() <= content.getHeight());
+        assertTrue(((BottomSheetDialog) dialog()).getBehavior().getMaxHeight()
+                <= activityController.get().getResources().getDisplayMetrics().heightPixels * 0.9f);
+    }
+
+    /** Measures the colors applied to production widgets, including attachment icons and filled-button text. */
+    private void assertFormContrast() {
+        View sheet = dialog().findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        MaterialShapeDrawable background = (MaterialShapeDrawable) sheet.getBackground();
+        int surface = background.getFillColor().getColorForState(sheet.getDrawableState(), 0);
+        assertEquals(themedColor(com.google.android.material.R.attr.colorSurface), surface);
+        assertReadable(((TextView) dialog().findViewById(R.id.pm_detail_title)).getCurrentTextColor(), surface);
+        assertReadable(((TextView) dialog().findViewById(R.id.pm_detail_body)).getCurrentTextColor(), surface);
+        assertReadable(((TextView) dialog().findViewById(R.id.pm_detail_sender)).getCurrentTextColor(), surface);
+        assertReadable(((EditText) dialog().findViewById(R.id.pm_reply_input)).getCurrentTextColor(), surface);
+        assertReadable(((EditText) dialog().findViewById(R.id.pm_reply_input)).getCurrentHintTextColor(), surface);
+        assertReadable(button(R.id.pm_detail_close).getCurrentTextColor(), surface);
+        assertReadable(button(R.id.pm_reply_send_delete).getCurrentTextColor(), surface);
+        MaterialButton attach = dialog().findViewById(R.id.pm_attach_button);
+        assertReadable(attach.getIconTint().getColorForState(attach.getDrawableState(), 0), surface);
+        MaterialButton send = dialog().findViewById(R.id.pm_reply_send);
+        assertReadable(send.getCurrentTextColor(),
+                send.getBackgroundTintList().getColorForState(send.getDrawableState(), 0));
+        TextInputLayout reply = dialog().findViewById(R.id.pm_reply_layout);
+        reply.getEditText().requestFocus();
+        ShadowLooper.shadowMainLooper().idle();
+        assertFieldContrast(reply, surface);
+        View content = dialog().findViewById(R.id.pm_detail_scroll);
+        content.setFocusableInTouchMode(true);
+        content.requestFocus();
+        ShadowLooper.shadowMainLooper().idle();
+        assertFieldContrast(reply, surface);
+    }
+
+    /** Checks the drawn floating label and current outline in both focused and resting field states. */
+    private static void assertFieldContrast(TextInputLayout reply, int surface) {
+        int label = ReflectionHelpers.callInstanceMethod(reply, "getHintCurrentCollapsedTextColor");
+        assertReadable(label, surface);
+        MaterialShapeDrawable box = ReflectionHelpers.callInstanceMethod(reply, "getBoxBackground");
+        int outline = box.getStrokeColor().getColorForState(reply.getDrawableState(), 0);
+        assertTrue("Input boundary contrast must be at least 3:1",
+                ColorUtils.calculateContrast(outline, surface) >= 3.0);
+    }
+
+    /** Requires WCAG's normal-text contrast so theme regressions fail on the actual assigned colors. */
+    private static void assertReadable(int foreground, int background) {
+        assertTrue("Text/action contrast must be at least 4.5:1",
+                ColorUtils.calculateContrast(foreground, background) >= 4.5);
+    }
+
+    /** Resolves one Material role from the sheet context, which differs from the activity toolbar theme. */
+    private int themedColor(int attribute) {
+        TypedValue value = new TypedValue();
+        assertTrue(dialog().getContext().getTheme().resolveAttribute(attribute, value, true));
+        return value.data;
+    }
+
+    /** Converts test viewport dimensions using the themed activity's current display density. */
+    private int dp(int value) {
+        return Math.round(value * activityController.get().getResources().getDisplayMetrics().density);
     }
 
     /** Sets original sender/recipient metadata without confusing the outgoing ID with a recipient UID. */
