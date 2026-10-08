@@ -247,4 +247,19 @@
         <item>Large</item>
         <item>Largest</item>
     </string-array>
+    <string name="pm_attach_image">Attach image</string>
+    <string name="pm_reply">Reply</string>
+    <string name="pm_write_to">Write to %1$s</string>
+    <string name="pm_send_and_delete">Send and delete</string>
+    <string name="pm_empty_reply">Enter a message before sending</string>
+    <string name="pm_close">Close</string>
+    <string name="pm_unread">Unread message</string>
+    <string name="pm_delete_queued">Deletion saved. Failed attempts will be retried for up to 6 hours.</string>
+    <string name="pm_delete_queue_error">Could not save the deletion. The message has been kept.</string>
+    <string name="pm_delete_expired">Deletion could not be confirmed within 6 hours. Refresh the mailbox to try again.</string>
+    <string name="pm_load_more_failed">Could not load messages. Your current list has been kept.</string>
+    <string name="pm_retry">Retry</string>
+    <string name="pm_recipient_loading">Resolving recipient…</string>
+    <string name="pm_recipient_unavailable">Could not confirm the recipient. Retry when online.</string>
+    <string name="pm_members_load_failed">Could not load members. Your current list has been kept.</string>
 </resources>

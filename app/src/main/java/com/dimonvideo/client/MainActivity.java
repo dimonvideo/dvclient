@@ -36,6 +36,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
@@ -72,6 +73,8 @@ import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.ImageUtils;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.pm.PmAttachmentEvent;
+import com.dimonvideo.client.util.pm.PmDeletionQueue;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
@@ -96,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE
     };
     private String razdel = "10";
+    private String pmPickerRequestId;
+    private String pmPickerAccountKey;
     private Fragment homeFrag;
     private AppBarConfiguration mAppBarConfiguration;
     private AppController controller;
@@ -117,10 +122,15 @@ public class MainActivity extends AppCompatActivity {
         return p;
     }
 
+    /** Initializes navigation and routes picker results to their account-bound PM composer. */
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            pmPickerRequestId = savedInstanceState.getString("pm_picker_request_id");
+            pmPickerAccountKey = savedInstanceState.getString("pm_picker_account_key");
+        }
 
         controller = AppController.getInstance();
         Analytics.init(this);
@@ -492,14 +502,39 @@ public class MainActivity extends AppCompatActivity {
 
         // каллбэк загрузки изображений
         pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            String pmRequest = pmPickerRequestId;
+            String pmAccount = pmPickerAccountKey;
+            pmPickerRequestId = null;
+            pmPickerAccountKey = null;
+            if (pmRequest != null) {
+                if (uri == null || !Objects.equals(pmAccount, PmDeletionQueue.currentAccountKey())) {
+                    postPmAttachmentResult(pmRequest, pmAccount, null, PmAttachmentEvent.Outcome.CANCELED);
+                    return;
+                }
+                try {
+                    NetworkUtils.uploadBitmap(ImageUtils.loadAndProcessImage(this, uri), this, "13",
+                            new NetworkUtils.PmAttachmentCallback() {
+                                /** Delivers this exact upload to the original composer, without sticky state. */
+                                @Override public void onSuccess(String filename) {
+                                    boolean sameAccount = Objects.equals(pmAccount, PmDeletionQueue.currentAccountKey());
+                                    postPmAttachmentResult(pmRequest, pmAccount, sameAccount ? filename : null,
+                                            sameAccount ? PmAttachmentEvent.Outcome.READY : PmAttachmentEvent.Outcome.CANCELED);
+                                }
+                                /** Unblocks the composer after a rejected image or transport failure. */
+                                @Override public void onError() {
+                                    postPmAttachmentResult(pmRequest, pmAccount, null, PmAttachmentEvent.Outcome.FAILED);
+                                }
+                            });
+                } catch (Exception exception) {
+                    postPmAttachmentResult(pmRequest, pmAccount, null, PmAttachmentEvent.Outcome.FAILED);
+                }
+                return;
+            }
             if (uri != null) {
                 try {
-
                     NetworkUtils.uploadBitmap(ImageUtils.loadAndProcessImage(this, uri), this, razdel);
-
-                    Log.d("---", "Main pickMedia: " + razdel);
-                } catch (Exception e) {
-                    Log.e("MainActivity", "Error processing image", e);
+                } catch (Exception exception) {
+                    Log.e("MainActivity", "Error processing image", exception);
                 }
             }
         });
@@ -596,6 +631,37 @@ public class MainActivity extends AppCompatActivity {
     public void fabClick() {
         razdel = "13";
         navigationView.post(() -> navController.navigate(R.id.nav_pm));
+    }
+
+    /** Preserves pending PM picker routing across activity recreation without storing credentials. */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("pm_picker_request_id", pmPickerRequestId);
+        outState.putString("pm_picker_account_key", pmPickerAccountKey);
+    }
+
+    /** Captures PM routing and account identity before the shared system picker leaves the activity. */
+    public boolean launchPmImagePicker(String requestId, String accountKey) {
+        if (pickMedia == null || pmPickerRequestId != null || accountKey == null
+                || !accountKey.equals(PmDeletionQueue.currentAccountKey())) return false;
+        pmPickerRequestId = requestId;
+        pmPickerAccountKey = accountKey;
+        try {
+            pickMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
+            return true;
+        } catch (RuntimeException exception) {
+            pmPickerRequestId = null;
+            pmPickerAccountKey = null;
+            return false;
+        }
+    }
+
+    /** Reports picker cancellation and correlated upload completion only to current live subscribers. */
+    private void postPmAttachmentResult(String requestId, String accountKey, String filename,
+                                        PmAttachmentEvent.Outcome outcome) {
+        EventBus.getDefault().post(new PmAttachmentEvent(requestId, accountKey, filename, outcome));
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)

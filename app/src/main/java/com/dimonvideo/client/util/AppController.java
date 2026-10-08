@@ -19,6 +19,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.db.AppDatabase;
+import com.dimonvideo.client.util.pm.PmDeletionQueue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class AppController extends Application {
     /** Пул потоков для фоновых задач */
     private ExecutorService executor;
 
+    /** Initializes local services and recovers durable private-message deletion work. */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -46,6 +48,7 @@ public class AppController extends Application {
         // Инициализация базы данных
         db = AppDatabase.getInstance(this);
         applyTheme();
+        PmDeletionQueue.resume(this);
     }
 
     public RequestQueue getRequestQueueV() {
@@ -151,10 +154,10 @@ public class AppController extends Application {
         return sharedPrefs;
     }
 
-    // Запись настройки
+    /** Saves a preference without exposing credential or message values to logs. */
     public void putPreference(String key, Object value) {
         SharedPreferences.Editor editor = getSharedPreferences().edit();
-        Log.d("AppController", "Saving preference: key=" + key + ", value=" + value);
+        Log.d("AppController", "Saving preference: key=" + key);
         if (value.toString().contains("[")) {
             String[] clear = value.toString().replaceAll("[^A-Za-z0-9,]","").split(",");
             editor.putStringSet(key, Set.of(clear));

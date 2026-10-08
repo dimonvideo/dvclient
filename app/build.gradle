@@ -46,6 +46,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
     buildFeatures {
         viewBinding true
         buildConfig = true
@@ -138,6 +141,11 @@ dependencies {
     // Room dependencies
     implementation 'androidx.room:room-runtime:2.8.5'
     annotationProcessor 'androidx.room:room-compiler:2.8.5'
+    implementation 'androidx.work:work-runtime:2.10.1'
+    implementation 'com.squareup.okhttp3:okhttp:5.5.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.16.1'
+    testImplementation 'androidx.work:work-testing:2.10.1'
 
     // Lifecycle components for better architecture
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.11.0'

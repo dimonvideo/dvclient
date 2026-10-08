@@ -1,381 +1,305 @@
 package com.dimonvideo.client.adater;
 
-import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.net.Uri;
-import android.text.Editable;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.PickVisualMediaRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DiffUtil;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
-import com.dimonvideo.client.util.BBCodes;
-import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.AsyncHtmlRenderer;
 import com.dimonvideo.client.util.NetworkUtils;
-import com.dimonvideo.client.util.OpenUrl;
-import com.dimonvideo.client.util.TextViewClickMovement;
-import com.google.android.material.card.MaterialCardView;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-import org.xml.sax.XMLReader;
+import com.dimonvideo.client.util.pm.PmDeletionQueue;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/** Compact PM previews with asynchronous diffs/rendering and an independent full-message composer. */
 public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
-
     private final Context context;
-    private List<FeedPm> jsonFeed;
-    private String image_uploaded;
+    private final AsyncListDiffer<FeedPm> differ = new AsyncListDiffer<>(this, PmListSnapshot.DIFF);
+    private final AsyncHtmlRenderer renderer = new AsyncHtmlRenderer();
+    private final PmAccountState accountState = new PmAccountState(PmDeletionQueue::currentAccountKey);
+    private SharedPreferences observedPreferences;
+    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
+            (preferences, key) -> resetAccountState();
+    private List<FeedPm> submittedItems = new ArrayList<>();
+    private OnMessageRemovedListener removedListener;
+    private PmMessageDialog messageDialog;
+    private int deletionSourceFolder;
 
-    // раскрыт только один элемент
-    private int expandedId = -1;
+    /** Receives accepted removals by identity so the pager does not reintroduce a deleted message. */
+    public interface OnMessageRemovedListener {
+        /** Removes this server message ID from the owning fragment's paging data. */
+        void onMessageRemoved(int messageId);
+    }
 
+    /** Creates stable-ID rows from copied models; HTML and list comparison run off the UI thread. */
     public AdapterPm(List<FeedPm> jsonFeed, Context context) {
-        this.jsonFeed = new ArrayList<>(jsonFeed);
         this.context = context;
+        setHasStableIds(true);
+        setStateRestorationPolicy(StateRestorationPolicy.PREVENT_WHEN_EMPTY);
+        updateData(jsonFeed);
     }
 
+    /** Supplies the API folder for verified lookup of a queued deletion before retrying its mutation. */
+    public void setDeletionSourceFolder(int folder) { deletionSourceFolder = folder; }
+
+    /** Connects accepted row removal to the fragment's authoritative list. */
+    public void setOnMessageRemovedListener(OnMessageRemovedListener listener) {
+        removedListener = listener;
+    }
+
+    /** Submits an isolated snapshot, preserving locally acknowledged read status during pagination. */
     public void updateData(List<FeedPm> newList) {
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-            @Override public int getOldListSize() { return jsonFeed.size(); }
-            @Override public int getNewListSize() { return newList.size(); }
-            @Override public boolean areItemsTheSame(int o, int n) { return jsonFeed.get(o).getId() == newList.get(n).getId(); }
-            @Override public boolean areContentsTheSame(int o, int n) { return jsonFeed.get(o).equals(newList.get(n)); }
-        });
-        jsonFeed = new ArrayList<>(newList);
-        diffResult.dispatchUpdatesTo(this);
-    }
-
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event) {
-        image_uploaded = event.image_uploaded;
-    }
-
-    public static class TagHandler implements Html.TagHandler {
-        @Override
-        public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
-            if (!opening && tag.equals("ul")) output.append("\n");
-            if (opening && tag.equals("li")) output.append("\n•");
+        synchronizeAccount();
+        if (accountState.accountKey() == null) return;
+        List<FeedPm> snapshot = PmListSnapshot.copy(newList);
+        for (FeedPm item : snapshot) {
+            if (accountState.isRead(item.getId())) item.setIs_new(0);
         }
+        submittedItems = snapshot;
+        differ.submitList(snapshot);
     }
 
+    /** Dismisses old-account UI and invalidates snapshots when authentication changes. */
+    public void resetAccountState() { synchronizeAccount(); }
+
+    /** Removes private UI/rendering state immediately after the bound account identity changes. */
+    private boolean synchronizeAccount() {
+        if (!accountState.synchronize()) return false;
+        if (messageDialog != null) messageDialog.dismiss();
+        submittedItems = new ArrayList<>();
+        // Null clears the committed list synchronously; an empty-list diff could leave old-account rows clickable.
+        differ.submitList(null);
+        renderer.release();
+        renderer.activate();
+        return true;
+    }
+
+    /** Inflates the compact row and installs position-safe listeners only once per holder. */
     @NonNull
     @Override
     public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_pm, parent, false);
-        return new ItemViewHolder(view);
+        ItemViewHolder holder = new ItemViewHolder(LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.list_row_pm, parent, false));
+        holder.itemView.setOnClickListener(view -> {
+            FeedPm feed = boundItem(holder);
+            if (feed != null) openMessage(feed);
+        });
+        holder.itemView.setOnLongClickListener(view -> {
+            FeedPm feed = boundItem(holder);
+            if (feed == null) return false;
+            showActions(feed);
+            return true;
+        });
+        return holder;
     }
 
+    /** Binds metadata and cached/background preview HTML without marking messages read or expanding rows. */
     @Override
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
-        FeedPm feed = jsonFeed.get(position);
-
-        final boolean isOpenLink = AppController.getInstance().isOpenLinks();
-        final boolean isVuploaderPlayListtext = AppController.getInstance().isVuploaderPlayListtext();
-
-        holder.textViewTitle.setText(feed.getTitle());
-        holder.textViewDate.setText(feed.getDate());
-        holder.textViewNames.setText(feed.getLast_poster_name());
-
-        // индикатор нового
-        holder.statusDot.setVisibility(feed.getIs_new() > 0 ? View.VISIBLE : View.GONE);
-
-        // аватар
-        Glide.with(context)
-                .load(feed.getImageUrl())
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.baseline_image_20)
-                .error(R.drawable.baseline_image_20)
-                .apply(RequestOptions.circleCropTransform())
-                .override(40, 40)
-                .into(holder.imageView);
-
-        // сброс состояния (обязательно!)
-        boolean expanded = (feed.getId() == expandedId);
-        holder.btns.setVisibility(expanded ? View.VISIBLE : View.GONE);
-
-        if (expanded) {
-            applyFullText(holder, isOpenLink, isVuploaderPlayListtext, feed);
-        } else {
-            holder.textViewText.setText(feed.getSpannedPreview(holder.textViewText)); // ПРЕВЬЮ
-            holder.textViewText.setMovementMethod(null);
+        if (!accountState.isCurrent(accountState.accountKey())) {
+            holder.clearMetadata();
+            renderer.clear(holder.textViewText);
+            return;
         }
-
-        holder.textViewText.setTypeface(null, feed.getIs_new() > 0 ? Typeface.BOLD : Typeface.NORMAL);
-
-        // Массив всех нужных TextView
-        TextView[] textViews = {
-                holder.textViewTitle,
-                holder.textViewText,
-                holder.textViewDate,
-                holder.textViewNames
-        };
-
-        // Массивы размеров для каждого режима
-        float[] sizesSmallest = {14, 13, 12, 12};
-        float[] sizesSmall = {16, 15, 14, 14};
-        float[] sizesNormal = {18, 17, 16, 16};
-        float[] sizesLarge = {20, 19, 18, 18};
-        float[] sizesLargest = {24, 23, 22, 22};
-
-        float[] selectedSizes;
-
-        switch (AppController.getInstance().isFontSize()) {
-            case "smallest":
-                selectedSizes = sizesSmallest;
-                break;
-            case "small":
-                selectedSizes = sizesSmall;
-                break;
-            case "large":
-                selectedSizes = sizesLarge;
-                break;
-            case "largest":
-                selectedSizes = sizesLargest;
-                break;
-            default:
-                selectedSizes = sizesNormal;
-                break;
-        }
-        for (int i = 0; i < textViews.length; i++) {
-            textViews[i].setTextSize(selectedSizes[i]);
-        }
-
-        holder.itemView.setOnClickListener(v -> {
-            int oldExpandedId = expandedId;
-            expandedId = (feed.getId() == expandedId) ? -1 : feed.getId();
-
-            // обновим старый и новый элементы
-            if (oldExpandedId != -1) {
-                int oldPos = findPositionById(oldExpandedId);
-                if (oldPos != RecyclerView.NO_POSITION) notifyItemChanged(oldPos);
-            }
-            notifyItemChanged(holder.getBindingAdapterPosition());
-        });
-
-        // пикер изображений
-        holder.imagePick.setOnClickListener(v -> MainActivity.pickMedia.launch(
-                new PickVisualMediaRequest.Builder()
-                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                        .build()
-        ));
-
-        holder.send.setOnClickListener(v -> {
-            String text = holder.textInput.getText() != null ? holder.textInput.getText().toString() : "";
-            NetworkUtils.sendPm(context, feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 0, null, 0);
-            holder.btns.setVisibility(View.GONE);
-            expandedId = -1;
-            notifyItemChanged(holder.getBindingAdapterPosition());
-        });
-
-        holder.send.setOnLongClickListener(v -> {
-            String text = holder.textInput.getText() != null ? holder.textInput.getText().toString() : "";
-            NetworkUtils.sendPm(context, feed.getId(), BBCodes.imageCodes(text, image_uploaded, "13"), 1, null, 0);
-            return true;
-        });
-
-        holder.itemView.setOnLongClickListener(v -> {
-            showDialog(holder, holder.getBindingAdapterPosition());
-            return true;
-        });
+        FeedPm feed = differ.getCurrentList().get(position);
+        holder.bind(feed, feed.getIs_new() > 0);
+        holder.textViewText.setMovementMethod(null);
+        renderer.bind(holder.textViewText, feed.getPreviewHtml(), false);
     }
 
-    private void applyFullText(ItemViewHolder holder, boolean isOpenLink, boolean isVuploaderPlayListtext, FeedPm feed) {
-        try {
-            holder.textViewText.setText(feed.getSpannedFull(holder.textViewText)); // ПОЛНЫЙ
-            holder.textViewText.setTypeface(null, Typeface.NORMAL);
+    /** Resolves the current row rather than a stale position captured before a background diff. */
+    private FeedPm boundItem(ItemViewHolder holder) {
+        if (synchronizeAccount() || !accountState.isCurrent(accountState.accountKey())) return null;
+        int position = holder.getBindingAdapterPosition();
+        List<FeedPm> current = differ.getCurrentList();
+        return position == RecyclerView.NO_POSITION || position >= current.size()
+                ? null : current.get(position);
+    }
 
-            if (feed.getIs_new() > 0) {
-                NetworkUtils.readPm(context, feed.getId());
-                holder.statusDot.setVisibility(View.GONE);
-            }
-
-            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
-                @Override
-                public void onLinkClick(String url) {
-                    OpenUrl.open_url(url, isOpenLink, isVuploaderPlayListtext, context, "pm");
+    /** Opens account-specific full HTML and drafts; sent messages resolve recipients instead of replying to self. */
+    private void openMessage(FeedPm feed) {
+        if (synchronizeAccount()) return;
+        final String account = accountState.accountKey();
+        if (!accountState.isCurrent(account)) return;
+        if (messageDialog != null) messageDialog.dismiss();
+        final PmMessageDialog.Draft draft = accountState.draft(feed.getId());
+        messageDialog = new PmMessageDialog(context, feed, false, draft,
+                () -> { if (accountState.isCurrent(account)) removeAccepted(feed.getId(), account); },
+                () -> {
+                    accountState.discardEmptyDraft(account, feed.getId(), draft);
+                    messageDialog = null;
+                });
+        messageDialog.show();
+        if (!feed.isOutgoing() && feed.getIs_new() > 0 && accountState.beginRead(account, feed.getId())) {
+            NetworkUtils.readPm(context, feed.getId(), new NetworkUtils.PmOperationCallback() {
+                /** Records acknowledgement only in the originating account's visible list. */
+                @Override public void onSuccess() {
+                    if (accountState.finishRead(account, feed.getId(), true)) updateData(submittedItems);
+                    else resetAccountState();
+                }
+                /** Releases only this account's in-flight key after a failed read. */
+                @Override public void onError() {
+                    accountState.finishRead(account, feed.getId(), false);
+                    resetAccountState();
                 }
             });
-        } catch (Exception e) {
-            Log.e("AdapterPm", "Error showing full text", e);
-            Toast.makeText(context, R.string.error_network, Toast.LENGTH_SHORT).show();
         }
     }
 
-    private int findPositionById(int id) {
-        for (int i = 0; i < jsonFeed.size(); i++) {
-            if (jsonFeed.get(i).getId() == id) return i;
-        }
-        return RecyclerView.NO_POSITION;
-    }
-
-    @Override
-    public int getItemCount() {
-        return jsonFeed == null ? 0 : jsonFeed.size();
-    }
-
-    public static class ItemViewHolder extends RecyclerView.ViewHolder {
-        public TextView textViewTitle, textViewDate, textViewNames, textViewText;
-        public ImageView imageView;
-        public View statusDot;
-        public MaterialCardView btns;
-
-        public Button send;
-        public EditText textInput;
-        public Button imagePick;
-        public String url;
-        public ClipboardManager myClipboard;
-        public ClipData myClip;
-
-        public ItemViewHolder(@NonNull View itemView) {
-            super(itemView);
-
-            imageView = itemView.findViewById(R.id.thumbnail);
-            statusDot = itemView.findViewById(R.id.status_dot);
-
-            textViewTitle = itemView.findViewById(R.id.title);
-            textViewText  = itemView.findViewById(R.id.listtext);
-            textViewDate  = itemView.findViewById(R.id.date);
-            textViewNames = itemView.findViewById(R.id.name);
-
-            btns = itemView.findViewById(R.id.linearLayout1);
-
-            // из include @layout/post
-            send = itemView.findViewById(R.id.btnSend);
-            textInput = itemView.findViewById(R.id.textInput);
-            imagePick = itemView.findViewById(R.id.img_btn);
-        }
-    }
-
-    private void showDialog(ItemViewHolder holder, final int position) {
-        final CharSequence[] items = {
-                context.getString(R.string.action_open),
-                context.getString(R.string.copy_listtext),
-                context.getString(R.string.pm_delete)
-        };
-        final FeedPm feed = jsonFeed.get(position);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        holder.url = Config.WRITE_URL + "/pm/6/" + feed.getId();
-        holder.myClipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-
-        builder.setTitle(feed.getTitle());
-        builder.setItems(items, (dialog, item) -> {
-            if (item == 0) { // browser
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(holder.url));
+    /** Presents actions using a message snapshot so asynchronous list updates cannot change the target. */
+    private void showActions(FeedPm feed) {
+        final String account = accountState.accountKey();
+        if (!accountState.isCurrent(account)) return;
+        CharSequence[] actions = {context.getString(R.string.action_open),
+                context.getString(R.string.copy_listtext), context.getString(R.string.pm_delete)};
+        new AlertDialog.Builder(context).setTitle(feed.getTitle()).setItems(actions, (dialog, item) -> {
+            if (synchronizeAccount() || !accountState.isCurrent(account)) return;
+            if (item == 0) {
                 try {
-                    context.startActivity(browserIntent);
-                } catch (Exception e) {
-                    Log.e("AdapterPm", "Error opening browser", e);
+                    context.startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse(Config.WRITE_URL + "/pm/6/" + feed.getId())));
+                } catch (RuntimeException exception) {
+                    Log.w("AdapterPm", "Cannot open message in browser", exception);
                 }
-            } else if (item == 1) { // copy text
-                try {
-                    holder.myClip = ClipData.newPlainText("text", Html.fromHtml(feed.getFullHtml(), Html.FROM_HTML_MODE_LEGACY).toString());
-                    holder.myClipboard.setPrimaryClip(holder.myClip);
-                    Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Log.e("AdapterPm", "Error copying text", e);
-                }
-            } else if (item == 2) { // delete
-                try {
-                    removeItem(position);
-                    Toast.makeText(context, context.getString(R.string.msg_removed), Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Log.e("AdapterPm", "Error deleting item", e);
-                }
+            } else if (item == 1) {
+                copyMessage(feed);
+            } else {
+                changeFolder(feed.getId(), 0);
             }
-        });
-        builder.show();
+        }).show();
     }
 
+    /** Decodes complete HTML for the clipboard off the UI thread without loading inline images. */
+    private void copyMessage(FeedPm feed) {
+        final String account = accountState.accountKey();
+        Context applicationContext = context.getApplicationContext();
+        AppController.getInstance().getExecutor().execute(() -> {
+            String html = feed.getFullHtml() == null ? "" : feed.getFullHtml();
+            String plain = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY).toString();
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (!accountState.isCurrent(account)) return;
+                ClipboardManager clipboard = (ClipboardManager)
+                        applicationContext.getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("text", plain));
+                Toast.makeText(applicationContext, R.string.success, Toast.LENGTH_SHORT).show();
+            });
+        });
+    }
+
+    /** Returns the currently committed row count used by RecyclerView and the pager. */
+    @Override
+    public int getItemCount() { return differ.getCurrentList().size(); }
+
+    /** Supplies the server message ID so moves/appends preserve row identity. */
+    @Override
+    public long getItemId(int position) { return differ.getCurrentList().get(position).getId(); }
+
+    /** Cancels work aimed at a recycled row before that holder is reused for another message. */
+    @Override
+    public void onViewRecycled(@NonNull ItemViewHolder holder) {
+        renderer.clear(holder.textViewText);
+        holder.clearAvatar();
+        super.onViewRecycled(holder);
+    }
+
+    /** Recreates rendering resources when RecyclerView reattaches this adapter. */
     @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
+        renderer.activate();
+        synchronizeAccount();
+        AppController controller = AppController.getInstance();
+        if (controller != null) {
+            observedPreferences = controller.getSharedPreferences();
+            observedPreferences.registerOnSharedPreferenceChangeListener(preferenceListener);
         }
     }
 
+    /** Saves the composer draft and releases rendering/image resources when the list leaves the screen. */
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        if (observedPreferences != null) {
+            observedPreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener);
+            observedPreferences = null;
+        }
+        if (messageDialog != null) messageDialog.dismiss();
+        renderer.release();
         super.onDetachedFromRecyclerView(recyclerView);
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
+    }
+
+    /** Enqueues deletion before removing the message locally, preserving it if durable storage fails. */
+    public void removeItem(int position) { changeFolderAt(position, 0); }
+
+    /** Restores a message from trash, removing this row only after server acknowledgement. */
+    public void restoreItem(int position) { changeFolderAt(position, 1); }
+
+    /** Archives a message, removing this row only after server acknowledgement. */
+    public void archiveItem(int position) { changeFolderAt(position, 2); }
+
+    /** Restores an archived message, removing this row only after server acknowledgement. */
+    public void restoreFromArchiveItem(int position) { changeFolderAt(position, 3); }
+
+    /** Converts the swipe position to a stable server ID before any asynchronous network/storage work. */
+    private void changeFolderAt(int position, int operation) {
+        if (synchronizeAccount() || !accountState.isCurrent(accountState.accountKey())) return;
+        List<FeedPm> current = differ.getCurrentList();
+        if (position >= 0 && position < current.size()) {
+            changeFolder(current.get(position).getId(), operation);
         }
     }
 
-    public void removeItem(int position) {
-        if (position >= 0 && position < jsonFeed.size()) {
-            FeedPm feed = jsonFeed.get(position);
-            jsonFeed = new ArrayList<>(jsonFeed);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(context, feed.getId(), 0);
-            notifyItemRemoved(position);
-        } else {
-            Log.e("AdapterPm", "Invalid position for removeItem: " + position);
+    /** Requests a folder change and waits for durable queue acceptance or server acknowledgement. */
+    private void changeFolder(int messageId, int operation) {
+        if (synchronizeAccount()) return;
+        final String account = accountState.accountKey();
+        if (!accountState.isCurrent(account)) return;
+        int sourcePage = 1;
+        for (FeedPm item : submittedItems) {
+            if (item.getId() == messageId) {
+                sourcePage = item.getSourcePage();
+                break;
+            }
         }
+        NetworkUtils.deletePm(context, messageId, operation, deletionSourceFolder, sourcePage,
+                () -> { if (accountState.isCurrent(account)) removeAccepted(messageId, account); });
     }
 
-    public void restoreItem(int position) {
-        if (position >= 0 && position < jsonFeed.size()) {
-            FeedPm feed = jsonFeed.get(position);
-            jsonFeed = new ArrayList<>(jsonFeed);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(context, feed.getId(), 1);
-            notifyItemRemoved(position);
-        } else {
-            Log.e("AdapterPm", "Invalid position for restoreItem: " + position);
+    /** Removes from the latest submitted snapshot by ID, even if another diff/page arrived meanwhile. */
+    private void removeAccepted(int messageId, String account) {
+        if (!accountState.isCurrent(account)) return;
+        List<FeedPm> remaining = new ArrayList<>(submittedItems.size());
+        for (FeedPm item : submittedItems) {
+            if (item.getId() != messageId) remaining.add(item);
         }
+        submittedItems = remaining;
+        differ.submitList(remaining);
+        accountState.removeDraft(account, messageId);
+        if (removedListener != null) removedListener.onMessageRemoved(messageId);
     }
 
-    public void archiveItem(int position) {
-        if (position >= 0 && position < jsonFeed.size()) {
-            FeedPm feed = jsonFeed.get(position);
-            jsonFeed = new ArrayList<>(jsonFeed);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(context, feed.getId(), 2);
-            notifyItemRemoved(position);
-        } else {
-            Log.e("AdapterPm", "Invalid position for archiveItem: " + position);
-        }
-    }
-
-    public void restoreFromArchiveItem(int position) {
-        if (position >= 0 && position < jsonFeed.size()) {
-            FeedPm feed = jsonFeed.get(position);
-            jsonFeed = new ArrayList<>(jsonFeed);
-            jsonFeed.remove(position);
-            NetworkUtils.deletePm(context, feed.getId(), 3);
-            notifyItemRemoved(position);
-        } else {
-            Log.e("AdapterPm", "Invalid position for restoreFromArchiveItem: " + position);
-        }
+    /** View-only row state; no reply text, position captures, clipboard managers or API models are retained. */
+    public static class ItemViewHolder extends PmRowViewHolder {
+        /** Resolves compact row metadata once during holder creation. */
+        public ItemViewHolder(@NonNull View itemView) { super(itemView); }
     }
 }

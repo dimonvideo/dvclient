@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Html;
-import android.text.Spanned;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,16 +45,16 @@ import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.MainFragmentCommentsFile;
 import com.dimonvideo.client.ui.main.MainFragmentViewFile;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.AsyncHtmlRenderer;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.DownloadFile;
 import com.dimonvideo.client.util.NetworkUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.ViewHolder> {
@@ -67,19 +66,20 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     private final Handler mainHandler;
     private final AppController appController;
     private final Executor executor;
-    private final Map<String, Integer> statusCache = new HashMap<>();
-    private final LruCache<String, Spanned> htmlCache = new LruCache<>(300);
-    private final Set<String> inFlightHtmlKeys = new HashSet<>();
+    private final LruCache<String, Integer> statusCache = new LruCache<>(300);
+    private final AsyncHtmlRenderer htmlRenderer = new AsyncHtmlRenderer();
+    private final Set<String> requestedStatusKeys = ConcurrentHashMap.newKeySet();
+    private volatile boolean released;
+    private volatile int statusGeneration;
     private final List<StatusUpdate> pendingStatusUpdates = new ArrayList<>();
-    private static final int MAX_CACHE_SIZE = 300;
     private static final Object PAYLOAD_STATUS_ONLY = new Object();
 
+    /** Marks every loaded item as read immediately while preserving pending database writes. */
     public void markAllReadInUi() {
         flushStatusUpdates();
 
         for (Feed feed : jsonFeed) {
-            String razdel = feed.getRazdel();
-            String cacheKey = feed.getId() + "_" + (razdel == null ? "" : razdel);
+            String cacheKey = feed.getId() + "_" + feed.getRazdel();
             statusCache.put(cacheKey, 1);
         }
 
@@ -87,6 +87,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     }
 
 
+    /** Initializes the feed snapshot and asynchronously preloads its bounded read-status cache. */
     public AdapterMainRazdel(List<Feed> jsonFeed, Context context, AppCompatActivity activity, AppDatabase database) {
         this.jsonFeed = new ArrayList<>(jsonFeed);
         this.context = context;
@@ -99,6 +100,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         preloadStatuses(jsonFeed);
     }
 
+    /** Applies list changes and refreshes only read-status indicators after the database preload. */
     public void updateFeed(List<Feed> newFeed) {
         FeedDiffCallback diffCallback = new FeedDiffCallback(jsonFeed, newFeed);
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
@@ -106,15 +108,10 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         jsonFeed.addAll(newFeed);
         diffResult.dispatchUpdatesTo(this);
         preloadStatuses(newFeed);
-        synchronized (inFlightHtmlKeys) {
-            inFlightHtmlKeys.clear();
-        }
     }
 
+    /** Stores a read indicator in the bounded, thread-safe cache without clearing unrelated entries. */
     public void addToCache(String key, int status) {
-        if (statusCache.size() >= MAX_CACHE_SIZE) {
-            statusCache.clear();
-        }
         statusCache.put(key, status);
     }
 
@@ -134,14 +131,18 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         }
         return 0;
     }
+    /** Returns a cached read mark and reloads evicted entries asynchronously for long lists. */
     private int getCachedStatus(@NonNull Feed feed) {
-        String razdel = feed.getRazdel();
-        String cacheKey = feed.getId() + "_" + (razdel == null ? "" : razdel);
+        String cacheKey = feed.getId() + "_" + feed.getRazdel();
         Integer status = statusCache.get(cacheKey);
+        if (status == null && !released) {
+            preloadStatuses(Collections.singletonList(feed));
+        }
         return status != null ? status : 0;
     }
 
 
+    /** Applies read-status payloads without parsing HTML or restarting row image requests. */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
         if (!payloads.isEmpty() && payloads.contains(PAYLOAD_STATUS_ONLY)) {
@@ -155,6 +156,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     }
 
 
+    /** Binds feed metadata while HTML is formatted off the main thread. */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
@@ -174,10 +176,13 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         if (feed.getState() == 0 && appController.isUserGroup() <= 2) {
             holder.btn_odob.setVisibility(View.VISIBLE);
             holder.btn_odob.setOnClickListener(v -> {
+                int currentPosition = holder.getBindingAdapterPosition();
+                if (currentPosition == RecyclerView.NO_POSITION) {
+                    return;
+                }
                 NetworkUtils.getOdob(feed.getRazdel(), feed.getId());
-                jsonFeed.remove(position);
-                notifyItemRemoved(position);
-                //  statusCache.remove(cacheKey);
+                jsonFeed.remove(currentPosition);
+                notifyItemRemoved(currentPosition);
                 executor.execute(() -> database.readMarkDao().delete(feed.getId(), feed.getRazdel()));
             });
         } else {
@@ -298,68 +303,61 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         });
     }
 
+    /** Loads a stable feed snapshot off-thread and updates status payloads without rebinding HTML. */
     private void preloadStatuses(List<Feed> feeds) {
-        executor.execute(() -> {
-            List<Feed> feedsToLoad = new ArrayList<>();
-            for (Feed feed : feeds) {
-                String cacheKey = feed.getId() + "_" + feed.getRazdel();
-                if (!statusCache.containsKey(cacheKey)) {
-                    feedsToLoad.add(feed);
-                }
-            }
-            for (Feed feed : feedsToLoad) {
-                String cacheKey = feed.getId() + "_" + feed.getRazdel();
-                int status = database.readMarkDao().getStatus(feed.getId(), feed.getRazdel());
-                statusCache.put(cacheKey, status);
-            }
-            mainHandler.post(this::notifyDataSetChanged);
-        });
-    }
-
-    private void bindHtmlTextAsync(@NonNull ViewHolder holder, @NonNull Feed feed) {
-        String sourceText = feed.getText() == null ? "" : feed.getText();
-        String htmlKey = buildHtmlCacheKey(feed);
-        holder.textViewText.setTag(htmlKey);
-
-        Spanned cached = htmlCache.get(htmlKey);
-        if (cached != null) {
-            holder.textViewText.setText(cached);
+        if (released) {
             return;
         }
-
-        holder.textViewText.setText(sourceText);
-        boolean shouldSchedule;
-        synchronized (inFlightHtmlKeys) {
-            shouldSchedule = inFlightHtmlKeys.add(htmlKey);
+        final int loadGeneration = statusGeneration;
+        List<Feed> snapshot = new ArrayList<>();
+        for (Feed feed : feeds) {
+            String cacheKey = feed.getId() + "_" + feed.getRazdel();
+            if (statusCache.get(cacheKey) == null
+                    && requestedStatusKeys.add(loadGeneration + "_" + cacheKey)) {
+                snapshot.add(feed);
+            }
         }
-        if (!shouldSchedule) {
+        if (snapshot.isEmpty()) {
             return;
         }
-
         executor.execute(() -> {
             try {
-                Spanned parsed = Html.fromHtml(sourceText, Html.FROM_HTML_MODE_LEGACY);
-                htmlCache.put(htmlKey, parsed);
+                for (Feed feed : snapshot) {
+                    if (released || loadGeneration != statusGeneration) {
+                        return;
+                    }
+                    String cacheKey = feed.getId() + "_" + feed.getRazdel();
+                    if (statusCache.get(cacheKey) == null) {
+                        int status = database.readMarkDao().getStatus(feed.getId(), feed.getRazdel());
+                        synchronized (statusCache) {
+                            if (!released && loadGeneration == statusGeneration
+                                    && statusCache.get(cacheKey) == null) {
+                                statusCache.put(cacheKey, status);
+                            }
+                        }
+                    }
+                }
                 mainHandler.post(() -> {
-                    Object currentTag = holder.textViewText.getTag();
-                    if (htmlKey.equals(currentTag)) {
-                        holder.textViewText.setText(parsed);
+                    if (!released && loadGeneration == statusGeneration) {
+                        notifyItemRangeChanged(0, getItemCount(), PAYLOAD_STATUS_ONLY);
                     }
                 });
             } finally {
-                synchronized (inFlightHtmlKeys) {
-                    inFlightHtmlKeys.remove(htmlKey);
+                for (Feed feed : snapshot) {
+                    requestedStatusKeys.remove(loadGeneration + "_" + feed.getId() + "_" + feed.getRazdel());
                 }
             }
         });
     }
 
-    private String buildHtmlCacheKey(@NonNull Feed feed) {
-        String sourceText = feed.getText() == null ? "" : feed.getText();
-        return feed.getId() + "_" + sourceText.hashCode() + "_" + appController.isFontSize();
+    /** Delegates HTML rendering to the bounded cache without showing source tags while parsing. */
+    private void bindHtmlTextAsync(@NonNull ViewHolder holder, @NonNull Feed feed) {
+        htmlRenderer.bind(holder.textViewText, feed.getText(), false);
     }
 
+    /** Updates the cached read indicator immediately and batches its eventual database persistence. */
     private void queueStatusUpdate(int lid, String razdel) {
+        statusCache.put(lid + "_" + razdel, 1);
         synchronized (pendingStatusUpdates) {
             pendingStatusUpdates.add(new StatusUpdate(lid, razdel, 1));
             if (pendingStatusUpdates.size() >= 10) {
@@ -368,6 +366,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         }
     }
 
+    /** Persists the pending read marks even when the list is leaving, avoiding stale UI callbacks. */
     private void flushStatusUpdates() {
         List<StatusUpdate> updates;
         synchronized (pendingStatusUpdates) {
@@ -375,6 +374,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             updates = new ArrayList<>(pendingStatusUpdates);
             pendingStatusUpdates.clear();
         }
+        final int updateGeneration = statusGeneration;
         executor.execute(() -> {
             List<ReadMarkEntity> readMarks = new ArrayList<>();
             for (StatusUpdate update : updates) {
@@ -386,7 +386,11 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 statusCache.put(update.lid + "_" + update.razdel, update.status);
             }
             database.readMarkDao().insertAll(readMarks);
-            mainHandler.post(this::notifyDataSetChanged);
+            mainHandler.post(() -> {
+                if (!released && updateGeneration == statusGeneration) {
+                    notifyItemRangeChanged(0, getItemCount(), PAYLOAD_STATUS_ONLY);
+                }
+            });
         });
     }
 
@@ -424,7 +428,11 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         fragment.show(activity.getSupportFragmentManager(), "MainFragmentCommentsFile");
     }
 
+    /** Shows actions for a current holder, ignoring positions invalidated by list removal. */
     private void show_dialog(ViewHolder holder, int position) {
+        if (position == RecyclerView.NO_POSITION || position >= jsonFeed.size()) {
+            return;
+        }
         final Feed feed = jsonFeed.get(position);
         String message = feed.getFav() > 0 ? context.getString(R.string.menu_unfav) : context.getString(R.string.menu_fav);
         final CharSequence[] items = {
@@ -488,22 +496,43 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         return jsonFeed.size();
     }
 
+    /** Combines the section and server identifier without truncating both into a 32-bit string hash. */
     @Override
     public long getItemId(int position) {
-        Feed f = jsonFeed.get(position);
-        return (f.getRazdel() + "_" + f.getId()).hashCode();
+        Feed feed = jsonFeed.get(position);
+        return ((long) String.valueOf(feed.getRazdel()).hashCode() << 32)
+                | (feed.getId() & 0xffffffffL);
     }
 
+    /** Recreates HTML resources and restores read status loading after a list is attached again. */
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        released = false;
+        htmlRenderer.activate();
+        preloadStatuses(jsonFeed);
+    }
+
+    /** Cancels row-specific HTML and image work before a holder enters the recycled pool. */
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        htmlRenderer.clear(holder.textViewText);
+        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
+        super.onViewRecycled(holder);
+    }
+
+    /** Persists read marks and releases view-bound HTML work when the RecyclerView detaches. */
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        cleanup();
         super.onDetachedFromRecyclerView(recyclerView);
-        htmlCache.evictAll();
-        synchronized (inFlightHtmlKeys) {
-            inFlightHtmlKeys.clear();
-        }
     }
 
+    /** Removes the current favorite row without acting on an already recycled holder. */
     public void removeFav(int position) {
+        if (position == RecyclerView.NO_POSITION || position >= jsonFeed.size()) {
+            return;
+        }
         Feed feed = jsonFeed.get(position);
         jsonFeed.remove(position);
         notifyItemRemoved(position);
@@ -589,13 +618,14 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         }
     }
 
-    // Очистка ресурсов
+    /** Flushes pending database writes and invalidates every callback tied to the departing view. */
     public void cleanup() {
+        released = true;
+        statusGeneration++;
         flushStatusUpdates();
-        statusCache.clear();
-        htmlCache.evictAll();
-        synchronized (inFlightHtmlKeys) {
-            inFlightHtmlKeys.clear();
-        }
+        mainHandler.removeCallbacksAndMessages(null);
+        requestedStatusKeys.clear();
+        statusCache.evictAll();
+        htmlRenderer.release();
     }
 }
