@@ -12,12 +12,8 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.Html;
-import android.text.Spanned;
-import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +33,7 @@ import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.FeedForum;
 import com.dimonvideo.client.util.AppController;
+import com.dimonvideo.client.util.AsyncHtmlRenderer;
 import com.dimonvideo.client.util.ButtonsActions;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.OpenUrl;
@@ -49,27 +46,21 @@ import org.xml.sax.XMLReader;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
     String image_uploaded;
     int razdel = 8;
-    private final LruCache<String, Spanned> htmlCache = new LruCache<>(200);
-    private final ExecutorService htmlExecutor = Executors.newSingleThreadExecutor();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final AsyncHtmlRenderer htmlRenderer = new AsyncHtmlRenderer();
 
     //List to store all
     List<FeedForum> jsonFeed;
 
+    /** Keeps the feed without subscribing to events before the adapter is actually attached. */
     public AdapterForumPosts(List<FeedForum> jsonFeed) {
         super();
         this.jsonFeed = jsonFeed;
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
     }
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event){
@@ -97,13 +88,13 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         return new ItemViewHolder(view);
     }
 
+    /** Binds the supplied position while background HTML delivery remains tied to the current row. */
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-
-        populateItemRows((ItemViewHolder) holder, holder.getBindingAdapterPosition());
-
+        populateItemRows((ItemViewHolder) holder, position);
     }
 
+    /** Updates forum metadata and schedules HTML formatting without parsing during scrolling. */
     @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     private void populateItemRows(ItemViewHolder holder, int position) {
 
@@ -184,34 +175,14 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         holder.textViewHits.setVisibility(View.INVISIBLE);
         holder.views_logo.setVisibility(View.INVISIBLE);
 
-        try {
-            String htmlKey = buildHtmlCacheKey(feed);
-            holder.textViewText.setTag(htmlKey);
-            Spanned cached = htmlCache.get(htmlKey);
-            if (cached != null) {
-                holder.textViewText.setText(cached);
-            } else {
-                holder.textViewText.setText(feed.getText());
-                htmlExecutor.execute(() -> {
-                    Spanned parsed = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, null, new TagHandler());
-                    htmlCache.put(htmlKey, parsed);
-                    mainHandler.post(() -> {
-                        Object currentTag = holder.textViewText.getTag();
-                        if (htmlKey.equals(currentTag)) {
-                            holder.textViewText.setText(parsed);
-                        }
-                    });
-                });
+        htmlRenderer.bind(holder.textViewText, feed.getText(), false);
+        holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+            /** Opens the tapped link with the user's current playback and browser preferences. */
+            @Override
+            public void onLinkClick(String url) {
+                OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, feed.getRazdel());
             }
-            holder.textViewText.setMovementMethod(new TextViewClickMovement() {
-                @Override
-                public void onLinkClick(String url) {
-                    // open links from listtext
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, mContext, feed.getRazdel());
-                }
-            });
-        } catch (Throwable ignored) {
-        }
+        });
         // цитирование
         holder.itemView.setOnClickListener(view -> {
             if (auth_state > 0) {
@@ -221,7 +192,10 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         // меню по долгому нажатию
         holder.itemView.setOnLongClickListener(view -> {
-            show_dialog(holder, position);
+            int currentPosition = holder.getBindingAdapterPosition();
+            if (currentPosition != RecyclerView.NO_POSITION) {
+                show_dialog(holder, currentPosition);
+            }
             return true;
         });
 
@@ -282,18 +256,33 @@ public class AdapterForumPosts extends RecyclerView.Adapter<RecyclerView.ViewHol
         return jsonFeed.size();
     }
 
+    /** Restores renderer resources and the upload subscription after an adapter is attached again. */
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        htmlRenderer.activate();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    /** Invalidates background HTML and avatar work as a holder enters the recycled pool. */
+    @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        ItemViewHolder item = (ItemViewHolder) holder;
+        htmlRenderer.clear(item.textViewText);
+        Glide.with(item.itemView.getContext()).clear(item.imageView);
+        super.onViewRecycled(holder);
+    }
+
+    /** Releases view-bound HTML work and the EventBus subscription when the list detaches. */
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
-        htmlCache.evictAll();
-        htmlExecutor.shutdownNow();
+        htmlRenderer.release();
         super.onDetachedFromRecyclerView(recyclerView);
-    }
-
-    private String buildHtmlCacheKey(FeedForum feed) {
-        return feed.getId() + "_" + feed.getText().hashCode() + "_" + AppController.getInstance().isFontSize();
     }
 
     public static class ItemViewHolder extends RecyclerView.ViewHolder {

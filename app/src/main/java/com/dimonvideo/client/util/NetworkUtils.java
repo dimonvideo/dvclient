@@ -42,9 +42,12 @@ import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.ui.main.MainFragmentOpros;
+import com.dimonvideo.client.util.pm.PmDeletionQueue;
+import com.dimonvideo.client.util.pm.PmHttpTransport;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -59,7 +62,7 @@ public class NetworkUtils {
 
     private static final String UTF_8 = "utf-8";
 
-    // Получение и кодирование данных авторизации
+    /** Encodes existing account credentials for the legacy authenticated API. */
     private static boolean getEncodedAuthData(AppController appController, String[] authData, Context context) {
         String login = appController.userName("null");
         String password = appController.userPassword();
@@ -83,6 +86,7 @@ public class NetworkUtils {
         }
     }
 
+    /** Refreshes account metadata after validating credentials without logging them. */
     public static void checkPassword(Context context, String password, String razdel) {
         AppController appController = AppController.getInstance();
         View view = MainActivity.binding.getRoot();
@@ -96,11 +100,8 @@ public class NetworkUtils {
         if (getEncodedAuthData(appController, authData, context)) return;
 
         String url = Config.CHECK_AUTH_URL + "&login_name=" + authData[0] + "&login_password=" + authData[1];
-        Log.w(Config.TAG, url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
-
-            Log.e(Config.TAG, "Check pass: "+response);
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
@@ -140,6 +141,7 @@ public class NetworkUtils {
         appController.addToRequestQueue(stringRequest);
     }
 
+    /** Verifies the entered login without exposing its authenticated URL to logs. */
     public static void checkLogin(Context context, String login) {
         AppController appController = AppController.getInstance();
         View view = MainActivity.binding.getRoot();
@@ -153,10 +155,8 @@ public class NetworkUtils {
         if (getEncodedAuthData(appController, authData, context)) return;
 
         String url = Config.CHECK_AUTH_URL + "&login_name=" + login + "&login_password=" + authData[1];
-        Log.w(Config.TAG, url);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
-                    Log.e(Config.TAG, "Check login: "+response);
 
                     try {
                         JSONObject jsonObject = new JSONObject(response);
@@ -165,7 +165,8 @@ public class NetworkUtils {
 
                         if (state > 0) {
                             Snackbar.make(view, context.getString(R.string.success_auth), Snackbar.LENGTH_LONG).show();
-                            context.sendBroadcast(new Intent(Config.INTENT_AUTH));
+                            context.sendBroadcast(new Intent(Config.INTENT_AUTH)
+                                    .setPackage(context.getPackageName()));
                             GetToken.getToken(context);
                         } else {
                             Snackbar.make(view, context.getString(R.string.unsuccess_auth), Snackbar.LENGTH_LONG).show();
@@ -179,60 +180,146 @@ public class NetworkUtils {
         appController.addToRequestQueue(stringRequest);
     }
 
+    /** Queues deletion durably, or performs one acknowledged restore/archive operation. */
     public static void deletePm(Context context, int pm_id, int delete) {
+        deletePm(context, pm_id, delete, null);
+    }
+
+    /**
+     * Accepts local removal only after a deletion intent is saved, or a server edit succeeds.
+     * The callback runs on the main thread; a queue or API failure keeps the item visible.
+     */
+    public static void deletePm(Context context, int pm_id, int delete, Runnable onAccepted) {
+        deletePm(context, pm_id, delete, 0, 1, onAccepted);
+    }
+
+    /** Queues deletion with folder/page hints while requiring an exact server ID before mutation. */
+    public static void deletePm(Context context, int pm_id, int delete, int sourceFolder,
+                                int sourcePage, Runnable onAccepted) {
+        if (delete == 0) {
+            PmDeletionQueue.enqueue(context, pm_id, sourceFolder, sourcePage, onAccepted);
+            return;
+        }
         AppController appController = AppController.getInstance();
         String[] authData = new String[2];
         if (getEncodedAuthData(appController, authData, context)) return;
+        String accountKey = PmDeletionQueue.currentAccountKey();
 
         String url = Config.PM_URL + 1 + "&login_name=" + authData[0] + "&login_password=" + authData[1] + "&pm_id=" + pm_id + "&pm=10&delete=" + delete;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
-                    if (delete == 0) {
-                        int pm_unread = appController.isPmUnread();
-                        String count = pm_unread > 1 ? String.valueOf(pm_unread - 1) : "0";
-                        appController.putPmUnread(Integer.parseInt(count));
-                        EventBus.getDefault().post(new MessageEvent(null, null, null, count, "deletePm", null));
+                    if (accountKey != null && !accountKey.equals(PmDeletionQueue.currentAccountKey())) return;
+                    try {
+                        JSONArray result = new JSONArray(response);
+                        // pm.php's restore branch is documented to return an empty JSON array.
+                        boolean restored = delete == 1 && result.length() == 0;
+                        if (!restored && !hasPmSuccess(result, "status")) {
+                            Toast.makeText(context, R.string.error_network, Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (onAccepted != null) onAccepted.run();
+                        refreshPmUnread(appController, authData, accountKey, "deletePm");
+                    } catch (JSONException exception) {
+                        Toast.makeText(context, R.string.error_network, Toast.LENGTH_LONG).show();
                     }
                 }, error -> showErrorToast(context, error));
-
-        stringRequest.setShouldCache(false);
-        appController.addToRequestQueue(stringRequest);
+        enqueuePmRequest(appController, stringRequest);
     }
 
+    /** Receives the result of a single PM action without discarding a composer on failure. */
+    public interface PmOperationCallback {
+        /** Receives an acknowledged operation result on the main thread. */
+        void onSuccess();
+        /** Receives a transport, validation, or server rejection on the main thread. */
+        void onError();
+    }
+
+    /** Marks a message read using the documented API without an automatic transport retry. */
     public static void readPm(Context context, int pm_id) {
+        readPm(context, pm_id, null);
+    }
+
+    /** Marks a message read and updates local UI only after a valid JSON acknowledgement. */
+    public static void readPm(Context context, int pm_id, PmOperationCallback callback) {
         AppController appController = AppController.getInstance();
         String[] authData = new String[2];
-        if (getEncodedAuthData(appController, authData, context)) return;
+        if (getEncodedAuthData(appController, authData, context)) {
+            if (callback != null) callback.onError();
+            return;
+        }
+        String accountKey = PmDeletionQueue.currentAccountKey();
 
         String url = Config.PM_URL + 1 + "&login_name=" + authData[0] + "&login_password=" + authData[1] + "&pm_id=" + pm_id + "&pm=11";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
-                    int pm_unread = appController.isPmUnread();
-                    String count = pm_unread > 1 ? String.valueOf(pm_unread - 1) : "0";
-                    appController.putPmUnread(Integer.parseInt(count));
-                    EventBus.getDefault().post(new MessageEvent(null, null, null, count, "readPm", null));
-                }, error -> showErrorToast(context, error));
-
-        stringRequest.setShouldCache(false);
-        appController.addToRequestQueue(stringRequest);
+                    if (accountKey != null && !accountKey.equals(PmDeletionQueue.currentAccountKey())) {
+                        if (callback != null) callback.onError();
+                        return;
+                    }
+                    try {
+                        JSONArray result = new JSONArray(response);
+                        // The read branch returns [] on success and status=0 for a missing row.
+                        if (result.length() != 0) throw new JSONException("Read was not acknowledged");
+                        // The API returns [] even when this message was already read. Refresh
+                        // the authoritative count instead of decrementing it on repeated opens.
+                        refreshPmUnread(appController, authData, accountKey, "readPm");
+                        if (callback != null) callback.onSuccess();
+                    } catch (JSONException exception) {
+                        Toast.makeText(context, R.string.error_network, Toast.LENGTH_LONG).show();
+                        if (callback != null) callback.onError();
+                    }
+                }, error -> {
+                    showErrorToast(context, error);
+                    if (callback != null) callback.onError();
+                });
+        enqueuePmRequest(appController, stringRequest);
     }
 
+    /** Sends a private message once and reports success only for the API's state=1 response. */
     public static void sendPm(Context context, int pm_id, String text, int delete, String razdel, int uid) {
+        sendPm(context, pm_id, text, delete, razdel, uid, null);
+    }
+
+    /** Keeps a message draft available until the single server send attempt is acknowledged. */
+    public static void sendPm(Context context, int pm_id, String text, int delete, String razdel,
+                              int uid, PmOperationCallback callback) {
         AppController appController = AppController.getInstance();
         String[] authData = new String[2];
-        if (getEncodedAuthData(appController, authData, context)) return;
+        if (getEncodedAuthData(appController, authData, context)) {
+            if (callback != null) callback.onError();
+            return;
+        }
+        String accountKey = PmDeletionQueue.currentAccountKey();
 
         if (text == null || text.length() <= 1) {
             Toast.makeText(context, context.getString(R.string.error_network), Toast.LENGTH_LONG).show();
+            if (callback != null) callback.onError();
             return;
         }
 
         String url = Config.PM_URL + 1 + "&login_name=" + authData[0] + "&login_password=" + authData[1] + "&pm_id=" + pm_id + "&pm=12&delete=" + delete + "&razdel=" + razdel + "&uid=" + uid;
         StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 response -> {
-                    Toast.makeText(context, context.getString(R.string.success_send_pm), Toast.LENGTH_LONG).show();
-                    GetToken.getToken(context);
-                }, error -> showErrorToast(context, error)) {
+                    if (accountKey != null && !accountKey.equals(PmDeletionQueue.currentAccountKey())) {
+                        if (callback != null) callback.onError();
+                        return;
+                    }
+                    try {
+                        if (!hasPmSuccess(new JSONArray(response), "state")) {
+                            throw new JSONException("Send was not acknowledged");
+                        }
+                        Toast.makeText(context, R.string.success_send_pm, Toast.LENGTH_LONG).show();
+                        GetToken.getToken(context);
+                        if (callback != null) callback.onSuccess();
+                    } catch (JSONException exception) {
+                        Toast.makeText(context, R.string.error_network, Toast.LENGTH_LONG).show();
+                        if (callback != null) callback.onError();
+                    }
+                }, error -> {
+                    showErrorToast(context, error);
+                    if (callback != null) callback.onError();
+                }) {
+            /** Supplies the message body as form data instead of adding it to the URL. */
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> postMap = new HashMap<>();
@@ -241,9 +328,44 @@ public class NetworkUtils {
             }
         };
 
-        stringRequest.setShouldCache(false);
-        appController.addToRequestQueue(stringRequest);
-        GetToken.getToken(context);
+        enqueuePmRequest(appController, stringRequest);
+    }
+
+    /** Checks the legacy API's single-object positive status rather than trusting HTTP alone. */
+    private static boolean hasPmSuccess(JSONArray response, String key) throws JSONException {
+        return response.length() == 1 && response.getJSONObject(0).optInt(key, 0) == 1;
+    }
+
+    /** Refreshes the badge from an acknowledged account, guarding late responses after account changes. */
+    private static void refreshPmUnread(AppController controller, String[] authData,
+                                        String accountKey, String action) {
+        if (accountKey == null) return;
+        int userId = controller.isUserId();
+        String url = Config.CHECK_AUTH_URL + "&login_name=" + authData[0]
+                + "&login_password=" + authData[1];
+        StringRequest request = new StringRequest(Request.Method.GET, url, response -> {
+            if (!accountKey.equals(PmDeletionQueue.currentAccountKey())) return;
+            try {
+                JSONObject identity = new JSONObject(response);
+                if (identity.optInt("state") != 1 || identity.optInt("user_id") != userId) return;
+                int unread = Math.max(0, identity.getInt("pm_unread"));
+                controller.putPmUnread(unread);
+                EventBus.getDefault().post(new MessageEvent(null, null, null,
+                        String.valueOf(unread), action, null));
+            } catch (JSONException exception) {
+                // A failed badge refresh cannot invalidate or replay the acknowledged PM action.
+            }
+        }, error -> { });
+        enqueuePmRequest(controller, request);
+    }
+
+    /** Bypasses the app's three automatic retries for operations with server-side side effects. */
+    private static void enqueuePmRequest(AppController controller, Request<?> request) {
+        request.setShouldCache(false);
+        request.setTag(Config.TAG);
+        request.setRetryPolicy(new DefaultRetryPolicy(6000, 0,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        PmHttpTransport.queue(controller).add(request);
     }
 
     public static void loadAvatar(Context context, Toolbar toolbar) {
@@ -275,7 +397,22 @@ public class NetworkUtils {
         return byteArrayOutputStream.toByteArray();
     }
 
+    /** Receives one PM image result without publishing an unrelated global sticky attachment. */
+    public interface PmAttachmentCallback {
+        /** Receives the server filename for a validated successful image upload. */
+        void onSuccess(String filename);
+        /** Receives image validation, JSON, or transport failure on the main thread. */
+        void onError();
+    }
+
+    /** Uploads an image for legacy composers using their existing sticky event contract. */
     public static String uploadBitmap(Bitmap bitmap, Context context, String razdel) {
+        return uploadBitmap(bitmap, context, razdel, null);
+    }
+
+    /** Uploads an image and optionally returns its correlated result to a PM composer. */
+    public static String uploadBitmap(Bitmap bitmap, Context context, String razdel,
+                                      PmAttachmentCallback callback) {
         AppController controller = AppController.getInstance();
         String user_name = controller.userName("dvclient");
 
@@ -286,16 +423,23 @@ public class NetworkUtils {
                     try {
                         JSONObject obj = new JSONObject(new String(response.data));
                         String msg = obj.getString(Config.TAG_LINK);
-                        String err = obj.getString("error");
-                        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, msg, null, null, bitmap));
+                        if (callback != null && (msg.isEmpty() || !msg.endsWith(".png")
+                                || obj.optBoolean("error", true))) {
+                            callback.onError();
+                            return;
+                        }
+                        if (callback != null) callback.onSuccess(msg);
+                        else EventBus.getDefault().postSticky(new MessageEvent(razdel, null, msg, null, null, bitmap));
                         Toast.makeText(context, R.string.success_image, Toast.LENGTH_SHORT).show();
-                    } catch (JSONException e) {
-                        Log.e(Config.TAG, "JSON parsing error: " + e.getMessage());
+                    } catch (JSONException exception) {
+                        if (callback != null) callback.onError();
                     }
                 }, error -> {
             ProgressHelper.dismissDialog();
             showErrorToast(context, error);
+            if (callback != null) callback.onError();
         }) {
+            /** Supplies the original account name as multipart upload metadata. */
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
@@ -303,6 +447,7 @@ public class NetworkUtils {
                 return params;
             }
 
+            /** Supplies the processed PNG bytes under the API's expected pic field. */
             @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();

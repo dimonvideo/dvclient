@@ -15,7 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
-import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +39,7 @@ import com.dimonvideo.client.ui.main.MainFragmentViewFileByApi;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
-import com.dimonvideo.client.util.URLImageParser;
+import com.dimonvideo.client.util.AsyncHtmlRenderer;
 
 import org.xml.sax.XMLReader;
 
@@ -51,6 +50,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
     Context context;
     private final List<FeedForum> jsonFeed;
+    private final AsyncHtmlRenderer htmlRenderer = new AsyncHtmlRenderer();
 
     public static class TagHandler implements Html.TagHandler {
         @Override
@@ -85,6 +85,7 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     }
 
 
+    /** Binds comment metadata and parses HTML asynchronously, preserving per-view inline images. */
     @SuppressLint("SetTextI18n")
     public void onBindViewHold(ViewHolder holder, int position) {
 
@@ -120,21 +121,14 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
         final boolean is_open_link = AppController.getInstance().isOpenLinks();
         final boolean is_vuploader_play_listtext = AppController.getInstance().isVuploaderPlayListtext();
 
-        // html textview
-        TextView textViewText = holder.textViewText;
-        try {
-            URLImageParser parser = new URLImageParser(textViewText);
-            Spanned spanned = Html.fromHtml(feed.getText(), Html.FROM_HTML_MODE_LEGACY, parser, new TagHandler());
-            textViewText.setText(spanned);
-            textViewText.setMovementMethod(new TextViewClickMovement() {
-                @Override
-                public void onLinkClick(String url) {
-                    OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, feed.getRazdel());
-                }
-            });
-        } catch (Throwable ignored) {
-        }
-
+        htmlRenderer.bind(holder.textViewText, feed.getText(), true);
+        holder.textViewText.setMovementMethod(new TextViewClickMovement() {
+            /** Opens links from rendered comment spans using the configured browser preferences. */
+            @Override
+            public void onLinkClick(String url) {
+                OpenUrl.open_url(url, is_open_link, is_vuploader_play_listtext, context, feed.getRazdel());
+            }
+        });
 
         holder.textViewCategory.setText(feed.getCategory());
         holder.textViewTitle.setText("#"+ (position + 1)+" ");
@@ -219,7 +213,11 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
 
 
     // dialog
+    /** Shows actions for the current comment, ignoring holders removed during list updates. */
     private void show_dialog(ViewHolder holder, final int position, Context context){
+        if (position == RecyclerView.NO_POSITION || position >= jsonFeed.size()) {
+            return;
+        }
         final CharSequence[] items = {context.getString(R.string.copy_listtext), context.getString(R.string.action_open)};
         FeedForum feed = jsonFeed.get(position);
 
@@ -252,6 +250,28 @@ public class AdapterComments extends RecyclerView.Adapter<AdapterComments.ViewHo
     @Override
     public int getItemCount() {
         return jsonFeed.size();
+    }
+
+    /** Recreates HTML resources when the comments adapter is attached again. */
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        htmlRenderer.activate();
+    }
+
+    /** Cancels inline image requests and stale HTML delivery before a row is reused. */
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        htmlRenderer.clear(holder.textViewText);
+        Glide.with(holder.itemView.getContext()).clear(holder.imageView);
+        super.onViewRecycled(holder);
+    }
+
+    /** Stops background formatting and releases cached text and every inline image target. */
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        htmlRenderer.release();
+        super.onDetachedFromRecyclerView(recyclerView);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

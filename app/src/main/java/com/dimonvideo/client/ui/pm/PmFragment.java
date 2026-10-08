@@ -3,25 +3,17 @@
  * Разработано для сайта dimonvideo.ru
  * При использовании кода ссылка на проект обязательна.
  */
-
 package com.dimonvideo.client.ui.pm;
 
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -30,401 +22,418 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager2.widget.ViewPager2;
-
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterPm;
 import com.dimonvideo.client.databinding.FragmentHomeBinding;
 import com.dimonvideo.client.model.FeedPm;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.dimonvideo.client.util.pm.PmDeletionEvent;
+import com.dimonvideo.client.util.pm.PmDeletionQueue;
+import com.dimonvideo.client.util.pm.PmHttpTransport;
 import com.google.android.material.snackbar.Snackbar;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
+/** Displays a continuous mailbox with guarded pagination and durable deletion filtering. */
 public class PmFragment extends Fragment {
-
-    private RecyclerView recyclerView;
-    private SwipeRefreshLayout swipLayout;
-    private LinearLayout emptyLayout;
-    private TextView emptyView;
-    private ProgressBar progressBar, progressBarBottom;
     private FragmentHomeBinding binding;
     private AdapterPm adapter;
-    private List<FeedPm> listFeed;
-    private int requestCount = 1;
-    private String tab_title;
-    private AppController controller;
+    private LinearLayoutManager layoutManager;
+    private ItemTouchHelper touchHelper;
+    private final PmPagination pagination = new PmPagination();
+    private final LinkedHashMap<Integer, FeedPm> messages = new LinkedHashMap<>();
+    private final Set<Integer> hiddenIds = new HashSet<>();
+    private final Object requestTag = new Object();
+    private int generation;
+    private int folder;
+    private boolean waitingForQueue;
+    private boolean loadFailed;
+    private boolean replaceFirstPage;
+    private String mailboxAccount;
+    private Snackbar retrySnackbar;
 
-
-    public PmFragment() {
-        // Required empty public constructor
-    }
-
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        String pm = event.action;
-        if ((pm != null) && (pm.equals("restored"))) update();
-        Log.e("---", "PmFragment event: "+pm );
-    }
-
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-
+    /** Inflates a binding scoped to the fragment's current view. */
+    @Nullable @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
-
+    /** Attaches the list and its controls before starting the first request. */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
+        super.onViewCreated(view, savedInstanceState);
+        folder = resolveFolder();
+        mailboxAccount = PmDeletionQueue.currentAccountKey();
+        messages.clear();
+        adapter = new AdapterPm(new ArrayList<>(), requireContext());
+        adapter.setDeletionSourceFolder(folder);
+        adapter.setOnMessageRemovedListener(this::onMessageRemoved);
+        layoutManager = new LinearLayoutManager(requireContext());
+        binding.recyclerView.setLayoutManager(layoutManager);
+        binding.recyclerView.setAdapter(adapter);
+        RecyclerView.ItemAnimator animator = binding.recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
-
-        if (this.getArguments() != null) {
-            tab_title = getArguments().getString("tab");
-        }
-
-        controller = AppController.getInstance();
-
-        listFeed = new ArrayList<>();
-
-        NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
-
-        emptyView = binding.emptyView;
-        emptyLayout = binding.linearEmpty;
-
-        emptyView.setVisibility(View.VISIBLE);
-        emptyLayout.setVisibility(View.VISIBLE);
-
-        progressBar = binding.progressbar;
-        progressBar.setVisibility(View.VISIBLE);
-        progressBarBottom = binding.ProgressBarBottom;
-        progressBarBottom.setVisibility(View.GONE);
-        recyclerView = binding.recyclerView;
-
-        // получение данных
-        getData();
-        adapter = new AdapterPm(listFeed, getContext());
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-        recyclerView.setItemViewCacheSize(10);
-        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
-        recyclerView.setAdapter(adapter);
-
-        // показ кнопки наверх
-        FloatingActionButton fab = binding.fabTop;
-        boolean is_top = controller.isOnTop();
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) { // down
-                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
-                } else if (dy < 0) { // up
-                    fab.setVisibility(View.VISIBLE);
-                    if (!is_top) fab.setVisibility(View.GONE);
-                }
-            }
-
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                // подгрузка ленты
-                if (isLastItemDisplaying(recyclerView)) {
-                    getData();
-                }
+        binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            /** Prefetches near the end without accumulating delayed scroll callbacks. */
+            @Override public void onScrolled(@NonNull RecyclerView list, int dx, int dy) {
+                if (binding == null) return;
+                boolean showTop = AppController.getInstance().isOnTop()
+                        && layoutManager.findFirstVisibleItemPosition() > 3 && dy <= 0;
+                binding.fabTop.setVisibility(showTop ? View.VISIBLE : View.GONE);
+                maybeLoadMore();
             }
         });
-        fab.setOnClickListener(views -> {
-            recyclerView.post(() -> recyclerView.smoothScrollToPosition(0));
-        });
-
-        // swipe to delete
-        ItemTouchHelper.SimpleCallback itemTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            private final Drawable deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete);
-            private final Drawable archiveIcon = ContextCompat.getDrawable(requireContext(), R.drawable.baseline_inventory_2_white_20);
-            private final ColorDrawable backgroundDelete = new ColorDrawable(Color.RED);
-            private final ColorDrawable backgroundArchive = new ColorDrawable(Color.GREEN);
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-                super.onSelectedChanged(viewHolder, actionState);
-                swipLayout.setEnabled(actionState != ItemTouchHelper.ACTION_STATE_SWIPE);
-            }
-
-            @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                super.onChildDraw(c, recyclerView, viewHolder, dX / 4, dY, actionState, isCurrentlyActive);
-
-                View itemView = viewHolder.itemView;
-
-                assert deleteIcon != null;
-                int iconDeleteMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
-                int iconDeleteTop = itemView.getTop() + (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
-                int iconDeleteBottom = iconDeleteTop + deleteIcon.getIntrinsicHeight();
-
-                assert archiveIcon != null;
-                int leftIconMargin = (itemView.getHeight() - archiveIcon.getIntrinsicHeight()) / 2;
-                int leftIconTop = itemView.getTop() + (itemView.getHeight() - archiveIcon.getIntrinsicHeight()) / 2;
-                int leftIconBottom = leftIconTop + archiveIcon.getIntrinsicHeight();
-
-                if (dX > 0) {
-                    int leftIconLeft = itemView.getLeft() + leftIconMargin;
-                    int leftIconRight = itemView.getLeft() + leftIconMargin + archiveIcon.getIntrinsicWidth();
-                    archiveIcon.setBounds(leftIconLeft, leftIconTop, leftIconRight, leftIconBottom);
-                    backgroundArchive.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + ((int) dX), itemView.getBottom());
-                    backgroundArchive.draw(c);
-                    archiveIcon.draw(c);
-                } else if (dX < 0) {
-                    int iconLeft = itemView.getRight() - iconDeleteMargin - deleteIcon.getIntrinsicWidth();
-                    int iconRight = itemView.getRight() - iconDeleteMargin;
-                    deleteIcon.setBounds(iconLeft, iconDeleteTop, iconRight, iconDeleteBottom);
-                    backgroundDelete.setBounds(itemView.getRight() + ((int) dX), itemView.getTop(), itemView.getRight(), itemView.getBottom());
-                    backgroundDelete.draw(c);
-                    deleteIcon.draw(c);
-                } else {
-                    backgroundDelete.setBounds(0, 0, 0, 0);
-                    backgroundArchive.setBounds(0, 0, 0, 0);
-                    backgroundArchive.draw(c);
-                    backgroundDelete.draw(c);
-                }
-
-
-            }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAbsoluteAdapterPosition();
-
-                if (direction == ItemTouchHelper.LEFT) {
-
-                    if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_trash)))) {
-                        if (position >= 0) adapter.restoreItem(position);
-                        Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
-                        snackbar.setAction(getString(R.string.tab_inbox), view -> {
-                            assert getParentFragment() != null;
-                            ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
-                            viewPager.setCurrentItem(0, true);
-                            EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "restored", null));
-                        });
-                        snackbar.setActionTextColor(Color.GREEN).show();
-
-                    } else {
-                        if (position >= 0) adapter.removeItem(position);
-                        Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_removed), Snackbar.LENGTH_LONG);
-                        snackbar.setAction(getString(R.string.tab_trash), view -> {
-                            EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "deleted", null));
-                            assert getParentFragment() != null;
-                            ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
-                            viewPager.setCurrentItem(4, true);
-                        });
-                        snackbar.setActionTextColor(Color.YELLOW).show();
-                    }
-                    NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                    notificationManager.cancelAll();
-                    TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
-                    fab_badge.setVisibility(View.GONE);
-                }
-
-                if (direction == ItemTouchHelper.RIGHT) {
-
-                    if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_arhiv)))) {
-                        if (position >= 0) adapter.restoreFromArchiveItem(position);
-
-                        Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_restored), Snackbar.LENGTH_LONG);
-                        snackbar.setAction(getString(R.string.tab_inbox), view -> {
-                            assert getParentFragment() != null;
-                            ViewPager2 viewPager = getParentFragment().requireView().findViewById(R.id.view_pager);
-                            viewPager.setCurrentItem(0, true);
-                        });
-                        EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "restored", null));
-                        snackbar.setActionTextColor(Color.GREEN).show();
-                    } else {
-                        if (position >= 0) adapter.archiveItem(position);
-                        Snackbar snackbar = Snackbar.make(recyclerView, getString(R.string.msg_archived), Snackbar.LENGTH_LONG);
-                        snackbar.show();
-                        EventBus.getDefault().postSticky(new MessageEvent("13", null, null, null, "archived", null));
-
-                    }
-                    NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                    notificationManager.cancelAll();
-                    TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
-                    fab_badge.setVisibility(View.GONE);
-                }
-            }
-        };
-
-        new ItemTouchHelper(itemTouchHelper).attachToRecyclerView(recyclerView);
-
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                if (adapter.getItemCount() == 0) {
-                    emptyLayout.setVisibility(View.VISIBLE);
-                    emptyView.setVisibility(View.VISIBLE);
-                } else {
-                    emptyLayout.setVisibility(View.GONE);
-                    emptyView.setVisibility(View.GONE);
+            /** Rechecks the viewport after asynchronous list replacement. */
+            @Override public void onChanged() { onListChanged(); }
+            /** Fills the viewport after insertion of a short initial page. */
+            @Override public void onItemRangeInserted(int start, int count) { onListChanged(); }
+            /** Updates the empty state after accepted removals. */
+            @Override public void onItemRangeRemoved(int start, int count) { onListChanged(); }
+        });
+        binding.fabTop.setOnClickListener(v -> binding.recyclerView.smoothScrollToPosition(0));
+        binding.swipeLayout.setOnRefreshListener(this::refresh);
+        binding.emptyView.setOnClickListener(v -> retry());
+        attachSwipeActions();
+        NotificationManager notifications = (NotificationManager)
+                requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notifications != null) notifications.cancelAll();
+        refresh();
+    }
+
+    /** Resolves the API folder, including the outgoing messages tab. */
+    private int resolveFolder() {
+        String title = getArguments() == null ? null : getArguments().getString("tab");
+        if (getString(R.string.tab_trash).equals(title)) return 5;
+        if (getString(R.string.tab_outbox).equals(title)) return 1;
+        if (getString(R.string.tab_arhiv).equals(title)) return 2;
+        if (getString(R.string.tab_ish).equals(title) || getString(R.string.pm_send).equals(title)) return 3;
+        return 0;
+    }
+
+    /** Cancels old requests and reads durable pending IDs before refreshing the first page. */
+    private void refresh() {
+        if (binding == null) return;
+        dismissRetry();
+        generation++;
+        PmHttpTransport.queue(requireContext()).cancelAll(requestTag);
+        pagination.reset();
+        loadFailed = false;
+        waitingForQueue = true;
+        replaceFirstPage = true;
+        hiddenIds.clear();
+        String currentAccount = PmDeletionQueue.currentAccountKey();
+        if (!Objects.equals(mailboxAccount, currentAccount)) {
+            messages.clear();
+            adapter.updateData(new ArrayList<>());
+        }
+        mailboxAccount = currentAccount;
+        if (mailboxAccount == null) {
+            waitingForQueue = false;
+            finishLoading();
+            updateEmptyState();
+            binding.emptyView.setText(R.string.unsuccess_auth);
+            return;
+        }
+        final int token = generation;
+        binding.progressbar.setVisibility(messages.isEmpty() ? View.VISIBLE : View.GONE);
+        binding.swipeLayout.setRefreshing(!messages.isEmpty());
+        updateEmptyState();
+        PmDeletionQueue.getPendingIds(requireContext(), pending -> {
+            if (binding == null || token != generation) return;
+            if (folder != 5) hiddenIds.addAll(pending);
+            waitingForQueue = false;
+            loadNextPage();
+        });
+    }
+
+    /** Acquires the loading guard and starts one uncached request for the current page. */
+    private void loadNextPage() {
+        if (binding == null || waitingForQueue || loadFailed || mailboxAccount == null) return;
+        int page = pagination.begin();
+        if (page == 0) return;
+        final int token = generation;
+        AppController controller = AppController.getInstance();
+        String url = Config.PM_URL + page + "&pm=" + folder
+                + "&login_name=" + encode(controller.userName(""))
+                + "&login_password=" + encode(controller.userPassword());
+        binding.ProgressBarBottom.setVisibility(messages.isEmpty() ? View.GONE : View.VISIBLE);
+        JsonArrayRequest request = new JsonArrayRequest(url,
+                response -> acceptPage(token, page, response), error -> failPage(token));
+        request.setTag(requestTag);
+        request.setShouldCache(false);
+        request.setRetryPolicy(new DefaultRetryPolicy(10000, 0, 1f));
+        PmHttpTransport.queue(controller).add(request);
+    }
+
+    /** Applies a valid whole page, preserving order and deduplicating rows by message ID. */
+    private void acceptPage(int token, int page, JSONArray response) {
+        if (!isCurrentResponse(token)) return;
+        List<FeedPm> parsed = new ArrayList<>();
+        try {
+            for (int i = 0; i < response.length(); i++) {
+                JSONObject json = response.getJSONObject(i);
+                FeedPm message = new FeedPm();
+                message.setId(json.getInt(Config.TAG_ID));
+                message.setSourcePage(page);
+                message.setTitle(json.getString(Config.TAG_TITLE));
+                message.setImageUrl(json.optString(Config.TAG_CATEGORY));
+                message.setDate(json.getString(Config.TAG_DATE));
+                String sender = json.optString(Config.TAG_LAST_POSTER_NAME);
+                String recipient = json.optString(Config.TAG_USER);
+                boolean outgoing = sender.trim().equalsIgnoreCase(
+                        AppController.getInstance().userName("").trim());
+                message.setSenderName(sender);
+                message.setRecipientName(recipient);
+                message.setOutgoing(outgoing);
+                message.setSourceFolder(folder);
+                message.setLast_poster_name(outgoing ? recipient : sender);
+                message.setIs_new(outgoing ? 0 : json.optInt(Config.TAG_HITS));
+                message.setFullHtml(json.getString(Config.TAG_TEXT));
+                message.setPreviewHtml(json.getString(Config.TAG_FULL_TEXT));
+                if (message.getId() > 0 && !hiddenIds.contains(message.getId())) parsed.add(message);
+            }
+        } catch (JSONException malformed) {
+            failPage(token);
+            return;
+        }
+        if (replaceFirstPage) {
+            messages.clear();
+            replaceFirstPage = false;
+        }
+        for (FeedPm message : parsed) messages.put(message.getId(), message);
+        pagination.complete(response.length());
+        finishLoading();
+        adapter.updateData(new ArrayList<>(messages.values()));
+        onListChanged();
+    }
+
+    /** Rejects callbacks from an old refresh, a destroyed view, or a different authenticated mailbox. */
+    private boolean isCurrentResponse(int token) {
+        if (binding == null || token != generation) return false;
+        if (!Objects.equals(mailboxAccount, PmDeletionQueue.currentAccountKey())) {
+            refresh();
+            return false;
+        }
+        return true;
+    }
+
+    /** Preserves the failed page and current rows, exposing an explicit retry action. */
+    private void failPage(int token) {
+        if (!isCurrentResponse(token)) return;
+        pagination.fail();
+        loadFailed = true;
+        finishLoading();
+        dismissRetry();
+        retrySnackbar = Snackbar.make(binding.getRoot(), R.string.pm_load_more_failed, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.pm_retry, v -> retry());
+        retrySnackbar.show();
+        updateEmptyState();
+    }
+
+    /** Retries the same page instead of repeatedly hitting an unavailable network. */
+    private void retry() {
+        if (binding == null) return;
+        dismissRetry();
+        loadFailed = false;
+        loadNextPage();
+    }
+
+    /** Releases retry actions before refresh or view teardown so a Snackbar cannot keep the old view alive. */
+    private void dismissRetry() {
+        if (retrySnackbar != null) retrySnackbar.dismiss();
+        retrySnackbar = null;
+    }
+
+    /** Clears both request indicators after success or failure. */
+    private void finishLoading() {
+        binding.progressbar.setVisibility(View.GONE);
+        binding.ProgressBarBottom.setVisibility(View.GONE);
+        binding.swipeLayout.setRefreshing(false);
+    }
+
+    /** Prefetches three rows before the end and fills an initially unscrollable list. */
+    private void maybeLoadMore() {
+        if (binding == null || waitingForQueue || pagination.isLoading()
+                || pagination.isEndReached() || loadFailed) return;
+        int count = adapter.getItemCount();
+        if (count == 0 || layoutManager.findLastVisibleItemPosition() >= count - 3) loadNextPage();
+    }
+
+    /** Defers viewport checks until RecyclerView finishes dispatching a background diff. */
+    private void onListChanged() {
+        if (binding == null) return;
+        updateEmptyState();
+        binding.recyclerView.post(this::maybeLoadMore);
+    }
+
+    /** Displays an empty mailbox or an actionable loading error only after the request completes. */
+    private void updateEmptyState() {
+        if (binding == null) return;
+        boolean empty = messages.isEmpty() && !waitingForQueue && !pagination.isLoading();
+        binding.linearEmpty.setVisibility(View.GONE);
+        binding.emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
+        binding.emptyView.setText(loadFailed ? R.string.pm_load_more_failed : R.string.no_data_available);
+    }
+
+    /** Removes accepted IDs from the source list so later page submissions cannot resurrect them. */
+    private void onMessageRemoved(int id) {
+        if (binding == null) return;
+        messages.remove(id);
+        hiddenIds.add(id);
+        // This also covers acknowledged archive/restore operations, which shift API offsets.
+        pagination.onRemoteRemoval();
+        onListChanged();
+    }
+
+    /** Reconciles shifted server offsets or re-exposes an expired deletion intent. */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDeletionEvent(PmDeletionEvent event) {
+        if (binding == null || !event.accountKey.equals(mailboxAccount)) return;
+        if (event.outcome == PmDeletionEvent.Outcome.EXPIRED) {
+            hiddenIds.remove(event.messageId);
+            refresh();
+            if (isResumed()) Snackbar.make(binding.getRoot(), R.string.pm_delete_expired, Snackbar.LENGTH_LONG).show();
+        } else {
+            pagination.onRemoteRemoval();
+            if (folder == 5) refresh();
+            else {
+                // A deletion initiated from a notification did not pass through this adapter.
+                messages.remove(event.messageId);
+                hiddenIds.add(event.messageId);
+                adapter.updateData(new ArrayList<>(messages.values()));
+                onListChanged();
+            }
+        }
+    }
+
+    /** Refreshes folders after server-confirmed moves without replaying sticky events on attachment. */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        if ("restored".equals(event.action) || "archived".equals(event.action)) refresh();
+    }
+
+    /** Adds swipe actions; only durable or server acceptance lets the adapter remove a row. */
+    private void attachSwipeActions() {
+        touchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            /** Offers only folder moves supported by the API for the message's actual sender. */
+            @Override public int getSwipeDirs(@NonNull RecyclerView list,
+                                               @NonNull RecyclerView.ViewHolder holder) {
+                if (adapter == null || !Objects.equals(mailboxAccount,
+                        PmDeletionQueue.currentAccountKey())) return 0;
+                int position = holder.getBindingAdapterPosition();
+                if (position == RecyclerView.NO_POSITION || position >= adapter.getItemCount()) return 0;
+                FeedPm message = messages.get((int) adapter.getItemId(position));
+                if (message == null) return 0;
+                // Own deleted rows cannot be restored by pm.php. Archiving an outgoing row
+                // moves it to a recipient-only folder, making it inaccessible to the sender.
+                if (message.isOutgoing()) return folder == 5 ? 0 : ItemTouchHelper.LEFT;
+                return super.getSwipeDirs(list, holder);
+            }
+            /** Message rows are not reorderable. */
+            @Override public boolean onMove(@NonNull RecyclerView list, @NonNull RecyclerView.ViewHolder source,
+                                             @NonNull RecyclerView.ViewHolder target) { return false; }
+            /** Disables pull-to-refresh while a swipe gesture is active. */
+            @Override public void onSelectedChanged(@Nullable RecyclerView.ViewHolder holder, int state) {
+                super.onSelectedChanged(holder, state);
+                if (binding != null) binding.swipeLayout.setEnabled(state != ItemTouchHelper.ACTION_STATE_SWIPE);
+            }
+            /** Draws themed delete and archive backgrounds behind the displaced message. */
+            @Override public void onChildDraw(@NonNull Canvas canvas, @NonNull RecyclerView list,
+                    @NonNull RecyclerView.ViewHolder holder, float dx, float dy, int state, boolean active) {
+                View row = holder.itemView;
+                ColorDrawable background = new ColorDrawable(ContextCompat.getColor(list.getContext(),
+                        dx < 0 ? R.color.colorDelete : R.color.colorPmSend));
+                background.setBounds(dx < 0 ? row.getRight() + (int) dx : row.getLeft(), row.getTop(),
+                        dx < 0 ? row.getRight() : row.getLeft() + (int) dx, row.getBottom());
+                background.draw(canvas);
+                Drawable icon = ContextCompat.getDrawable(list.getContext(), dx < 0
+                        ? R.drawable.ic_delete : R.drawable.baseline_inventory_2_white_20);
+                if (icon != null && dx != 0) {
+                    int margin = (row.getHeight() - icon.getIntrinsicHeight()) / 2;
+                    int left = dx < 0 ? row.getRight() - margin - icon.getIntrinsicWidth() : row.getLeft() + margin;
+                    int top = row.getTop() + margin;
+                    icon.setBounds(left, top, left + icon.getIntrinsicWidth(), top + icon.getIntrinsicHeight());
+                    icon.draw(canvas);
                 }
+                super.onChildDraw(canvas, list, holder, dx, dy, state, active);
+            }
+            /** Resets the visual swipe while persistence or a server operation is still pending. */
+            @Override public void onSwiped(@NonNull RecyclerView.ViewHolder holder, int direction) {
+                int position = holder.getBindingAdapterPosition();
+                if (position == RecyclerView.NO_POSITION || binding == null) return;
+                if (!Objects.equals(mailboxAccount, PmDeletionQueue.currentAccountKey())) {
+                    refresh();
+                    return;
+                }
+                if (direction == ItemTouchHelper.LEFT) {
+                    if (folder == 5) adapter.restoreItem(position);
+                    else adapter.removeItem(position);
+                } else {
+                    if (folder == 2) adapter.restoreFromArchiveItem(position);
+                    else adapter.archiveItem(position);
+                }
+                adapter.notifyItemChanged(position);
             }
         });
-
-        // обновление
-        swipLayout = binding.swipeLayout;
-        swipLayout.setOnRefreshListener(this::update);
+        touchHelper.attachToRecyclerView(binding.recyclerView);
     }
 
-    private void update() {
-        requestCount = 1;
-        getData();
-        TextView fab_badge = MainActivity.binding.appBarMain.fabBadge;
-        fab_badge.setVisibility(View.GONE);
-        swipLayout.setRefreshing(false);
+    /** Encodes the existing API credentials without logging request URLs or message contents. */
+    private static String encode(String value) {
+        try { return URLEncoder.encode(value, "UTF-8"); }
+        catch (UnsupportedEncodingException impossible) { throw new IllegalStateException(impossible); }
     }
 
-    // запрос к серверу апи
-    private JsonArrayRequest getDataFromServer(int requestCount) {
-        String login_name = controller.userName(getString(R.string.nav_header_title));
-        String pass = controller.userPassword();
-        try {
-            pass = URLEncoder.encode(pass, "utf-8");
-            login_name = URLEncoder.encode(login_name, "utf-8");
-        } catch (UnsupportedEncodingException ignored) {
-
-        }
-        String finalPass = pass;
-        String finalLogin = login_name;
-
-        String url = Config.PM_URL;
-        String final_url = url + requestCount + "&pm=0&login_name=" + finalLogin + "&login_password=" + finalPass;
-
-        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_trash)))) {
-            final_url = url + requestCount + "&pm=5&login_name=" + finalLogin + "&login_password=" + finalPass;
-        }
-        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_outbox)))) {
-            final_url = url + requestCount + "&pm=1&login_name=" + finalLogin + "&login_password=" + finalPass;
-        }
-        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_arhiv)))) {
-            final_url = url + requestCount + "&pm=2&login_name=" + finalLogin + "&login_password=" + finalPass;
-        }
-        if ((tab_title != null) && (tab_title.equalsIgnoreCase(requireContext().getString(R.string.tab_ish)))) {
-            final_url = url + requestCount + "&pm=3&login_name=" + finalLogin + "&login_password=" + finalPass;
-        }
-
-        return new JsonArrayRequest(final_url,
-                response -> {
-                    progressBar.setVisibility(View.GONE);
-                    progressBarBottom.setVisibility(View.GONE);
-
-                    if (requestCount == 1) {
-                        listFeed.clear();
-                        recyclerView.post(() -> recyclerView.scrollToPosition(0));
-                    }
-
-                    if (response.length() == 0) {
-                        swipLayout.setRefreshing(false);
-                        return;
-                    } else emptyView.setVisibility(View.GONE);
-
-                    Log.w(Config.TAG, "RESPONSE: " + response);
-                    List<FeedPm> newItems = new ArrayList<>();
-                    for (int i = 0; i < response.length(); i++) {
-                        FeedPm jsonFeed = new FeedPm();
-                        try {
-                            JSONObject json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            jsonFeed.setImageUrl(json.getString(Config.TAG_CATEGORY));
-                            jsonFeed.setId(json.getInt(Config.TAG_ID));
-                            jsonFeed.setDate(json.getString(Config.TAG_DATE));
-                            jsonFeed.setIs_new(json.getInt(Config.TAG_HITS));
-                            jsonFeed.setLast_poster_name(json.getString(Config.TAG_LAST_POSTER_NAME));
-                            jsonFeed.setFullHtml(json.getString(Config.TAG_TEXT));
-                            jsonFeed.setPreviewHtml(json.getString(Config.TAG_FULL_TEXT));
-                            newItems.add(jsonFeed);
-                        } catch (JSONException e) {
-                            Log.e("PmFragment", "JSON parsing error", e);
-                        }
-                    }
-                    listFeed.addAll(newItems);
-                    recyclerView.post(() -> adapter.updateData(listFeed));
-                    swipLayout.setRefreshing(false);
-                },
-                error -> {
-                    progressBar.setVisibility(View.GONE);
-                    progressBarBottom.setVisibility(View.GONE);
-                    swipLayout.setRefreshing(false);
-                    Log.e("PmFragment", "Volley error", error);
-                });
-    }
-
-    // получение данных и увеличение номера страницы
-    private void getData() {
-        progressBarBottom.setVisibility(View.VISIBLE);
-        controller.addToRequestQueue(getDataFromServer(requestCount));
-        requestCount++;
-    }
-
-    // опредление последнего элемента
-    private boolean isLastItemDisplaying(RecyclerView recyclerView) {
-        if (Objects.requireNonNull(recyclerView.getAdapter()).getItemCount() != 0) {
-            int lastVisibleItemPosition = ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).findLastCompletelyVisibleItemPosition();
-            return lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1;
-        }
-        return false;
-    }
-
-    @Override
-    public void onDestroy() {
-        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
-        super.onDestroy();
-        binding = null;
-    }
-
-    @Override
-    public void onStart() {
+    /** Registers live-view events and reconciles an account changed while the tab was offscreen. */
+    @Override public void onStart() {
         super.onStart();
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+        if (!EventBus.getDefault().isRegistered(this)) EventBus.getDefault().register(this);
+        if (binding != null && !Objects.equals(PmDeletionQueue.currentAccountKey(), mailboxAccount)) refresh();
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
+    /** Stops receiving foreground events when the fragment is no longer started. */
+    @Override public void onStop() {
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+        super.onStop();
     }
 
-    @Override
-    public void onDestroyView() {
+    /** Cancels this view's requests and detaches adapters to release HTML targets and dialogs. */
+    @Override public void onDestroyView() {
+        dismissRetry();
+        generation++;
+        PmHttpTransport.queue(requireContext()).cancelAll(requestTag);
+        if (touchHelper != null) touchHelper.attachToRecyclerView(null);
+        if (binding != null) {
+            binding.recyclerView.clearOnScrollListeners();
+            binding.recyclerView.setAdapter(null);
+        }
+        if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
+        binding = null;
+        adapter = null;
+        layoutManager = null;
+        touchHelper = null;
         super.onDestroyView();
     }
-
-
 }

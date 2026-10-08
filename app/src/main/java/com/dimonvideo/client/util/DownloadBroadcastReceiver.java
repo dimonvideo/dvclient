@@ -6,15 +6,20 @@
 
 package com.dimonvideo.client.util;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
+import android.os.Process;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -22,145 +27,255 @@ import androidx.core.app.NotificationCompat;
 
 import com.dimonvideo.client.R;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+/** Обрабатывает завершение загрузок и ограниченный по времени мониторинг их прогресса. */
 public class DownloadBroadcastReceiver extends BroadcastReceiver {
 
     private static final String CHANNEL_ID = "download_channel";
     private static final int NOTIFICATION_ID = 1001;
     private static final String TAG = "DownloadBroadcastReceiver";
-    private static final Handler handler = new Handler(Looper.getMainLooper());
-    private Runnable progressRunnable;
+    private static final long PROGRESS_INTERVAL_MS = 1000;
+    private static final long MAX_MONITORING_TIME_MS = TimeUnit.HOURS.toMillis(6);
+    private static final Handler BACKGROUND_HANDLER = createBackgroundHandler();
 
+    // Реестр читается и изменяется только в BACKGROUND_HANDLER, в том числе из новых receiver.
+    private static final Map<Long, DownloadMonitor> MONITORS = new HashMap<>();
+
+    /** Передаёт запрос DownloadManager в фон, сохраняя receiver живым до конца обработки. */
     @Override
     public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-
-        if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-            handleDownloadComplete(context, intent, downloadManager);
+        if (intent == null || !DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) {
+            return;
         }
-    }
-
-    private void handleDownloadComplete(Context context, Intent intent, DownloadManager downloadManager) {
-        long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
-        if (downloadManager == null) {
-            Log.e(TAG, "DownloadManager is null");
+        long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+        Context applicationContext = context.getApplicationContext();
+        if (downloadId <= 0 || applicationContext == null) {
             return;
         }
 
-        if (progressRunnable != null) {
-            handler.removeCallbacks(progressRunnable);
+        PendingResult pendingResult = goAsync();
+        BACKGROUND_HANDLER.post(() -> {
+            try {
+                handleDownloadComplete(applicationContext, downloadId);
+            } finally {
+                pendingResult.finish();
+            }
+        });
+    }
+
+    /** Создаёт один фоновый поток для всех запросов и изменений реестра мониторов. */
+    private static Handler createBackgroundHandler() {
+        HandlerThread thread = new HandlerThread("download-monitor", Process.THREAD_PRIORITY_BACKGROUND);
+        thread.start();
+        return new Handler(thread.getLooper());
+    }
+
+    /** Останавливает монитор того же ID и сообщает итог загрузки без удержания Activity. */
+    private static void handleDownloadComplete(Context context, long downloadId) {
+        stopMonitoring(downloadId);
+        cancelNotification(context, downloadId);
+        DownloadManager downloadManager = context.getSystemService(DownloadManager.class);
+        if (downloadManager == null) {
+            Log.e(TAG, "DownloadManager is null");
+            return;
         }
 
         try (Cursor cursor = downloadManager.query(new DownloadManager.Query().setFilterById(downloadId))) {
-            if (cursor.moveToFirst()) {
-                int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                int status = cursor.getInt(statusIndex);
-                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                createNotificationChannel(context);
-
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.baseline_download_for_offline_24)
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                        .setAutoCancel(true);
-
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    builder.setContentTitle(context.getString(R.string.download_complete))
-                            .setContentText(context.getString(R.string.download_complete));
-                    Toast.makeText(context, context.getString(R.string.download_complete), Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "Download completed: ID=" + downloadId);
-                } else {
-                    int reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
-                    int reason = cursor.getInt(reasonIndex);
-                    builder.setContentTitle(context.getString(R.string.error_network))
-                            .setContentText(context.getString(R.string.error_network));
-                    Log.e(TAG, "Download failed: ID=" + downloadId + ", Reason=" + reason);
-                }
-
-                if (android.os.Build.VERSION.SDK_INT >= 33) {
-                    if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                        return;
-                    }
-                }
-                notificationManager.notify(NOTIFICATION_ID, builder.build());
-
-            }
-        }
-    }
-
-    // Создание канала уведомлений для Android 8.0+
-    private static void createNotificationChannel(Context context) {
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            if (cursor == null || !cursor.moveToFirst()) {
                 return;
             }
-        }
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                context.getString(R.string.download_channel_name),
-                NotificationManager.IMPORTANCE_LOW
-        );
-        channel.setDescription(context.getString(R.string.download_channel_description));
-        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(channel);
-            Log.d(TAG, "Notification channel created");
+            int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+            if (status != DownloadManager.STATUS_SUCCESSFUL && status != DownloadManager.STATUS_FAILED) {
+                return;
+            }
+
+            boolean successful = status == DownloadManager.STATUS_SUCCESSFUL;
+            int message = successful ? R.string.download_complete : R.string.error_network;
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.baseline_download_for_offline_24)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+                    .setContentTitle(context.getString(message))
+                    .setContentText(context.getString(message));
+
+            if (successful) {
+                new Handler(context.getMainLooper()).post(() -> Toast.makeText(context,
+                        context.getString(R.string.download_complete), Toast.LENGTH_SHORT).show());
+                Log.d(TAG, "Download completed: ID=" + downloadId);
+            } else {
+                int reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON));
+                Log.e(TAG, "Download failed: ID=" + downloadId + ", Reason=" + reason);
+            }
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            if (notificationManager != null) {
+                createNotificationChannel(context, notificationManager);
+            }
+            notifySafely(context, downloadId, builder);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Unable to read completed download: ID=" + downloadId, e);
         }
     }
 
-    // Запуск мониторинга прогресса
-    public static void startProgressMonitoring(Context context, long downloadId) {
-        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        if (downloadManager == null) {
-            Log.e(TAG, "DownloadManager is null");
-            return;
+    /** Создаёт канал уведомлений; минимальная поддерживаемая версия Android уже имеет каналы. */
+    private static void createNotificationChannel(Context context, NotificationManager notificationManager) {
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                context.getString(R.string.download_channel_name), NotificationManager.IMPORTANCE_LOW);
+        channel.setDescription(context.getString(R.string.download_channel_description));
+        notificationManager.createNotificationChannel(channel);
+    }
+
+    /** Публикует уведомление отдельной загрузки с проверкой разрешения и доступности сервиса. */
+    private static boolean notifySafely(Context context, long downloadId, NotificationCompat.Builder builder) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        if (notificationManager == null || (Build.VERSION.SDK_INT >= 33
+                && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED)) {
+            return false;
         }
-
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager == null) {
-            Log.e(TAG, "NotificationManager is null");
-            return;
-        }
-
-        createNotificationChannel(context);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.baseline_cloud_download_24)
-                .setContentTitle(context.getString(R.string.downloading))
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOngoing(true)
-                .setProgress(100, 0, false);
-
-        DownloadBroadcastReceiver receiver = new DownloadBroadcastReceiver();
-        receiver.progressRunnable = new Runnable() {
-            @Override
-            public void run() {
-                try (Cursor cursor = downloadManager.query(new DownloadManager.Query().setFilterById(downloadId))) {
-                    if (cursor.moveToFirst()) {
-                        int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                        int status = cursor.getInt(statusIndex);
-                        if (status == DownloadManager.STATUS_RUNNING) {
-                            int bytesDownloadedIndex = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);
-                            int bytesTotalIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
-                            long bytesDownloaded = cursor.getLong(bytesDownloadedIndex);
-                            long bytesTotal = cursor.getLong(bytesTotalIndex);
-                            if (bytesTotal > 0) {
-                                int progress = (int) ((bytesDownloaded * 100L) / bytesTotal);
-                                builder.setProgress(100, progress, false);
-                                notificationManager.notify(NOTIFICATION_ID, builder.build());
-                                Log.d(TAG, "Progress: " + progress + "% for ID=" + downloadId);
-                            }
-                            handler.postDelayed(this, 1000); // Обновлять каждую секунду
-                        } else {
-                            handler.removeCallbacks(this); // Остановить, если не выполняется
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Progress update error: " + e.getMessage());
-                    handler.removeCallbacks(this);
-                }
+        try {
+            if (!notificationManager.areNotificationsEnabled()) {
+                return false;
             }
-        };
-        handler.post(receiver.progressRunnable);
+            notificationManager.notify(notificationTag(downloadId), NOTIFICATION_ID, builder.build());
+            return true;
+        } catch (RuntimeException e) {
+            // Разрешение может быть отозвано между проверкой и notify, сервис может быть недоступен.
+            Log.w(TAG, "Unable to show download notification: ID=" + downloadId, e);
+            return false;
+        }
+    }
+
+    /** Возвращает уникальный tag, чтобы параллельные загрузки не заменяли чужие уведомления. */
+    private static String notificationTag(long downloadId) {
+        return "download:" + downloadId;
+    }
+
+    /** Снимает уведомление прогресса, в том числе при ошибке запроса или истечении таймаута. */
+    private static void cancelNotification(Context context, long downloadId) {
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        if (notificationManager != null) {
+            try {
+                notificationManager.cancel(notificationTag(downloadId), NOTIFICATION_ID);
+            } catch (RuntimeException e) {
+                Log.w(TAG, "Unable to cancel download notification: ID=" + downloadId, e);
+            }
+        }
+    }
+
+    /**
+     * Запускает монитор отдельной загрузки максимум на шесть часов, используя application context.
+     * Повторный вызов заменяет старую задачу того же ID; запросы выполняются вне UI-потока.
+     */
+    public static void startProgressMonitoring(Context context, long downloadId) {
+        if (context == null || downloadId <= 0) {
+            return;
+        }
+        Context applicationContext = context.getApplicationContext();
+        if (applicationContext == null) {
+            return;
+        }
+        BACKGROUND_HANDLER.post(() -> {
+            stopMonitoring(downloadId);
+            DownloadManager downloadManager = applicationContext.getSystemService(DownloadManager.class);
+            if (downloadManager == null) {
+                Log.e(TAG, "DownloadManager is null");
+                return;
+            }
+            NotificationManager notificationManager = applicationContext.getSystemService(NotificationManager.class);
+            if (notificationManager == null) {
+                return;
+            }
+            try {
+                createNotificationChannel(applicationContext, notificationManager);
+                DownloadMonitor monitor = new DownloadMonitor(applicationContext, downloadManager, downloadId);
+                MONITORS.put(downloadId, monitor);
+                BACKGROUND_HANDLER.post(monitor);
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Unable to start download monitoring: ID=" + downloadId, e);
+            }
+        });
+    }
+
+    /** Останавливает только монитор указанного ID; системная загрузка продолжает работу. */
+    public static void stopProgressMonitoring(long downloadId) {
+        BACKGROUND_HANDLER.post(() -> stopMonitoring(downloadId));
+    }
+
+    /** Централизованно удаляет задачу и уведомление; вызывается только из фонового обработчика. */
+    private static void stopMonitoring(long downloadId) {
+        DownloadMonitor monitor = MONITORS.remove(downloadId);
+        if (monitor != null) {
+            BACKGROUND_HANDLER.removeCallbacks(monitor);
+            cancelNotification(monitor.context, downloadId);
+        }
+    }
+
+    /** Одна задача прогресса; не содержит ссылок на receiver, Activity или её View. */
+    private static final class DownloadMonitor implements Runnable {
+        private final Context context;
+        private final DownloadManager downloadManager;
+        private final long downloadId;
+        private final long startedAt = SystemClock.elapsedRealtime();
+        private final NotificationCompat.Builder builder;
+
+        /** Сохраняет только application context и параметры ограниченного по времени мониторинга. */
+        private DownloadMonitor(Context context, DownloadManager downloadManager, long downloadId) {
+            this.context = context;
+            this.downloadManager = downloadManager;
+            this.downloadId = downloadId;
+            builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.baseline_cloud_download_24)
+                    .setContentTitle(context.getString(R.string.downloading))
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                    .setOnlyAlertOnce(true)
+                    .setOngoing(true);
+        }
+
+        /** Проверяет прогресс в фоне и отменяет задачу во всех ветках завершения или ошибки. */
+        @Override
+        public void run() {
+            if (MONITORS.get(downloadId) != this) {
+                return;
+            }
+            if (SystemClock.elapsedRealtime() - startedAt >= MAX_MONITORING_TIME_MS) {
+                stopMonitoring(downloadId);
+                return;
+            }
+
+            try (Cursor cursor = downloadManager.query(new DownloadManager.Query().setFilterById(downloadId))) {
+                if (cursor == null || !cursor.moveToFirst()) {
+                    stopMonitoring(downloadId);
+                    return;
+                }
+                int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+                if (status != DownloadManager.STATUS_RUNNING && status != DownloadManager.STATUS_PENDING
+                        && status != DownloadManager.STATUS_PAUSED) {
+                    stopMonitoring(downloadId);
+                    return;
+                }
+
+                long downloaded = cursor.getLong(cursor.getColumnIndexOrThrow(
+                        DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                long total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                int progress = total > 0 ? (int) Math.min(100, Math.max(0, downloaded * 100.0 / total)) : 0;
+                builder.setProgress(100, progress, total <= 0);
+                if (!notifySafely(context, downloadId, builder)) {
+                    stopMonitoring(downloadId);
+                    return;
+                }
+                long remaining = MAX_MONITORING_TIME_MS - (SystemClock.elapsedRealtime() - startedAt);
+                if (remaining <= 0) {
+                    stopMonitoring(downloadId);
+                } else {
+                    BACKGROUND_HANDLER.postDelayed(this, Math.min(PROGRESS_INTERVAL_MS, remaining));
+                }
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Progress update error: ID=" + downloadId, e);
+                stopMonitoring(downloadId);
+            }
+        }
     }
 }
