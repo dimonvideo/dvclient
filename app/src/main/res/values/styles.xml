@@ -18,8 +18,9 @@
         <item name="colorSurface">@color/colorList</item>
         <item name="colorOnSurface">@color/text</item>
         <item name="android:windowBackground">@color/colorList</item>
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
-        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <!-- Legacy Android uses these theme defaults; Android 15+ enforces transparent system bars. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <!-- Стиль без ActionBar -->

@@ -37,6 +37,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.SetPrefsBackup;
+import com.dimonvideo.client.util.SafeWindowInsets;
 import com.dimonvideo.client.util.auth.LoginService;
 import com.dimonvideo.client.util.pm.PmHttpTransport;
 import com.dimonvideo.client.ui.settings.SiteLoginDialogFragment;
@@ -58,6 +59,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
+        SafeWindowInsets.apply(getWindow(), findViewById(R.id.settings_root));
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()

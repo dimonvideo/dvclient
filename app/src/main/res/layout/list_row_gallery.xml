@@ -98,15 +98,31 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Картинка -->
-        <ImageView
-            android:id="@+id/thumbnail"
+        <!-- Картинка с декоративным индикатором видео поверх превью. -->
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_marginTop="8dp"
-            android:scaleType="fitCenter"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/action_screen"/>
+            android:layout_marginTop="8dp">
+
+            <ImageView
+                android:id="@+id/thumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/action_screen" />
+
+            <ImageView
+                android:id="@+id/video_play_indicator"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:clickable="false"
+                android:focusable="false"
+                android:importantForAccessibility="no"
+                android:visibility="gone"
+                app:srcCompat="@drawable/ic_video_preview_play" />
+        </FrameLayout>
 
         <!-- Избранное -->
         <ImageView

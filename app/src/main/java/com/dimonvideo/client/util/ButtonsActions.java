@@ -10,25 +10,17 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.activity.OnBackPressedCallback;
-import androidx.activity.OnBackPressedDispatcher;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
@@ -38,16 +30,13 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.Config;
 import com.dimonvideo.client.R;
-import com.potyvideo.library.AndExoPlayerView;
-import com.potyvideo.library.globalEnums.EnumAspectRatio;
+import com.dimonvideo.client.ui.video.VideoPlayerDialogFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Objects;
 
 public class ButtonsActions {
 
@@ -206,70 +195,22 @@ public class ButtonsActions {
     }
 
 
+    /** Opens the selected external player or a restorable, orientation-independent in-app video window. */
+    @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
     public static void PlayVideo(Context context, String url) {
         new Handler(Looper.getMainLooper()).post(() -> {
-            final boolean is_aspect = AppController.getInstance().isAspectRatio();
-            final boolean is_external_video = AppController.getInstance().isExternalPlayer();
-            String link = url;
-            try {
-                link = link.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)", "https://");
-            } catch (Throwable ignored) {
-            }
-
-            if (is_external_video && !link.isEmpty()) {
+            if (url == null || url.isEmpty()) return;
+            String link = url.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)", "https://");
+            if (AppController.getInstance().isExternalPlayer()) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.parse(link), "video/*");
                 try {
                     context.startActivity(Intent.createChooser(intent, context.getString(R.string.open_video)));
-                } catch (Throwable ignored) {
+                } catch (android.content.ActivityNotFoundException exception) {
+                    Toast.makeText(context, R.string.video_player_unavailable, Toast.LENGTH_LONG).show();
                 }
-            } else {
-                final Dialog dialog = new Dialog(context);
-                Objects.requireNonNull(dialog.getWindow()).setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                dialog.setContentView(R.layout.video);
-                dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-
-                AndExoPlayerView andExoPlayerView = dialog.findViewById(R.id.andExoPlayerView);
-
-                if (is_aspect) {
-                    andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_16_9);
-                } else {
-                    andExoPlayerView.setAspectRatio(EnumAspectRatio.ASPECT_MATCH);
-                }
-
-                if (!link.isEmpty()) {
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("link", link);
-                    andExoPlayerView.setSource(link, map);
-                    dialog.show();
-
-                    // Обработка нажатия кнопки "назад"
-                    if (context instanceof AppCompatActivity) {
-                        OnBackPressedDispatcher dispatcher = ((AppCompatActivity) context).getOnBackPressedDispatcher();
-                        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-                            @Override
-                            public void handleOnBackPressed() {
-                                andExoPlayerView.stopPlayer();
-                                dialog.dismiss();
-                                this.setEnabled(false); // Отключаем коллбэк
-                            }
-                        };
-                        dispatcher.addCallback(callback);
-                        dialog.setOnDismissListener(d -> callback.setEnabled(false));
-                    } else {
-                        // Запасной вариант для случаев, когда context не является AppCompatActivity
-                        dialog.setOnKeyListener((arg0, keyCode, event) -> {
-                            if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-                                andExoPlayerView.stopPlayer();
-                                dialog.dismiss();
-                                return true;
-                            }
-                            return false;
-                        });
-                    }
-                }
+            } else if (!VideoPlayerDialogFragment.open(context, link, AppController.getInstance().isAspectRatio())) {
+                Toast.makeText(context, R.string.video_player_unavailable, Toast.LENGTH_LONG).show();
             }
         });
     }

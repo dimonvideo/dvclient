@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Match each item foreground to its surface instead of reusing a fixed gray for every state. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="?attr/colorOnSurface" android:alpha="0.38" />
+    <item android:state_checked="true" android:color="?attr/colorOnSurfaceInverse" />
+    <item android:color="?attr/colorOnSurface" />
+</selector>
