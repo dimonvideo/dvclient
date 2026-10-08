@@ -2,6 +2,7 @@ package com.dimonvideo.client.adater;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -14,6 +15,8 @@ import android.widget.Toast;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.fragment.app.FragmentActivity;
 
 import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
@@ -25,6 +28,7 @@ import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.OpenUrl;
 import com.dimonvideo.client.util.TextViewClickMovement;
 import com.dimonvideo.client.util.pm.PmAttachmentEvent;
+import com.dimonvideo.client.util.pm.PmAttachmentOwner;
 import com.dimonvideo.client.util.pm.PmDeletionQueue;
 import com.dimonvideo.client.util.pm.PmRecipientResolver;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -59,7 +63,9 @@ public final class PmMessageDialog {
     private boolean sending;
     private boolean sent;
     private boolean released;
+    private PmAttachmentOwner attachmentOwner;
     private final Observer<Integer> draftObserver = ignored -> refreshDraftState();
+    private final Observer<Bundle> attachmentObserver = ignored -> applyRetainedAttachmentResult();
 
     /** Stores a view-free draft so rows can be recycled without mixing recipients. */
     static final class Draft {
@@ -178,11 +184,34 @@ public final class PmMessageDialog {
         return safeDate.isEmpty() ? safeAuthor : safeAuthor + " · " + safeDate;
     }
 
-    /** Opens only for the original account and listens to future, correlated upload results. */
+    /** Opens an account-bound fallback sheet and connects it to buffered picker/upload results. */
     void show() {
         if (released || !ensureAccount()) return;
         dialog.show();
         startForFragment();
+        if (released) return;
+        FragmentActivity activity = PmComposerFragment.activity(context);
+        if (activity != null) {
+            attachmentOwner = new ViewModelProvider(activity).get(PmAttachmentOwner.class);
+            attachmentOwner.changes().observeForever(attachmentObserver);
+            applyRetainedAttachmentResult();
+        }
+    }
+
+    /** Acknowledges only this live fallback draft's exact result without consuming another sheet's file. */
+    private void applyRetainedAttachmentResult() {
+        if (released || attachmentOwner == null || !ensureAccount()) return;
+        String request = draft.attachmentRequest;
+        if (request == null) return;
+        PmAttachmentEvent result = attachmentOwner.result(request, accountKey);
+        if (result != null) {
+            onAttachmentEvent(result);
+            if (draft.attachmentRequest == null) attachmentOwner.consume(request, accountKey);
+        } else if (!attachmentOwner.isPending(request, accountKey)) {
+            // A discarded or process-interrupted request must permit an explicit new attachment.
+            onAttachmentEvent(new PmAttachmentEvent(request, accountKey,
+                    null, PmAttachmentEvent.Outcome.FAILED));
+        }
     }
 
     /** Exposes the themed sheet to DialogFragment, which restores its own lifecycle and window. */
@@ -227,6 +256,7 @@ public final class PmMessageDialog {
         if (recipientLookup != null) recipientLookup.cancel();
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         draft.updates.removeObserver(draftObserver);
+        if (attachmentOwner != null) attachmentOwner.changes().removeObserver(attachmentObserver);
     }
 
     /** Rejects actions and callbacks for an account different from the one that opened the sheet. */
@@ -296,6 +326,8 @@ public final class PmMessageDialog {
             draft.attachmentRequest = null;
             awaitingAttachment = false;
             setSendingEnabled(true);
+            Toast.makeText(context.getApplicationContext(), R.string.pm_attachment_unavailable,
+                    Toast.LENGTH_SHORT).show();
         }
     }
 

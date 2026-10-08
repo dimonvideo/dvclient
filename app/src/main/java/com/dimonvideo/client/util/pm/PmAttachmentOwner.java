@@ -11,6 +11,7 @@ public final class PmAttachmentOwner extends ViewModel {
     private static final String STATE = "pm_attachment";
     private final SavedStateHandle savedState;
     private static final int MAX_REQUESTS = 32;
+    private long nextOrdinal;
 
     /** Restores non-secret routing and turns an interrupted process-death upload into a retryable failure. */
     public PmAttachmentOwner(SavedStateHandle savedState) {
@@ -19,6 +20,7 @@ public final class PmAttachmentOwner extends ViewModel {
         boolean interrupted = false;
         for (String key : records.keySet()) {
             Bundle state = records.getBundle(key);
+            if (state != null) nextOrdinal = Math.max(nextOrdinal, state.getLong("ordinal"));
             if (state != null && "uploading".equals(state.getString("phase"))) {
                 Bundle failed = new Bundle(state);
                 failed.putString("phase", "finished");
@@ -30,7 +32,7 @@ public final class PmAttachmentOwner extends ViewModel {
         if (interrupted) write(records);
     }
 
-    /** Reserves the exact request and account before launching the system picker. */
+    /** Reserves a picker, reclaiming the oldest completed result only when the bounded cache is full. */
     public boolean beginPicker(String request, String account) {
         if (request == null || account == null || pendingPicker() != null) return false;
         Bundle records = records();
@@ -40,11 +42,12 @@ public final class PmAttachmentOwner extends ViewModel {
             if (record == null || !account.equals(record.getString("account"))) records.remove(key);
         }
         String key = key(request, account);
-        if (records.containsKey(key) || records.size() >= MAX_REQUESTS) return false;
+        if (records.containsKey(key) || !makeRoom(records)) return false;
         Bundle state = new Bundle();
         state.putString("request", request);
         state.putString("account", account);
         state.putString("phase", "picking");
+        state.putLong("ordinal", ++nextOrdinal);
         records.putBundle(key, state);
         write(records);
         return true;
@@ -128,6 +131,27 @@ public final class PmAttachmentOwner extends ViewModel {
 
     /** Keeps identical request strings isolated even when different accounts happen to reuse them. */
     private static String key(String request, String account) { return account + ":" + request; }
+
+    /** Evicts completed requests in creation order while keeping every active picker and upload intact. */
+    private static boolean makeRoom(Bundle records) {
+        while (records.size() >= MAX_REQUESTS) {
+            String oldest = null;
+            long oldestOrdinal = Long.MAX_VALUE;
+            for (String key : records.keySet()) {
+                Bundle record = records.getBundle(key);
+                if (record == null || !"finished".equals(record.getString("phase"))) continue;
+                long ordinal = record.getLong("ordinal");
+                if (oldest == null || ordinal < oldestOrdinal
+                        || (ordinal == oldestOrdinal && key.compareTo(oldest) < 0)) {
+                    oldest = key;
+                    oldestOrdinal = ordinal;
+                }
+            }
+            if (oldest == null) return false;
+            records.remove(oldest);
+        }
+        return true;
+    }
 
     /** Writes saved state before notifying observers, allowing an observer to consume the same result safely. */
     private void write(Bundle state) { savedState.<Bundle>getLiveData(STATE).setValue(state); }
