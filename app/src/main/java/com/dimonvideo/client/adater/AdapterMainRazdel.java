@@ -183,7 +183,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                 if (currentPosition == RecyclerView.NO_POSITION) {
                     return;
                 }
-                NetworkUtils.getOdob(feed.getRazdel(), feed.getId());
+                NetworkUtils.getOdob(context, feed.getRazdel(), feed.getId());
                 jsonFeed.remove(currentPosition);
                 notifyItemRemoved(currentPosition);
                 executor.execute(() -> database.readMarkDao().delete(feed.getId(), feed.getRazdel()));
@@ -487,7 +487,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
                     Toast.makeText(context, context.getString(R.string.success), Toast.LENGTH_SHORT).show();
                     break;
                 case 7: // to news
-                    NetworkUtils.putToNews(feed.getRazdel(), feed.getId());
+                    NetworkUtils.putToNews(context, feed.getRazdel(), feed.getId());
                     break;
             }
         });

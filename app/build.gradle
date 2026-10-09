@@ -36,7 +36,7 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 27
         targetSdkVersion 37
-        versionCode 300000085
+        versionCode 300000086
         versionName "5.0"
 
         buildConfigField("String", "BASE64_ENCODED_PUBLIC_KEY", "\"" + localProperties['base64EncodedPublicKey'] + "\"")
@@ -48,6 +48,10 @@ android {
     }
     testOptions {
         unitTests.includeAndroidResources = true
+        unitTests.all {
+            // Robolectric's Android 16 shared-memory setup accesses this public JDK-internal interface.
+            jvmArgs '--add-exports=java.base/jdk.internal.access=ALL-UNNAMED'
+        }
     }
     buildFeatures {
         viewBinding true
@@ -146,6 +150,9 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.8.5'
     annotationProcessor 'androidx.room:room-compiler:2.8.5'
     implementation 'androidx.work:work-runtime:2.12.0'
+    // Firebase uses DataStore transitively; 1.2.1 aligns both LOAD and GNU_RELRO for 16 KB pages.
+    implementation 'androidx.datastore:datastore:1.2.1'
+    implementation 'androidx.datastore:datastore-preferences:1.2.1'
     implementation 'com.squareup.okhttp3:okhttp:5.5.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.17'

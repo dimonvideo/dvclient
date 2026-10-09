@@ -116,17 +116,18 @@ public class NetworkUtils {
         }
     }
 
-    /** Encodes existing account credentials for the legacy authenticated API. */
+    /** Encodes existing credentials and reports validation through a safe application context. */
     private static boolean getEncodedAuthData(AppController appController, String[] authData, Context context) {
-        String login = appController.userName("null");
+        Context feedbackContext = context != null ? context.getApplicationContext() : appController;
+        String login = appController.userName("");
         String password = appController.userPassword();
 
         if (login.length() < 2 || login.length() > 71) {
-            Toast.makeText(context, context.getString(R.string.login_invalid), Toast.LENGTH_LONG).show();
+            Toast.makeText(feedbackContext, R.string.login_invalid, Toast.LENGTH_LONG).show();
             return true;
         }
         if (password.length() < 5) {
-            Toast.makeText(context, context.getString(R.string.password_invalid), Toast.LENGTH_LONG).show();
+            Toast.makeText(feedbackContext, R.string.password_invalid, Toast.LENGTH_LONG).show();
             return true;
         }
 
@@ -595,52 +596,51 @@ public class NetworkUtils {
         appController.addToRequestQueue(jsonArrayRequest);
     }
 
+    /** Preserves legacy approval callers while supplying application feedback without a screen binding. */
     public static void getOdob(String razdel, int lid) {
-        AppController appController = AppController.getInstance();
-        String[] authData = new String[2];
-        if (getEncodedAuthData(appController, authData, null)) return;
-
-        View view = MainActivity.binding.getRoot();
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.APPROVE_URL + razdel + "&u=" + authData[0] + "&p=" + authData[1] + "&lid=" + lid,
-                response -> {
-                    for (int i = 0; i < response.length(); i++) {
-                        Feed jsonFeed = new Feed();
-                        try {
-                            JSONObject json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
-                        } catch (JSONException e) {
-                            Log.e(Config.TAG, "JSON parsing error: " + e.getMessage());
-                        }
-                    }
-                }, error -> showErrorToast(null, error));
-
-        jsonArrayRequest.setShouldCache(false);
-        appController.addToRequestQueue(jsonArrayRequest);
+        getOdob(AppController.getInstance(), razdel, lid);
     }
 
-    public static void putToNews(String razdel, int lid) {
-        AppController appController = AppController.getInstance();
-        String[] authData = new String[2];
-        if (getEncodedAuthData(appController, authData, null)) return;
+    /** Requests moderation approval using the caller's context only for safe application feedback. */
+    public static void getOdob(@Nullable Context context, String razdel, int lid) {
+        requestModeration(context, Config.APPROVE_URL, razdel, lid, "Material approval");
+    }
 
-        View view = MainActivity.binding.getRoot();
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Config.PUTTONEWS_URL + razdel + "&u=" + authData[0] + "&p=" + authData[1] + "&lid=" + lid,
+    /** Preserves existing news-promotion callers without passing a null validation context. */
+    public static void putToNews(String razdel, int lid) {
+        putToNews(AppController.getInstance(), razdel, lid);
+    }
+
+    /** Promotes a material to news or reports validation without dereferencing a static activity view. */
+    public static void putToNews(@Nullable Context context, String razdel, int lid) {
+        requestModeration(context, Config.PUTTONEWS_URL, razdel, lid, "News promotion");
+    }
+
+    /** Shares authenticated moderation requests while avoiding destroyed views and credential-bearing logs. */
+    private static void requestModeration(@Nullable Context context, String operationUrl, String razdel,
+                                          int lid, String diagnostics) {
+        AppController appController = AppController.getInstance();
+        Context feedbackContext = context != null ? context.getApplicationContext() : appController;
+        String[] authData = new String[2];
+        if (getEncodedAuthData(appController, authData, feedbackContext)) return;
+        JsonArrayRequest request = new JsonArrayRequest(operationUrl + razdel
+                + "&u=" + authData[0] + "&p=" + authData[1] + "&lid=" + lid,
                 response -> {
-                    for (int i = 0; i < response.length(); i++) {
-                        Feed jsonFeed = new Feed();
+                    for (int index = 0; index < response.length(); index++) {
                         try {
-                            JSONObject json = response.getJSONObject(i);
-                            jsonFeed.setTitle(json.getString(Config.TAG_TITLE));
-                            Snackbar.make(view, jsonFeed.getTitle(), Snackbar.LENGTH_LONG).show();
-                        } catch (JSONException e) {
-                            Log.e(Config.TAG, "JSON parsing error: " + e.getMessage());
+                            String title = response.getJSONObject(index).getString(Config.TAG_TITLE);
+                            Toast.makeText(feedbackContext, title, Toast.LENGTH_LONG).show();
+                        } catch (JSONException malformed) {
+                            showErrorToast(feedbackContext, new ParseError());
                         }
                     }
-                }, error -> showErrorToast(null, error));
-
-        jsonArrayRequest.setShouldCache(false);
-        appController.addToRequestQueue(jsonArrayRequest);
+                }, error -> showErrorToast(feedbackContext, error)) {
+            /** Describes the operation without exposing the URL containing login and password. */
+            @Override
+            public String toString() { return diagnostics; }
+        };
+        request.setShouldCache(false);
+        appController.addToRequestQueue(request);
     }
 
     private static void showErrorToast(Context context, VolleyError error) {

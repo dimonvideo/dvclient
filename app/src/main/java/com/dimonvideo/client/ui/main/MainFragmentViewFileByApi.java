@@ -195,7 +195,7 @@ public class MainFragmentViewFileByApi extends BottomSheetDialogFragment {
         Log.e("---", "status: " + status);
         if ((status == 0) && (controller.isUserGroup() <= 2)) {
             btn_odob.setVisibility(View.VISIBLE);
-            btn_odob.setOnClickListener(v -> NetworkUtils.getOdob(razdel, Integer.parseInt(lid)));
+            btn_odob.setOnClickListener(v -> NetworkUtils.getOdob(requireContext(), razdel, Integer.parseInt(lid)));
         }
 
         // HTML textview
