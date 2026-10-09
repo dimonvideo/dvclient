@@ -42,10 +42,6 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -74,6 +70,7 @@ import com.dimonvideo.client.util.GetRazdelName;
 import com.dimonvideo.client.util.ImageUtils;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
+import com.dimonvideo.client.util.SafeWindowInsets;
 import com.dimonvideo.client.util.pm.PmAttachmentEvent;
 import com.dimonvideo.client.util.pm.PmAttachmentOwner;
 import com.dimonvideo.client.util.pm.PmDeletionQueue;
@@ -142,16 +139,8 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
 
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
-
         setContentView(binding.getRoot());
-
-        View contentRoot = binding.getRoot();
-        ViewCompat.setOnApplyWindowInsetsListener(contentRoot, (v, insets) -> {
-            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(0, statusBarInsets.top, 0, statusBarInsets.bottom);
-            return insets;
-        });
+        SafeWindowInsets.apply(getWindow(), binding.getRoot());
 
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
@@ -204,12 +193,6 @@ public class MainActivity extends AppCompatActivity {
 
         DrawerLayout drawerLayout = binding.drawerLayout;
         navigationView = binding.navView;
-
-        ViewCompat.setOnApplyWindowInsetsListener(navigationView, (v, insets) -> {
-            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), statusBarInsets.top, v.getPaddingRight(), v.getPaddingBottom());
-            return insets;
-        });
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_new, R.id.nav_forum, R.id.nav_news,

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_player_close">Close video</string>
+    <string name="video_player_error">Could not play the video. Check your connection and try again.</string>
+    <string name="video_player_retry">Retry</string>
+    <string name="video_player_unavailable">Could not open the video now. Try again when the app is visible.</string>
+    <string name="video_player_crop_summary">Fill the player with video while preserving its proportions; frame edges may be cropped. Off: show the whole frame.</string>
+</resources>

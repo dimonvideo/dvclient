@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_player_close">Закрыть видео</string>
+    <string name="video_player_error">Не удалось воспроизвести видео. Проверьте соединение и повторите попытку.</string>
+    <string name="video_player_retry">Повторить</string>
+    <string name="video_player_unavailable">Сейчас не удалось открыть видео. Повторите попытку, когда приложение будет на экране.</string>
+    <string name="video_player_crop_summary">Заполнять плеер видео с сохранением пропорций; края кадра могут обрезаться. Выключено: показывать кадр полностью.</string>
+</resources>

@@ -4,33 +4,42 @@
   При использовании кода ссылка на проект обязательна.
 -->
 
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
+    android:id="@+id/activity_safe_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
-    tools:openDrawer="start">
+    android:fitsSystemWindows="false">
 
-    <!-- Основной контент приложения -->
-    <include
-        android:id="@+id/app_bar_main"
-        layout="@layout/app_bar_main"
+    <!-- DrawerLayout ignores its own padding; the outer frame owns the safe window bounds. -->
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <!-- Navigation Drawer -->
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="?attr/colorSurface"
         android:fitsSystemWindows="false"
-        app:headerLayout="@layout/nav_header_main"
-        app:itemIconTint="@color/year"
-        app:itemTextColor="@color/text"
-        app:menu="@menu/activity_main_drawer" />
+        tools:openDrawer="start">
 
-</androidx.drawerlayout.widget.DrawerLayout>
+        <!-- Основной контент приложения -->
+        <include
+            android:id="@+id/app_bar_main"
+            layout="@layout/app_bar_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Navigation Drawer -->
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="?attr/colorSurface"
+            android:fitsSystemWindows="false"
+            app:headerLayout="@layout/nav_header_main"
+            app:itemIconTint="@color/drawer_item_foreground"
+            app:itemTextColor="@color/drawer_item_foreground"
+            app:itemShapeFillColor="@color/drawer_item_background"
+            app:menu="@menu/activity_main_drawer" />
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+</FrameLayout>

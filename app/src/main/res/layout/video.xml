@@ -1,22 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Copyright (c) 2025. Разработчик: Дмитрий Вороной.
-  ~ Разработано для сайта dimonvideo.ru
-  ~ При использовании кода ссылка на проект обязательна.
-  -->
-
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/video_player_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <com.potyvideo.library.AndExoPlayerView
-        android:id="@+id/andExoPlayerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:keepScreenOn="true"
-        app:surface_type="texture_view"
-        app:andexo_play_when_ready="true"
-        app:andexo_show_controller="true"
-        app:andexo_aspect_ratio="aspect_match"/>
+    android:orientation="vertical">
 
-</RelativeLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/video_player"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:surface_type="texture_view"
+            app:show_buffering="when_playing"
+            app:use_controller="true" />
+
+        <LinearLayout
+            android:id="@+id/video_player_error_panel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#CC000000"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/video_player_error"
+                android:textColor="@android:color/white"
+                android:textSize="16sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/video_player_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/video_player_retry"
+                android:textColor="@android:color/white"
+                app:backgroundTint="#262626" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/video_player_close"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
+        android:minHeight="48dp"
+        android:text="@string/video_player_close"
+        android:textColor="@android:color/white"
+        app:backgroundTint="#262626" />
+</LinearLayout>

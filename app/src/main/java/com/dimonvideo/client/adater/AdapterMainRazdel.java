@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DiffUtil;
@@ -161,6 +162,8 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         Feed feed = jsonFeed.get(position);
+
+        holder.bindVideoPreview(feed);
 
         final boolean is_vuploader_play = appController.isVuploaderPlay();
         final boolean is_muzon_play = appController.isMuzonPlay();
@@ -516,6 +519,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     /** Cancels row-specific HTML and image work before a holder enters the recycled pool. */
     @Override
     public void onViewRecycled(@NonNull ViewHolder holder) {
+        holder.bindVideoPreview(null);
         htmlRenderer.clear(holder.textViewText);
         Glide.with(holder.itemView.getContext()).clear(holder.imageView);
         super.onViewRecycled(holder);
@@ -589,6 +593,7 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView textViewTitle, textViewDate, textViewComments, textViewCategory, textViewHits, textViewName;
         public ImageView imageView, rating_logo, status_logo, fav_star, small_share, small_download;
+        final ImageView videoPlayIndicator;
         public TextView textViewText;
         public String url;
         public ProgressBar progressBar;
@@ -597,9 +602,11 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
         public ClipData myClip;
         public Button btn_odob;
 
+        /** Resolves row controls once, including the optional gallery/video preview indicator. */
         public ViewHolder(View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.thumbnail);
+            videoPlayIndicator = itemView.findViewById(R.id.video_play_indicator);
             rating_logo = itemView.findViewById(R.id.rating_logo);
             fav_star = itemView.findViewById(R.id.fav);
             status_logo = itemView.findViewById(R.id.status);
@@ -615,6 +622,15 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
             small_share = itemView.findViewById(R.id.small_share);
             small_download = itemView.findViewById(R.id.small_download);
             btn_odob = itemView.findViewById(R.id.btn_odob);
+        }
+
+        /** Resets recycled preview state without changing the thumbnail's existing click actions. */
+        void bindVideoPreview(@Nullable Feed feed) {
+            if (videoPlayIndicator == null) return;
+            boolean video = VideoPreviewIndicator.isMp4Video(feed);
+            videoPlayIndicator.setVisibility(video ? View.VISIBLE : View.GONE);
+            imageView.setContentDescription(itemView.getContext().getString(
+                    video ? R.string.video_preview : R.string.action_screen));
         }
     }
 

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pm_sent_and_deleted">Sent, original message deleted</string>
+</resources>

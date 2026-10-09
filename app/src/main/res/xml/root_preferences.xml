@@ -291,7 +291,7 @@
             android:dependency="dvc_vuploader"
             app:defaultValue="false"
             app:key="dvc_vuploader_aspect"
-            app:summary="@string/vuploader_video_behavior"
+            app:summary="@string/video_player_crop_summary"
             app:title="@string/vuploader_video_behavior" />
         <SwitchPreferenceCompat
             android:dependency="dvc_vuploader"

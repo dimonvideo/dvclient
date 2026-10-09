@@ -1,6 +1,7 @@
 package com.dimonvideo.client.util.pm;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.widget.Toast;
 
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.util.AppController;
@@ -76,6 +77,44 @@ public class PmDeletionQueueTest {
         assertEquals(37, recovered.get(0).sourcePage);
         assertEquals(1, accepted.get());
         assertEquals(0, rejected.get());
+    }
+
+    /** A reply's own confirmation remains visible instead of being replaced by the ordinary queue toast. */
+    @Test
+    public void callerConfirmationSurvivesPersistedIntentAndSchedulingFailure() throws Exception {
+        PmDeletionQueue.enqueue(context, MESSAGE_ID, 0, 1,
+                () -> {
+                    accepted.incrementAndGet();
+                    Toast.makeText(context, R.string.pm_sent_and_deleted, Toast.LENGTH_LONG).show();
+                }, rejected::incrementAndGet,
+                (appContext, entry, policy) -> {
+                    throw new IOException("Controlled scheduling failure");
+                }, false);
+        await(() -> accepted.get() + rejected.get() == 1);
+        assertEquals(1, accepted.get());
+        assertEquals(0, rejected.get());
+        assertNotNull(store.find(accountKey, MESSAGE_ID));
+        assertEquals(context.getString(R.string.pm_sent_and_deleted), ShadowToast.getTextOfLatestToast());
+    }
+
+    /** Disabling the ordinary success toast never hides a real database failure or accepts its deletion. */
+    @Test
+    public void callerConfirmationModeStillReportsFailedInsertion() throws Exception {
+        SQLiteDatabase database = store.getWritableDatabase();
+        database.execSQL("CREATE TRIGGER queue_test_quiet_reject BEFORE INSERT ON pm_deletions "
+                + "BEGIN SELECT RAISE(ABORT, 'Controlled queue write failure'); END");
+        try {
+            PmDeletionQueue.enqueue(context, MESSAGE_ID, 0, 1,
+                    accepted::incrementAndGet, rejected::incrementAndGet,
+                    (appContext, entry, policy) -> { }, false);
+            await(() -> accepted.get() + rejected.get() == 1);
+            assertEquals(0, accepted.get());
+            assertEquals(1, rejected.get());
+            assertTrue(store.entries().isEmpty());
+            assertEquals(context.getString(R.string.pm_delete_queue_error), ShadowToast.getTextOfLatestToast());
+        } finally {
+            database.execSQL("DROP TRIGGER queue_test_quiet_reject");
+        }
     }
 
     /** A genuinely failed SQLite write rejects removal and leaves nothing that recovery can delete. */

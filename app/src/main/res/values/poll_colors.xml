@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the existing poll colors without relying on unrelated video-player resources. -->
+<resources>
+    <color name="poll_results_button">#FF0000</color>
+    <color name="poll_suggestion_button">#008000</color>
+</resources>

@@ -134,9 +134,13 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:5.0.9'
 
     implementation 'org.greenrobot:eventbus:3.3.1'
-    implementation 'com.github.HamidrezaAmz:MagicalExoPlayer:3.0.8'
+    implementation 'androidx.media3:media3-exoplayer:1.11.1'
+    implementation 'androidx.media3:media3-ui:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer-dash:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer-smoothstreaming:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer-rtsp:1.11.1'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
-    implementation 'com.github.omfine:imagePicker:v1.0.0'
 
     // Room dependencies
     implementation 'androidx.room:room-runtime:2.8.5'

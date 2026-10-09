@@ -46,12 +46,14 @@ public class SetPrefsBackup extends AppCompatActivity {
     private String status, date_create, json;
     private JSONArray ResultArray;
 
+    /** Opens resizable backup controls within the safe system-bar and keyboard bounds. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         binding = ActivitySetPrefsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        SafeWindowInsets.apply(getWindow(), binding.getRoot());
         info = binding.info;
         Button save = binding.save;
         Button restore = binding.restore;
