@@ -56,6 +56,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
+import com.dimonvideo.client.db.AppDatabase;
 import com.dimonvideo.client.db.FeedDao;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
@@ -695,6 +696,7 @@ public class MainActivity extends AppCompatActivity {
                     if (TextUtils.isEmpty(story)) story = null;
                     bundle.putSerializable(Config.TAG_STORY, story);
                     bundle.putString(Config.TAG_CATEGORY, razdel);
+                    bundle.putString("feed_tab", "latest");
                     homeFrag.setArguments(bundle);
 
                     fragmentManager.beginTransaction()
@@ -726,6 +728,9 @@ public class MainActivity extends AppCompatActivity {
                 if (razdel.equals("13")) homeFrag = new PmFragmentTabs();
                 if (razdel.equals("0")) homeFrag = new MainFragmentAddFile();
             }
+            Bundle sectionArguments = new Bundle();
+            sectionArguments.putString(Config.TAG_CATEGORY, razdel);
+            homeFrag.setArguments(sectionArguments);
             fragmentManager.beginTransaction()
                     .replace(R.id.nav_host_fragment, homeFrag)
                     .addToBackStack(null)
@@ -787,7 +792,13 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.nav_clear_cache) {
             new Thread(() -> Glide.get(MainActivity.this).clearDiskCache()).start();
-            controller.getExecutor().execute(() -> controller.getDatabase().feedDao().clearDB());
+            controller.getExecutor().execute(() -> {
+                AppDatabase database = controller.getDatabase();
+                database.runInTransaction(() -> {
+                    database.feedDao().clearDB();
+                    database.feedPageDao().clearAll();
+                });
+            });
             Toast.makeText(this, R.string.clear_cache_success, Toast.LENGTH_LONG).show();
             return true;
         }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feed_offline_title">Не удалось загрузить данные</string>
+    <string name="feed_offline_message">Для этого списка пока нет сохранённых данных. Обновите его, когда сигнал сети улучшится.</string>
+    <string name="feed_saved_notice">Не удалось обновить данные. Показаны сохранённые записи.</string>
+    <string name="feed_retry">Обновить</string>
+</resources>
