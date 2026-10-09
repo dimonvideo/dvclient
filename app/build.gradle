@@ -36,8 +36,8 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 27
         targetSdkVersion 37
-        versionCode 300000084
-        versionName "4.7"
+        versionCode 300000085
+        versionName "5.0"
 
         buildConfigField("String", "BASE64_ENCODED_PUBLIC_KEY", "\"" + localProperties['base64EncodedPublicKey'] + "\"")
 
@@ -145,11 +145,11 @@ dependencies {
     // Room dependencies
     implementation 'androidx.room:room-runtime:2.8.5'
     annotationProcessor 'androidx.room:room-compiler:2.8.5'
-    implementation 'androidx.work:work-runtime:2.10.1'
+    implementation 'androidx.work:work-runtime:2.12.0'
     implementation 'com.squareup.okhttp3:okhttp:5.5.0'
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.robolectric:robolectric:4.16.1'
-    testImplementation 'androidx.work:work-testing:2.10.1'
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'androidx.work:work-testing:2.12.0'
 
     // Lifecycle components for better architecture
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.11.0'
