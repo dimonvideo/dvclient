@@ -161,6 +161,7 @@ public final class PmMessageDialog {
         recipientRetry = content.findViewById(R.id.pm_recipient_retry);
         recipientRetry.setOnClickListener(view -> resolveOutgoingRecipient());
         send.setOnClickListener(view -> send(false));
+        if (!member) send.setOnLongClickListener(this::sendAndDeleteOnLongPress);
         sendAndDelete.setOnClickListener(view -> send(true));
         attach.setOnClickListener(view -> pickImage());
         close.setOnClickListener(view -> dismiss());
@@ -331,6 +332,12 @@ public final class PmMessageDialog {
         }
     }
 
+    /** Consumes a held reply action so releasing it cannot trigger an additional ordinary send. */
+    private boolean sendAndDeleteOnLongPress(View view) {
+        send(true);
+        return true;
+    }
+
     /** Sends once after uploads finish and keeps the draft/sheet on transport or server rejection. */
     private void send(boolean deleteAfterSend) {
         if (sending || awaitingAttachment || resolvingRecipient || !ensureAccount()) return;
@@ -360,7 +367,10 @@ public final class PmMessageDialog {
                         draft.changed();
                         if (deleteAfterSend) {
                             operations.enqueueDeletion(feed, () -> {
-                                if (accountKey.equals(operations.currentAccountKey())) onSentAndDeleted.run();
+                                if (!accountKey.equals(operations.currentAccountKey())) return;
+                                onSentAndDeleted.run();
+                                Toast.makeText(context.getApplicationContext(), R.string.pm_sent_and_deleted,
+                                        Toast.LENGTH_LONG).show();
                             });
                         }
                     }
@@ -423,7 +433,7 @@ public final class PmMessageDialog {
         /** Uses the same account-bound durable queue for send-and-delete as for a swipe deletion. */
         @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted) {
             PmDeletionQueue.enqueue(context, feed.getId(), feed.getSourceFolder(), feed.getSourcePage(),
-                    onAccepted, null);
+                    onAccepted, null, false);
         }
 
         /** Starts a bounded exact-name search and returns a handle canceled when the sheet closes. */

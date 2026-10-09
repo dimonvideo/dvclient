@@ -72,9 +72,22 @@ public final class PmDeletionQueue {
                 PmDeletionQueue::schedule);
     }
 
+    /** Lets a reply form provide its own acceptance confirmation while still reporting queue failures. */
+    public static void enqueue(Context context, int messageId, int sourceFolder, int sourcePage,
+                               Runnable onAccepted, Runnable onRejected, boolean showAcceptedToast) {
+        enqueue(context, messageId, sourceFolder, sourcePage, onAccepted, onRejected,
+                PmDeletionQueue::schedule, showAcceptedToast);
+    }
+
     /** Uses the real durable store while allowing scheduling failures to be verified independently. */
     static void enqueue(Context context, int messageId, int sourceFolder, int sourcePage,
                         Runnable onAccepted, Runnable onRejected, Scheduler scheduler) {
+        enqueue(context, messageId, sourceFolder, sourcePage, onAccepted, onRejected, scheduler, true);
+    }
+
+    /** Accepts only a persisted intent; caller-owned confirmation suppresses only the ordinary success toast. */
+    static void enqueue(Context context, int messageId, int sourceFolder, int sourcePage,
+                        Runnable onAccepted, Runnable onRejected, Scheduler scheduler, boolean showAcceptedToast) {
         Context appContext = context.getApplicationContext();
         String accountKey = currentAccountKey();
         int userId = AppController.getInstance().isUserId();
@@ -109,7 +122,9 @@ public final class PmDeletionQueue {
                     return;
                 }
                 if (onAccepted != null) onAccepted.run();
-                Toast.makeText(appContext, R.string.pm_delete_queued, Toast.LENGTH_SHORT).show();
+                if (showAcceptedToast) {
+                    Toast.makeText(appContext, R.string.pm_delete_queued, Toast.LENGTH_SHORT).show();
+                }
             });
         });
     }

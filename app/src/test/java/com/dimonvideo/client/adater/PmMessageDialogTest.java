@@ -37,6 +37,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
 
 import static org.junit.Assert.assertEquals;
@@ -64,6 +65,7 @@ public class PmMessageDialogTest {
         operations = new FakeOperations();
         draft = new PmMessageDialog.Draft();
         draft.text = "reply to original sender";
+        ShadowToast.reset();
     }
 
     /** Detaches the composer and parser regardless of whether a test ended during a request. */
@@ -214,6 +216,91 @@ public class PmMessageDialogTest {
         assertFalse(dialog().isShowing());
         operations.deletionAccepted.run();
         assertEquals(1, deleted);
+    }
+
+    /** A short reply click acknowledges sending without deleting or showing a send-and-delete confirmation. */
+    @Test
+    public void ordinaryReplyClickNeverDeletesOriginal() {
+        showComposer();
+        button(R.id.pm_reply_send).performClick();
+        operations.callback.onSuccess();
+        assertEquals(1, operations.sends);
+        assertEquals(0, operations.queuedDeletes);
+        assertEquals(0, deleted);
+        assertNull(ShadowToast.getTextOfLatestToast());
+    }
+
+    /** Holding the reply button is consumed and confirms removal only after send and durable queue acceptance. */
+    @Test
+    @Config(qualifiers = "ru")
+    public void longReplyPressSendsOnceAndConfirmsAcceptedDeletionInRussian() {
+        showComposer();
+        assertTrue(button(R.id.pm_reply_send).performLongClick());
+        assertTrue(button(R.id.pm_reply_send).performLongClick());
+        assertEquals(1, operations.sends);
+        assertEquals(42, operations.target.messageId);
+        assertEquals(0, operations.queuedDeletes);
+        assertNull(ShadowToast.getTextOfLatestToast());
+        operations.callback.onSuccess();
+        assertEquals(1, operations.queuedDeletes);
+        assertEquals(0, deleted);
+        assertNull(ShadowToast.getTextOfLatestToast());
+        operations.deletionAccepted.run();
+        assertEquals(1, deleted);
+        assertEquals("Отправлено, исходное сообщение удалено", ShadowToast.getTextOfLatestToast());
+    }
+
+    /** A rejected long-press reply leaves its source and draft intact without a misleading success toast. */
+    @Test
+    public void failedLongReplyPressKeepsOriginalAndDoesNotConfirmDeletion() {
+        showComposer();
+        button(R.id.pm_reply_send).performLongClick();
+        operations.callback.onError();
+        assertEquals(0, operations.queuedDeletes);
+        assertEquals(0, deleted);
+        assertEquals("reply to original sender", draft.text);
+        assertTrue(button(R.id.pm_reply_send).isEnabled());
+        assertNull(ShadowToast.getTextOfLatestToast());
+    }
+
+    /** Changing accounts between send and queue acceptance must not remove a row or show the old result. */
+    @Test
+    public void longReplyAcceptanceForOldAccountDoesNotConfirmOrRemoveNewAccountRow() {
+        showComposer();
+        button(R.id.pm_reply_send).performLongClick();
+        operations.callback.onSuccess();
+        operations.account = "another-account";
+        operations.deletionAccepted.run();
+        assertEquals(0, deleted);
+        assertNull(ShadowToast.getTextOfLatestToast());
+    }
+
+    /** A new-message form has no source PM to delete and does not expose the reply long-press action. */
+    @Test
+    public void newMessageLongPressCannotDeleteRecipientsUserId() {
+        FeedPm recipient = new FeedPm();
+        recipient.setId(88);
+        recipient.setTitle("recipient");
+        composer = new PmMessageDialog(activityController.get(), recipient, true, draft,
+                () -> deleted++, () -> dismissed++, operations, 14);
+        composer.show();
+        assertFalse(button(R.id.pm_reply_send).performLongClick());
+        assertEquals(0, operations.sends);
+        button(R.id.pm_reply_send).performClick();
+        operations.callback.onSuccess();
+        assertEquals(0, operations.queuedDeletes);
+        assertEquals(0, deleted);
+    }
+
+    /** Holding send cannot bypass attachment completion and submit a reply with an omitted pending upload. */
+    @Test
+    public void longReplyPressWaitsForPendingAttachment() {
+        showComposer();
+        button(R.id.pm_attach_button).performClick();
+        button(R.id.pm_reply_send).performLongClick();
+        assertEquals(0, operations.sends);
+        assertEquals(0, operations.queuedDeletes);
+        assertNull(ShadowToast.getTextOfLatestToast());
     }
 
     /** Actual day-mode action, input, hint and metadata colors must remain readable on the sheet. */
