@@ -51,6 +51,7 @@ public class MainFragment extends Fragment {
 
     private String razdel;
     private String story = null;
+    private boolean scopeCaptured;
     public static ViewPager2 viewPager;
     private final ArrayList<String> tabTiles = new ArrayList<>();
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
@@ -64,8 +65,11 @@ public class MainFragment extends Fragment {
     public MainFragment() {
     }
 
+    /** Uses legacy routing only before a view captures its own explicit navigation scope. */
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
+        if (scopeCaptured) return;
+        if (getArguments() != null && getArguments().containsKey(Config.TAG_CATEGORY)) return;
         razdel = event.razdel;
         story = event.story;
     }
@@ -76,8 +80,12 @@ public class MainFragment extends Fragment {
         return binding.getRoot();
     }
 
+    /** Builds section-bound tabs anew whenever the fragment's view is recreated. */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        scopeCaptured = false;
+        tabTiles.clear();
+        tabIcons.clear();
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -91,9 +99,11 @@ public class MainFragment extends Fragment {
 
         if (this.getArguments() != null) {
             razdel = getArguments().getString(Config.TAG_CATEGORY);
-            story = (String) getArguments().getSerializable(Config.TAG_STORY);
-            String f_name = getArguments().getString(Config.TAG_RAZDEL);
+            story = getArguments().getString(Config.TAG_STORY);
         }
+        final String section = razdel != null ? razdel : "10";
+        final String search = story;
+        scopeCaptured = true;
 
         AppController controller = AppController.getInstance();
 
@@ -143,26 +153,32 @@ public class MainFragment extends Fragment {
         }
         adapt.clearList();
 
-        Bundle bundle = new Bundle();
-        bundle.putString("tab", getString(R.string.tab_last));
         MainFragmentContent fragment_main = new MainFragmentContent();
-        fragment_main.setArguments(bundle);
+        fragment_main.setArguments(feedArguments(section, search, "latest", getString(R.string.tab_last)));
 
-        bundle = new Bundle();
-        bundle.putString("tab", getString(R.string.tab_details));
         MainFragmentContent fragment_info = new MainFragmentContent();
-        fragment_info.setArguments(bundle);
+        fragment_info.setArguments(feedArguments(section, search, "details", getString(R.string.tab_details)));
 
-        bundle = new Bundle();
-        bundle.putString("tab", getString(R.string.tab_favorites));
         MainFragmentContent fragment_fav = new MainFragmentContent();
-        fragment_fav.setArguments(bundle);
+        fragment_fav.setArguments(feedArguments(section, search, "favorites", getString(R.string.tab_favorites)));
 
         adapt.addFragment(fragment_main);
         if (is_more) adapt.addFragment(fragment_info);
-        if (razdel == null || !razdel.equals("18")) adapt.addFragment(new MainFragmentCategories());
+        if (razdel == null || !razdel.equals("18")) {
+            MainFragmentCategories categories = new MainFragmentCategories();
+            Bundle categoriesArguments = new Bundle();
+            categoriesArguments.putString(Config.TAG_CATEGORY, section);
+            categories.setArguments(categoriesArguments);
+            adapt.addFragment(categories);
+        }
         if (login.length() > 2 && is_favor) adapt.addFragment(fragment_fav);
-        if (is_comment) adapt.addFragment(new MainFragmentCommentsTab());
+        if (is_comment) {
+            MainFragmentCommentsTab comments = new MainFragmentCommentsTab();
+            Bundle commentsArguments = new Bundle();
+            commentsArguments.putString(Config.TAG_CATEGORY, section);
+            comments.setArguments(commentsArguments);
+            adapt.addFragment(comments);
+        }
 
         viewPager.setAdapter(adapt);
         viewPager.setCurrentItem(0, false);
@@ -208,8 +224,7 @@ public class MainFragment extends Fragment {
                 int pos = tab.getPosition();
                 if (pos == 0) {
                     Fragment fragment = new MainFragmentContent();
-                    Bundle bundle = new Bundle();
-                    fragment.setArguments(bundle);
+                    fragment.setArguments(feedArguments(section, search, "latest", getString(R.string.tab_last)));
                     FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
                     FragmentTransaction ft = fragmentManager.beginTransaction();
                     ft.addToBackStack(fragment.toString());
@@ -246,7 +261,7 @@ public class MainFragment extends Fragment {
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
 
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
+        EventBus.getDefault().postSticky(new MessageEvent(section, search, null, null, null, null));
 
         NetworkUtils.getOprosTitle(opros, requireContext());
 
@@ -261,6 +276,16 @@ public class MainFragment extends Fragment {
         }
     }
 
+    /** Restores each list's section, search and stable tab identity without relying on global events. */
+    private Bundle feedArguments(String section, String search, String tab, String title) {
+        Bundle arguments = new Bundle();
+        arguments.putString(Config.TAG_CATEGORY, section);
+        arguments.putString("feed_tab", tab);
+        arguments.putString("tab", title);
+        arguments.putString(Config.TAG_STORY, search);
+        return arguments;
+    }
+
     @Override
     public void onDestroy() {
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
@@ -268,9 +293,13 @@ public class MainFragment extends Fragment {
         binding = null;
     }
 
+    /** Drops references to the old tab view before a later view rebuilds its labels and children. */
     @Override
     public void onDestroyView() {
         handler.removeCallbacksAndMessages(null);
+        scopeCaptured = false;
+        binding = null;
+        opros = null;
         super.onDestroyView();
     }
 

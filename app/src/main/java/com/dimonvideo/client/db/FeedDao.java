@@ -29,6 +29,7 @@ public interface FeedDao {
     @Query("DELETE FROM data")
     void clearDB();
 
-    @Query("DELETE FROM data WHERE time <= date('now','-30 day')")
+    /** Expires feeds older than thirty days using the API's Unix timestamp in seconds. */
+    @Query("DELETE FROM data WHERE time <= CAST(strftime('%s', 'now', '-30 day') AS INTEGER)")
     void clearDBOld();
 }

@@ -30,8 +30,6 @@ import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
@@ -39,20 +37,25 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
 
     private final Context context;
     List<FeedCats> jsonFeed;
-    private String razdel;
+    private final String razdel;
 
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(MessageEvent event){
-        razdel = event.razdel;
+    /** Preserves the existing constructor while capturing legacy routing once instead of subscribing. */
+    public AdapterMainCategories(List<FeedCats> jsonFeed, Context context) {
+        this(jsonFeed, context, legacySection());
     }
 
-    public AdapterMainCategories(List<FeedCats> jsonFeed, Context context){
+    /** Keeps the category list's section immutable until the adapter is discarded. */
+    public AdapterMainCategories(List<FeedCats> jsonFeed, Context context, String section) {
         super();
         this.jsonFeed = jsonFeed;
         this.context = context;
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+        razdel = section != null ? section : "10";
+    }
+
+    /** Reads an initial fallback only for callers that have not supplied an explicit section yet. */
+    private static String legacySection() {
+        MessageEvent event = EventBus.getDefault().getStickyEvent(MessageEvent.class);
+        return event != null ? event.razdel : "10";
     }
 
     @NonNull
@@ -62,12 +65,14 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
         return new ViewHolder(v);
     }
 
+    /** Opens the selected category with its own section rather than the current global event. */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         final FeedCats feed =  jsonFeed.get(holder.getBindingAdapterPosition());
 
-        EventBus.getDefault().postSticky(new MessageEvent(razdel, null, null, null, null, null));
+        final String section = feed.getRazdel() != null && !feed.getRazdel().isEmpty()
+                ? feed.getRazdel() : razdel;
 
         holder.textViewTitle.setText(feed.getTitle());
         holder.textViewCategory.setText(String.valueOf(feed.getCount()));
@@ -101,6 +106,9 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
         holder.itemView.setOnClickListener(v -> {
             Fragment fragment = new MainFragmentContent();
             Bundle bundle = new Bundle();
+            bundle.putString(Config.TAG_CATEGORY, section);
+            bundle.putString(Config.TAG_STORY, null);
+            bundle.putString("feed_tab", "latest");
             bundle.putInt(Config.TAG_ID, feed.getCid());
             bundle.putString(Config.TAG_RAZDEL, feed.getTitle());
             fragment.setArguments(bundle);
@@ -111,7 +119,7 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
             MainFragment.viewPager.setCurrentItem(0, true);
             ft.commit();
             Log.e("---", "Category cid: "+feed.getCid());
-            Log.e("---", "Category razdel: "+razdel);
+            Log.e("---", "Category razdel: "+section);
 
         });
 
@@ -120,14 +128,6 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
     @Override
     public int getItemCount() {
         return jsonFeed.size();
-    }
-
-    @Override
-    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
-        super.onDetachedFromRecyclerView(recyclerView);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

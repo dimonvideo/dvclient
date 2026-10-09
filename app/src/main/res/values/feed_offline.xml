@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feed_offline_title">Could not load data</string>
+    <string name="feed_offline_message">There is no saved data for this list yet. Refresh when your network connection improves.</string>
+    <string name="feed_saved_notice">Could not update data. Showing saved items.</string>
+    <string name="feed_retry">Refresh</string>
+</resources>
