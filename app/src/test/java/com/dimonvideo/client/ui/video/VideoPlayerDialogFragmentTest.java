@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
 
+import androidx.activity.ComponentDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -209,6 +210,205 @@ public class VideoPlayerDialogFragmentTest {
         assertEquals(30, root.getPaddingBottom());
     }
 
+    /** The visible fullscreen control rotates only on request and keeps paused playback and its exact position. */
+    @Test
+    public void fullscreenControlReusesPlayerAndRestoresExactHostOrientation() {
+        controller.get().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+        open(false);
+        FakePlayer original = latest();
+        original.position = 29_000;
+        original.playing = false;
+        View control = fullscreenControl();
+        assertEquals(controller.get().getString(androidx.media3.ui.R.string.exo_controls_fullscreen_enter_description),
+                control.getContentDescription().toString());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, controller.get().getRequestedOrientation());
+
+        assertTrue(control.performClick());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, controller.get().getRequestedOrientation());
+        assertEquals(View.GONE, dialog().findViewById(R.id.video_player_close).getVisibility());
+        assertEquals(controller.get().getString(androidx.media3.ui.R.string.exo_controls_fullscreen_exit_description),
+                control.getContentDescription().toString());
+        assertSame(original.player, playerView().getPlayer());
+        assertEquals(29_000, original.position);
+        assertFalse(original.playing);
+        assertEquals(0, original.releases);
+
+        assertTrue(control.performClick());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, controller.get().getRequestedOrientation());
+        assertEquals(View.VISIBLE, dialog().findViewById(R.id.video_player_close).getVisibility());
+        assertEquals(controller.get().getString(androidx.media3.ui.R.string.exo_controls_fullscreen_enter_description),
+                control.getContentDescription().toString());
+        assertSame(original.player, playerView().getPlayer());
+        assertEquals(1, TestDialog.players.size());
+        assertEquals(1, original.prepares);
+        assertEquals(29_000, original.position);
+        assertFalse(original.playing);
+    }
+
+    /** Media3's compact controls share the fullscreen handler and synchronize both accessible toggle icons. */
+    @Test
+    public void compactFullscreenControlUsesSameImmersiveAction() {
+        open(false);
+        View standard = fullscreenControl();
+        View compact = dialog().findViewById(androidx.media3.ui.R.id.exo_minimal_fullscreen);
+        assertNotNull(compact);
+        assertEquals(View.VISIBLE, compact.getVisibility());
+        assertTrue(compact.performClick());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, controller.get().getRequestedOrientation());
+        assertEquals(standard.getContentDescription(), compact.getContentDescription());
+        assertEquals(View.GONE, dialog().findViewById(R.id.video_player_close).getVisibility());
+
+        assertTrue(compact.performClick());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, controller.get().getRequestedOrientation());
+        assertEquals(standard.getContentDescription(), compact.getContentDescription());
+        assertEquals(View.VISIBLE, dialog().findViewById(R.id.video_player_close).getVisibility());
+        assertEquals(0, latest().releases);
+    }
+
+    /** Back first restores the original window and rotation, then a second Back releases and closes playback. */
+    @Test
+    public void firstBackLeavesFullscreenAndSecondBackClosesVideo() {
+        controller.get().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+        open(false);
+        FakePlayer original = latest();
+        fullscreenControl().performClick();
+        ComponentDialog window = (ComponentDialog) dialog();
+        window.getOnBackPressedDispatcher().onBackPressed();
+        ShadowLooper.shadowMainLooper().idle();
+        assertTrue(fragment.isAdded());
+        assertTrue(window.isShowing());
+        assertEquals(View.VISIBLE, window.findViewById(R.id.video_player_close).getVisibility());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, controller.get().getRequestedOrientation());
+        assertSame(original.player, playerView().getPlayer());
+        assertEquals(0, original.releases);
+
+        window.getOnBackPressedDispatcher().onBackPressed();
+        ShadowLooper.shadowMainLooper().idle();
+        controller.get().getSupportFragmentManager().executePendingTransactions();
+        assertFalse(fragment.isAdded());
+        assertEquals(1, original.releases);
+        assertFalse(original.playing);
+    }
+
+    /** Direct cancellation closes immersive playback immediately and restores a non-default host rotation. */
+    @Test
+    public void cancellationFromFullscreenRestoresOrientationAndReleasesOnce() {
+        controller.get().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+        open(false);
+        FakePlayer original = latest();
+        PlayerView surface = playerView();
+        fullscreenControl().performClick();
+        dialog().cancel();
+        ShadowLooper.shadowMainLooper().idle();
+        controller.get().getSupportFragmentManager().executePendingTransactions();
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR, controller.get().getRequestedOrientation());
+        assertFalse(fragment.isAdded());
+        assertEquals(1, original.releases);
+        assertNull(surface.getPlayer());
+        assertFalse(surface.getKeepScreenOn());
+    }
+
+    /** Programmatic dismissal also relinquishes landscape ownership rather than leaving the activity locked. */
+    @Test
+    public void dismissalFromFullscreenRestoresOrientationAndReleasesOnce() {
+        controller.get().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+        open(false);
+        FakePlayer original = latest();
+        fullscreenControl().performClick();
+        fragment.dismissNow();
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_USER, controller.get().getRequestedOrientation());
+        assertFalse(fragment.isAdded());
+        assertEquals(1, original.releases);
+        assertFalse(original.playing);
+    }
+
+    /** Rotation recreation restores immersive presentation, paused progress and the orientation to return to. */
+    @Test
+    public void activityRecreationKeepsFullscreenProgressAndOriginalOrientation() {
+        controller.get().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+        open(true);
+        FakePlayer original = latest();
+        original.position = 63_000;
+        original.playing = false;
+        fullscreenControl().performClick();
+        controller.recreate();
+        fragment = (TestDialog) controller.get().getSupportFragmentManager().findFragmentByTag("test-video");
+        ShadowLooper.shadowMainLooper().idle();
+        assertNotNull(fragment);
+        assertEquals(1, original.releases);
+        assertEquals(2, TestDialog.players.size());
+        assertEquals(63_000, latest().position);
+        assertFalse(latest().playing);
+        assertEquals(AspectRatioFrameLayout.RESIZE_MODE_ZOOM, playerView().getResizeMode());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, controller.get().getRequestedOrientation());
+        assertEquals(View.GONE, dialog().findViewById(R.id.video_player_close).getVisibility());
+        View control = fullscreenControl();
+        assertEquals(controller.get().getString(androidx.media3.ui.R.string.exo_controls_fullscreen_exit_description),
+                control.getContentDescription().toString());
+        control.performClick();
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, controller.get().getRequestedOrientation());
+        assertEquals(63_000, latest().position);
+        assertFalse(latest().playing);
+        assertEquals(0, latest().releases);
+    }
+
+    /** Returning from the background recreates paused media while retaining a working fullscreen Back callback. */
+    @Test
+    public void backgroundedFullscreenRestoresPausedPlaybackAndFirstBackBehavior() {
+        controller.get().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
+        open(false);
+        FakePlayer original = latest();
+        original.position = 37_000;
+        original.playing = false;
+        fullscreenControl().performClick();
+        controller.pause().stop();
+        assertEquals(1, original.releases);
+        controller.start().resume().visible();
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals(2, TestDialog.players.size());
+        assertEquals(37_000, latest().position);
+        assertFalse(latest().playing);
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, controller.get().getRequestedOrientation());
+        assertEquals(View.GONE, dialog().findViewById(R.id.video_player_close).getVisibility());
+
+        ((ComponentDialog) dialog()).getOnBackPressedDispatcher().onBackPressed();
+        ShadowLooper.shadowMainLooper().idle();
+        assertTrue(fragment.isAdded());
+        assertTrue(dialog().isShowing());
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT, controller.get().getRequestedOrientation());
+        assertEquals(View.VISIBLE, dialog().findViewById(R.id.video_player_close).getVisibility());
+        assertEquals(0, latest().releases);
+        assertEquals(37_000, latest().position);
+        assertFalse(latest().playing);
+    }
+
+    /** Immersive playback protects a landscape camera cutout without reserving space for transient system bars. */
+    @Test
+    public void fullscreenInsetsProtectCutoutWithoutLeavingBarsGap() {
+        open(false);
+        View root = dialog().findViewById(R.id.video_player_root);
+        WindowInsetsCompat insets = new WindowInsetsCompat.Builder()
+                .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(8, 24, 9, 30))
+                .setVisible(WindowInsetsCompat.Type.systemBars(), true)
+                .setInsets(WindowInsetsCompat.Type.displayCutout(), Insets.of(32, 4, 0, 0)).build();
+        ViewCompat.dispatchApplyWindowInsets(root, insets);
+        assertEquals(24, root.getPaddingTop());
+        fullscreenControl().performClick();
+        ViewCompat.dispatchApplyWindowInsets(root, insets);
+        ViewCompat.dispatchApplyWindowInsets(root, insets);
+        assertEquals(32, root.getPaddingLeft());
+        assertEquals(4, root.getPaddingTop());
+        assertEquals(0, root.getPaddingRight());
+        assertEquals(0, root.getPaddingBottom());
+
+        fullscreenControl().performClick();
+        ViewCompat.dispatchApplyWindowInsets(root, insets);
+        assertEquals(32, root.getPaddingLeft());
+        assertEquals(24, root.getPaddingTop());
+        assertEquals(9, root.getPaddingRight());
+        assertEquals(30, root.getPaddingBottom());
+    }
+
     /** Saved fragment state and non-activity contexts are rejected instead of leaking an unmanaged video window. */
     @Test
     public void openingAfterStateSaveDoesNotCreateAnUnmanagedPlayer() {
@@ -233,6 +433,16 @@ public class VideoPlayerDialogFragmentTest {
 
     /** Returns the real Media3 surface/controller view in the production layout. */
     private PlayerView playerView() { return dialog().findViewById(R.id.video_player); }
+
+    /** Returns the real, visible Media3 action after ensuring the controls have not auto-hidden. */
+    private View fullscreenControl() {
+        playerView().showController();
+        View control = dialog().findViewById(androidx.media3.ui.R.id.exo_fullscreen);
+        assertNotNull(control);
+        assertEquals(View.VISIBLE, control.getVisibility());
+        assertTrue(control.isEnabled());
+        return control;
+    }
 
     /** Returns the newest decoder-free player created by the fragment lifecycle. */
     private FakePlayer latest() { return TestDialog.players.get(TestDialog.players.size() - 1); }

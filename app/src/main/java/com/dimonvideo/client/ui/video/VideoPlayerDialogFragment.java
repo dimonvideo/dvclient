@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -11,11 +12,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
+import androidx.activity.ComponentDialog;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -31,7 +35,7 @@ import androidx.media3.ui.PlayerView;
 
 import com.dimonvideo.client.R;
 
-/** Restorable video window that follows the available display size without locking device orientation. */
+/** Restorable video window with user-controlled immersive playback and temporary landscape orientation. */
 @UnstableApi
 public class VideoPlayerDialogFragment extends DialogFragment {
     private static final String TAG = "video-player";
@@ -39,11 +43,18 @@ public class VideoPlayerDialogFragment extends DialogFragment {
     private static final String CROP = "crop";
     private static final String POSITION = "position";
     private static final String PLAY = "play";
+    private static final String FULLSCREEN = "fullscreen";
+    private static final String ORIGINAL_ORIENTATION = "original-orientation";
+    private static final String ORIENTATION_CAPTURED = "orientation-captured";
     private Player player;
     private PlayerView playerView;
     private View errorPanel;
     private long resumePosition;
     private boolean resumePlaying = true;
+    private boolean fullscreen;
+    private boolean orientationCaptured;
+    private int originalOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+    private OnBackPressedCallback fullscreenBack;
 
     /** Allows FragmentManager to restore a video window after activity or process recreation. */
     public VideoPlayerDialogFragment() { }
@@ -83,13 +94,17 @@ public class VideoPlayerDialogFragment extends DialogFragment {
         return current instanceof FragmentActivity ? (FragmentActivity) current : null;
     }
 
-    /** Restores position and the user's pause choice before creating any media resources. */
+    /** Restores progress, pause choice and fullscreen ownership before creating any media resources. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             resumePosition = savedInstanceState.getLong(POSITION);
             resumePlaying = savedInstanceState.getBoolean(PLAY, true);
+            fullscreen = savedInstanceState.getBoolean(FULLSCREEN);
+            originalOrientation = savedInstanceState.getInt(ORIGINAL_ORIENTATION,
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            orientationCaptured = savedInstanceState.getBoolean(ORIENTATION_CAPTURED, fullscreen);
         }
     }
 
@@ -97,7 +112,7 @@ public class VideoPlayerDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(requireContext());
+        ComponentDialog dialog = new ComponentDialog(requireContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.video);
         View root = dialog.findViewById(R.id.video_player_root);
@@ -106,6 +121,14 @@ public class VideoPlayerDialogFragment extends DialogFragment {
                 ? AspectRatioFrameLayout.RESIZE_MODE_ZOOM : AspectRatioFrameLayout.RESIZE_MODE_FIT);
         playerView.setShowNextButton(false);
         playerView.setShowPreviousButton(false);
+        playerView.setFullscreenButtonClickListener(this::setFullscreen);
+        fullscreenBack = new OnBackPressedCallback(fullscreen) {
+            /** Leaves immersive playback before allowing a subsequent system Back to close the video. */
+            @Override
+            public void handleOnBackPressed() { setFullscreen(false); }
+        };
+        // Fragment ownership survives dialog stop/start; remove it when this particular view is destroyed.
+        dialog.getOnBackPressedDispatcher().addCallback(this, fullscreenBack);
         errorPanel = dialog.findViewById(R.id.video_player_error_panel);
         dialog.findViewById(R.id.video_player_retry).setOnClickListener(view -> retry());
         dialog.findViewById(R.id.video_player_close).setOnClickListener(view -> dismiss());
@@ -116,8 +139,9 @@ public class VideoPlayerDialogFragment extends DialogFragment {
             WindowCompat.getInsetsController(window, root).setAppearanceLightStatusBars(false);
             WindowCompat.getInsetsController(window, root).setAppearanceLightNavigationBars(false);
             ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
-                Insets safe = insets.getInsets(WindowInsetsCompat.Type.systemBars()
-                        | WindowInsetsCompat.Type.displayCutout());
+                int protectedTypes = WindowInsetsCompat.Type.displayCutout();
+                if (!fullscreen) protectedTypes |= WindowInsetsCompat.Type.systemBars();
+                Insets safe = insets.getInsets(protectedTypes);
                 view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
                 return WindowInsetsCompat.CONSUMED;
             });
@@ -131,7 +155,7 @@ public class VideoPlayerDialogFragment extends DialogFragment {
         super.onStart();
         Window window = requireDialog().getWindow();
         if (window != null) window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        ViewCompat.requestApplyInsets(requireDialog().findViewById(R.id.video_player_root));
+        applyFullscreen();
         if (player == null) {
             player = createPlayer(requireContext());
             Player attached = player;
@@ -173,6 +197,51 @@ public class VideoPlayerDialogFragment extends DialogFragment {
                 .setAudioAttributes(audio, true).setHandleAudioBecomingNoisy(true).build();
     }
 
+    /** Changes presentation once; Media3 may call this listener again while synchronizing its icon. */
+    private void setFullscreen(boolean enabled) {
+        if (fullscreen == enabled) return;
+        fullscreen = enabled;
+        applyFullscreen();
+        if (!enabled) restoreOrientation();
+    }
+
+    /** Applies immersive controls independently of whether the device honors the landscape request. */
+    private void applyFullscreen() {
+        if (playerView == null || getDialog() == null) return;
+        playerView.setFullscreenButtonState(fullscreen);
+        requireDialog().findViewById(R.id.video_player_close).setVisibility(fullscreen ? View.GONE : View.VISIBLE);
+        if (fullscreenBack != null) fullscreenBack.setEnabled(fullscreen);
+        View root = requireDialog().findViewById(R.id.video_player_root);
+        Window window = requireDialog().getWindow();
+        if (window != null) {
+            WindowInsetsControllerCompat insets = WindowCompat.getInsetsController(window, root);
+            insets.setSystemBarsBehavior(fullscreen
+                    ? WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    : WindowInsetsControllerCompat.BEHAVIOR_DEFAULT);
+            if (fullscreen) insets.hide(WindowInsetsCompat.Type.systemBars());
+            else insets.show(WindowInsetsCompat.Type.systemBars());
+        }
+        ViewCompat.requestApplyInsets(root);
+        if (fullscreen) {
+            FragmentActivity host = requireActivity();
+            if (!orientationCaptured) {
+                originalOrientation = host.getRequestedOrientation();
+                orientationCaptured = true;
+            }
+            if (host.getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
+                host.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
+        }
+    }
+
+    /** Restores the exact host rotation policy rather than imposing portrait on exit or dismissal. */
+    private void restoreOrientation() {
+        FragmentActivity host = getActivity();
+        if (!orientationCaptured || host == null || host.isDestroyed()) return;
+        orientationCaptured = false;
+        host.setRequestedOrientation(originalOrientation);
+    }
+
     /** Retries the current source without losing position after a temporary connection failure. */
     private void retry() {
         if (player == null) return;
@@ -181,12 +250,15 @@ public class VideoPlayerDialogFragment extends DialogFragment {
         player.play();
     }
 
-    /** Saves playback progress and pause state for normal activity and process recreation. */
+    /** Saves playback, fullscreen state and original orientation for activity and process recreation. */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         checkpoint();
         outState.putLong(POSITION, resumePosition);
         outState.putBoolean(PLAY, resumePlaying);
+        outState.putBoolean(FULLSCREEN, fullscreen);
+        outState.putInt(ORIGINAL_ORIENTATION, originalOrientation);
+        outState.putBoolean(ORIENTATION_CAPTURED, orientationCaptured);
         super.onSaveInstanceState(outState);
     }
 
@@ -201,6 +273,9 @@ public class VideoPlayerDialogFragment extends DialogFragment {
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         releasePlayer();
+        FragmentActivity host = getActivity();
+        // DialogFragment also dismisses the old window during rotation; the restored window keeps ownership.
+        if (host != null && (!host.isChangingConfigurations() || isRemoving())) restoreOrientation();
         super.onDismiss(dialog);
     }
 
@@ -208,6 +283,8 @@ public class VideoPlayerDialogFragment extends DialogFragment {
     @Override
     public void onDestroyView() {
         releasePlayer();
+        if (fullscreenBack != null) fullscreenBack.remove();
+        fullscreenBack = null;
         playerView = null;
         errorPanel = null;
         super.onDestroyView();
