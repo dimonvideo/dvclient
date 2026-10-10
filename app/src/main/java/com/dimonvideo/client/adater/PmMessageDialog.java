@@ -55,7 +55,7 @@ public final class PmMessageDialog {
     private final Runnable onSentAndDeleted, onDismiss;
     private final EditText input;
     private final TextView attachmentStatus, recipientStatus;
-    private final Button send, sendAndDelete, attach, close, recipientRetry;
+    private final Button send, sendAndDelete, delete, attach, close, recipientRetry;
     private PmRecipientResolver.Handle recipientLookup;
     private boolean resolvingRecipient;
     private String attachmentRequest;
@@ -73,6 +73,7 @@ public final class PmMessageDialog {
         String attachment;
         String attachmentRequest;
         boolean sending;
+        boolean deleting;
         boolean acknowledged;
         int resolvedRecipientId;
         final MutableLiveData<Integer> updates = new MutableLiveData<>(0);
@@ -90,6 +91,10 @@ public final class PmMessageDialog {
                   NetworkUtils.PmOperationCallback callback);
         /** Enqueues deletion only after send acknowledgement, then accepts row removal after durable storage. */
         void enqueueDeletion(FeedPm feed, Runnable onAccepted);
+        /** Keeps the deletion barrier observable so a rejected durable write can restore the draft controls. */
+        default void enqueueDeletion(FeedPm feed, Runnable onAccepted, Runnable onRejected) {
+            enqueueDeletion(feed, onAccepted);
+        }
         /** Resolves an outgoing username to an exact positive UID without guessing from partial results. */
         PmRecipientResolver.Handle resolveRecipient(String name, String account,
                                                     PmRecipientResolver.Callback callback);
@@ -153,16 +158,20 @@ public final class PmMessageDialog {
         attachmentStatus = content.findViewById(R.id.pm_attachment_status);
         attachmentStatus.setVisibility(draft.attachment == null ? View.GONE : View.VISIBLE);
         send = content.findViewById(R.id.pm_reply_send);
+        send.setText(member ? R.string.pm_send : R.string.pm_reply_action);
         sendAndDelete = content.findViewById(R.id.pm_reply_send_delete);
+        delete = content.findViewById(R.id.pm_detail_delete);
         attach = content.findViewById(R.id.pm_attach_button);
         close = content.findViewById(R.id.pm_detail_close);
         sendAndDelete.setVisibility(member ? View.GONE : View.VISIBLE);
+        delete.setVisibility(member ? View.GONE : View.VISIBLE);
         recipientStatus = content.findViewById(R.id.pm_recipient_status);
         recipientRetry = content.findViewById(R.id.pm_recipient_retry);
         recipientRetry.setOnClickListener(view -> resolveOutgoingRecipient());
         send.setOnClickListener(view -> send(false));
         if (!member) send.setOnLongClickListener(this::sendAndDeleteOnLongPress);
         sendAndDelete.setOnClickListener(view -> send(true));
+        delete.setOnClickListener(view -> deleteMessage());
         attach.setOnClickListener(view -> pickImage());
         close.setOnClickListener(view -> dismiss());
         dialog.setOnDismissListener(ignored -> release());
@@ -227,7 +236,6 @@ public final class PmMessageDialog {
         Window window = dialog.getWindow();
         if (window != null) window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         setSendingEnabled(!sending);
-        if (!member && feed.isOutgoing()) resolveOutgoingRecipient();
     }
 
     /** Dismisses the sheet and cleans up even if it was rejected before its first show. */
@@ -270,7 +278,8 @@ public final class PmMessageDialog {
 
     /** Resolves the original outgoing recipient; failed lookup leaves only safe full viewing and retry. */
     private void resolveOutgoingRecipient() {
-        if (member || !feed.isOutgoing() || released || sending || resolvingRecipient || !ensureAccount()) return;
+        if (member || !feed.isOutgoing() || released || sending || draft.deleting
+                || resolvingRecipient || !ensureAccount()) return;
         resolvingRecipient = true;
         feed.setRecipientId(0);
         recipientStatus.setText(R.string.pm_recipient_loading);
@@ -317,7 +326,7 @@ public final class PmMessageDialog {
 
     /** Starts an account-bound picker whose result cannot be delivered to a different message sheet. */
     private void pickImage() {
-        if (sending || awaitingAttachment || !ensureAccount()) return;
+        if (sending || draft.deleting || awaitingAttachment || !ensureAccount()) return;
         attachmentRequest = UUID.randomUUID().toString();
         draft.attachmentRequest = attachmentRequest;
         awaitingAttachment = true;
@@ -338,9 +347,31 @@ public final class PmMessageDialog {
         return true;
     }
 
+    /** Removes the exact source PM only after its account-bound deletion has been durably accepted. */
+    private void deleteMessage() {
+        if (member || sending || draft.deleting || !ensureAccount()) return;
+        saveDraft();
+        draft.deleting = true;
+        draft.changed();
+        operations.enqueueDeletion(feed, () -> {
+            if (!Objects.equals(accountKey, operations.currentAccountKey())) return;
+            draft.deleting = false;
+            draft.text = "";
+            draft.attachment = null;
+            draft.attachmentRequest = null;
+            draft.acknowledged = true;
+            onSentAndDeleted.run();
+            draft.changed();
+        }, () -> {
+            draft.deleting = false;
+            draft.changed();
+            if (!released) ensureAccount();
+        });
+    }
+
     /** Sends once after uploads finish and keeps the draft/sheet on transport or server rejection. */
     private void send(boolean deleteAfterSend) {
-        if (sending || awaitingAttachment || resolvingRecipient || !ensureAccount()) return;
+        if (sending || draft.deleting || awaitingAttachment || resolvingRecipient || !ensureAccount()) return;
         if (!member && feed.isOutgoing() && feed.getRecipientId() <= 0) return;
         String text = input.getText().toString();
         if (text.trim().isEmpty() && draft.attachment == null) {
@@ -386,7 +417,7 @@ public final class PmMessageDialog {
                 });
     }
 
-    /** Keeps a replacement sheet disabled during the original send and applies its eventual acknowledgement. */
+    /** Restores retained operations and restarts an unresolved recipient lookup after a rejected deletion. */
     private void refreshDraftState() {
         if (released) return;
         sending = draft.sending;
@@ -395,15 +426,22 @@ public final class PmMessageDialog {
             dismiss();
         } else {
             if (!sending && draft.text.isEmpty()) input.setText("");
+            if (!sending && !draft.deleting && !member && feed.isOutgoing()
+                    && feed.getRecipientId() <= 0 && !resolvingRecipient && recipientLookup == null
+                    && recipientRetry.getVisibility() != View.VISIBLE) {
+                resolveOutgoingRecipient();
+            }
             setSendingEnabled(!sending);
         }
     }
 
     /** Prevents duplicate sends, omitted pending uploads, and edits during a send request. */
     private void setSendingEnabled(boolean enabled) {
+        enabled = enabled && !draft.deleting;
         boolean resolved = member || !feed.isOutgoing() || feed.getRecipientId() > 0;
         send.setEnabled(enabled && !awaitingAttachment && !resolvingRecipient && resolved);
         sendAndDelete.setEnabled(enabled && !awaitingAttachment && !resolvingRecipient && resolved);
+        delete.setEnabled(enabled);
         attach.setEnabled(enabled && !awaitingAttachment);
         input.setEnabled(enabled);
         close.setEnabled(enabled);
@@ -434,6 +472,12 @@ public final class PmMessageDialog {
         @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted) {
             PmDeletionQueue.enqueue(context, feed.getId(), feed.getSourceFolder(), feed.getSourcePage(),
                     onAccepted, null, false);
+        }
+
+        /** Uses the swipe deletion queue and its confirmation while allowing a failed commit to unblock the sheet. */
+        @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted, Runnable onRejected) {
+            PmDeletionQueue.enqueue(context, feed.getId(), feed.getSourceFolder(), feed.getSourcePage(),
+                    onAccepted, onRejected);
         }
 
         /** Starts a bounded exact-name search and returns a handle canceled when the sheet closes. */

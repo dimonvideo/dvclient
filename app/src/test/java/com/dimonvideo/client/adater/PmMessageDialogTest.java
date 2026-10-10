@@ -218,6 +218,118 @@ public class PmMessageDialogTest {
         assertEquals(1, deleted);
     }
 
+    /** Direct deletion preserves the reply and its exact trash routing until durable storage accepts it. */
+    @Test
+    public void directDeleteWaitsForQueueAcceptanceAndNeverSendsReply() {
+        FeedPm message = new FeedPm();
+        message.setId(777);
+        message.setSourceFolder(2);
+        message.setSourcePage(6);
+        message.setTitle("trash message");
+        draft.attachment = "unsent.png";
+        composer = new PmMessageDialog(activityController.get(), message, false, draft,
+                () -> deleted++, () -> dismissed++, operations, 14);
+        composer.show();
+        button(R.id.pm_detail_delete).performClick();
+        button(R.id.pm_detail_delete).performClick();
+        assertEquals(0, operations.sends);
+        assertEquals(1, operations.queuedDeletes);
+        assertEquals(777, operations.deletionFeed.getId());
+        assertEquals(2, operations.deletionFeed.getSourceFolder());
+        assertEquals(6, operations.deletionFeed.getSourcePage());
+        assertEquals(0, deleted);
+        assertEquals(0, dismissed);
+        assertTrue(dialog().isShowing());
+        assertFalse(button(R.id.pm_detail_delete).isEnabled());
+        assertFalse(button(R.id.pm_reply_send).isEnabled());
+        assertFalse(button(R.id.pm_detail_close).isEnabled());
+        assertEquals("reply to original sender", draft.text);
+        assertEquals("unsent.png", draft.attachment);
+        operations.deletionAccepted.run();
+        assertEquals(1, deleted);
+        assertEquals(1, dismissed);
+        assertFalse(dialog().isShowing());
+    }
+
+    /** A storage rejection retains freshly edited text and attachment and allows another explicit deletion. */
+    @Test
+    public void rejectedDirectDeleteKeepsDraftAndRestoresControls() {
+        draft.attachment = "keep.png";
+        showComposer();
+        ((EditText) dialog().findViewById(R.id.pm_reply_input)).setText("latest unsent draft");
+        button(R.id.pm_detail_delete).performClick();
+        operations.deletionRejected.run();
+        assertEquals(0, operations.sends);
+        assertEquals(0, deleted);
+        assertEquals(0, dismissed);
+        assertTrue(dialog().isShowing());
+        assertEquals("latest unsent draft", draft.text);
+        assertEquals("latest unsent draft",
+                ((EditText) dialog().findViewById(R.id.pm_reply_input)).getText().toString());
+        assertEquals("keep.png", draft.attachment);
+        assertTrue(button(R.id.pm_detail_delete).isEnabled());
+        assertTrue(button(R.id.pm_reply_send).isEnabled());
+        assertTrue(button(R.id.pm_detail_close).isEnabled());
+        assertTrue(button(R.id.pm_attach_button).isEnabled());
+        button(R.id.pm_detail_delete).performClick();
+        assertEquals(2, operations.queuedDeletes);
+    }
+
+    /** Switching accounts before a direct delete rejects the stale sheet without queuing the old message. */
+    @Test
+    public void directDeleteAfterAccountSwitchCannotQueueOriginalMessage() {
+        showComposer();
+        operations.account = "another-account";
+        button(R.id.pm_detail_delete).performClick();
+        assertEquals(0, operations.queuedDeletes);
+        assertEquals(0, operations.sends);
+        assertEquals(0, deleted);
+        assertEquals("reply to original sender", draft.text);
+        assertFalse(dialog().isShowing());
+    }
+
+    /** A queue callback belonging to the old account cannot remove a row from the newly active account. */
+    @Test
+    public void directDeleteAcceptanceAfterAccountSwitchDoesNotRemoveAnotherAccountsRow() {
+        showComposer();
+        button(R.id.pm_detail_delete).performClick();
+        operations.account = "another-account";
+        operations.deletionAccepted.run();
+        assertEquals(0, deleted);
+        assertEquals(0, operations.sends);
+        assertEquals("reply to original sender", draft.text);
+    }
+
+    /** Deleting an outgoing source PM requires neither a recipient lookup nor an acknowledged reply. */
+    @Test
+    public void directDeleteDoesNotWaitForOutgoingRecipientLookup() {
+        createOutgoingComposer();
+        composer.show();
+        assertFalse(button(R.id.pm_reply_send).isEnabled());
+        assertTrue(button(R.id.pm_detail_delete).isEnabled());
+        button(R.id.pm_detail_delete).performClick();
+        assertEquals(1, operations.queuedDeletes);
+        assertEquals(42, operations.deletionFeed.getId());
+        assertEquals(1, operations.deletionFeed.getSourceFolder());
+        assertEquals(0, operations.sends);
+        operations.deletionAccepted.run();
+        assertEquals(1, deleted);
+    }
+
+    /** An active image picker blocks reply sending while direct source deletion remains available. */
+    @Test
+    public void pendingAttachmentDoesNotPreventDirectDeletionOrTriggerSending() {
+        showComposer();
+        button(R.id.pm_attach_button).performClick();
+        assertFalse(button(R.id.pm_reply_send).isEnabled());
+        assertTrue(button(R.id.pm_detail_delete).isEnabled());
+        button(R.id.pm_detail_delete).performClick();
+        assertEquals(1, operations.queuedDeletes);
+        assertEquals(0, operations.sends);
+        operations.deletionAccepted.run();
+        assertEquals(1, deleted);
+    }
+
     /** A short reply click acknowledges sending without deleting or showing a send-and-delete confirmation. */
     @Test
     public void ordinaryReplyClickNeverDeletesOriginal() {
@@ -284,6 +396,10 @@ public class PmMessageDialogTest {
         composer = new PmMessageDialog(activityController.get(), recipient, true, draft,
                 () -> deleted++, () -> dismissed++, operations, 14);
         composer.show();
+        assertEquals(View.GONE, button(R.id.pm_detail_delete).getVisibility());
+        assertEquals(View.GONE, button(R.id.pm_reply_send_delete).getVisibility());
+        assertEquals(activityController.get().getString(R.string.pm_send),
+                button(R.id.pm_reply_send).getText().toString());
         assertFalse(button(R.id.pm_reply_send).performLongClick());
         assertEquals(0, operations.sends);
         button(R.id.pm_reply_send).performClick();
@@ -319,6 +435,24 @@ public class PmMessageDialogTest {
         assertFormContrast();
     }
 
+    /** Icon-only actions keep accessible names and touch targets while received messages label their reply. */
+    @Test
+    @Config(qualifiers = "ru")
+    public void compactIconActionsRemainAccessibleAndReplyIsNamedInRussian() {
+        showComposer();
+        MaterialButton close = dialog().findViewById(R.id.pm_detail_close);
+        MaterialButton attach = dialog().findViewById(R.id.pm_attach_button);
+        assertEquals("", close.getText().toString());
+        assertEquals(activityController.get().getString(R.string.pm_close), close.getContentDescription());
+        assertEquals(activityController.get().getString(R.string.pm_attach_image),
+                attach.getContentDescription());
+        assertTrue(close.getLayoutParams().width >= dp(48));
+        assertTrue(close.getLayoutParams().height >= dp(48));
+        assertTrue(attach.getLayoutParams().width >= dp(48));
+        assertTrue(attach.getLayoutParams().height >= dp(48));
+        assertEquals("Ответить", button(R.id.pm_reply_send).getText().toString());
+    }
+
     /** Only the outlined container draws a reply label; a second child hint would overlap it. */
     @Test
     public void replyUsesOneFloatingLabelWithoutChildHint() {
@@ -352,6 +486,7 @@ public class PmMessageDialogTest {
         assertNull(ReflectionHelpers.getField(reply.getEditText(), "mHint"));
         assertEquals(View.GONE, dialog().findViewById(R.id.pm_detail_body).getVisibility());
         assertEquals(View.GONE, button(R.id.pm_reply_send_delete).getVisibility());
+        assertEquals(View.GONE, button(R.id.pm_detail_delete).getVisibility());
         View sheet = dialog().findViewById(com.google.android.material.R.id.design_bottom_sheet);
         assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, sheet.getLayoutParams().height);
         NestedScrollView content = dialog().findViewById(R.id.pm_detail_scroll);
@@ -385,8 +520,8 @@ public class PmMessageDialogTest {
         content.layout(0, 0, content.getMeasuredWidth(), content.getMeasuredHeight());
         content.scrollTo(0, content.getChildAt(0).getHeight());
         assertTrue(content.canScrollVertically(-1));
-        assertTrue("Close action must be reachable after scrolling",
-                button(R.id.pm_detail_close).getBottom() - content.getScrollY() <= content.getHeight());
+        assertTrue("The final deletion action must be reachable after scrolling",
+                button(R.id.pm_detail_delete).getBottom() - content.getScrollY() <= content.getHeight());
         assertTrue(((BottomSheetDialog) dialog()).getBehavior().getMaxHeight()
                 <= activityController.get().getResources().getDisplayMetrics().heightPixels * 0.9f);
     }
@@ -402,7 +537,9 @@ public class PmMessageDialogTest {
         assertReadable(((TextView) dialog().findViewById(R.id.pm_detail_sender)).getCurrentTextColor(), surface);
         assertReadable(((EditText) dialog().findViewById(R.id.pm_reply_input)).getCurrentTextColor(), surface);
         assertReadable(((EditText) dialog().findViewById(R.id.pm_reply_input)).getCurrentHintTextColor(), surface);
-        assertReadable(button(R.id.pm_detail_close).getCurrentTextColor(), surface);
+        MaterialButton close = dialog().findViewById(R.id.pm_detail_close);
+        assertReadable(close.getIconTint().getColorForState(close.getDrawableState(), 0), surface);
+        assertReadable(button(R.id.pm_detail_delete).getCurrentTextColor(), surface);
         assertReadable(button(R.id.pm_reply_send_delete).getCurrentTextColor(), surface);
         MaterialButton attach = dialog().findViewById(R.id.pm_attach_button);
         assertReadable(attach.getIconTint().getColorForState(attach.getDrawableState(), 0), surface);
@@ -493,6 +630,8 @@ public class PmMessageDialogTest {
         int sends, queuedDeletes;
         PmSendTarget target;
         Runnable deletionAccepted;
+        Runnable deletionRejected;
+        FeedPm deletionFeed;
         PmRecipientResolver.Callback recipientCallback;
         NetworkUtils.PmOperationCallback callback;
 
@@ -511,8 +650,15 @@ public class PmMessageDialogTest {
 
         /** Leaves durable acceptance pending so tests can distinguish send acknowledgement from removal. */
         @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted) {
+            enqueueDeletion(feed, onAccepted, null);
+        }
+
+        /** Records exact source routing and both outcomes without contacting the durable store or server. */
+        @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted, Runnable onRejected) {
             queuedDeletes++;
+            deletionFeed = new FeedPm(feed);
             deletionAccepted = onAccepted;
+            deletionRejected = onRejected;
         }
 
         /** Holds a read-only lookup callback without querying a public API. */

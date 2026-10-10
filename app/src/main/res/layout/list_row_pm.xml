@@ -48,7 +48,7 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:textSize="13sp"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="?attr/colorOnSurface"
             app:layout_constraintStart_toEndOf="@id/thumbnail"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toStartOf="@id/date"
