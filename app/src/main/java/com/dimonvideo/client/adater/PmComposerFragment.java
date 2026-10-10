@@ -42,8 +42,8 @@ public class PmComposerFragment extends DialogFragment {
 
     /** Checks durable queue state independently of the Activity and its lost process-local callbacks. */
     interface DeletionLookup {
-        /** Returns an explicit pending, absent, or unreadable state for the exact account and message. */
-        void check(Context context, String account, int messageId,
+        /** Returns durable state for the exact account, message and original opening time. */
+        void check(Context context, String account, int messageId, long openedAt,
                    Consumer<PmDeletionQueue.DeletionState> callback);
     }
     private final SharedPreferences.OnSharedPreferenceChangeListener accountListener = (preferences, key) -> {
@@ -68,7 +68,8 @@ public class PmComposerFragment extends DialogFragment {
         PmComposerFragment fragment = new PmComposerFragment();
         fragment.initialDraft = draft;
         fragment.initialOperations = operations;
-        Bundle arguments = encode(feed, member, PmDeletionQueue.currentAccountKey(), draft);
+        Bundle arguments = encode(feed, member, PmDeletionQueue.currentAccountKey(), draft,
+                System.currentTimeMillis());
         fragment.setArguments(arguments);
         fragment.showNow(activity.getSupportFragmentManager(), TAG);
         return true;
@@ -104,7 +105,9 @@ public class PmComposerFragment extends DialogFragment {
         if (initialOperations != null) state.operations = initialOperations;
         if (initialDeletionLookup != null) state.deletionLookup = initialDeletionLookup;
         if (state.deletionLookup == null) state.deletionLookup = PmDeletionQueue::getDeletionState;
-        if (coldRestore && !state.member) state.draft.checkingDeletion = true;
+        if (coldRestore && !state.member && state.feed.getSourceFolder() != 5) {
+            state.draft.checkingDeletion = true;
+        }
         initialDraft = null;
         initialOperations = null;
         initialDeletionLookup = null;
@@ -155,10 +158,12 @@ public class PmComposerFragment extends DialogFragment {
         owner.deletionCheckFailed = false;
         owner.draft.changed();
         owner.deletionLookup.check(requireContext().getApplicationContext(), owner.account, owner.feed.getId(),
+                owner.openedAt,
                 result -> {
                     owner.deletionCheckInFlight = false;
                     if (!Objects.equals(owner.account, PmDeletionQueue.currentAccountKey())) return;
-                    if (result == PmDeletionQueue.DeletionState.PENDING) {
+                    if (result == PmDeletionQueue.DeletionState.PENDING
+                            || result == PmDeletionQueue.DeletionState.COMPLETED) {
                         owner.draft.text = "";
                         owner.draft.attachment = null;
                         owner.draft.attachmentRequest = null;
@@ -199,7 +204,7 @@ public class PmComposerFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         if (composer != null) composer.saveDraft();
-        outState.putAll(encode(state.feed, state.member, state.account, state.draft));
+        outState.putAll(encode(state.feed, state.member, state.account, state.draft, state.openedAt));
         super.onSaveInstanceState(outState);
     }
 
@@ -248,8 +253,10 @@ public class PmComposerFragment extends DialogFragment {
     }
 
     /** Copies full API values and a draft to Android's restorable primitive state without credentials. */
-    private static Bundle encode(FeedPm feed, boolean member, String account, PmMessageDialog.Draft draft) {
+    private static Bundle encode(FeedPm feed, boolean member, String account, PmMessageDialog.Draft draft,
+                                 long openedAt) {
         Bundle state = new Bundle();
+        state.putLong("opened_at", openedAt);
         state.putString("account", account);
         state.putBoolean("member", member);
         state.putInt("id", feed.getId());
@@ -288,6 +295,7 @@ public class PmComposerFragment extends DialogFragment {
         state.feed = feed;
         state.member = source.getBoolean("member");
         state.account = source.getString("account");
+        state.openedAt = source.getLong("opened_at", 0);
         state.draft.text = source.getString("text", "");
         state.draft.attachment = source.getString("attachment");
         state.draft.attachmentRequest = source.getString("request");
@@ -298,6 +306,7 @@ public class PmComposerFragment extends DialogFragment {
         FeedPm feed;
         boolean member;
         String account;
+        long openedAt;
         PmMessageDialog.Draft draft = new PmMessageDialog.Draft();
         PmMessageDialog.Operations operations;
         DeletionLookup deletionLookup;

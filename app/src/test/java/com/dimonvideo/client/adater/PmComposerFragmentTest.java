@@ -20,6 +20,7 @@ import com.dimonvideo.client.util.pm.PmRecipientResolver;
 import com.dimonvideo.client.util.pm.PmAttachmentEvent;
 import com.dimonvideo.client.util.pm.PmAttachmentOwner;
 import com.dimonvideo.client.util.pm.PmDeletionQueue;
+import com.dimonvideo.client.util.pm.PmDeletionDurableFixture;
 
 import org.junit.After;
 import org.junit.Before;
@@ -35,6 +36,8 @@ import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
 import java.util.function.Consumer;
+import java.util.function.BooleanSupplier;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -51,10 +54,12 @@ public class PmComposerFragmentTest {
     private ActivityController<TestActivity> activity;
     private PmAttachmentOwner owner;
     private String account;
+    private boolean durableQueueUsed;
 
     /** Opens a verified account with no database, Firebase or background application startup. */
     @Before
     public void setUp() {
+        durableQueueUsed = false;
         TestActivity.restoredOperations = null;
         TestActivity.restoredDeletionLookup = null;
         PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.getApplication()).edit()
@@ -75,6 +80,7 @@ public class PmComposerFragmentTest {
         }
         activity.pause().stop().destroy();
         ShadowLooper.shadowMainLooper().idle();
+        if (durableQueueUsed) PmDeletionDurableFixture.reset(RuntimeEnvironment.getApplication());
         TestActivity.restoredOperations = null;
         TestActivity.restoredDeletionLookup = null;
     }
@@ -433,6 +439,112 @@ public class PmComposerFragmentTest {
         assertEquals(0, restoredOperations.queuedDeletes);
     }
 
+    /** SQLite completion survives loss of queue callbacks and closes an older serialized sheet after helper reopening. */
+    @Test
+    public void confirmedDurableDeletionBeforeProcessRestoreClosesOldSheetWithoutReplayingMutations()
+            throws Exception {
+        prepareDurableQueue();
+        FakeOperations previousOperations = openSendableOutgoing();
+        input().setText("draft saved before acceptance was delivered");
+        PmComposerFragment.State previousState = composerState();
+        long openedAt = previousState.openedAt;
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        PmDeletionDurableFixture.persist(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, openedAt);
+        Bundle saved = saveAsParcel();
+        activity.pause().stop().destroy();
+        PmDeletionDurableFixture.completeConfirmed(RuntimeEnvironment.getApplication(), account, 42);
+        assertFalse(PmDeletionDurableFixture.hasPending(RuntimeEnvironment.getApplication(), account, 42));
+        PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
+        FakeOperations restoredOperations = new FakeOperations();
+        TestActivity.restoredOperations = restoredOperations;
+        TestActivity.restoredDeletionLookup = PmDeletionQueue::getDeletionState;
+        activity = Robolectric.buildActivity(TestActivity.class).setup(saved);
+        final int[] removals = {0};
+        final int[] removedMessage = {0};
+        final int[] removedFolder = {-1};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(), (key, result) -> {
+                    removals[0]++;
+                    removedMessage[0] = result.getInt("message");
+                    removedFolder[0] = result.getInt("folder");
+                });
+        await(() -> fragment() == null && removals[0] == 1);
+        assertNotSame(owner, new ViewModelProvider(activity.get()).get(PmAttachmentOwner.class));
+        assertEquals(42, removedMessage[0]);
+        assertEquals(1, removedFolder[0]);
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(1, previousOperations.queuedDeletes);
+    }
+
+    /** A new snapshot opened after an older deletion receipt stays usable following an external server restoration. */
+    @Test
+    public void freshComposerAfterEarlierDeletionReceiptRemainsUsableAfterColdRestore() throws Exception {
+        prepareDurableQueue();
+        long earlierDeletion = System.currentTimeMillis() - 1000;
+        PmDeletionDurableFixture.confirmAt(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, earlierDeletion, earlierDeletion);
+        PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
+        openSendableOutgoing();
+        long openedAt = composerState().openedAt;
+        assertTrue(openedAt > earlierDeletion);
+        input().setText("reply to a message restored through the website");
+        FakeOperations restoredOperations = new FakeOperations();
+        restoreProcess(restoredOperations, PmDeletionQueue::getDeletionState);
+        await(() -> fragment() != null && !composerState().draft.checkingDeletion);
+        assertTrue(fragment().requireDialog().isShowing());
+        assertTrue(send().isEnabled());
+        assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
+        assertEquals(openedAt, composerState().openedAt);
+        assertEquals("reply to a message restored through the website", input().getText().toString());
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+    }
+
+    /** A completed move into trash cannot close that message's trash-folder viewer or disable its ordinary reply. */
+    @Test
+    public void completedDeletionReceiptKeepsColdRestoredTrashReplyAvailable() throws Exception {
+        prepareDurableQueue();
+        FakeOperations originalOperations = new FakeOperations();
+        openOutgoing(originalOperations, 5);
+        input().setText("reply while browsing the trash message");
+        PmDeletionDurableFixture.confirm(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, composerState().openedAt);
+        PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
+        FakeOperations restoredOperations = new FakeOperations();
+        restoreProcess(restoredOperations, PmDeletionQueue::getDeletionState);
+        assertTrue(fragment().requireDialog().isShowing());
+        assertFalse(composerState().draft.checkingDeletion);
+        assertTrue(send().isEnabled());
+        assertEquals(android.view.View.GONE,
+                fragment().requireDialog().findViewById(R.id.pm_detail_delete).getVisibility());
+        assertEquals(android.view.View.GONE,
+                fragment().requireDialog().findViewById(R.id.pm_reply_send_delete).getVisibility());
+        assertEquals("reply while browsing the trash message", input().getText().toString());
+        send().performClick();
+        assertEquals(1, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(0, originalOperations.sends);
+    }
+
+    /** The original opening timestamp is preserved through both rotation and a serialized process restoration. */
+    @Test
+    public void composerOpeningTimeSurvivesRecreationAndParcelRestore() {
+        openSendableOutgoing();
+        long openedAt = composerState().openedAt;
+        assertTrue(openedAt > 0);
+        activity.recreate();
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals(openedAt, composerState().openedAt);
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        restoreProcess(new FakeOperations(), lookup);
+        assertEquals(openedAt, composerState().openedAt);
+        assertEquals(openedAt, lookup.openedAt);
+        lookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        assertTrue(send().isEnabled());
+    }
+
     /** A rejected deletion after rotation restarts the canceled lookup so an outgoing reply can be addressed safely. */
     @Test
     public void directDeleteRejectionAfterRotationRestartsUnresolvedOutgoingRecipientOnce() {
@@ -561,12 +673,17 @@ public class PmComposerFragmentTest {
 
     /** Opens a real outgoing sheet with either an immediate or a test-controlled recipient lookup. */
     private void openOutgoing(FakeOperations operations) {
+        openOutgoing(operations, 1);
+    }
+
+    /** Opens an outgoing source from its real mailbox, including trash where deletion controls are unavailable. */
+    private void openOutgoing(FakeOperations operations, int folder) {
         FeedPm feed = new FeedPm();
         feed.setId(42);
         feed.setTitle("Outgoing message");
         feed.setOutgoing(true);
         feed.setRecipientName("Original recipient");
-        feed.setSourceFolder(1);
+        feed.setSourceFolder(folder);
         PmMessageDialog.Draft draft = new PmMessageDialog.Draft();
         draft.text = "Send to original recipient";
         assertTrue(PmComposerFragment.open(activity.get(), feed, false, draft, operations));
@@ -588,13 +705,31 @@ public class PmComposerFragmentTest {
     }
 
     /** Starts a new Android host from serialized state, with neither the old fragment nor its ViewModels retained. */
-    private void restoreProcess(FakeOperations operations, FakeDeletionLookup lookup) {
+    private void restoreProcess(FakeOperations operations, PmComposerFragment.DeletionLookup lookup) {
         Bundle saved = saveAsParcel();
         activity.pause().stop().destroy();
         TestActivity.restoredOperations = operations;
         TestActivity.restoredDeletionLookup = lookup;
         activity = Robolectric.buildActivity(TestActivity.class).setup(saved);
         ShadowLooper.shadowMainLooper().idle();
+    }
+
+    /** Gives SQLite integration cases an isolated durable queue and clears it after their asynchronous reads finish. */
+    private void prepareDurableQueue() {
+        durableQueueUsed = true;
+        PmDeletionDurableFixture.reset(RuntimeEnvironment.getApplication());
+    }
+
+    /** Drains only UI delivery while waiting a bounded time for the actual serialized queue executor to finish. */
+    private void await(BooleanSupplier condition) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            ShadowLooper.shadowMainLooper().idle();
+            activity.get().getSupportFragmentManager().executePendingTransactions();
+            if (condition.getAsBoolean()) return;
+            Thread.sleep(10);
+        }
+        assertTrue("The durable queue did not complete its restored-sheet reconciliation", condition.getAsBoolean());
     }
 
     /** Verifies every mutation barrier while the user can still dismiss a sheet with uncertain deletion state. */
@@ -652,7 +787,7 @@ public class PmComposerFragmentTest {
                     Fragment fragment = super.instantiate(classLoader, className);
                     if (fragment instanceof PmComposerFragment) {
                         PmComposerFragment.DeletionLookup lookup = restoredDeletionLookup != null
-                                ? restoredDeletionLookup : (context, account, id, callback) ->
+                                ? restoredDeletionLookup : (context, account, id, openedAt, callback) ->
                                 callback.accept(PmDeletionQueue.DeletionState.ABSENT);
                         ReflectionHelpers.setField(fragment, "initialDeletionLookup", lookup);
                         if (restoredOperations != null) {
@@ -728,14 +863,16 @@ public class PmComposerFragmentTest {
         int checks;
         String account;
         int message;
+        long openedAt;
         Consumer<PmDeletionQueue.DeletionState> callback;
 
         /** Records the exact account/message requested by the cold-restored sheet without touching storage or HTTP. */
-        @Override public void check(android.content.Context context, String account, int messageId,
+        @Override public void check(android.content.Context context, String account, int messageId, long openedAt,
                                     Consumer<PmDeletionQueue.DeletionState> callback) {
             checks++;
             this.account = account;
             message = messageId;
+            this.openedAt = openedAt;
             this.callback = callback;
         }
 

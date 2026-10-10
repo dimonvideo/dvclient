@@ -27,8 +27,8 @@ public final class PmDeletionQueue {
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
-    /** Distinguishes a safe absent intent from a failed read while restoring a message composer. */
-    public enum DeletionState { PENDING, ABSENT, UNAVAILABLE }
+    /** Distinguishes accepted and completed deletions from absent or unreadable durable state. */
+    public enum DeletionState { PENDING, COMPLETED, ABSENT, UNAVAILABLE }
 
     /** Separates durable intent acceptance from best-effort background work scheduling. */
     interface Scheduler {
@@ -199,14 +199,31 @@ public final class PmDeletionQueue {
      */
     public static void getDeletionState(Context context, String accountKey, int messageId,
                                         Consumer<DeletionState> callback) {
+        getDeletionState(context, accountKey, messageId, 0, callback);
+    }
+
+    /**
+     * Reconciles a restored snapshot with pending work and deletions completed after it was opened.
+     * Older completed generations cannot invalidate a fresh composer for a message restored on the site.
+     * A zero opening time conservatively reconciles snapshots saved by versions without this field.
+     */
+    public static void getDeletionState(Context context, String accountKey, int messageId,
+                                        long composerOpenedAt, Consumer<DeletionState> callback) {
         Context appContext = context.getApplicationContext();
         IO.execute(() -> {
             DeletionState result = DeletionState.UNAVAILABLE;
             if (accountKey != null && messageId > 0 && accountKey.equals(currentAccountKey())) {
                 try {
-                    PmDeletionStore.Entry entry = PmDeletionStore.get(appContext).find(accountKey, messageId);
-                    result = entry != null && !PmDeletionRetryPolicy.isExpired(entry.createdAt,
-                            System.currentTimeMillis()) ? DeletionState.PENDING : DeletionState.ABSENT;
+                    PmDeletionStore.Entry entry = PmDeletionStore.get(appContext)
+                            .findIncludingCompleted(accountKey, messageId);
+                    if (entry != null && entry.confirmed && entry.completedAt >= composerOpenedAt) {
+                        result = DeletionState.COMPLETED;
+                    } else if (entry != null && !entry.confirmed
+                            && !PmDeletionRetryPolicy.isExpired(entry.createdAt, System.currentTimeMillis())) {
+                        result = DeletionState.PENDING;
+                    } else {
+                        result = DeletionState.ABSENT;
+                    }
                 } catch (Exception exception) {
                     // Keep restored actions blocked until the user can verify the durable store.
                 }
@@ -235,10 +252,13 @@ public final class PmDeletionQueue {
                 .getResult().get();
     }
 
-    /** Removes durable metadata and emits a main-thread result scoped to its original account. */
+    /** Retains confirmed evidence or expires pending work before emitting an account-scoped result. */
     static void finish(Context context, PmDeletionStore.Entry entry,
                        PmDeletionEvent.Outcome outcome) {
-        if (!PmDeletionStore.get(context).remove(entry)) return;
+        PmDeletionStore store = PmDeletionStore.get(context);
+        boolean finished = outcome == PmDeletionEvent.Outcome.CONFIRMED
+                ? store.complete(entry) : store.remove(entry);
+        if (!finished) return;
         MAIN.post(() -> {
             EventBus.getDefault().post(new PmDeletionEvent(entry.accountKey, entry.messageId, outcome));
             if (outcome == PmDeletionEvent.Outcome.EXPIRED
