@@ -49,6 +49,7 @@ public class PmDeletionQueueTest {
         context = (TestApp) RuntimeEnvironment.getApplication();
         store = PmDeletionStore.get(context);
         store.getWritableDatabase().delete("pm_deletions", null, null);
+        store.getWritableDatabase().delete("pm_composer_checkpoints", null, null);
         ShadowToast.reset();
     }
 
@@ -198,20 +199,94 @@ public class PmDeletionQueueTest {
         assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
     }
 
-    /** Completion invalidates an earlier sheet even if it opened after enqueue; a later restored source stays usable. */
+    /** A durable empty checkpoint detects completion after a clock rollback and survives a lost capture callback. */
     @Test
-    public void completionLookupUsesComposerOpeningCutoff() throws Exception {
+    public void completionLookupUsesDurableCausalCheckpoint() throws Exception {
         long createdAt = System.currentTimeMillis() - 1000;
-        long completedAt = createdAt + 500;
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState(accountKey, MESSAGE_ID, "sheet", true, createdAt));
         PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID, createdAt);
-        assertTrue(store.complete(entry, completedAt));
+        assertTrue(store.complete(entry, createdAt - TimeUnit.DAYS.toMillis(7)));
+        store.close();
 
         assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
-                deletionState(accountKey, MESSAGE_ID, completedAt - 1));
-        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
-                deletionState(accountKey, MESSAGE_ID, completedAt));
+                deletionState(accountKey, MESSAGE_ID, "sheet", false));
+    }
+
+    /** A fresh externally restored composer ignores the same existing receipt even if its timestamp is in the future. */
+    @Test
+    public void freshCheckpointIgnoresOldReceiptIndependentOfClock() throws Exception {
+        PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis());
+        assertTrue(store.complete(entry, Long.MAX_VALUE));
+
         assertEquals(PmDeletionQueue.DeletionState.ABSENT,
-                deletionState(accountKey, MESSAGE_ID, completedAt + 1));
+                deletionState(accountKey, MESSAGE_ID, "new-sheet", true));
+        store.close();
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                deletionState(accountKey, MESSAGE_ID, "new-sheet", false));
+    }
+
+    /** Legacy snapshots with existing receipts remain uncertain without replacing their missing historical baseline. */
+    @Test
+    public void missingCheckpointWithReceiptReturnsUntracked() throws Exception {
+        assertTrue(store.complete(store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis())));
+
+        assertEquals(PmDeletionQueue.DeletionState.UNTRACKED,
+                deletionState(accountKey, MESSAGE_ID, "legacy-sheet", false));
+        assertEquals(PmDeletionQueue.DeletionState.UNTRACKED,
+                deletionState(accountKey, MESSAGE_ID, "legacy-sheet", false));
+    }
+
+    /** A snapshot lacking both checkpoint and receipt safely establishes its baseline for future completions. */
+    @Test
+    public void missingCheckpointWithoutReceiptCanBeEstablished() throws Exception {
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                deletionState(accountKey, MESSAGE_ID, "sheet", false));
+        assertTrue(store.complete(store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis())));
+
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
+                deletionState(accountKey, MESSAGE_ID, "sheet", false));
+    }
+
+    /** A checkpoint permanently belongs to its captured message identity rather than the current adapter position. */
+    @Test
+    public void checkpointLookupRejectsAnotherMessageIdentity() throws Exception {
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                deletionState(accountKey, MESSAGE_ID, "sheet", true));
+
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE,
+                deletionState(accountKey, MESSAGE_ID + 1, "sheet", false));
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                deletionState(accountKey, MESSAGE_ID, "sheet", false));
+    }
+
+    /** Expired pending work does not fabricate a receipt or prevent safe creation of an empty baseline. */
+    @Test
+    public void expiredIntentCanEstablishAnEmptyCheckpoint() throws Exception {
+        store.insert(accountKey, 12, MESSAGE_ID,
+                System.currentTimeMillis() - PmDeletionRetryPolicy.LIFETIME_MS);
+
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                deletionState(accountKey, MESSAGE_ID, "sheet", false));
+        assertNull(store.findIncludingCompleted(accountKey, MESSAGE_ID).receiptToken);
+    }
+
+    /** A failed checkpoint commit cannot report success or later treat an uncaptured receipt as an older baseline. */
+    @Test
+    public void failedCheckpointWriteRemainsUnavailableThenUntracked() throws Exception {
+        SQLiteDatabase database = store.getWritableDatabase();
+        database.execSQL("CREATE TRIGGER queue_test_reject_checkpoint BEFORE INSERT ON pm_composer_checkpoints "
+                + "BEGIN SELECT RAISE(ABORT, 'Controlled checkpoint write failure'); END");
+        try {
+            assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE,
+                    deletionState(accountKey, MESSAGE_ID, "sheet", true));
+        } finally {
+            database.execSQL("DROP TRIGGER queue_test_reject_checkpoint");
+        }
+        assertTrue(store.complete(store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis())));
+
+        assertEquals(PmDeletionQueue.DeletionState.UNTRACKED,
+                deletionState(accountKey, MESSAGE_ID, "sheet", false));
     }
 
     /** An old completion for another account or another message cannot close this restored draft. */
@@ -299,7 +374,7 @@ public class PmDeletionQueueTest {
         store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis());
         AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
 
-        PmDeletionQueue.getDeletionState(context, accountKey, MESSAGE_ID, result::set);
+        PmDeletionQueue.getDeletionState(context, accountKey, MESSAGE_ID, "sheet", true, result::set);
         context.login = "Bob";
 
         await(() -> result.get() != null);
@@ -323,6 +398,7 @@ public class PmDeletionQueueTest {
         try {
             assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE, deletionState(accountKey, MESSAGE_ID));
         } finally {
+            database.execSQL("DROP TABLE pm_composer_checkpoints");
             store.onCreate(database);
         }
     }
@@ -335,11 +411,11 @@ public class PmDeletionQueueTest {
         return result.get();
     }
 
-    /** Queries a receipt against the persisted creation time of one particular composer snapshot. */
+    /** Reads account-scoped causal state through the queue's background checkpoint transaction and UI callback. */
     private PmDeletionQueue.DeletionState deletionState(String account, int messageId,
-                                                       long openedAt) throws Exception {
+                                                       String checkpoint, boolean create) throws Exception {
         AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
-        PmDeletionQueue.getDeletionState(context, account, messageId, openedAt, result::set);
+        PmDeletionQueue.getDeletionState(context, account, messageId, checkpoint, create, result::set);
         await(() -> result.get() != null);
         return result.get();
     }

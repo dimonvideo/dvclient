@@ -27,8 +27,8 @@ public final class PmDeletionQueue {
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
-    /** Distinguishes accepted and completed deletions from absent or unreadable durable state. */
-    public enum DeletionState { PENDING, COMPLETED, ABSENT, UNAVAILABLE }
+    /** UNTRACKED preserves a draft whose original receipt checkpoint is unavailable; it never permits mutation. */
+    public enum DeletionState { PENDING, COMPLETED, ABSENT, UNAVAILABLE, UNTRACKED }
 
     /** Separates durable intent acceptance from best-effort background work scheduling. */
     interface Scheduler {
@@ -199,30 +199,44 @@ public final class PmDeletionQueue {
      */
     public static void getDeletionState(Context context, String accountKey, int messageId,
                                         Consumer<DeletionState> callback) {
-        getDeletionState(context, accountKey, messageId, 0, callback);
+        lookupDeletionState(context, accountKey, messageId, null, false, callback);
     }
 
     /**
-     * Reconciles a restored snapshot with pending work and deletions completed after it was opened.
-     * Older completed generations cannot invalidate a fresh composer for a message restored on the site.
-     * A zero opening time conservatively reconciles snapshots saved by versions without this field.
+     * Captures or reconciles a durable opening checkpoint independently of changes to device time.
+     * Fresh openings record the receipt they observed before actions become available; restored
+     * openings use that same checkpoint even when its initial callback was lost with the process.
      */
     public static void getDeletionState(Context context, String accountKey, int messageId,
-                                        long composerOpenedAt, Consumer<DeletionState> callback) {
+                                        String checkpointId, boolean createCheckpoint,
+                                        Consumer<DeletionState> callback) {
+        if (checkpointId == null || checkpointId.isEmpty()) {
+            MAIN.post(() -> callback.accept(accountKey != null && messageId > 0
+                    && accountKey.equals(currentAccountKey()) ? DeletionState.UNTRACKED
+                    : DeletionState.UNAVAILABLE));
+            return;
+        }
+        lookupDeletionState(context, accountKey, messageId, checkpointId, createCheckpoint, callback);
+    }
+
+    /** Reads durable state off the UI thread and validates the same account again before delivery. */
+    private static void lookupDeletionState(Context context, String accountKey, int messageId,
+                                            String checkpointId, boolean createCheckpoint,
+                                            Consumer<DeletionState> callback) {
         Context appContext = context.getApplicationContext();
         IO.execute(() -> {
             DeletionState result = DeletionState.UNAVAILABLE;
             if (accountKey != null && messageId > 0 && accountKey.equals(currentAccountKey())) {
                 try {
-                    PmDeletionStore.Entry entry = PmDeletionStore.get(appContext)
-                            .findIncludingCompleted(accountKey, messageId);
-                    if (entry != null && entry.confirmed && entry.completedAt >= composerOpenedAt) {
-                        result = DeletionState.COMPLETED;
-                    } else if (entry != null && !entry.confirmed
-                            && !PmDeletionRetryPolicy.isExpired(entry.createdAt, System.currentTimeMillis())) {
-                        result = DeletionState.PENDING;
+                    PmDeletionStore store = PmDeletionStore.get(appContext);
+                    if (checkpointId != null) {
+                        result = store.composerState(accountKey, messageId, checkpointId, createCheckpoint,
+                                System.currentTimeMillis());
                     } else {
-                        result = DeletionState.ABSENT;
+                        PmDeletionStore.Entry entry = store.findIncludingCompleted(accountKey, messageId);
+                        result = entry != null && entry.confirmed ? DeletionState.COMPLETED
+                                : entry != null && !PmDeletionRetryPolicy.isExpired(entry.createdAt,
+                                        System.currentTimeMillis()) ? DeletionState.PENDING : DeletionState.ABSENT;
                     }
                 } catch (Exception exception) {
                     // Keep restored actions blocked until the user can verify the durable store.

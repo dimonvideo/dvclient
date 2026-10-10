@@ -75,6 +75,7 @@ public final class PmMessageDialog {
         boolean sending;
         boolean deleting;
         boolean checkingDeletion;
+        String deletionCheckpointId;
         boolean acknowledged;
         int resolvedRecipientId;
         final MutableLiveData<Integer> updates = new MutableLiveData<>(0);
@@ -198,6 +199,9 @@ public final class PmMessageDialog {
     /** Opens an account-bound fallback sheet and connects it to buffered picker/upload results. */
     void show() {
         if (released || !ensureAccount()) return;
+        // A fallback is a new, non-restored opening; an old fragment lookup must not own its draft.
+        draft.deletionCheckpointId = null;
+        draft.checkingDeletion = false;
         dialog.show();
         startForFragment();
         if (released) return;

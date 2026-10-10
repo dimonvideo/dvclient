@@ -25,13 +25,22 @@ public final class PmDeletionDurableFixture {
         completeConfirmed(context, account, messageId);
     }
 
-    /** Writes an older completed generation at a deterministic instant for fresh-snapshot cutoff checks. */
+    /** Completes a persisted generation with an explicit clock value to exercise corrections in either direction. */
     public static void confirmAt(Context context, String account, int userId, int messageId,
                                  int folder, long createdAt, long completedAt) {
         PmDeletionStore store = PmDeletionStore.get(context);
         PmDeletionStore.Entry entry = store.insert(account, userId, messageId, createdAt, folder, 1);
         if (!store.complete(entry, completedAt)) {
             throw new IllegalStateException("The test completion was not persisted");
+        }
+    }
+
+    /** Persists a real opening checkpoint before its asynchronous UI callback is deliberately lost. */
+    public static void capture(Context context, String account, int messageId, String checkpointId) {
+        PmDeletionQueue.DeletionState state = PmDeletionStore.get(context).composerState(
+                account, messageId, checkpointId, true, System.currentTimeMillis());
+        if (state != PmDeletionQueue.DeletionState.ABSENT) {
+            throw new IllegalStateException("The test checkpoint did not capture a usable source");
         }
     }
 

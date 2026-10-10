@@ -48,6 +48,7 @@ public class PmDeletionWorkerTest {
     public void prepareIntent() {
         store = PmDeletionStore.get(RuntimeEnvironment.getApplication());
         store.getWritableDatabase().delete("pm_deletions", null, null);
+        store.getWritableDatabase().delete("pm_composer_checkpoints", null, null);
         session = new FakeSession(accountKey);
         server = new FakeServer();
         store.insert(accountKey, 12, MESSAGE_ID, clock.get());
@@ -183,6 +184,10 @@ public class PmDeletionWorkerTest {
         assertNotNull(completed);
         assertTrue(completed.confirmed);
         assertEquals(generation, completed.createdAt);
+        assertNotNull(completed.receiptToken);
+        String receipt = completed.receiptToken;
+        store.close();
+        assertEquals(receipt, store.findIncludingCompleted(accountKey, MESSAGE_ID).receiptToken);
         assertEquals(1, server.mutations);
         assertEquals(0, scheduled.size());
     }
@@ -193,6 +198,7 @@ public class PmDeletionWorkerTest {
         PmDeletionWorker request = worker();
         assertEquals(ListenableWorker.Result.success(), request.doWork());
         int requestsAfterCompletion = server.requests;
+        String receipt = store.findIncludingCompleted(accountKey, MESSAGE_ID).receiptToken;
         clock.addAndGet(PmDeletionRetryPolicy.LIFETIME_MS);
 
         assertEquals(ListenableWorker.Result.success(), request.doWork());
@@ -201,6 +207,7 @@ public class PmDeletionWorkerTest {
         assertEquals(1, server.mutations);
         assertEquals(0, scheduled.size());
         assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+        assertEquals(receipt, store.findIncludingCompleted(accountKey, MESSAGE_ID).receiptToken);
     }
 
     /** A failed completion write keeps pending metadata and later reconciles trash without deleting twice. */
@@ -215,6 +222,7 @@ public class PmDeletionWorkerTest {
             assertEquals(ListenableWorker.Result.success(), worker().doWork());
             assertNotNull(store.find(accountKey, MESSAGE_ID));
             assertFalse(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+            assertNull(store.findIncludingCompleted(accountKey, MESSAGE_ID).receiptToken);
             assertEquals(1, scheduled.size());
             assertEquals(1, server.mutations);
         } finally {
@@ -226,6 +234,7 @@ public class PmDeletionWorkerTest {
 
         assertNull(store.find(accountKey, MESSAGE_ID));
         assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+        assertNotNull(store.findIncludingCompleted(accountKey, MESSAGE_ID).receiptToken);
         assertEquals(1, server.mutations);
     }
 

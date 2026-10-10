@@ -38,6 +38,7 @@ import org.robolectric.util.ReflectionHelpers;
 import java.util.function.Consumer;
 import java.util.function.BooleanSupplier;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -444,13 +445,14 @@ public class PmComposerFragmentTest {
     public void confirmedDurableDeletionBeforeProcessRestoreClosesOldSheetWithoutReplayingMutations()
             throws Exception {
         prepareDurableQueue();
-        FakeOperations previousOperations = openSendableOutgoing();
+        FakeOperations previousOperations = new FakeOperations();
+        openOutgoing(previousOperations, 1, PmDeletionQueue::getDeletionState);
+        await(() -> !composerState().draft.checkingDeletion);
         input().setText("draft saved before acceptance was delivered");
-        PmComposerFragment.State previousState = composerState();
-        long openedAt = previousState.openedAt;
+        long createdAt = System.currentTimeMillis();
         fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
         PmDeletionDurableFixture.persist(RuntimeEnvironment.getApplication(), account, 12,
-                42, 1, openedAt);
+                42, 1, createdAt);
         Bundle saved = saveAsParcel();
         activity.pause().stop().destroy();
         PmDeletionDurableFixture.completeConfirmed(RuntimeEnvironment.getApplication(), account, 42);
@@ -478,17 +480,18 @@ public class PmComposerFragmentTest {
         assertEquals(1, previousOperations.queuedDeletes);
     }
 
-    /** A new snapshot opened after an older deletion receipt stays usable following an external server restoration. */
+    /** A causally older receipt with a forward-shifted timestamp cannot discard a fresh restored message's draft. */
     @Test
-    public void freshComposerAfterEarlierDeletionReceiptRemainsUsableAfterColdRestore() throws Exception {
+    public void freshComposerAfterOlderFutureDatedReceiptPreservesDraftAfterColdRestore() throws Exception {
         prepareDurableQueue();
         long earlierDeletion = System.currentTimeMillis() - 1000;
         PmDeletionDurableFixture.confirmAt(RuntimeEnvironment.getApplication(), account, 12,
-                42, 1, earlierDeletion, earlierDeletion);
+                42, 1, earlierDeletion, System.currentTimeMillis() + TimeUnit.DAYS.toMillis(365));
         PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
-        openSendableOutgoing();
-        long openedAt = composerState().openedAt;
-        assertTrue(openedAt > earlierDeletion);
+        FakeOperations initialOperations = new FakeOperations();
+        openOutgoing(initialOperations, 1, PmDeletionQueue::getDeletionState);
+        await(() -> !composerState().draft.checkingDeletion);
+        String checkpointId = composerState().checkpointId;
         input().setText("reply to a message restored through the website");
         FakeOperations restoredOperations = new FakeOperations();
         restoreProcess(restoredOperations, PmDeletionQueue::getDeletionState);
@@ -496,8 +499,284 @@ public class PmComposerFragmentTest {
         assertTrue(fragment().requireDialog().isShowing());
         assertTrue(send().isEnabled());
         assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
-        assertEquals(openedAt, composerState().openedAt);
+        assertEquals(checkpointId, composerState().checkpointId);
         assertEquals("reply to a message restored through the website", input().getText().toString());
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+    }
+
+    /** A receipt completed after capture still invalidates the old sheet when a backward clock correction dates it earlier. */
+    @Test
+    public void newerPastDatedCompletionClosesOldCheckpointWithoutReplayingMutations() throws Exception {
+        prepareDurableQueue();
+        FakeOperations initialOperations = new FakeOperations();
+        openOutgoing(initialOperations, 1, PmDeletionQueue::getDeletionState);
+        await(() -> !composerState().draft.checkingDeletion);
+        input().setText("reply cannot be sent after this message was deleted");
+        Bundle saved = saveAsParcel();
+        activity.pause().stop().destroy();
+        long createdAt = System.currentTimeMillis();
+        PmDeletionDurableFixture.confirmAt(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, createdAt, createdAt - TimeUnit.DAYS.toMillis(365));
+        PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
+        FakeOperations restoredOperations = new FakeOperations();
+        TestActivity.restoredOperations = restoredOperations;
+        TestActivity.restoredDeletionLookup = PmDeletionQueue::getDeletionState;
+        activity = Robolectric.buildActivity(TestActivity.class).setup(saved);
+        final int[] removedMessage = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(),
+                (key, result) -> removedMessage[0] = result.getInt("message"));
+        await(() -> fragment() == null && removedMessage[0] == 42);
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(0, initialOperations.sends);
+    }
+
+    /** Rotation retains an unfinished opening capture and cannot enable mutations or create a second checkpoint. */
+    @Test
+    public void rotationDuringCheckpointCaptureKeepsSingleRequestAndBlocksMutations() {
+        FakeOperations operations = new FakeOperations();
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        openOutgoing(operations, 1, lookup);
+        String checkpointId = composerState().checkpointId;
+        PmComposerFragment.State previousState = composerState();
+        assertEquals(1, lookup.checks);
+        assertTrue(lookup.createCheckpoint);
+        assertEquals(checkpointId, lookup.checkpointId);
+        assertMutationControlsBlocked();
+        TestActivity.restoredDeletionLookup = lookup;
+        activity.recreate();
+        ShadowLooper.shadowMainLooper().idle();
+        assertSame(previousState, composerState());
+        assertEquals(checkpointId, composerState().checkpointId);
+        assertEquals(1, lookup.checks);
+        assertMutationControlsBlocked();
+        lookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        assertTrue(send().isEnabled());
+        assertTrue(input().isEnabled());
+        assertEquals(0, operations.sends);
+        assertEquals(0, operations.queuedDeletes);
+    }
+
+    /** An older sheet's delayed absent result cannot release the barrier belonging to a new opening of the same draft. */
+    @Test
+    public void oldAbsentCallbackCannotUnlockReopenedComposerSharingItsDraft() {
+        FakeDeletionLookup previousLookup = new FakeDeletionLookup();
+        FakeOperations previousOperations = new FakeOperations();
+        openOutgoing(previousOperations, 1, previousLookup);
+        input().setText("unsent reply retained through reopening");
+        PmComposerFragment.State previousState = composerState();
+        fragment().dismissNow();
+        FakeDeletionLookup currentLookup = new FakeDeletionLookup();
+        FakeOperations currentOperations = new FakeOperations();
+        openOutgoing(currentOperations, 1, currentLookup);
+        PmComposerFragment currentFragment = fragment();
+        assertSame(previousState.draft, composerState().draft);
+        assertFalse(previousState.checkpointId.equals(composerState().checkpointId));
+        assertMutationControlsBlocked();
+        previousLookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        ShadowLooper.shadowMainLooper().idle();
+        assertSame(currentFragment, fragment());
+        assertMutationControlsBlocked();
+        assertEquals("unsent reply retained through reopening", input().getText().toString());
+        assertEquals(1, currentLookup.checks);
+        assertEquals(0, currentOperations.sends);
+        assertEquals(0, currentOperations.queuedDeletes);
+        currentLookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        assertTrue(send().isEnabled());
+        assertTrue(input().isEnabled());
+        assertEquals(0, previousOperations.sends);
+    }
+
+    /** A completed result for a closed opening cannot clear or remove the new sheet's shared draft and attachment. */
+    @Test
+    public void oldCompletedCallbackCannotDiscardDraftOrPublishRemovalForReopenedComposer() {
+        FakeDeletionLookup previousLookup = new FakeDeletionLookup();
+        openOutgoing(new FakeOperations(), 1, previousLookup);
+        input().setText("draft from the first opening");
+        PmComposerFragment.State previousState = composerState();
+        previousState.draft.attachment = "retained-attachment.png";
+        fragment().dismissNow();
+        FakeDeletionLookup currentLookup = new FakeDeletionLookup();
+        FakeOperations currentOperations = new FakeOperations();
+        openOutgoing(currentOperations, 1, currentLookup);
+        input().setText("newly edited reply in the second opening");
+        saveAsParcel();
+        PmComposerFragment currentFragment = fragment();
+        final int[] removals = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(), (key, result) -> removals[0]++);
+        assertSame(previousState.draft, composerState().draft);
+        assertFalse(previousState.checkpointId.equals(composerState().checkpointId));
+        assertMutationControlsBlocked();
+        previousLookup.complete(PmDeletionQueue.DeletionState.COMPLETED);
+        ShadowLooper.shadowMainLooper().idle();
+        activity.get().getSupportFragmentManager().executePendingTransactions();
+        assertSame(currentFragment, fragment());
+        assertTrue(fragment().requireDialog().isShowing());
+        assertMutationControlsBlocked();
+        assertEquals("newly edited reply in the second opening", input().getText().toString());
+        assertEquals("newly edited reply in the second opening", composerState().draft.text);
+        assertEquals("retained-attachment.png", composerState().draft.attachment);
+        assertFalse(composerState().draft.acknowledged);
+        assertEquals(0, removals[0]);
+        assertEquals(0, currentOperations.sends);
+        assertEquals(0, currentOperations.queuedDeletes);
+        currentLookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        assertTrue(send().isEnabled());
+        assertTrue(input().isEnabled());
+        assertEquals("retained-attachment.png", composerState().draft.attachment);
+        assertEquals(0, removals[0]);
+    }
+
+    /** Switching a retained draft into the plain fallback invalidates the old fragment's pending deletion read. */
+    @Test
+    public void oldCompletedCallbackCannotClearOrDismissFallbackUsingTheSameDraft() {
+        FakeDeletionLookup previousLookup = new FakeDeletionLookup();
+        openOutgoing(new FakeOperations(), 1, previousLookup);
+        input().setText("draft reopened through the fallback window");
+        PmComposerFragment.State previousState = composerState();
+        previousState.draft.attachment = "fallback-attachment.png";
+        FeedPm feed = new FeedPm(previousState.feed);
+        fragment().dismissNow();
+        FakeOperations fallbackOperations = new FakeOperations();
+        final int[] removals = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(), (key, result) -> removals[0]++);
+        PmMessageDialog fallback = new PmMessageDialog(activity.get(), feed, false, previousState.draft,
+                () -> removals[0]++, () -> { }, fallbackOperations, 14);
+        try {
+            fallback.show();
+            Button send = fallback.dialogForFragment().findViewById(R.id.pm_reply_send);
+            assertTrue(send.isEnabled());
+            previousLookup.complete(PmDeletionQueue.DeletionState.COMPLETED);
+            ShadowLooper.shadowMainLooper().idle();
+            assertTrue(fallback.dialogForFragment().isShowing());
+            EditText input = fallback.dialogForFragment().findViewById(R.id.pm_reply_input);
+            assertEquals("draft reopened through the fallback window", input.getText().toString());
+            assertEquals("draft reopened through the fallback window", previousState.draft.text);
+            assertEquals("fallback-attachment.png", previousState.draft.attachment);
+            assertFalse(previousState.draft.acknowledged);
+            assertTrue(send.isEnabled());
+            assertEquals(0, removals[0]);
+            assertEquals(0, fallbackOperations.sends);
+            assertEquals(0, fallbackOperations.queuedDeletes);
+        } finally {
+            fallback.dismiss();
+        }
+    }
+
+    /** A saved checkpoint recovers its SQLite baseline when the original capture callback was lost before delivery. */
+    @Test
+    public void savedCheckpointBeforeCaptureCallbackReconcilesLaterCompletionAfterProcessDeath() throws Exception {
+        prepareDurableQueue();
+        FakeOperations previousOperations = new FakeOperations();
+        FakeDeletionLookup originalCapture = new FakeDeletionLookup();
+        openOutgoing(previousOperations, 1, originalCapture);
+        String checkpointId = composerState().checkpointId;
+        PmDeletionDurableFixture.capture(RuntimeEnvironment.getApplication(), account, 42, checkpointId);
+        assertMutationControlsBlocked();
+        assertTrue(originalCapture.createCheckpoint);
+        Bundle saved = saveAsParcel();
+        activity.pause().stop().destroy();
+        long createdAt = System.currentTimeMillis();
+        PmDeletionDurableFixture.confirmAt(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, createdAt, createdAt - TimeUnit.DAYS.toMillis(365));
+        PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
+        FakeOperations restoredOperations = new FakeOperations();
+        TestActivity.restoredOperations = restoredOperations;
+        TestActivity.restoredDeletionLookup = PmDeletionQueue::getDeletionState;
+        activity = Robolectric.buildActivity(TestActivity.class).setup(saved);
+        final int[] removedMessage = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(),
+                (key, result) -> removedMessage[0] = result.getInt("message"));
+        await(() -> fragment() == null && removedMessage[0] == 42);
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(0, previousOperations.sends);
+        assertEquals(1, originalCapture.checks);
+    }
+
+    /** Process death before a checkpoint reaches SQLite cannot turn an ambiguous old receipt into draft deletion. */
+    @Test
+    public void missingPersistedCheckpointPreservesDraftAndRequiresReopeningWithoutRetryingCapture() throws Exception {
+        prepareDurableQueue();
+        long createdAt = System.currentTimeMillis();
+        PmDeletionDurableFixture.confirmAt(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, createdAt, createdAt + TimeUnit.DAYS.toMillis(365));
+        FakeOperations previousOperations = new FakeOperations();
+        FakeDeletionLookup originalCapture = new FakeDeletionLookup();
+        openOutgoing(previousOperations, 1, originalCapture);
+        input().setText("keep the draft whose capture did not reach durable storage");
+        String checkpointId = composerState().checkpointId;
+        AtomicBoolean finished = new AtomicBoolean();
+        FakeOperations restoredOperations = new FakeOperations();
+        restoreProcess(restoredOperations, observedQueueLookup(finished));
+        await(finished::get);
+        assertTrue(fragment().requireDialog().isShowing());
+        assertEquals(checkpointId, composerState().checkpointId);
+        assertEquals("keep the draft whose capture did not reach durable storage", input().getText().toString());
+        assertMutationControlsBlocked();
+        assertEquals(android.view.View.GONE,
+                fragment().requireDialog().findViewById(R.id.pm_deletion_retry).getVisibility());
+        assertEquals(activity.get().getString(R.string.pm_deletion_reopen), text(R.id.pm_deletion_status));
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(1, originalCapture.checks);
+        fragment().dismissNow();
+        openOutgoing(restoredOperations, 1, PmDeletionQueue::getDeletionState);
+        await(() -> !composerState().draft.checkingDeletion);
+        assertFalse(checkpointId.equals(composerState().checkpointId));
+        assertEquals("keep the draft whose capture did not reach durable storage", input().getText().toString());
+        assertTrue(send().isEnabled());
+        assertTrue(input().isEnabled());
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+    }
+
+    /** A legacy snapshot without a checkpoint retains its unsent text when an existing receipt cannot be ordered safely. */
+    @Test
+    public void legacyCheckpointlessRestorePreservesDraftAgainstAmbiguousReceipt() throws Exception {
+        prepareDurableQueue();
+        openSendableOutgoing();
+        input().setText("legacy draft must survive an ambiguous completed deletion");
+        composerState().checkpointId = null;
+        fragment().requireArguments().remove("checkpoint_id");
+        long createdAt = System.currentTimeMillis();
+        PmDeletionDurableFixture.confirmAt(RuntimeEnvironment.getApplication(), account, 12,
+                42, 1, createdAt, createdAt + TimeUnit.DAYS.toMillis(365));
+        AtomicBoolean finished = new AtomicBoolean();
+        FakeOperations restoredOperations = new FakeOperations();
+        restoreProcess(restoredOperations, observedQueueLookup(finished));
+        await(finished::get);
+        assertTrue(fragment().requireDialog().isShowing());
+        assertEquals("legacy draft must survive an ambiguous completed deletion", input().getText().toString());
+        assertMutationControlsBlocked();
+        assertEquals(android.view.View.GONE,
+                fragment().requireDialog().findViewById(R.id.pm_deletion_retry).getVisibility());
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+    }
+
+    /** A legacy snapshot with no deletion receipt can safely recover its draft without falsely reporting completed removal. */
+    @Test
+    public void legacyCheckpointlessRestoreWithoutReceiptKeepsUsableDraft() throws Exception {
+        prepareDurableQueue();
+        openSendableOutgoing();
+        input().setText("legacy reply with no matching deletion");
+        composerState().checkpointId = null;
+        fragment().requireArguments().remove("checkpoint_id");
+        AtomicBoolean finished = new AtomicBoolean();
+        FakeOperations restoredOperations = new FakeOperations();
+        restoreProcess(restoredOperations, observedQueueLookup(finished));
+        await(finished::get);
+        assertTrue(fragment().requireDialog().isShowing());
+        assertEquals("legacy reply with no matching deletion", input().getText().toString());
+        assertTrue(input().isEnabled());
+        assertTrue(send().isEnabled());
+        assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
         assertEquals(0, restoredOperations.sends);
         assertEquals(0, restoredOperations.queuedDeletes);
     }
@@ -510,7 +789,7 @@ public class PmComposerFragmentTest {
         openOutgoing(originalOperations, 5);
         input().setText("reply while browsing the trash message");
         PmDeletionDurableFixture.confirm(RuntimeEnvironment.getApplication(), account, 12,
-                42, 1, composerState().openedAt);
+                42, 1, System.currentTimeMillis());
         PmDeletionDurableFixture.reopen(RuntimeEnvironment.getApplication());
         FakeOperations restoredOperations = new FakeOperations();
         restoreProcess(restoredOperations, PmDeletionQueue::getDeletionState);
@@ -528,19 +807,20 @@ public class PmComposerFragmentTest {
         assertEquals(0, originalOperations.sends);
     }
 
-    /** The original opening timestamp is preserved through both rotation and a serialized process restoration. */
+    /** The original causal checkpoint identifier survives both rotation and a serialized process restoration. */
     @Test
-    public void composerOpeningTimeSurvivesRecreationAndParcelRestore() {
+    public void composerCheckpointSurvivesRecreationAndParcelRestore() {
         openSendableOutgoing();
-        long openedAt = composerState().openedAt;
-        assertTrue(openedAt > 0);
+        String checkpointId = composerState().checkpointId;
+        assertTrue(checkpointId != null && !checkpointId.isEmpty());
         activity.recreate();
         ShadowLooper.shadowMainLooper().idle();
-        assertEquals(openedAt, composerState().openedAt);
+        assertEquals(checkpointId, composerState().checkpointId);
         FakeDeletionLookup lookup = new FakeDeletionLookup();
         restoreProcess(new FakeOperations(), lookup);
-        assertEquals(openedAt, composerState().openedAt);
-        assertEquals(openedAt, lookup.openedAt);
+        assertEquals(checkpointId, composerState().checkpointId);
+        assertEquals(checkpointId, lookup.checkpointId);
+        assertFalse(lookup.createCheckpoint);
         lookup.complete(PmDeletionQueue.DeletionState.ABSENT);
         assertTrue(send().isEnabled());
     }
@@ -660,7 +940,7 @@ public class PmComposerFragmentTest {
         draft.text = "Initial draft";
         draft.attachmentRequest = "original-request";
         owner.beginPicker("original-request", account);
-        assertTrue(PmComposerFragment.open(activity.get(), feed, member, draft));
+        assertTrue(PmComposerFragment.open(activity.get(), feed, member, draft, null, absentLookup()));
         ShadowLooper.shadowMainLooper().idle();
     }
 
@@ -678,6 +958,11 @@ public class PmComposerFragmentTest {
 
     /** Opens an outgoing source from its real mailbox, including trash where deletion controls are unavailable. */
     private void openOutgoing(FakeOperations operations, int folder) {
+        openOutgoing(operations, folder, absentLookup());
+    }
+
+    /** Opens the actual lifecycle-owned source with either an immediate or a real persistent checkpoint boundary. */
+    private void openOutgoing(FakeOperations operations, int folder, PmComposerFragment.DeletionLookup lookup) {
         FeedPm feed = new FeedPm();
         feed.setId(42);
         feed.setTitle("Outgoing message");
@@ -686,7 +971,7 @@ public class PmComposerFragmentTest {
         feed.setSourceFolder(folder);
         PmMessageDialog.Draft draft = new PmMessageDialog.Draft();
         draft.text = "Send to original recipient";
-        assertTrue(PmComposerFragment.open(activity.get(), feed, false, draft, operations));
+        assertTrue(PmComposerFragment.open(activity.get(), feed, false, draft, operations, lookup));
         ShadowLooper.shadowMainLooper().idle();
     }
 
@@ -718,6 +1003,23 @@ public class PmComposerFragmentTest {
     private void prepareDurableQueue() {
         durableQueueUsed = true;
         PmDeletionDurableFixture.reset(RuntimeEnvironment.getApplication());
+    }
+
+    /** Keeps unrelated lifecycle cases deterministic without starting production storage or worker scheduling. */
+    private static PmComposerFragment.DeletionLookup absentLookup() {
+        return (context, account, id, checkpoint, create, callback) ->
+                callback.accept(PmDeletionQueue.DeletionState.ABSENT);
+    }
+
+    /** Observes real restored queue delivery while asserting that a saved snapshot is never captured as a fresh opening. */
+    private static PmComposerFragment.DeletionLookup observedQueueLookup(AtomicBoolean finished) {
+        return (context, account, id, checkpoint, create, callback) -> {
+            assertFalse("A restored sheet must use its original checkpoint", create);
+            PmDeletionQueue.getDeletionState(context, account, id, checkpoint, false, result -> {
+                callback.accept(result);
+                finished.set(true);
+            });
+        };
     }
 
     /** Drains only UI delivery while waiting a bounded time for the actual serialized queue executor to finish. */
@@ -787,8 +1089,7 @@ public class PmComposerFragmentTest {
                     Fragment fragment = super.instantiate(classLoader, className);
                     if (fragment instanceof PmComposerFragment) {
                         PmComposerFragment.DeletionLookup lookup = restoredDeletionLookup != null
-                                ? restoredDeletionLookup : (context, account, id, openedAt, callback) ->
-                                callback.accept(PmDeletionQueue.DeletionState.ABSENT);
+                                ? restoredDeletionLookup : absentLookup();
                         ReflectionHelpers.setField(fragment, "initialDeletionLookup", lookup);
                         if (restoredOperations != null) {
                             ReflectionHelpers.setField(fragment, "initialOperations", restoredOperations);
@@ -863,16 +1164,19 @@ public class PmComposerFragmentTest {
         int checks;
         String account;
         int message;
-        long openedAt;
+        String checkpointId;
+        boolean createCheckpoint;
         Consumer<PmDeletionQueue.DeletionState> callback;
 
         /** Records the exact account/message requested by the cold-restored sheet without touching storage or HTTP. */
-        @Override public void check(android.content.Context context, String account, int messageId, long openedAt,
+        @Override public void check(android.content.Context context, String account, int messageId,
+                                    String checkpointId, boolean createCheckpoint,
                                     Consumer<PmDeletionQueue.DeletionState> callback) {
             checks++;
             this.account = account;
             message = messageId;
-            this.openedAt = openedAt;
+            this.checkpointId = checkpointId;
+            this.createCheckpoint = createCheckpoint;
             this.callback = callback;
         }
 
