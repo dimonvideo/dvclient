@@ -1,6 +1,7 @@
 package com.dimonvideo.client.util.pm;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
 import androidx.work.Data;
@@ -26,6 +27,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /** Runs real Worker instances against SQLite and fake HTTP; no production server is contacted. */
 @RunWith(RobolectricTestRunner.class)
@@ -44,7 +47,7 @@ public class PmDeletionWorkerTest {
     @Before
     public void prepareIntent() {
         store = PmDeletionStore.get(RuntimeEnvironment.getApplication());
-        for (PmDeletionStore.Entry entry : store.entries()) store.remove(entry);
+        store.getWritableDatabase().delete("pm_deletions", null, null);
         session = new FakeSession(accountKey);
         server = new FakeServer();
         store.insert(accountKey, 12, MESSAGE_ID, clock.get());
@@ -79,6 +82,7 @@ public class PmDeletionWorkerTest {
         assertEquals(ListenableWorker.Result.success(), worker().doWork());
         assertNull(store.find(accountKey, MESSAGE_ID));
         assertEquals(1, server.mutations);
+        assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
     }
 
     /** Expiry after app/process sleep clears the intent without even authenticating remotely. */
@@ -89,6 +93,7 @@ public class PmDeletionWorkerTest {
         assertNull(store.find(accountKey, MESSAGE_ID));
         assertEquals(0, server.requests);
         assertEquals(0, scheduled.size());
+        assertNull(store.findIncludingCompleted(accountKey, MESSAGE_ID));
     }
 
     /** Switching accounts leaves the old intent pending and never sends the new account's credentials. */
@@ -117,6 +122,7 @@ public class PmDeletionWorkerTest {
         assertEquals(ListenableWorker.Result.success(), worker().doWork());
         assertNull(store.find(accountKey, MESSAGE_ID));
         assertEquals(1, server.mutations);
+        assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
     }
 
     /** Invalid authentication stops before folder reads or a destructive request. */
@@ -160,6 +166,67 @@ public class PmDeletionWorkerTest {
         assertEquals(ListenableWorker.Result.success(), oldWorker.doWork());
         assertEquals(clock.get(), store.find(accountKey, MESSAGE_ID).createdAt);
         assertEquals(0, server.requests);
+        assertFalse(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+    }
+
+    /** Successful server deletion leaves a durable marker after reopening without exposing it as pending work. */
+    @Test
+    public void confirmedDeletionMarkerSurvivesDatabaseReopening() {
+        long generation = store.find(accountKey, MESSAGE_ID).createdAt;
+
+        assertEquals(ListenableWorker.Result.success(), worker().doWork());
+        store.close();
+
+        assertNull(store.find(accountKey, MESSAGE_ID));
+        assertTrue(store.entries().isEmpty());
+        PmDeletionStore.Entry completed = store.findIncludingCompleted(accountKey, MESSAGE_ID);
+        assertNotNull(completed);
+        assertTrue(completed.confirmed);
+        assertEquals(generation, completed.createdAt);
+        assertEquals(1, server.mutations);
+        assertEquals(0, scheduled.size());
+    }
+
+    /** A surviving or duplicate WorkManager request cannot repeat a mutation after its generation is confirmed. */
+    @Test
+    public void completedGenerationNeverRunsAgainEvenAfterSixHours() {
+        PmDeletionWorker request = worker();
+        assertEquals(ListenableWorker.Result.success(), request.doWork());
+        int requestsAfterCompletion = server.requests;
+        clock.addAndGet(PmDeletionRetryPolicy.LIFETIME_MS);
+
+        assertEquals(ListenableWorker.Result.success(), request.doWork());
+
+        assertEquals(requestsAfterCompletion, server.requests);
+        assertEquals(1, server.mutations);
+        assertEquals(0, scheduled.size());
+        assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+    }
+
+    /** A failed completion write keeps pending metadata and later reconciles trash without deleting twice. */
+    @Test
+    public void failedCompletionWriteRetriesDurablyAndConfirmsFromTrash() {
+        SQLiteDatabase database = store.getWritableDatabase();
+        database.execSQL("CREATE TRIGGER worker_test_reject_completion BEFORE UPDATE OF confirmed "
+                + "ON pm_deletions WHEN NEW.confirmed=1 "
+                + "BEGIN SELECT RAISE(ABORT, 'Controlled completion write failure'); END");
+        server.applyMutationToTrash = true;
+        try {
+            assertEquals(ListenableWorker.Result.success(), worker().doWork());
+            assertNotNull(store.find(accountKey, MESSAGE_ID));
+            assertFalse(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+            assertEquals(1, scheduled.size());
+            assertEquals(1, server.mutations);
+        } finally {
+            database.execSQL("DROP TRIGGER worker_test_reject_completion");
+        }
+        clock.set(store.find(accountKey, MESSAGE_ID).nextAttemptAt);
+
+        assertEquals(ListenableWorker.Result.success(), worker().doWork());
+
+        assertNull(store.find(accountKey, MESSAGE_ID));
+        assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+        assertEquals(1, server.mutations);
     }
 
     /** Builds an actual WorkManager Worker with test-only boundaries instead of changing app startup. */
@@ -207,6 +274,7 @@ public class PmDeletionWorkerTest {
         private boolean active = true;
         private boolean trash;
         private boolean loseMutationResponse;
+        private boolean applyMutationToTrash;
         private String authBody = "{\"state\":1,\"user_id\":12,\"pm_unread\":3}";
         private String mutationBody = "[{\"status\":1}]";
 
@@ -217,6 +285,10 @@ public class PmDeletionWorkerTest {
             if (address.startsWith(Config.CHECK_AUTH_URL)) return authBody;
             if (address.contains("&pm=10")) {
                 mutations++;
+                if (applyMutationToTrash) {
+                    active = false;
+                    trash = true;
+                }
                 if (loseMutationResponse) {
                     active = false;
                     trash = true;

@@ -29,6 +29,7 @@ import java.util.function.BooleanSupplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /** Exercises UI acceptance and recovery against the real SQLite queue with a failing scheduler. */
@@ -47,7 +48,7 @@ public class PmDeletionQueueTest {
     public void prepareQueue() {
         context = (TestApp) RuntimeEnvironment.getApplication();
         store = PmDeletionStore.get(context);
-        for (PmDeletionStore.Entry entry : store.entries()) store.remove(entry);
+        store.getWritableDatabase().delete("pm_deletions", null, null);
         ShadowToast.reset();
     }
 
@@ -181,6 +182,72 @@ public class PmDeletionQueueTest {
         assertTrue(pendingIds().isEmpty());
         assertTrue(store.entries().isEmpty());
         assertEquals(0, scheduled.get());
+        assertNull(store.findIncludingCompleted(accountKey, MESSAGE_ID));
+    }
+
+    /** A worker result remains available after database reopening even when its EventBus callback was lost. */
+    @Test
+    public void confirmedDeletionSurvivesColdLookupBeyondRetryLifetime() throws Exception {
+        long createdAt = System.currentTimeMillis() - PmDeletionRetryPolicy.LIFETIME_MS - 1;
+        PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID, createdAt);
+        PmDeletionQueue.finish(context, entry, PmDeletionEvent.Outcome.CONFIRMED);
+        store.close();
+
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED, deletionState(accountKey, MESSAGE_ID));
+        assertNull(store.find(accountKey, MESSAGE_ID));
+        assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+    }
+
+    /** Completion invalidates an earlier sheet even if it opened after enqueue; a later restored source stays usable. */
+    @Test
+    public void completionLookupUsesComposerOpeningCutoff() throws Exception {
+        long createdAt = System.currentTimeMillis() - 1000;
+        long completedAt = createdAt + 500;
+        PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID, createdAt);
+        assertTrue(store.complete(entry, completedAt));
+
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
+                deletionState(accountKey, MESSAGE_ID, completedAt - 1));
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
+                deletionState(accountKey, MESSAGE_ID, completedAt));
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                deletionState(accountKey, MESSAGE_ID, completedAt + 1));
+    }
+
+    /** An old completion for another account or another message cannot close this restored draft. */
+    @Test
+    public void completionLookupIsScopedToAccountAndMessage() throws Exception {
+        long now = System.currentTimeMillis();
+        String otherAccount = PmDeletionAccount.key("Bob", 25);
+        assertTrue(store.complete(store.insert(otherAccount, 25, MESSAGE_ID, now)));
+        assertTrue(store.complete(store.insert(accountKey, 12, MESSAGE_ID + 1, now)));
+
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT, deletionState(accountKey, MESSAGE_ID));
+    }
+
+    /** Receipts never hide active server rows or cause app-start recovery to repeat an acknowledged mutation. */
+    @Test
+    public void completedIntentIsNeitherFilteredNorRescheduled() throws Exception {
+        assertTrue(store.complete(store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis())));
+        AtomicInteger scheduled = new AtomicInteger();
+
+        PmDeletionQueue.resume(context,
+                (appContext, entry, policy) -> scheduled.incrementAndGet());
+
+        assertTrue(pendingIds().isEmpty());
+        assertEquals(0, scheduled.get());
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED, deletionState(accountKey, MESSAGE_ID));
+    }
+
+    /** An old worker's expiry cannot erase the persisted confirmation of a successful deletion. */
+    @Test
+    public void lateExpiryCannotEraseCompletedIntent() throws Exception {
+        PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis());
+        PmDeletionQueue.finish(context, entry, PmDeletionEvent.Outcome.CONFIRMED);
+
+        PmDeletionQueue.finish(context, entry, PmDeletionEvent.Outcome.EXPIRED);
+
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED, deletionState(accountKey, MESSAGE_ID));
     }
 
     /** A restored composer sees its exact durable intent and receives the result on the UI thread. */
@@ -264,6 +331,15 @@ public class PmDeletionQueueTest {
     private PmDeletionQueue.DeletionState deletionState(String account, int messageId) throws Exception {
         AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
         PmDeletionQueue.getDeletionState(context, account, messageId, result::set);
+        await(() -> result.get() != null);
+        return result.get();
+    }
+
+    /** Queries a receipt against the persisted creation time of one particular composer snapshot. */
+    private PmDeletionQueue.DeletionState deletionState(String account, int messageId,
+                                                       long openedAt) throws Exception {
+        AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
+        PmDeletionQueue.getDeletionState(context, account, messageId, openedAt, result::set);
         await(() -> result.get() != null);
         return result.get();
     }
