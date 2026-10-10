@@ -124,6 +124,7 @@ public final class PmDeletionQueue {
                     if (onRejected != null) onRejected.run();
                     return;
                 }
+                PmNotifications.dismiss(appContext, messageId);
                 if (onAccepted != null) onAccepted.run();
                 if (showAcceptedToast) {
                     Toast.makeText(appContext, R.string.pm_delete_queued, Toast.LENGTH_SHORT).show();
@@ -165,6 +166,7 @@ public final class PmDeletionQueue {
                 // A later app start or surviving WorkManager request can recover the intent.
             }
         });
+        PmNotifications.reconcile(appContext);
     }
 
     /**
@@ -274,6 +276,10 @@ public final class PmDeletionQueue {
                 ? store.complete(entry) : store.remove(entry);
         if (!finished) return;
         MAIN.post(() -> {
+            if (outcome == PmDeletionEvent.Outcome.CONFIRMED
+                    && entry.accountKey.equals(currentAccountKey())) {
+                PmNotifications.dismiss(context, entry.messageId);
+            }
             EventBus.getDefault().post(new PmDeletionEvent(entry.accountKey, entry.messageId, outcome));
             if (outcome == PmDeletionEvent.Outcome.EXPIRED
                     && entry.accountKey.equals(currentAccountKey())) {

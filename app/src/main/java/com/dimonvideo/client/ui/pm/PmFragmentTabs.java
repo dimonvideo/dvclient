@@ -6,8 +6,6 @@
 
 package com.dimonvideo.client.ui.pm;
 
-import android.app.NotificationManager;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,6 +32,7 @@ import com.dimonvideo.client.databinding.FragmentTabsBinding;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.UpdatePm;
+import com.dimonvideo.client.util.pm.PmNotifications;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -72,8 +71,7 @@ public class PmFragmentTabs extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        NotificationManager notificationManager = (NotificationManager) requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
+        PmNotifications.dismissAll(requireContext());
 
         final boolean is_outbox = AppController.getInstance().isPmOutbox();
         final boolean is_arc = AppController.getInstance().isPmArchive();

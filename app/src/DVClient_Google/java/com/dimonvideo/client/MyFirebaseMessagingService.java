@@ -29,6 +29,8 @@ import com.dimonvideo.client.util.ActionReceiver;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetToken;
 import com.dimonvideo.client.util.MessageEvent;
+import com.dimonvideo.client.util.pm.PmDeletionQueue;
+import com.dimonvideo.client.util.pm.PmNotifications;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -76,7 +78,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     getBitmapAsync(getApplicationContext(),
                             Objects.requireNonNull(remoteMessage.getData().get("subj")),
                             Objects.requireNonNull(remoteMessage.getData().get("text")), id,
-                            Objects.requireNonNull(remoteMessage.getData().get("image")));
+                            Objects.requireNonNull(remoteMessage.getData().get("image")),
+                            PmDeletionQueue.currentAccountKey());
                 }
             }
 
@@ -88,7 +91,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         GetToken.getToken(this);
     }
 
-    private void getBitmapAsync(Context context, String msg, String text, int id, String imageUrl) {
+    /** Loads the sender avatar while retaining the account that received this message. */
+    private void getBitmapAsync(Context context, String msg, String text, int id, String imageUrl,
+                                String accountKey) {
 
         final Bitmap[] bitmap = {null};
 
@@ -102,7 +107,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
 
                         bitmap[0] = resource;
-                        generateNotification(context, msg, text, id, bitmap[0]);
+                        generateNotification(context, msg, text, id, bitmap[0], accountKey);
                     }
 
                     @Override
@@ -111,12 +116,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 });
     }
 
-    private void generateNotification(Context context, String msg, String text, int id, Bitmap bitmap) {
+    /** Builds a correlated PM notification and checks deletion state before delayed publication. */
+    private void generateNotification(Context context, String msg, String text, int id, Bitmap bitmap,
+                                      String accountKey) {
 
         NotificationManager notificationManager;
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        String channelId = "dimonvideo.client";
+        String channelId = PmNotifications.CHANNEL_ID;
         String channelName = "PM";
 
         int importance = NotificationManager.IMPORTANCE_HIGH;
@@ -165,7 +172,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
         mBuilder.addAction(android.R.drawable.ic_delete, getString(R.string.pm_delete), pIntentDelete);
 
-        notificationManager.notify(id, mBuilder.build());
+        PmNotifications.publish(context, accountKey, id, mBuilder.build());
     }
 
     @Override

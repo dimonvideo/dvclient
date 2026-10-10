@@ -1,7 +1,11 @@
 package com.dimonvideo.client.util.pm;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Looper;
+import android.service.notification.StatusBarNotification;
 import android.widget.Toast;
 
 import com.dimonvideo.client.R;
@@ -20,6 +24,7 @@ import org.robolectric.util.ReflectionHelpers;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -42,15 +48,160 @@ public class PmDeletionQueueTest {
     private final AtomicInteger rejected = new AtomicInteger();
     private TestApp context;
     private PmDeletionStore store;
+    private NotificationManager notifications;
 
     /** Starts with an empty durable queue and a fake signed-in application without network startup. */
     @Before
     public void prepareQueue() {
         context = (TestApp) RuntimeEnvironment.getApplication();
+        context.login = "Alice";
         store = PmDeletionStore.get(context);
         store.getWritableDatabase().delete("pm_deletions", null, null);
         store.getWritableDatabase().delete("pm_composer_checkpoints", null, null);
+        notifications = context.getSystemService(NotificationManager.class);
+        notifications.cancelAll();
+        notifications.createNotificationChannel(new NotificationChannel(PmNotifications.CHANNEL_ID,
+                "Private messages", NotificationManager.IMPORTANCE_DEFAULT));
         ShadowToast.reset();
+    }
+
+    /** Acceptance dismisses exactly its durable PM before the UI callback, even when scheduling fails. */
+    @Test
+    public void persistedEnqueueDismissesOnlyTargetBeforeAcceptanceWhenSchedulingFails() throws Exception {
+        postNotification(null, MESSAGE_ID);
+        postNotification(null, MESSAGE_ID + 1);
+        postNotification("download", MESSAGE_ID);
+        AtomicReference<Boolean> targetVisibleAtAcceptance = new AtomicReference<>();
+
+        PmDeletionQueue.enqueue(context, MESSAGE_ID, 0, 1, () -> {
+            targetVisibleAtAcceptance.set(hasNotification(null, MESSAGE_ID));
+            accepted.incrementAndGet();
+        }, rejected::incrementAndGet, (appContext, entry, policy) -> {
+            throw new IOException("Controlled scheduling failure");
+        });
+
+        await(() -> accepted.get() + rejected.get() == 1);
+        assertEquals(1, accepted.get());
+        assertEquals(0, rejected.get());
+        assertEquals(Boolean.FALSE, targetVisibleAtAcceptance.get());
+        assertNotNull(store.find(accountKey, MESSAGE_ID));
+        assertFalse(hasNotification(null, MESSAGE_ID));
+        assertTrue(hasNotification(null, MESSAGE_ID + 1));
+        assertTrue(hasNotification("download", MESSAGE_ID));
+        assertEquals(2, notifications.getActiveNotifications().length);
+    }
+
+    /** Rejecting an invalid server identity does not dismiss even a notification with that numeric ID. */
+    @Test
+    public void invalidMessageIdentityKeepsNotifications() throws Exception {
+        postNotification(null, 0);
+        postNotification(null, MESSAGE_ID);
+        AtomicInteger scheduled = new AtomicInteger();
+
+        PmDeletionQueue.enqueue(context, 0, 0, 1, accepted::incrementAndGet,
+                rejected::incrementAndGet, (appContext, entry, policy) -> scheduled.incrementAndGet());
+
+        await(() -> accepted.get() + rejected.get() == 1);
+        assertEquals(0, accepted.get());
+        assertEquals(1, rejected.get());
+        assertEquals(0, scheduled.get());
+        assertTrue(store.entries().isEmpty());
+        assertTrue(hasNotification(null, 0));
+        assertTrue(hasNotification(null, MESSAGE_ID));
+    }
+
+    /** Switching accounts during scheduling preserves a replacement notification belonging to the new account. */
+    @Test
+    public void accountChangeBeforeAcceptanceCannotDismissNewAccountsNotification() throws Exception {
+        postNotification(null, MESSAGE_ID);
+
+        PmDeletionQueue.enqueue(context, MESSAGE_ID, 0, 1, accepted::incrementAndGet,
+                rejected::incrementAndGet, (appContext, entry, policy) -> {
+                    context.login = "Bob";
+                    postNotification(null, MESSAGE_ID);
+                });
+
+        await(() -> accepted.get() + rejected.get() == 1);
+        assertEquals(0, accepted.get());
+        assertEquals(1, rejected.get());
+        assertNotNull(store.find(accountKey, MESSAGE_ID));
+        assertTrue(hasNotification(null, MESSAGE_ID));
+    }
+
+    /** Confirmed worker completion repairs a notification left behind without removing other PMs or downloads. */
+    @Test
+    public void confirmedCompletionDismissesOnlyItsMessage() throws Exception {
+        PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis());
+        postNotification(null, MESSAGE_ID);
+        postNotification(null, MESSAGE_ID + 1);
+        postNotification("download", MESSAGE_ID);
+
+        PmDeletionQueue.finish(context, entry, PmDeletionEvent.Outcome.CONFIRMED);
+        assertTrue(pendingIds().isEmpty());
+
+        assertFalse(hasNotification(null, MESSAGE_ID));
+        assertTrue(hasNotification(null, MESSAGE_ID + 1));
+        assertTrue(hasNotification("download", MESSAGE_ID));
+        assertTrue(store.findIncludingCompleted(accountKey, MESSAGE_ID).confirmed);
+    }
+
+    /** An expired deletion leaves the actual message's notification because server deletion was not confirmed. */
+    @Test
+    public void expiredCompletionKeepsMessageNotification() throws Exception {
+        PmDeletionStore.Entry entry = store.insert(accountKey, 12, MESSAGE_ID,
+                System.currentTimeMillis() - PmDeletionRetryPolicy.LIFETIME_MS);
+        postNotification(null, MESSAGE_ID);
+
+        PmDeletionQueue.finish(context, entry, PmDeletionEvent.Outcome.EXPIRED);
+        assertTrue(pendingIds().isEmpty());
+
+        assertTrue(hasNotification(null, MESSAGE_ID));
+        assertNull(store.findIncludingCompleted(accountKey, MESSAGE_ID));
+    }
+
+    /** A stale worker generation cannot dismiss the notification of a newly accepted deletion for the same ID. */
+    @Test
+    public void staleWorkerCompletionKeepsReplacementNotification() throws Exception {
+        long now = System.currentTimeMillis();
+        PmDeletionStore.Entry oldEntry = store.insert(accountKey, 12, MESSAGE_ID, now - 1);
+        assertTrue(store.complete(oldEntry));
+        PmDeletionStore.Entry replacement = store.insert(accountKey, 12, MESSAGE_ID, now);
+        postNotification(null, MESSAGE_ID);
+
+        PmDeletionQueue.finish(context, oldEntry, PmDeletionEvent.Outcome.CONFIRMED);
+        assertEquals(Collections.singleton(MESSAGE_ID), pendingIds());
+
+        assertEquals(replacement.createdAt, store.find(accountKey, MESSAGE_ID).createdAt);
+        assertTrue(hasNotification(null, MESSAGE_ID));
+    }
+
+    /** Recovery repairs lost acceptance callbacks while preserving expired work and other-account notifications. */
+    @Test
+    public void recoveryDismissesAcceptedAndConfirmedNotificationsWithoutRequiringScheduling() throws Exception {
+        long now = System.currentTimeMillis();
+        store.insert(accountKey, 12, MESSAGE_ID, now);
+        assertTrue(store.complete(store.insert(accountKey, 12, MESSAGE_ID + 1, now)));
+        store.insert(accountKey, 12, MESSAGE_ID + 2, now - PmDeletionRetryPolicy.LIFETIME_MS);
+        store.insert(PmDeletionAccount.key("Bob", 25), 25, MESSAGE_ID + 3, now);
+        postNotification(null, MESSAGE_ID);
+        postNotification(null, MESSAGE_ID + 1);
+        postNotification(null, MESSAGE_ID + 2);
+        postNotification(null, MESSAGE_ID + 3);
+        postNotification("download", MESSAGE_ID);
+        AtomicInteger attempts = new AtomicInteger();
+
+        PmDeletionQueue.resume(context, (appContext, entry, policy) -> {
+            attempts.incrementAndGet();
+            throw new IOException("Controlled scheduling failure");
+        });
+        assertEquals(Collections.singleton(MESSAGE_ID), pendingIds());
+
+        assertEquals(2, attempts.get());
+        assertFalse(hasNotification(null, MESSAGE_ID));
+        assertFalse(hasNotification(null, MESSAGE_ID + 1));
+        assertTrue(hasNotification(null, MESSAGE_ID + 2));
+        assertTrue(hasNotification(null, MESSAGE_ID + 3));
+        assertTrue(hasNotification("download", MESSAGE_ID));
     }
 
     /** A saved intent stays accepted and hidden locally even if WorkManager cannot save its request. */
@@ -123,6 +274,7 @@ public class PmDeletionQueueTest {
     /** A genuinely failed SQLite write rejects removal and leaves nothing that recovery can delete. */
     @Test
     public void failedInsertionRejectsWithoutLeavingRecoverableIntent() throws Exception {
+        postNotification(null, MESSAGE_ID);
         SQLiteDatabase database = store.getWritableDatabase();
         database.execSQL("CREATE TRIGGER queue_test_reject BEFORE INSERT ON pm_deletions "
                 + "BEGIN SELECT RAISE(ABORT, 'Controlled queue write failure'); END");
@@ -137,6 +289,7 @@ public class PmDeletionQueueTest {
             assertEquals(context.getString(R.string.pm_delete_queue_error),
                     ShadowToast.getTextOfLatestToast());
             assertTrue(store.entries().isEmpty());
+            assertTrue(hasNotification(null, MESSAGE_ID));
         } finally {
             database.execSQL("DROP TRIGGER queue_test_reject");
         }
@@ -145,6 +298,21 @@ public class PmDeletionQueueTest {
                 (appContext, entry, policy) -> scheduled.incrementAndGet());
         assertTrue(pendingIds().isEmpty());
         assertEquals(0, scheduled.get());
+    }
+
+    /** Posts through Android's real notification service using the PM channel and an optional unrelated-work tag. */
+    private void postNotification(String tag, int messageId) {
+        notifications.notify(tag, messageId, new Notification.Builder(context, PmNotifications.CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_dialog_email)
+                .setContentTitle("Message " + messageId).build());
+    }
+
+    /** Checks both tag and numeric ID so a download cannot be mistaken for a PM with the same server ID. */
+    private boolean hasNotification(String tag, int messageId) {
+        for (StatusBarNotification notification : notifications.getActiveNotifications()) {
+            if (notification.getId() == messageId && Objects.equals(tag, notification.getTag())) return true;
+        }
+        return false;
     }
 
     /** Recovery continues with other accepted messages when scheduling one saved intent still fails. */
