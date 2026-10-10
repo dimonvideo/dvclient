@@ -251,6 +251,49 @@ public class PmMessageDialogTest {
         assertFalse(dialog().isShowing());
     }
 
+    /** Trash rows already satisfy deletion; only ordinary replies remain available in their detail sheet. */
+    @Test
+    public void trashMessageHidesDeletionActionsAndStillSendsOrdinaryReply() {
+        createTrashComposer();
+        composer.show();
+        assertEquals(View.GONE, button(R.id.pm_detail_delete).getVisibility());
+        assertEquals(View.GONE, button(R.id.pm_reply_send_delete).getVisibility());
+        assertFalse(button(R.id.pm_detail_delete).isEnabled());
+        assertFalse(button(R.id.pm_reply_send_delete).isEnabled());
+        assertTrue(button(R.id.pm_reply_send).isEnabled());
+        assertFalse(button(R.id.pm_reply_send).performLongClick());
+        assertEquals(0, operations.sends);
+        button(R.id.pm_reply_send).performClick();
+        assertEquals(1, operations.sends);
+        assertEquals(42, operations.target.messageId);
+        operations.callback.onSuccess();
+        assertEquals(0, operations.queuedDeletes);
+        assertEquals(0, deleted);
+        assertNull(ShadowToast.getTextOfLatestToast());
+    }
+
+    /** Hidden actions and direct invocations must never enqueue an already-trashed message or send its draft. */
+    @Test
+    public void trashDeletionGuardsRejectHiddenClicksAndDirectCalls() {
+        draft.attachment = "unsent.png";
+        createTrashComposer();
+        composer.show();
+        button(R.id.pm_detail_delete).performClick();
+        button(R.id.pm_reply_send_delete).performClick();
+        ReflectionHelpers.callInstanceMethod(composer, "deleteMessage");
+        ReflectionHelpers.callInstanceMethod(composer, "send",
+                ReflectionHelpers.ClassParameter.from(boolean.class, true));
+        assertEquals(0, operations.queuedDeletes);
+        assertEquals(0, operations.sends);
+        assertEquals(0, deleted);
+        assertEquals(0, dismissed);
+        assertFalse(draft.deleting);
+        assertEquals("reply to original sender", draft.text);
+        assertEquals("unsent.png", draft.attachment);
+        assertTrue(button(R.id.pm_reply_send).isEnabled());
+        assertTrue(dialog().isShowing());
+    }
+
     /** A storage rejection retains freshly edited text and attachment and allows another explicit deletion. */
     @Test
     public void rejectedDirectDeleteKeepsDraftAndRestoresControls() {
@@ -540,7 +583,9 @@ public class PmMessageDialogTest {
         MaterialButton close = dialog().findViewById(R.id.pm_detail_close);
         assertReadable(close.getIconTint().getColorForState(close.getDrawableState(), 0), surface);
         assertReadable(button(R.id.pm_detail_delete).getCurrentTextColor(), surface);
-        assertReadable(button(R.id.pm_reply_send_delete).getCurrentTextColor(), surface);
+        MaterialButton sendAndDelete = dialog().findViewById(R.id.pm_reply_send_delete);
+        assertReadable(sendAndDelete.getCurrentTextColor(), sendAndDelete.getBackgroundTintList()
+                .getColorForState(sendAndDelete.getDrawableState(), 0));
         MaterialButton attach = dialog().findViewById(R.id.pm_attach_button);
         assertReadable(attach.getIconTint().getColorForState(attach.getDrawableState(), 0), surface);
         MaterialButton send = dialog().findViewById(R.id.pm_reply_send);
@@ -606,6 +651,17 @@ public class PmMessageDialogTest {
         message.setTitle("subject");
         message.setFullHtml("<b>full &amp; message</b>");
         message.setPreviewHtml("short preview");
+        composer = new PmMessageDialog(activityController.get(), message, false, draft,
+                () -> deleted++, () -> dismissed++, operations, 14);
+    }
+
+    /** Builds a source row already in trash without introducing a permanent-delete API operation. */
+    private void createTrashComposer() {
+        FeedPm message = new FeedPm();
+        message.setId(42);
+        message.setSourceFolder(5);
+        message.setTitle("trashed subject");
+        message.setFullHtml("<b>trashed complete body</b>");
         composer = new PmMessageDialog(activityController.get(), message, false, draft,
                 () -> deleted++, () -> dismissed++, operations, 14);
     }

@@ -26,6 +26,8 @@
                 android:id="@+id/pm_detail_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -34,6 +36,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="13sp" />
         </LinearLayout>
@@ -76,6 +80,22 @@
                 android:textColor="?attr/colorOnSurface"
                 android:textColorLink="?attr/colorPrimary"
                 android:textSize="17sp" />
+            <TextView
+                android:id="@+id/pm_deletion_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/pm_deletion_checking"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pm_deletion_retry"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pm_retry"
+                android:textColor="?attr/colorPrimary"
+                android:visibility="gone" />
             <TextView
                 android:id="@+id/pm_recipient_status"
                 android:layout_width="match_parent"

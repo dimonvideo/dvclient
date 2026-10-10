@@ -27,6 +27,9 @@ public final class PmDeletionQueue {
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
+    /** Distinguishes a safe absent intent from a failed read while restoring a message composer. */
+    public enum DeletionState { PENDING, ABSENT, UNAVAILABLE }
+
     /** Separates durable intent acceptance from best-effort background work scheduling. */
     interface Scheduler {
         /** Persists the worker request or throws while leaving the accepted intent available for recovery. */
@@ -186,6 +189,31 @@ public final class PmDeletionQueue {
             }
             MAIN.post(() -> callback.accept(accountKey != null
                     && accountKey.equals(currentAccountKey()) ? ids : new HashSet<>()));
+        });
+    }
+
+    /**
+     * Reads one account-bound durable intent before a restored composer may submit new actions.
+     * Uses the insertion executor so an earlier pending commit cannot be overtaken by this lookup.
+     * Failed reads remain unavailable instead of being mistaken for an absent deletion.
+     */
+    public static void getDeletionState(Context context, String accountKey, int messageId,
+                                        Consumer<DeletionState> callback) {
+        Context appContext = context.getApplicationContext();
+        IO.execute(() -> {
+            DeletionState result = DeletionState.UNAVAILABLE;
+            if (accountKey != null && messageId > 0 && accountKey.equals(currentAccountKey())) {
+                try {
+                    PmDeletionStore.Entry entry = PmDeletionStore.get(appContext).find(accountKey, messageId);
+                    result = entry != null && !PmDeletionRetryPolicy.isExpired(entry.createdAt,
+                            System.currentTimeMillis()) ? DeletionState.PENDING : DeletionState.ABSENT;
+                } catch (Exception exception) {
+                    // Keep restored actions blocked until the user can verify the durable store.
+                }
+            }
+            DeletionState checked = result;
+            MAIN.post(() -> callback.accept(accountKey != null && accountKey.equals(currentAccountKey())
+                    ? checked : DeletionState.UNAVAILABLE));
         });
     }
 

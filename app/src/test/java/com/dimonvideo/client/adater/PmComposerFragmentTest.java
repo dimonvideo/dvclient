@@ -7,6 +7,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentFactory;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 
@@ -32,6 +34,8 @@ import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.util.ReflectionHelpers;
 
+import java.util.function.Consumer;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
@@ -51,6 +55,8 @@ public class PmComposerFragmentTest {
     /** Opens a verified account with no database, Firebase or background application startup. */
     @Before
     public void setUp() {
+        TestActivity.restoredOperations = null;
+        TestActivity.restoredDeletionLookup = null;
         PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.getApplication()).edit()
                 .clear().putString("dvc_login", "original-user").putInt("user_id", 12)
                 .putInt("auth_state", 1).commit();
@@ -69,6 +75,8 @@ public class PmComposerFragmentTest {
         }
         activity.pause().stop().destroy();
         ShadowLooper.shadowMainLooper().idle();
+        TestActivity.restoredOperations = null;
+        TestActivity.restoredDeletionLookup = null;
     }
 
     /** A picker request, full body, recipient and freshly edited reply all survive actual activity replacement. */
@@ -278,6 +286,153 @@ public class PmComposerFragmentTest {
         assertEquals(0, operations.sends);
     }
 
+    /** A cold-restored pending deletion blocks mutations until the durable queue closes its original mailbox sheet. */
+    @Test
+    public void processDeathAfterPersistedDeletionClosesSheetWithoutReplayingLostCallbacks() {
+        FakeOperations previousOperations = openSendableOutgoing();
+        input().setText("unsent reply while deletion is being persisted");
+        PmComposerFragment.State previousState = composerState();
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        assertTrue(previousState.draft.deleting);
+        assertEquals(1, previousOperations.queuedDeletes);
+        FakeOperations restoredOperations = new FakeOperations();
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        restoreProcess(restoredOperations, lookup);
+        assertNotSame(previousState, composerState());
+        assertNotSame(previousState.draft, composerState().draft);
+        assertNotSame(owner, new ViewModelProvider(activity.get()).get(PmAttachmentOwner.class));
+        assertEquals("unsent reply while deletion is being persisted", input().getText().toString());
+        assertEquals(1, lookup.checks);
+        assertEquals(account, lookup.account);
+        assertEquals(42, lookup.message);
+        assertMutationControlsBlocked();
+        send().performClick();
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        fragment().requireDialog().findViewById(R.id.pm_reply_send_delete).performClick();
+        fragment().requireDialog().findViewById(R.id.pm_attach_button).performClick();
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(0, restoredOperations.pickers);
+        final int[] removedMessage = {0};
+        final int[] removedFolder = {-1};
+        final int[] notifications = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(), (key, result) -> {
+                    removedMessage[0] = result.getInt("message");
+                    removedFolder[0] = result.getInt("folder");
+                    notifications[0]++;
+                });
+        lookup.complete(PmDeletionQueue.DeletionState.PENDING);
+        ShadowLooper.shadowMainLooper().idle();
+        activity.get().getSupportFragmentManager().executePendingTransactions();
+        assertNull(fragment());
+        assertEquals(42, removedMessage[0]);
+        assertEquals(1, removedFolder[0]);
+        assertEquals(1, notifications[0]);
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(1, previousOperations.queuedDeletes);
+    }
+
+    /** A rejected write before process death restores the draft and permits one explicit new deletion attempt. */
+    @Test
+    public void processDeathWithoutDurableDeletionUnlocksPreservedDraftAfterLookup() {
+        openSendableOutgoing();
+        input().setText("preserve this reply when no deletion was committed");
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        FakeOperations restoredOperations = new FakeOperations();
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        restoreProcess(restoredOperations, lookup);
+        assertMutationControlsBlocked();
+        lookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        ShadowLooper.shadowMainLooper().idle();
+        assertTrue(fragment().requireDialog().isShowing());
+        assertEquals("preserve this reply when no deletion was committed", input().getText().toString());
+        assertFalse(composerState().draft.deleting);
+        assertTrue(input().isEnabled());
+        assertTrue(send().isEnabled());
+        assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(0, restoredOperations.sends);
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        assertEquals(1, restoredOperations.queuedDeletes);
+        assertEquals(42, restoredOperations.deletionFeed.getId());
+        assertEquals(1, restoredOperations.deletionFeed.getSourceFolder());
+    }
+
+    /** An unreadable queue keeps actions blocked and offers a read-only retry rather than another deletion request. */
+    @Test
+    public void processRestoreUnavailableQueueKeepsDraftBlockedUntilManualLookupRetry() {
+        openSendableOutgoing();
+        input().setText("preserve draft while durable state cannot be read");
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        FakeOperations restoredOperations = new FakeOperations();
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        restoreProcess(restoredOperations, lookup);
+        lookup.complete(PmDeletionQueue.DeletionState.UNAVAILABLE);
+        ShadowLooper.shadowMainLooper().idle();
+        assertMutationControlsBlocked();
+        assertEquals("preserve draft while durable state cannot be read", input().getText().toString());
+        Button retry = fragment().requireDialog().findViewById(R.id.pm_deletion_retry);
+        assertEquals(android.view.View.VISIBLE, retry.getVisibility());
+        assertTrue(retry.isEnabled());
+        retry.performClick();
+        assertEquals(2, lookup.checks);
+        assertEquals(account, lookup.account);
+        assertEquals(42, lookup.message);
+        assertMutationControlsBlocked();
+        assertEquals(0, restoredOperations.queuedDeletes);
+        assertEquals(0, restoredOperations.sends);
+        lookup.complete(PmDeletionQueue.DeletionState.ABSENT);
+        ShadowLooper.shadowMainLooper().idle();
+        assertTrue(send().isEnabled());
+        assertTrue(input().isEnabled());
+        assertFalse(composerState().draft.deleting);
+        assertEquals("preserve draft while durable state cannot be read", input().getText().toString());
+        assertEquals(android.view.View.GONE, retry.getVisibility());
+    }
+
+    /** A durable intent is reconciled even when the last Android snapshot predates the deletion's transient UI flag. */
+    @Test
+    public void processRestoreChecksQueueEvenWithoutSavedDeletionFlag() {
+        openSendableOutgoing();
+        assertFalse(composerState().draft.deleting);
+        FakeOperations restoredOperations = new FakeOperations();
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        restoreProcess(restoredOperations, lookup);
+        assertEquals(1, lookup.checks);
+        assertMutationControlsBlocked();
+        lookup.complete(PmDeletionQueue.DeletionState.PENDING);
+        ShadowLooper.shadowMainLooper().idle();
+        activity.get().getSupportFragmentManager().executePendingTransactions();
+        assertNull(fragment());
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+    }
+
+    /** A lookup finishing after logout cannot publish a removal into the newly signed-in account's mailbox. */
+    @Test
+    public void accountChangeDuringColdDeletionLookupRejectsLateScopedResult() {
+        openSendableOutgoing();
+        fragment().requireDialog().findViewById(R.id.pm_detail_delete).performClick();
+        FakeOperations restoredOperations = new FakeOperations();
+        FakeDeletionLookup lookup = new FakeDeletionLookup();
+        restoreProcess(restoredOperations, lookup);
+        final int[] removals = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(), (key, result) -> removals[0]++);
+        AppController.getInstance().getSharedPreferences().edit()
+                .putString("dvc_login", "replacement-user").putInt("user_id", 99).commit();
+        ShadowLooper.shadowMainLooper().idle();
+        activity.get().getSupportFragmentManager().executePendingTransactions();
+        assertNull(fragment());
+        lookup.complete(PmDeletionQueue.DeletionState.PENDING);
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals(0, removals[0]);
+        assertEquals(0, restoredOperations.sends);
+        assertEquals(0, restoredOperations.queuedDeletes);
+    }
+
     /** A rejected deletion after rotation restarts the canceled lookup so an outgoing reply can be addressed safely. */
     @Test
     public void directDeleteRejectionAfterRotationRestartsUnresolvedOutgoingRecipientOnce() {
@@ -432,6 +587,31 @@ public class PmComposerFragmentTest {
         }
     }
 
+    /** Starts a new Android host from serialized state, with neither the old fragment nor its ViewModels retained. */
+    private void restoreProcess(FakeOperations operations, FakeDeletionLookup lookup) {
+        Bundle saved = saveAsParcel();
+        activity.pause().stop().destroy();
+        TestActivity.restoredOperations = operations;
+        TestActivity.restoredDeletionLookup = lookup;
+        activity = Robolectric.buildActivity(TestActivity.class).setup(saved);
+        ShadowLooper.shadowMainLooper().idle();
+    }
+
+    /** Verifies every mutation barrier while the user can still dismiss a sheet with uncertain deletion state. */
+    private void assertMutationControlsBlocked() {
+        assertFalse(input().isEnabled());
+        assertFalse(send().isEnabled());
+        assertFalse(fragment().requireDialog().findViewById(R.id.pm_reply_send_delete).isEnabled());
+        assertFalse(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
+        assertFalse(fragment().requireDialog().findViewById(R.id.pm_attach_button).isEnabled());
+        assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_close).isEnabled());
+    }
+
+    /** Gets the current fragment's retained values so a cold restoration cannot pass using old object identities. */
+    private PmComposerFragment.State composerState() {
+        return new ViewModelProvider(fragment()).get(PmComposerFragment.State.class);
+    }
+
     /** Finds the current sheet through FragmentManager, including after actual activity recreation. */
     private PmComposerFragment fragment() {
         return (PmComposerFragment) activity.get().getSupportFragmentManager().findFragmentByTag(PmComposerFragment.TAG);
@@ -460,9 +640,28 @@ public class PmComposerFragmentTest {
 
     /** Uses the app theme for both the first host and the new instance created by Robolectric. */
     public static class TestActivity extends FragmentActivity {
+        static PmMessageDialog.Operations restoredOperations;
+        static PmComposerFragment.DeletionLookup restoredDeletionLookup;
+
         /** Applies the Material theme before a restored dialog is inflated. */
         @Override protected void onCreate(Bundle savedInstanceState) {
             setTheme(R.style.AppTheme);
+            getSupportFragmentManager().setFragmentFactory(new FragmentFactory() {
+                /** Injects read-only queue outcomes before a real saved fragment reaches its creation callbacks. */
+                @Override public Fragment instantiate(ClassLoader classLoader, String className) {
+                    Fragment fragment = super.instantiate(classLoader, className);
+                    if (fragment instanceof PmComposerFragment) {
+                        PmComposerFragment.DeletionLookup lookup = restoredDeletionLookup != null
+                                ? restoredDeletionLookup : (context, account, id, callback) ->
+                                callback.accept(PmDeletionQueue.DeletionState.ABSENT);
+                        ReflectionHelpers.setField(fragment, "initialDeletionLookup", lookup);
+                        if (restoredOperations != null) {
+                            ReflectionHelpers.setField(fragment, "initialOperations", restoredOperations);
+                        }
+                    }
+                    return fragment;
+                }
+            });
             super.onCreate(savedInstanceState);
         }
     }
@@ -475,7 +674,7 @@ public class PmComposerFragmentTest {
 
     /** Leaves mutations pending so tests can rotate before a real send/deletion boundary is acknowledged. */
     private static final class FakeOperations implements PmMessageDialog.Operations {
-        int sends, queuedDeletes, recipientLookups;
+        int sends, queuedDeletes, recipientLookups, pickers;
         boolean deferRecipientResolution;
         PmSendTarget target;
         FeedPm deletionFeed;
@@ -518,6 +717,33 @@ public class PmComposerFragmentTest {
         }
 
         /** Keeps this send-only fixture from launching the device picker. */
-        @Override public boolean pickImage(String requestId, String accountKey) { return false; }
+        @Override public boolean pickImage(String requestId, String accountKey) {
+            pickers++;
+            return false;
+        }
+    }
+
+    /** Defers durable-state reads independently of the callbacks lost when the original process was destroyed. */
+    private static final class FakeDeletionLookup implements PmComposerFragment.DeletionLookup {
+        int checks;
+        String account;
+        int message;
+        Consumer<PmDeletionQueue.DeletionState> callback;
+
+        /** Records the exact account/message requested by the cold-restored sheet without touching storage or HTTP. */
+        @Override public void check(android.content.Context context, String account, int messageId,
+                                    Consumer<PmDeletionQueue.DeletionState> callback) {
+            checks++;
+            this.account = account;
+            message = messageId;
+            this.callback = callback;
+        }
+
+        /** Completes only the most recent read so tests can verify blocked controls before and between retries. */
+        void complete(PmDeletionQueue.DeletionState result) {
+            Consumer<PmDeletionQueue.DeletionState> pending = callback;
+            callback = null;
+            pending.accept(result);
+        }
     }
 }

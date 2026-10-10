@@ -172,12 +172,15 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         }
     }
 
-    /** Presents actions using a message snapshot so asynchronous list updates cannot change the target. */
+    /** Presents snapshot-bound actions while omitting deletion for rows already moved into trash. */
     private void showActions(FeedPm feed) {
         final String account = accountState.accountKey();
         if (!accountState.isCurrent(account)) return;
-        CharSequence[] actions = {context.getString(R.string.action_open),
-                context.getString(R.string.copy_listtext), context.getString(R.string.pm_delete)};
+        CharSequence[] actions = deletionSourceFolder == 5 || feed.getSourceFolder() == 5
+                ? new CharSequence[]{context.getString(R.string.action_open),
+                        context.getString(R.string.copy_listtext)}
+                : new CharSequence[]{context.getString(R.string.action_open),
+                        context.getString(R.string.copy_listtext), context.getString(R.string.pm_delete)};
         new AlertDialog.Builder(context).setTitle(feed.getTitle()).setItems(actions, (dialog, item) -> {
             if (synchronizeAccount() || !accountState.isCurrent(account)) return;
             if (item == 0) {
@@ -289,14 +292,16 @@ public class AdapterPm extends RecyclerView.Adapter<AdapterPm.ItemViewHolder> {
         }
     }
 
-    /** Requests a folder change and waits for durable queue acceptance or server acknowledgement. */
+    /** Requests an acknowledged folder change without queuing a no-op deletion of a trash row. */
     private void changeFolder(int messageId, int operation) {
+        if (operation == 0 && deletionSourceFolder == 5) return;
         if (synchronizeAccount()) return;
         final String account = accountState.accountKey();
         if (!accountState.isCurrent(account)) return;
         int sourcePage = 1;
         for (FeedPm item : submittedItems) {
             if (item.getId() == messageId) {
+                if (operation == 0 && item.getSourceFolder() == 5) return;
                 sourcePage = item.getSourcePage();
                 break;
             }
