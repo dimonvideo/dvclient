@@ -27,6 +27,7 @@ import com.dimonvideo.client.util.pm.PmDeletionQueue;
 import java.util.Objects;
 import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
+import java.util.UUID;
 
 /** Restorable full-message sheet whose draft and uploads survive replacement of the activity and rows. */
 public class PmComposerFragment extends DialogFragment {
@@ -42,8 +43,8 @@ public class PmComposerFragment extends DialogFragment {
 
     /** Checks durable queue state independently of the Activity and its lost process-local callbacks. */
     interface DeletionLookup {
-        /** Returns durable state for the exact account, message and original opening time. */
-        void check(Context context, String account, int messageId, long openedAt,
+        /** Captures or restores the exact account/message checkpoint before enabling its actions. */
+        void check(Context context, String account, int messageId, String checkpointId, boolean createCheckpoint,
                    Consumer<PmDeletionQueue.DeletionState> callback);
     }
     private final SharedPreferences.OnSharedPreferenceChangeListener accountListener = (preferences, key) -> {
@@ -61,6 +62,12 @@ public class PmComposerFragment extends DialogFragment {
     /** Allows lifecycle tests to control sends and picker callbacks while using the actual restored window. */
     static boolean open(Context context, FeedPm feed, boolean member, PmMessageDialog.Draft draft,
                         PmMessageDialog.Operations operations) {
+        return open(context, feed, member, draft, operations, null);
+    }
+
+    /** Allows lifecycle tests to defer the opening checkpoint while exercising the actual restorable window. */
+    static boolean open(Context context, FeedPm feed, boolean member, PmMessageDialog.Draft draft,
+                        PmMessageDialog.Operations operations, DeletionLookup lookup) {
         FragmentActivity activity = activity(context);
         if (activity == null || activity.getSupportFragmentManager().isStateSaved()) return false;
         PmComposerFragment previous = (PmComposerFragment) activity.getSupportFragmentManager().findFragmentByTag(TAG);
@@ -68,8 +75,9 @@ public class PmComposerFragment extends DialogFragment {
         PmComposerFragment fragment = new PmComposerFragment();
         fragment.initialDraft = draft;
         fragment.initialOperations = operations;
+        fragment.initialDeletionLookup = lookup;
         Bundle arguments = encode(feed, member, PmDeletionQueue.currentAccountKey(), draft,
-                System.currentTimeMillis());
+                UUID.randomUUID().toString());
         fragment.setArguments(arguments);
         fragment.showNow(activity.getSupportFragmentManager(), TAG);
         return true;
@@ -95,17 +103,22 @@ public class PmComposerFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
         state = new ViewModelProvider(this).get(State.class);
         boolean coldRestore = state.feed == null && savedInstanceState != null;
-        if (state.feed == null) decode(savedInstanceState != null ? savedInstanceState : requireArguments(), state);
+        if (state.feed == null) {
+            decode(savedInstanceState != null ? savedInstanceState : requireArguments(), state);
+            state.createCheckpoint = !coldRestore;
+        }
         draftStore = new ViewModelProvider(requireActivity()).get(DraftStore.class);
         draftStore.bind(requireActivity());
         if (initialDraft != null) {
             state.draft = draftStore.draft(state.account, state.feed.getId(), state.member, initialDraft);
             state.draft.acknowledged = false;
         } else draftStore.remember(state.account, state.feed.getId(), state.member, state.draft);
+        state.draft.deletionCheckpointId = state.checkpointId;
         if (initialOperations != null) state.operations = initialOperations;
         if (initialDeletionLookup != null) state.deletionLookup = initialDeletionLookup;
         if (state.deletionLookup == null) state.deletionLookup = PmDeletionQueue::getDeletionState;
-        if (coldRestore && !state.member && state.feed.getSourceFolder() != 5) {
+        if (!state.member && state.feed.getSourceFolder() != 5
+                && (coldRestore || state.createCheckpoint)) {
             state.draft.checkingDeletion = true;
         }
         initialDraft = null;
@@ -148,7 +161,7 @@ public class PmComposerFragment extends DialogFragment {
         applyAttachmentResult();
     }
 
-    /** Reconciles cold-restored sheets before they can send or duplicate an already accepted deletion. */
+    /** Captures or restores a durable opening checkpoint before permitting a reply or another deletion. */
     private void checkPendingDeletion() {
         if (!isCurrentAccount() || !state.draft.checkingDeletion || state.deletionCheckInFlight) return;
         final State owner = state;
@@ -156,12 +169,15 @@ public class PmComposerFragment extends DialogFragment {
                 owner.feed.getSourceFolder());
         owner.deletionCheckInFlight = true;
         owner.deletionCheckFailed = false;
+        owner.deletionBaselineMissing = false;
         owner.draft.changed();
         owner.deletionLookup.check(requireContext().getApplicationContext(), owner.account, owner.feed.getId(),
-                owner.openedAt,
+                owner.checkpointId, owner.createCheckpoint,
                 result -> {
                     owner.deletionCheckInFlight = false;
-                    if (!Objects.equals(owner.account, PmDeletionQueue.currentAccountKey())) return;
+                    if (!Objects.equals(owner.account, PmDeletionQueue.currentAccountKey())
+                            || !Objects.equals(owner.checkpointId, owner.draft.deletionCheckpointId)) return;
+                    if (result != PmDeletionQueue.DeletionState.UNAVAILABLE) owner.createCheckpoint = false;
                     if (result == PmDeletionQueue.DeletionState.PENDING
                             || result == PmDeletionQueue.DeletionState.COMPLETED) {
                         owner.draft.text = "";
@@ -172,6 +188,8 @@ public class PmComposerFragment extends DialogFragment {
                         accepted.run();
                     } else if (result == PmDeletionQueue.DeletionState.ABSENT) {
                         owner.draft.checkingDeletion = false;
+                    } else if (result == PmDeletionQueue.DeletionState.UNTRACKED) {
+                        owner.deletionBaselineMissing = true;
                     } else {
                         owner.deletionCheckFailed = true;
                     }
@@ -186,7 +204,8 @@ public class PmComposerFragment extends DialogFragment {
         TextView status = dialog.findViewById(R.id.pm_deletion_status);
         View retry = dialog.findViewById(R.id.pm_deletion_retry);
         status.setVisibility(state.draft.checkingDeletion ? View.VISIBLE : View.GONE);
-        status.setText(state.deletionCheckFailed ? R.string.pm_deletion_check_failed
+        status.setText(state.deletionBaselineMissing ? R.string.pm_deletion_reopen
+                : state.deletionCheckFailed ? R.string.pm_deletion_check_failed
                 : R.string.pm_deletion_checking);
         retry.setVisibility(state.draft.checkingDeletion && state.deletionCheckFailed
                 ? View.VISIBLE : View.GONE);
@@ -204,7 +223,7 @@ public class PmComposerFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         if (composer != null) composer.saveDraft();
-        outState.putAll(encode(state.feed, state.member, state.account, state.draft, state.openedAt));
+        outState.putAll(encode(state.feed, state.member, state.account, state.draft, state.checkpointId));
         super.onSaveInstanceState(outState);
     }
 
@@ -254,9 +273,9 @@ public class PmComposerFragment extends DialogFragment {
 
     /** Copies full API values and a draft to Android's restorable primitive state without credentials. */
     private static Bundle encode(FeedPm feed, boolean member, String account, PmMessageDialog.Draft draft,
-                                 long openedAt) {
+                                 String checkpointId) {
         Bundle state = new Bundle();
-        state.putLong("opened_at", openedAt);
+        state.putString("checkpoint_id", checkpointId);
         state.putString("account", account);
         state.putBoolean("member", member);
         state.putInt("id", feed.getId());
@@ -295,7 +314,8 @@ public class PmComposerFragment extends DialogFragment {
         state.feed = feed;
         state.member = source.getBoolean("member");
         state.account = source.getString("account");
-        state.openedAt = source.getLong("opened_at", 0);
+        state.checkpointId = source.getString("checkpoint_id");
+        if (state.checkpointId == null) state.checkpointId = UUID.randomUUID().toString();
         state.draft.text = source.getString("text", "");
         state.draft.attachment = source.getString("attachment");
         state.draft.attachmentRequest = source.getString("request");
@@ -306,12 +326,14 @@ public class PmComposerFragment extends DialogFragment {
         FeedPm feed;
         boolean member;
         String account;
-        long openedAt;
+        String checkpointId;
+        boolean createCheckpoint;
         PmMessageDialog.Draft draft = new PmMessageDialog.Draft();
         PmMessageDialog.Operations operations;
         DeletionLookup deletionLookup;
         boolean deletionCheckInFlight;
         boolean deletionCheckFailed;
+        boolean deletionBaselineMissing;
 
         /** Allows Android's default ViewModel factory to create this view-free retained state. */
         public State() { }

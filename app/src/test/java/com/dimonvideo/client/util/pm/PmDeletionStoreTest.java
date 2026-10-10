@@ -13,6 +13,7 @@ import org.robolectric.annotation.Config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +29,7 @@ public class PmDeletionStoreTest {
     public void clearQueue() {
         store = PmDeletionStore.get(RuntimeEnvironment.getApplication());
         store.getWritableDatabase().delete("pm_deletions", null, null);
+        store.getWritableDatabase().delete("pm_composer_checkpoints", null, null);
     }
 
     /** Duplicate taps keep one persisted intent and do not reset its six-hour deadline. */
@@ -132,6 +134,10 @@ public class PmDeletionStoreTest {
         assertEquals(2, completed.sourceFolder);
         assertEquals(37, completed.sourcePage);
         assertTrue(completed.completedAt >= completed.createdAt);
+        assertNotNull(completed.receiptToken);
+        String receipt = completed.receiptToken;
+        store.close();
+        assertEquals(receipt, store.findIncludingCompleted("account", 55).receiptToken);
     }
 
     /** Marking an account's intent complete cannot change the same message ID in another account. */
@@ -153,6 +159,7 @@ public class PmDeletionStoreTest {
     public void completedMarkerCannotBeRemovedOrRetriedAsPending() {
         PmDeletionStore.Entry original = store.insert("account", 12, 55, 1000);
         assertTrue(store.complete(original));
+        String receipt = store.findIncludingCompleted("account", 55).receiptToken;
 
         assertFalse(store.remove(original));
         assertFalse(store.complete(original));
@@ -162,6 +169,7 @@ public class PmDeletionStoreTest {
         assertTrue(completed.confirmed);
         assertEquals(0, completed.failures);
         assertEquals(1000, completed.nextAttemptAt);
+        assertEquals(receipt, completed.receiptToken);
     }
 
     /** SQLite failure while recording completion preserves the pending intent for a safe retry. */
@@ -177,6 +185,7 @@ public class PmDeletionStoreTest {
             assertNotNull(store.find("account", 55));
             assertFalse(store.findIncludingCompleted("account", 55).confirmed);
             assertEquals(1000, store.find("account", 55).createdAt);
+            assertNull(store.find("account", 55).receiptToken);
         } finally {
             database.execSQL("DROP TRIGGER store_test_reject_completion");
         }
@@ -198,6 +207,7 @@ public class PmDeletionStoreTest {
         assertEquals(2, renewed.sourceFolder);
         assertEquals(37, renewed.sourcePage);
         assertEquals(0, renewed.completedAt);
+        assertNull(renewed.receiptToken);
         assertEquals(1, store.entries().size());
         assertFalse(store.complete(original));
     }
@@ -243,21 +253,161 @@ public class PmDeletionStoreTest {
         assertTrue(store.findIncludingCompleted("account", 55).confirmed);
     }
 
+    /** Version three pending rows retain their retry generation while gaining checkpoint support. */
+    @Test
+    public void migrationFromVersionThreePreservesPendingIntent() {
+        prepareLegacyDatabase(3);
+
+        PmDeletionStore.Entry migrated = store.find("account", 55);
+
+        assertMigratedIntent(migrated);
+        assertEquals(2, migrated.sourceFolder);
+        assertEquals(37, migrated.sourcePage);
+        assertNull(migrated.receiptToken);
+    }
+
+    /** Existing confirmed rows receive one stable identity rather than losing their durable acknowledgement. */
+    @Test
+    public void migrationFromVersionThreeAssignsStableReceiptToken() {
+        prepareLegacyDatabase(3, true);
+
+        PmDeletionStore.Entry completed = store.findIncludingCompleted("account", 55);
+
+        assertEquals(4, store.getReadableDatabase().getVersion());
+        assertTrue(completed.confirmed);
+        assertEquals(1000, completed.createdAt);
+        assertEquals(9000, completed.completedAt);
+        assertNotNull(completed.receiptToken);
+        assertFalse(completed.receiptToken.isEmpty());
+        String receipt = completed.receiptToken;
+        store.close();
+        assertEquals(receipt, store.findIncludingCompleted("account", 55).receiptToken);
+        assertNull(store.find("account", 55));
+    }
+
+    /** A committed checkpoint is recoverable even if process death loses the callback that reported its capture. */
+    @Test
+    public void checkpointSurvivesLostCaptureCallbackAndDatabaseReopening() {
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "sheet", true, 1000));
+        PmDeletionStore.Entry entry = store.insert("account", 12, 55, 2000);
+        assertTrue(store.complete(entry, 500));
+        store.close();
+
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
+                store.composerState("account", 55, "sheet", false, 3000));
+    }
+
+    /** A fresh composer for an externally restored message recognizes the receipt it captured before becoming usable. */
+    @Test
+    public void freshCheckpointIgnoresMatchingOlderReceiptAcrossReopening() {
+        assertTrue(store.complete(store.insert("account", 12, 55, 1000), Long.MAX_VALUE));
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "fresh-sheet", true, 2000));
+        store.close();
+
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "fresh-sheet", false, 3000));
+    }
+
+    /** Unknown legacy snapshots cannot consume an existing receipt and erase an unrelated preserved draft. */
+    @Test
+    public void missingCheckpointWithReceiptRemainsUntracked() {
+        assertTrue(store.complete(store.insert("account", 12, 55, 1000), 500));
+
+        assertEquals(PmDeletionQueue.DeletionState.UNTRACKED,
+                store.composerState("account", 55, "legacy-sheet", false, 2000));
+        assertEquals(PmDeletionQueue.DeletionState.UNTRACKED,
+                store.composerState("account", 55, "legacy-sheet", false, 3000));
+    }
+
+    /** An absent receipt permits a missing checkpoint to establish a known empty baseline for later completion. */
+    @Test
+    public void missingCheckpointWithoutReceiptEstablishesEmptyBaseline() {
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "restored-sheet", false, 1000));
+        assertTrue(store.complete(store.insert("account", 12, 55, 2000), 9000));
+
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
+                store.composerState("account", 55, "restored-sheet", false, 3000));
+    }
+
+    /** Receipt renewal changes causal identity even if completion timestamps repeat or move backwards. */
+    @Test
+    public void renewedReceiptCannotMatchOlderCheckpointAfterClockChange() {
+        PmDeletionStore.Entry original = store.insert("account", 12, 55, 1000);
+        assertTrue(store.complete(original, 9000));
+        String previousReceipt = store.findIncludingCompleted("account", 55).receiptToken;
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "sheet", true, 10000));
+        PmDeletionStore.Entry renewed = store.insert("account", 12, 55, 500);
+        assertNull(renewed.receiptToken);
+        assertTrue(store.complete(renewed, 400));
+
+        assertNotEquals(previousReceipt, store.findIncludingCompleted("account", 55).receiptToken);
+        assertEquals(PmDeletionQueue.DeletionState.COMPLETED,
+                store.composerState("account", 55, "sheet", false, 2000));
+    }
+
+    /** Reusing another account's or message's checkpoint cannot authorize the newly supplied identity. */
+    @Test
+    public void checkpointCannotBeReboundToDifferentAccountOrMessage() {
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "sheet", true, 1000));
+
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE,
+                store.composerState("other-account", 55, "sheet", false, 1000));
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE,
+                store.composerState("account", 56, "sheet", true, 1000));
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "sheet", false, 1000));
+    }
+
+    /** A pruned snapshot preserves uncertain draft state while the latest live checkpoint still recognizes its receipt. */
+    @Test
+    public void prunedCheckpointWithReceiptBecomesUntracked() {
+        assertTrue(store.complete(store.insert("account", 12, 55, 1000), 9000));
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "old-sheet", true, 10000));
+        for (int index = 0; index < 257; index++) {
+            assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                    store.composerState("account", 55, "new-sheet-" + index, true, 10000));
+        }
+
+        assertEquals(PmDeletionQueue.DeletionState.UNTRACKED,
+                store.composerState("account", 55, "old-sheet", false, 10000));
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT,
+                store.composerState("account", 55, "new-sheet-256", false, 10000));
+    }
+
     /** Reopens an actual previous-version SQLite file so the production helper performs its migration. */
     private void prepareLegacyDatabase(int version) {
+        prepareLegacyDatabase(version, false);
+    }
+
+    /** Builds an old pending or confirmed fixture without running migration until the next helper read. */
+    private void prepareLegacyDatabase(int version, boolean confirmed) {
         String path = store.getWritableDatabase().getPath();
         store.close();
         try (SQLiteDatabase database = SQLiteDatabase.openDatabase(path, null,
                 SQLiteDatabase.OPEN_READWRITE)) {
             database.execSQL("DROP TABLE pm_deletions");
-            String hints = version == 2
+            database.execSQL("DROP TABLE pm_composer_checkpoints");
+            String hints = version >= 2
                     ? ", source_folder INTEGER NOT NULL DEFAULT 0, source_page INTEGER NOT NULL DEFAULT 1" : "";
+            String completion = version == 3
+                    ? ", confirmed INTEGER NOT NULL DEFAULT 0, completed_at INTEGER NOT NULL DEFAULT 0" : "";
             database.execSQL("CREATE TABLE pm_deletions (account_key TEXT NOT NULL, "
                     + "message_id INTEGER NOT NULL, user_id INTEGER NOT NULL, created_at INTEGER NOT NULL, "
                     + "next_attempt_at INTEGER NOT NULL, failures INTEGER NOT NULL DEFAULT 0"
-                    + hints + ", PRIMARY KEY(account_key, message_id))");
-            String values = version == 2 ? "'account',55,12,1000,601000,2,2,37" : "'account',55,12,1000,601000,2";
+                    + hints + completion + ", PRIMARY KEY(account_key, message_id))");
+            String values = "'account',55,12,1000,601000,2";
+            if (version >= 2) values += ",2,37";
+            if (version == 3) values += confirmed ? ",1,9000" : ",0,0";
             database.execSQL("INSERT INTO pm_deletions VALUES (" + values + ")");
+            if (version == 3) {
+                database.execSQL("CREATE INDEX pm_deletions_pending ON pm_deletions(created_at) WHERE confirmed=0");
+            }
             database.setVersion(version);
         }
     }
@@ -265,7 +415,7 @@ public class PmDeletionStoreTest {
     /** Checks the identity, generation, and retry state common to all supported old schema versions. */
     private void assertMigratedIntent(PmDeletionStore.Entry migrated) {
         assertNotNull(migrated);
-        assertEquals(3, store.getReadableDatabase().getVersion());
+        assertEquals(4, store.getReadableDatabase().getVersion());
         assertEquals("account", migrated.accountKey);
         assertEquals(55, migrated.messageId);
         assertEquals(12, migrated.userId);
@@ -274,5 +424,6 @@ public class PmDeletionStoreTest {
         assertEquals(2, migrated.failures);
         assertFalse(migrated.confirmed);
         assertEquals(0, migrated.completedAt);
+        assertNull(migrated.receiptToken);
     }
 }

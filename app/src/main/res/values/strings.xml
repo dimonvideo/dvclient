@@ -107,6 +107,7 @@
     <string name="pm_reply_action">Reply</string>
     <string name="pm_deletion_checking">Checking message deletion…</string>
     <string name="pm_deletion_check_failed">Could not check the saved deletion. Retry the check or close this message.</string>
+    <string name="pm_deletion_reopen">Refresh the message list and open this message again. Your draft is saved.</string>
     <string name="msg_restored">Restored</string>
     <string name="menu_fav">Favorites</string>
     <string name="tab_restore">Back</string>

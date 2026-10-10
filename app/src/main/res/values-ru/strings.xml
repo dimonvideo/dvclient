@@ -105,6 +105,7 @@
     <string name="pm_reply_action">Ответить</string>
     <string name="pm_deletion_checking">Проверка удаления сообщения…</string>
     <string name="pm_deletion_check_failed">Не удалось проверить сохранённое удаление. Повторите проверку или закройте сообщение.</string>
+    <string name="pm_deletion_reopen">Обновите список сообщений и откройте сообщение снова. Черновик сохранён.</string>
     <string name="success_send_pm">Сообщение отправлено</string>
     <string name="disable_pm_notify">Отключить уведомления о новых сообщениях</string>
     <string name="dialog_no_result">Ничего не найдено</string>

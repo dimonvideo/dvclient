@@ -9,10 +9,13 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /** Durable queue and completion receipts kept outside the application cache and excluded from backup. */
 final class PmDeletionStore extends SQLiteOpenHelper {
     private static PmDeletionStore instance;
+    private static final int MAX_COMPOSER_CHECKPOINTS = 256;
 
     /** Stores only message identity and retry metadata; passwords never enter this database. */
     static final class Entry {
@@ -26,6 +29,7 @@ final class PmDeletionStore extends SQLiteOpenHelper {
         final int sourcePage;
         final boolean confirmed;
         final long completedAt;
+        final String receiptToken;
 
         /** Copies immutable intent and completion metadata from the queue cursor. */
         Entry(Cursor cursor) {
@@ -39,13 +43,14 @@ final class PmDeletionStore extends SQLiteOpenHelper {
             sourcePage = cursor.getInt(cursor.getColumnIndexOrThrow("source_page"));
             confirmed = cursor.getInt(cursor.getColumnIndexOrThrow("confirmed")) != 0;
             completedAt = cursor.getLong(cursor.getColumnIndexOrThrow("completed_at"));
+            receiptToken = cursor.getString(cursor.getColumnIndexOrThrow("receipt_token"));
         }
     }
 
     /** Opens the persistent no-backup database without changing the app's Room schema. */
     private PmDeletionStore(Context context) {
         super(context, new File(context.getNoBackupFilesDir(), "pm_deletions.db").getPath(),
-                null, 3);
+                null, 4);
         setWriteAheadLoggingEnabled(true);
     }
 
@@ -64,28 +69,42 @@ final class PmDeletionStore extends SQLiteOpenHelper {
                 + "failures INTEGER NOT NULL DEFAULT 0, source_folder INTEGER NOT NULL DEFAULT 0, "
                 + "source_page INTEGER NOT NULL DEFAULT 1, confirmed INTEGER NOT NULL DEFAULT 0, "
                 + "completed_at INTEGER NOT NULL DEFAULT 0, "
+                + "receipt_token TEXT, "
                 + "PRIMARY KEY(account_key, message_id))");
         createPendingIndex(database);
+        createComposerCheckpoints(database);
     }
 
     /** Preserves queued generations while adding source hints and durable completion acknowledgements. */
     @Override
     public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
-        if (oldVersion < 1 || oldVersion > 2 || newVersion != 3) {
+        if (oldVersion < 1 || oldVersion > 3 || newVersion != 4) {
             throw new IllegalStateException("A deletion queue migration is required");
         }
         if (oldVersion < 2) {
             database.execSQL("ALTER TABLE pm_deletions ADD COLUMN source_folder INTEGER NOT NULL DEFAULT 0");
             database.execSQL("ALTER TABLE pm_deletions ADD COLUMN source_page INTEGER NOT NULL DEFAULT 1");
         }
-        database.execSQL("ALTER TABLE pm_deletions ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 0");
-        database.execSQL("ALTER TABLE pm_deletions ADD COLUMN completed_at INTEGER NOT NULL DEFAULT 0");
-        createPendingIndex(database);
+        if (oldVersion < 3) {
+            database.execSQL("ALTER TABLE pm_deletions ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE pm_deletions ADD COLUMN completed_at INTEGER NOT NULL DEFAULT 0");
+            createPendingIndex(database);
+        }
+        database.execSQL("ALTER TABLE pm_deletions ADD COLUMN receipt_token TEXT");
+        // Existing confirmations get stable identities once; their wall-clock values have no ordering role.
+        database.execSQL("UPDATE pm_deletions SET receipt_token=lower(hex(randomblob(16))) WHERE confirmed=1");
+        createComposerCheckpoints(database);
     }
 
     /** Keeps recovery scans proportional to pending work as completed receipts accumulate. */
     private void createPendingIndex(SQLiteDatabase database) {
         database.execSQL("CREATE INDEX pm_deletions_pending ON pm_deletions(created_at) WHERE confirmed=0");
+    }
+
+    /** Persists the receipt observed by each opening before its actions can accept a new deletion. */
+    private void createComposerCheckpoints(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE pm_composer_checkpoints (checkpoint_id TEXT PRIMARY KEY, "
+                + "account_key TEXT NOT NULL, message_id INTEGER NOT NULL, receipt_token TEXT)");
     }
 
     /** Commits a new intent, preserving the original deadline when it was already queued. */
@@ -110,6 +129,7 @@ final class PmDeletionStore extends SQLiteOpenHelper {
         values.put("source_page", Math.max(1, page));
         values.put("confirmed", 0);
         values.put("completed_at", 0);
+        values.putNull("receipt_token");
         SQLiteDatabase database = getWritableDatabase();
         database.beginTransaction();
         Entry entry;
@@ -149,6 +169,66 @@ final class PmDeletionStore extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Captures or restores a view's durable receipt baseline without comparing device clock values.
+     * Capturing and reading share a transaction, so a completion cannot slip between the baseline and state.
+     * A missing restored baseline never discards a draft when an existing receipt is ambiguous.
+     */
+    PmDeletionQueue.DeletionState composerState(String accountKey, int messageId, String checkpointId,
+                                                boolean createCheckpoint, long now) {
+        if (checkpointId == null || checkpointId.isEmpty()) return PmDeletionQueue.DeletionState.UNTRACKED;
+        SQLiteDatabase database = getWritableDatabase();
+        database.beginTransaction();
+        try {
+            boolean known = false;
+            String baseline = null;
+            try (Cursor cursor = database.query("pm_composer_checkpoints", null, "checkpoint_id=?",
+                    new String[]{checkpointId}, null, null, null)) {
+                if (cursor.moveToFirst()) {
+                    if (!accountKey.equals(cursor.getString(cursor.getColumnIndexOrThrow("account_key")))
+                            || messageId != cursor.getInt(cursor.getColumnIndexOrThrow("message_id"))) {
+                        return PmDeletionQueue.DeletionState.UNAVAILABLE;
+                    }
+                    known = true;
+                    baseline = cursor.getString(cursor.getColumnIndexOrThrow("receipt_token"));
+                }
+            }
+            Entry entry = findIncludingCompleted(accountKey, messageId);
+            if (!known && (createCheckpoint || entry == null || !entry.confirmed)) {
+                baseline = entry != null && entry.confirmed ? entry.receiptToken : null;
+                ContentValues values = new ContentValues();
+                values.put("checkpoint_id", checkpointId);
+                values.put("account_key", accountKey);
+                values.put("message_id", messageId);
+                values.put("receipt_token", baseline);
+                database.insertOrThrow("pm_composer_checkpoints", null, values);
+                pruneComposerCheckpoints(database);
+                known = true;
+            }
+            PmDeletionQueue.DeletionState result;
+            if (entry != null && entry.confirmed) {
+                result = !known ? PmDeletionQueue.DeletionState.UNTRACKED
+                        : Objects.equals(entry.receiptToken, baseline) ? PmDeletionQueue.DeletionState.ABSENT
+                        : PmDeletionQueue.DeletionState.COMPLETED;
+            } else if (entry != null && !PmDeletionRetryPolicy.isExpired(entry.createdAt, now)) {
+                result = PmDeletionQueue.DeletionState.PENDING;
+            } else {
+                result = PmDeletionQueue.DeletionState.ABSENT;
+            }
+            database.setTransactionSuccessful();
+            return result;
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    /** Bounds historical openings; an evicted restored checkpoint preserves its draft as untracked. */
+    private void pruneComposerCheckpoints(SQLiteDatabase database) {
+        database.execSQL("DELETE FROM pm_composer_checkpoints WHERE checkpoint_id NOT IN "
+                + "(SELECT checkpoint_id FROM pm_composer_checkpoints ORDER BY rowid DESC LIMIT "
+                + MAX_COMPOSER_CHECKPOINTS + ")");
+    }
+
     /** Reads queued intents for recovery and for filtering a refreshed message list. */
     List<Entry> entries() {
         List<Entry> entries = new ArrayList<>();
@@ -178,11 +258,12 @@ final class PmDeletionStore extends SQLiteOpenHelper {
         return complete(entry, System.currentTimeMillis());
     }
 
-    /** Records the completion instant so only snapshots predating that result are invalidated. */
+    /** Assigns a unique receipt atomically; the completion time is metadata and never orders composers. */
     boolean complete(Entry entry, long completedAt) {
         ContentValues values = new ContentValues();
         values.put("confirmed", 1);
         values.put("completed_at", completedAt);
+        values.put("receipt_token", UUID.randomUUID().toString());
         return getWritableDatabase().update("pm_deletions", values,
                 "account_key=? AND message_id=? AND created_at=? AND confirmed=0",
                 new String[]{entry.accountKey, String.valueOf(entry.messageId),
