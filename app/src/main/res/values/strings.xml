@@ -104,6 +104,7 @@
     <string name="tab_ish">Send</string>
     <string name="msg_removed">Message removed</string>
     <string name="pm_send">Send</string>
+    <string name="pm_reply_action">Reply</string>
     <string name="msg_restored">Restored</string>
     <string name="menu_fav">Favorites</string>
     <string name="tab_restore">Back</string>

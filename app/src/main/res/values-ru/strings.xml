@@ -102,6 +102,7 @@
     <string name="msg_restored">Сообщение восстановлено</string>
     <string name="msg_removed">Сообщение удалено!</string>
     <string name="pm_send">Отправить</string>
+    <string name="pm_reply_action">Ответить</string>
     <string name="success_send_pm">Сообщение отправлено</string>
     <string name="disable_pm_notify">Отключить уведомления о новых сообщениях</string>
     <string name="dialog_no_result">Ничего не найдено</string>

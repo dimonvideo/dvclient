@@ -230,6 +230,105 @@ public class PmComposerFragmentTest {
         assertEquals(42, acceptedMessage[0]);
     }
 
+    /** Rotation retains a pending direct deletion and delivers its accepted source ID to the current mailbox. */
+    @Test
+    public void directDeleteAfterRotationClosesRestoredSheetOnlyWhenQueueAccepts() {
+        FakeOperations operations = openSendableOutgoing();
+        input().setText("unsent reply before deletion");
+        ((Button) fragment().requireDialog().findViewById(R.id.pm_detail_delete)).performClick();
+        assertEquals(0, operations.sends);
+        assertEquals(1, operations.queuedDeletes);
+        assertEquals(42, operations.deletionFeed.getId());
+        assertEquals(1, operations.deletionFeed.getSourceFolder());
+        activity.recreate();
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals("unsent reply before deletion", input().getText().toString());
+        assertFalse(send().isEnabled());
+        assertFalse(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
+        final int[] acceptedMessage = {0};
+        activity.get().getSupportFragmentManager().setFragmentResultListener(
+                PmComposerFragment.deletionResultKey(1), activity.get(),
+                (key, result) -> acceptedMessage[0] = result.getInt("message"));
+        assertEquals(0, acceptedMessage[0]);
+        operations.deletionAccepted.run();
+        ShadowLooper.shadowMainLooper().idle();
+        activity.get().getSupportFragmentManager().executePendingTransactions();
+        assertNull(fragment());
+        assertEquals(42, acceptedMessage[0]);
+        assertEquals(0, operations.sends);
+    }
+
+    /** A queue failure after rotation restores the new sheet's controls and retains its unsubmitted reply. */
+    @Test
+    public void directDeleteRejectedAfterRotationKeepsRestoredDraftAndAllowsRetry() {
+        FakeOperations operations = openSendableOutgoing();
+        input().setText("keep this reply after queue rejection");
+        ((Button) fragment().requireDialog().findViewById(R.id.pm_detail_delete)).performClick();
+        activity.recreate();
+        ShadowLooper.shadowMainLooper().idle();
+        operations.deletionRejected.run();
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals("keep this reply after queue rejection", input().getText().toString());
+        assertTrue(fragment().requireDialog().isShowing());
+        assertTrue(send().isEnabled());
+        assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_delete).isEnabled());
+        assertTrue(fragment().requireDialog().findViewById(R.id.pm_detail_close).isEnabled());
+        ((Button) fragment().requireDialog().findViewById(R.id.pm_detail_delete)).performClick();
+        assertEquals(2, operations.queuedDeletes);
+        assertEquals(0, operations.sends);
+    }
+
+    /** A rejected deletion after rotation restarts the canceled lookup so an outgoing reply can be addressed safely. */
+    @Test
+    public void directDeleteRejectionAfterRotationRestartsUnresolvedOutgoingRecipientOnce() {
+        FakeOperations operations = new FakeOperations();
+        operations.deferRecipientResolution = true;
+        openOutgoing(operations);
+        assertEquals(1, operations.recipientLookups);
+        PmRecipientResolver.Callback originalLookup = operations.recipientCallback;
+        assertFalse(send().isEnabled());
+        ((Button) fragment().requireDialog().findViewById(R.id.pm_detail_delete)).performClick();
+        activity.recreate();
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals(1, operations.recipientLookups);
+        assertFalse(send().isEnabled());
+        operations.deletionRejected.run();
+        ShadowLooper.shadowMainLooper().idle();
+        assertEquals(2, operations.recipientLookups);
+        assertNotSame(originalLookup, operations.recipientCallback);
+        assertFalse(send().isEnabled());
+        assertEquals(android.view.View.VISIBLE,
+                fragment().requireDialog().findViewById(R.id.pm_recipient_status).getVisibility());
+        assertEquals("Send to original recipient", input().getText().toString());
+        operations.recipientCallback.onResolved(88);
+        assertTrue(send().isEnabled());
+        assertEquals(2, operations.recipientLookups);
+        assertEquals(0, operations.sends);
+        send().performClick();
+        assertEquals(1, operations.sends);
+        assertEquals(0, operations.target.messageId);
+        assertEquals(88, operations.target.userId);
+    }
+
+    /** A known lookup failure remains an explicit retry rather than being silently retried after queue rejection. */
+    @Test
+    public void directDeleteRejectionDoesNotAutomaticallyRetryUnavailableRecipient() {
+        FakeOperations operations = new FakeOperations();
+        operations.deferRecipientResolution = true;
+        openOutgoing(operations);
+        operations.recipientCallback.onUnavailable();
+        ((Button) fragment().requireDialog().findViewById(R.id.pm_detail_delete)).performClick();
+        operations.deletionRejected.run();
+        assertEquals(1, operations.recipientLookups);
+        assertFalse(send().isEnabled());
+        Button retry = fragment().requireDialog().findViewById(R.id.pm_recipient_retry);
+        assertEquals(android.view.View.VISIBLE, retry.getVisibility());
+        retry.performClick();
+        assertEquals(2, operations.recipientLookups);
+        operations.recipientCallback.onResolved(88);
+        assertTrue(send().isEnabled());
+    }
+
     /** Late old-account callbacks cannot expose the original body or attach a private file after logout. */
     @Test
     public void accountSwitchDuringRecreationRejectsOriginalSheetAndLateUpload() {
@@ -300,6 +399,13 @@ public class PmComposerFragmentTest {
 
     /** Opens an outgoing composer with a controlled recipient lookup and acknowledged-operation boundaries. */
     private FakeOperations openSendableOutgoing() {
+        FakeOperations operations = new FakeOperations();
+        openOutgoing(operations);
+        return operations;
+    }
+
+    /** Opens a real outgoing sheet with either an immediate or a test-controlled recipient lookup. */
+    private void openOutgoing(FakeOperations operations) {
         FeedPm feed = new FeedPm();
         feed.setId(42);
         feed.setTitle("Outgoing message");
@@ -308,10 +414,8 @@ public class PmComposerFragmentTest {
         feed.setSourceFolder(1);
         PmMessageDialog.Draft draft = new PmMessageDialog.Draft();
         draft.text = "Send to original recipient";
-        FakeOperations operations = new FakeOperations();
         assertTrue(PmComposerFragment.open(activity.get(), feed, false, draft, operations));
         ShadowLooper.shadowMainLooper().idle();
-        return operations;
     }
 
     /** Round-trips Android saved state through a Parcel so no retained draft instance can conceal missing fields. */
@@ -371,10 +475,14 @@ public class PmComposerFragmentTest {
 
     /** Leaves mutations pending so tests can rotate before a real send/deletion boundary is acknowledged. */
     private static final class FakeOperations implements PmMessageDialog.Operations {
-        int sends;
+        int sends, queuedDeletes, recipientLookups;
+        boolean deferRecipientResolution;
         PmSendTarget target;
+        FeedPm deletionFeed;
         NetworkUtils.PmOperationCallback sendCallback;
+        PmRecipientResolver.Callback recipientCallback;
         Runnable deletionAccepted;
+        Runnable deletionRejected;
 
         /** Uses the same verified identity as the production wrapper's account checks. */
         @Override public String currentAccountKey() { return PmDeletionQueue.currentAccountKey(); }
@@ -388,12 +496,24 @@ public class PmComposerFragmentTest {
         }
 
         /** Leaves row removal pending after send success until durable storage is accepted. */
-        @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted) { deletionAccepted = onAccepted; }
+        @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted) {
+            enqueueDeletion(feed, onAccepted, null);
+        }
 
-        /** Resolves the original recipient without contacting the website. */
+        /** Retains both durable queue outcomes and the exact source while the activity is replaced. */
+        @Override public void enqueueDeletion(FeedPm feed, Runnable onAccepted, Runnable onRejected) {
+            queuedDeletes++;
+            deletionFeed = new FeedPm(feed);
+            deletionAccepted = onAccepted;
+            deletionRejected = onRejected;
+        }
+
+        /** Resolves immediately or retains a controlled lookup callback without contacting the website. */
         @Override public PmRecipientResolver.Handle resolveRecipient(String name, String account,
                                                                     PmRecipientResolver.Callback callback) {
-            callback.onResolved(88);
+            recipientLookups++;
+            recipientCallback = callback;
+            if (!deferRecipientResolution) callback.onResolved(88);
             return null;
         }
 
