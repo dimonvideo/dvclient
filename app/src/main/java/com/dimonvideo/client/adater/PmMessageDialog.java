@@ -74,6 +74,7 @@ public final class PmMessageDialog {
         String attachmentRequest;
         boolean sending;
         boolean deleting;
+        boolean checkingDeletion;
         boolean acknowledged;
         int resolvedRecipientId;
         final MutableLiveData<Integer> updates = new MutableLiveData<>(0);
@@ -163,13 +164,13 @@ public final class PmMessageDialog {
         delete = content.findViewById(R.id.pm_detail_delete);
         attach = content.findViewById(R.id.pm_attach_button);
         close = content.findViewById(R.id.pm_detail_close);
-        sendAndDelete.setVisibility(member ? View.GONE : View.VISIBLE);
-        delete.setVisibility(member ? View.GONE : View.VISIBLE);
+        sendAndDelete.setVisibility(canDeleteSource() ? View.VISIBLE : View.GONE);
+        delete.setVisibility(canDeleteSource() ? View.VISIBLE : View.GONE);
         recipientStatus = content.findViewById(R.id.pm_recipient_status);
         recipientRetry = content.findViewById(R.id.pm_recipient_retry);
         recipientRetry.setOnClickListener(view -> resolveOutgoingRecipient());
         send.setOnClickListener(view -> send(false));
-        if (!member) send.setOnLongClickListener(this::sendAndDeleteOnLongPress);
+        if (canDeleteSource()) send.setOnLongClickListener(this::sendAndDeleteOnLongPress);
         sendAndDelete.setOnClickListener(view -> send(true));
         delete.setOnClickListener(view -> deleteMessage());
         attach.setOnClickListener(view -> pickImage());
@@ -278,7 +279,7 @@ public final class PmMessageDialog {
 
     /** Resolves the original outgoing recipient; failed lookup leaves only safe full viewing and retry. */
     private void resolveOutgoingRecipient() {
-        if (member || !feed.isOutgoing() || released || sending || draft.deleting
+        if (member || !feed.isOutgoing() || released || sending || draft.deleting || draft.checkingDeletion
                 || resolvingRecipient || !ensureAccount()) return;
         resolvingRecipient = true;
         feed.setRecipientId(0);
@@ -326,7 +327,7 @@ public final class PmMessageDialog {
 
     /** Starts an account-bound picker whose result cannot be delivered to a different message sheet. */
     private void pickImage() {
-        if (sending || draft.deleting || awaitingAttachment || !ensureAccount()) return;
+        if (sending || draft.deleting || draft.checkingDeletion || awaitingAttachment || !ensureAccount()) return;
         attachmentRequest = UUID.randomUUID().toString();
         draft.attachmentRequest = attachmentRequest;
         awaitingAttachment = true;
@@ -347,9 +348,14 @@ public final class PmMessageDialog {
         return true;
     }
 
+    /** Limits deletion to existing active messages because the API only moves them into trash. */
+    private boolean canDeleteSource() {
+        return !member && feed.getSourceFolder() != 5;
+    }
+
     /** Removes the exact source PM only after its account-bound deletion has been durably accepted. */
     private void deleteMessage() {
-        if (member || sending || draft.deleting || !ensureAccount()) return;
+        if (!canDeleteSource() || sending || draft.deleting || draft.checkingDeletion || !ensureAccount()) return;
         saveDraft();
         draft.deleting = true;
         draft.changed();
@@ -371,7 +377,9 @@ public final class PmMessageDialog {
 
     /** Sends once after uploads finish and keeps the draft/sheet on transport or server rejection. */
     private void send(boolean deleteAfterSend) {
-        if (sending || draft.deleting || awaitingAttachment || resolvingRecipient || !ensureAccount()) return;
+        if (deleteAfterSend && !canDeleteSource()) return;
+        if (sending || draft.deleting || draft.checkingDeletion || awaitingAttachment
+                || resolvingRecipient || !ensureAccount()) return;
         if (!member && feed.isOutgoing() && feed.getRecipientId() <= 0) return;
         String text = input.getText().toString();
         if (text.trim().isEmpty() && draft.attachment == null) {
@@ -426,7 +434,7 @@ public final class PmMessageDialog {
             dismiss();
         } else {
             if (!sending && draft.text.isEmpty()) input.setText("");
-            if (!sending && !draft.deleting && !member && feed.isOutgoing()
+            if (!sending && !draft.deleting && !draft.checkingDeletion && !member && feed.isOutgoing()
                     && feed.getRecipientId() <= 0 && !resolvingRecipient && recipientLookup == null
                     && recipientRetry.getVisibility() != View.VISIBLE) {
                 resolveOutgoingRecipient();
@@ -437,16 +445,18 @@ public final class PmMessageDialog {
 
     /** Prevents duplicate sends, omitted pending uploads, and edits during a send request. */
     private void setSendingEnabled(boolean enabled) {
-        enabled = enabled && !draft.deleting;
+        boolean canDismiss = enabled && !draft.deleting;
+        enabled = canDismiss && !draft.checkingDeletion;
         boolean resolved = member || !feed.isOutgoing() || feed.getRecipientId() > 0;
         send.setEnabled(enabled && !awaitingAttachment && !resolvingRecipient && resolved);
-        sendAndDelete.setEnabled(enabled && !awaitingAttachment && !resolvingRecipient && resolved);
-        delete.setEnabled(enabled);
+        sendAndDelete.setEnabled(enabled && canDeleteSource()
+                && !awaitingAttachment && !resolvingRecipient && resolved);
+        delete.setEnabled(enabled && canDeleteSource());
         attach.setEnabled(enabled && !awaitingAttachment);
         input.setEnabled(enabled);
-        close.setEnabled(enabled);
+        close.setEnabled(canDismiss);
         recipientRetry.setEnabled(enabled && !resolvingRecipient);
-        dialog.setCancelable(enabled);
+        dialog.setCancelable(canDismiss);
     }
 
     /** Binds the UI boundary to existing production APIs without storing credentials in the draft. */

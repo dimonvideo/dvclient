@@ -6,6 +6,8 @@ import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 import android.util.LruCache;
 
 import androidx.annotation.NonNull;
@@ -16,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.MutableLiveData;
 
 import com.dimonvideo.client.model.FeedPm;
+import com.dimonvideo.client.R;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.pm.PmAttachmentEvent;
 import com.dimonvideo.client.util.pm.PmAttachmentOwner;
@@ -23,6 +26,7 @@ import com.dimonvideo.client.util.pm.PmDeletionQueue;
 
 import java.util.Objects;
 import java.lang.ref.WeakReference;
+import java.util.function.Consumer;
 
 /** Restorable full-message sheet whose draft and uploads survive replacement of the activity and rows. */
 public class PmComposerFragment extends DialogFragment {
@@ -33,7 +37,15 @@ public class PmComposerFragment extends DialogFragment {
     private PmAttachmentOwner attachments;
     private DraftStore draftStore;
     private PmMessageDialog.Operations initialOperations;
+    private DeletionLookup initialDeletionLookup;
     private SharedPreferences preferences;
+
+    /** Checks durable queue state independently of the Activity and its lost process-local callbacks. */
+    interface DeletionLookup {
+        /** Returns an explicit pending, absent, or unreadable state for the exact account and message. */
+        void check(Context context, String account, int messageId,
+                   Consumer<PmDeletionQueue.DeletionState> callback);
+    }
     private final SharedPreferences.OnSharedPreferenceChangeListener accountListener = (preferences, key) -> {
         if (state != null && !isCurrentAccount()) dismissAllowingStateLoss();
     };
@@ -81,6 +93,7 @@ public class PmComposerFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         state = new ViewModelProvider(this).get(State.class);
+        boolean coldRestore = state.feed == null && savedInstanceState != null;
         if (state.feed == null) decode(savedInstanceState != null ? savedInstanceState : requireArguments(), state);
         draftStore = new ViewModelProvider(requireActivity()).get(DraftStore.class);
         draftStore.bind(requireActivity());
@@ -89,8 +102,13 @@ public class PmComposerFragment extends DialogFragment {
             state.draft.acknowledged = false;
         } else draftStore.remember(state.account, state.feed.getId(), state.member, state.draft);
         if (initialOperations != null) state.operations = initialOperations;
+        if (initialDeletionLookup != null) state.deletionLookup = initialDeletionLookup;
+        if (state.deletionLookup == null) state.deletionLookup = PmDeletionQueue::getDeletionState;
+        if (coldRestore && !state.member) state.draft.checkingDeletion = true;
         initialDraft = null;
         initialOperations = null;
+        initialDeletionLookup = null;
+        state.draft.updates.observe(this, ignored -> renderDeletionCheck());
         attachments = new ViewModelProvider(requireActivity()).get(PmAttachmentOwner.class);
         attachments.changes().observe(this, ignored -> applyAttachmentResult());
         preferences = AppController.getInstance().getSharedPreferences();
@@ -108,7 +126,9 @@ public class PmComposerFragment extends DialogFragment {
                         onDeleted, this::dismissAllowingStateLoss)
                 : new PmMessageDialog(requireContext(), state.feed, state.member, state.draft,
                         onDeleted, this::dismissAllowingStateLoss, state.operations, 14);
-        return composer.dialogForFragment();
+        Dialog dialog = composer.dialogForFragment();
+        dialog.findViewById(R.id.pm_deletion_retry).setOnClickListener(view -> checkPendingDeletion());
+        return dialog;
     }
 
     /** Activates the restored controls before consuming a buffered picker/upload result. */
@@ -120,7 +140,52 @@ public class PmComposerFragment extends DialogFragment {
             return;
         }
         if (composer != null) composer.startForFragment();
+        renderDeletionCheck();
+        checkPendingDeletion();
         applyAttachmentResult();
+    }
+
+    /** Reconciles cold-restored sheets before they can send or duplicate an already accepted deletion. */
+    private void checkPendingDeletion() {
+        if (!isCurrentAccount() || !state.draft.checkingDeletion || state.deletionCheckInFlight) return;
+        final State owner = state;
+        final Runnable accepted = draftStore.acceptedCallback(owner.account, owner.feed.getId(),
+                owner.feed.getSourceFolder());
+        owner.deletionCheckInFlight = true;
+        owner.deletionCheckFailed = false;
+        owner.draft.changed();
+        owner.deletionLookup.check(requireContext().getApplicationContext(), owner.account, owner.feed.getId(),
+                result -> {
+                    owner.deletionCheckInFlight = false;
+                    if (!Objects.equals(owner.account, PmDeletionQueue.currentAccountKey())) return;
+                    if (result == PmDeletionQueue.DeletionState.PENDING) {
+                        owner.draft.text = "";
+                        owner.draft.attachment = null;
+                        owner.draft.attachmentRequest = null;
+                        owner.draft.acknowledged = true;
+                        owner.draft.checkingDeletion = false;
+                        accepted.run();
+                    } else if (result == PmDeletionQueue.DeletionState.ABSENT) {
+                        owner.draft.checkingDeletion = false;
+                    } else {
+                        owner.deletionCheckFailed = true;
+                    }
+                    owner.draft.changed();
+                });
+    }
+
+    /** Keeps unknown queue state visible with retry and close instead of assuming a failed read is safe. */
+    private void renderDeletionCheck() {
+        if (composer == null) return;
+        Dialog dialog = composer.dialogForFragment();
+        TextView status = dialog.findViewById(R.id.pm_deletion_status);
+        View retry = dialog.findViewById(R.id.pm_deletion_retry);
+        status.setVisibility(state.draft.checkingDeletion ? View.VISIBLE : View.GONE);
+        status.setText(state.deletionCheckFailed ? R.string.pm_deletion_check_failed
+                : R.string.pm_deletion_checking);
+        retry.setVisibility(state.draft.checkingDeletion && state.deletionCheckFailed
+                ? View.VISIBLE : View.GONE);
+        retry.setEnabled(!state.deletionCheckInFlight);
     }
 
     /** Rejects an account switch that occurred while the sheet's host was stopped. */
@@ -235,6 +300,9 @@ public class PmComposerFragment extends DialogFragment {
         String account;
         PmMessageDialog.Draft draft = new PmMessageDialog.Draft();
         PmMessageDialog.Operations operations;
+        DeletionLookup deletionLookup;
+        boolean deletionCheckInFlight;
+        boolean deletionCheckFailed;
 
         /** Allows Android's default ViewModel factory to create this view-free retained state. */
         public State() { }

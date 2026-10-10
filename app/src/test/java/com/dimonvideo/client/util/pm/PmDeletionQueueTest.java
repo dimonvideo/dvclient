@@ -1,6 +1,7 @@
 package com.dimonvideo.client.util.pm;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Looper;
 import android.widget.Toast;
 
 import com.dimonvideo.client.R;
@@ -182,6 +183,91 @@ public class PmDeletionQueueTest {
         assertEquals(0, scheduled.get());
     }
 
+    /** A restored composer sees its exact durable intent and receives the result on the UI thread. */
+    @Test
+    public void deletionLookupFindsExactAccountAndMessageOnMainThread() throws Exception {
+        store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis());
+        AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
+        AtomicReference<Looper> callbackLooper = new AtomicReference<>();
+
+        PmDeletionQueue.getDeletionState(context, accountKey, MESSAGE_ID, state -> {
+            callbackLooper.set(Looper.myLooper());
+            result.set(state);
+        });
+
+        await(() -> result.get() != null);
+        assertEquals(PmDeletionQueue.DeletionState.PENDING, result.get());
+        assertEquals(Looper.getMainLooper(), callbackLooper.get());
+    }
+
+    /** A queued deletion for a different message never closes the currently restored composer. */
+    @Test
+    public void deletionLookupDoesNotMatchAnotherMessage() throws Exception {
+        store.insert(accountKey, 12, MESSAGE_ID + 1, System.currentTimeMillis());
+
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT, deletionState(accountKey, MESSAGE_ID));
+    }
+
+    /** Server message IDs reused by another account do not make this account's draft look deleted. */
+    @Test
+    public void deletionLookupDoesNotMatchAnotherAccountsMessage() throws Exception {
+        store.insert(PmDeletionAccount.key("Bob", 25), 25, MESSAGE_ID, System.currentTimeMillis());
+
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT, deletionState(accountKey, MESSAGE_ID));
+    }
+
+    /** A restored form stays usable after the six-hour intent deadline without renewing that intent. */
+    @Test
+    public void deletionLookupTreatsExpiredIntentAsAbsent() throws Exception {
+        long createdAt = System.currentTimeMillis() - PmDeletionRetryPolicy.LIFETIME_MS;
+        store.insert(accountKey, 12, MESSAGE_ID, createdAt);
+
+        assertEquals(PmDeletionQueue.DeletionState.ABSENT, deletionState(accountKey, MESSAGE_ID));
+        assertEquals(createdAt, store.find(accountKey, MESSAGE_ID).createdAt);
+    }
+
+    /** An account change invalidates a lookup before its result can enable another account's form. */
+    @Test
+    public void deletionLookupRejectsAccountChangeBeforeCallback() throws Exception {
+        store.insert(accountKey, 12, MESSAGE_ID, System.currentTimeMillis());
+        AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
+
+        PmDeletionQueue.getDeletionState(context, accountKey, MESSAGE_ID, result::set);
+        context.login = "Bob";
+
+        await(() -> result.get() != null);
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE, result.get());
+    }
+
+    /** Missing account metadata or an invalid server message ID never permits a restored action. */
+    @Test
+    public void deletionLookupRejectsInvalidIdentity() throws Exception {
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE, deletionState(null, MESSAGE_ID));
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE, deletionState(accountKey, 0));
+        assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE,
+                deletionState(PmDeletionAccount.key("Bob", 25), MESSAGE_ID));
+    }
+
+    /** A database read failure cannot be mistaken for permission to reply to a possibly deleted message. */
+    @Test
+    public void deletionLookupReportsUnreadableStore() throws Exception {
+        SQLiteDatabase database = store.getWritableDatabase();
+        database.execSQL("DROP TABLE pm_deletions");
+        try {
+            assertEquals(PmDeletionQueue.DeletionState.UNAVAILABLE, deletionState(accountKey, MESSAGE_ID));
+        } finally {
+            store.onCreate(database);
+        }
+    }
+
+    /** Reads one durable deletion state after its queue I/O and main-thread account guard complete. */
+    private PmDeletionQueue.DeletionState deletionState(String account, int messageId) throws Exception {
+        AtomicReference<PmDeletionQueue.DeletionState> result = new AtomicReference<>();
+        PmDeletionQueue.getDeletionState(context, account, messageId, result::set);
+        await(() -> result.get() != null);
+        return result.get();
+    }
+
     /** Reads the real queue's filtering result after previously queued background operations finish. */
     private Set<Integer> pendingIds() throws Exception {
         AtomicReference<Set<Integer>> result = new AtomicReference<>();
@@ -202,6 +288,8 @@ public class PmDeletionQueueTest {
 
     /** Supplies an authenticated account without initializing Room, networking, or production workers. */
     public static class TestApp extends AppController {
+        private String login = "Alice";
+
         /** Installs only the application singleton needed by the queue's account guard. */
         @Override public void onCreate() {
             ReflectionHelpers.setStaticField(AppController.class, "sInstance", this);
@@ -210,7 +298,7 @@ public class PmDeletionQueueTest {
         @Override public int isAuth() { return 1; }
         /** Supplies the stable server user identity for durable work metadata. */
         @Override public int isUserId() { return 12; }
-        /** Supplies a fake login only for computing the non-secret account hash. */
-        @Override public String userName(String defaultName) { return "Alice"; }
+        /** Supplies a controllable fake login only for computing the non-secret account hash. */
+        @Override public String userName(String defaultName) { return login; }
     }
 }
