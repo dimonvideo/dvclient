@@ -159,10 +159,11 @@
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:maxLines="1"
                 android:singleLine="false"
                 android:text="@string/pm_send_and_delete"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary"
+                app:backgroundTint="?attr/colorPrimary"
                 app:strokeColor="?attr/colorOutline" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/pm_detail_delete"

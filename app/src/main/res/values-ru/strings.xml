@@ -241,12 +241,12 @@
     <string name="pm_attach_image">Прикрепить изображение</string>
     <string name="pm_attachment_unavailable">Не удалось открыть выбор изображения. Дождитесь текущих загрузок и повторите попытку.</string>
     <string name="pm_write_to">Написать %1$s</string>
-    <string name="pm_send_and_delete">Отправить и удалить</string>
+    <string name="pm_send_and_delete">Ответить и удалить</string>
     <string name="pm_empty_reply">Введите текст сообщения перед отправкой</string>
     <string name="pm_close">Закрыть</string>
     <string name="pm_unread">Непрочитанное сообщение</string>
-    <string name="pm_delete_queued">Удаление сохранено. При ошибке повторим в течение 6 часов.</string>
-    <string name="pm_delete_queue_error">Не удалось сохранить удаление. Сообщение осталось в списке.</string>
+    <string name="pm_delete_queued">Сообщение удалено.</string>
+    <string name="pm_delete_queue_error">Удаление не удалось. Сообщение осталось в списке.</string>
     <string name="pm_delete_expired">За 6 часов удаление не подтвердилось. Обновите список и попробуйте снова.</string>
     <string name="pm_load_more_failed">Не удалось загрузить сообщения. Текущий список сохранён.</string>
     <string name="pm_retry">Повторить</string>
