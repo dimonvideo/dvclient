@@ -36,7 +36,7 @@ android {
         applicationId "com.dimonvideo.client"
         minSdkVersion 27
         targetSdkVersion 37
-        versionCode 300000086
+        versionCode 300000087
         versionName "5.0"
 
         buildConfigField("String", "BASE64_ENCODED_PUBLIC_KEY", "\"" + localProperties['base64EncodedPublicKey'] + "\"")
