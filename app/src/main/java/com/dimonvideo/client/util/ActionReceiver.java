@@ -48,7 +48,7 @@ public class ActionReceiver extends BroadcastReceiver {
         }
     }
 
-    /** Keeps the receiver alive until its queue commit, then dismisses the accepted notification. */
+    /** Keeps the receiver alive until the shared queue commits and dismisses its notification. */
     public void performAction1(Context context, String id){
         int messageId;
         try {
@@ -58,13 +58,7 @@ public class ActionReceiver extends BroadcastReceiver {
         }
         PendingResult pending = goAsync();
         try {
-            PmDeletionQueue.enqueue(context, messageId, () -> {
-                try {
-                    NotificationManagerCompat.from(context.getApplicationContext()).cancel(messageId);
-                } finally {
-                    pending.finish();
-                }
-            }, pending::finish);
+            PmDeletionQueue.enqueue(context, messageId, pending::finish, pending::finish);
         } catch (RuntimeException exception) {
             pending.finish();
         }

@@ -5,7 +5,6 @@
  */
 package com.dimonvideo.client.ui.pm;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.ColorDrawable;
@@ -34,6 +33,7 @@ import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.pm.PmDeletionEvent;
 import com.dimonvideo.client.util.pm.PmDeletionQueue;
 import com.dimonvideo.client.util.pm.PmHttpTransport;
+import com.dimonvideo.client.util.pm.PmNotifications;
 import com.google.android.material.snackbar.Snackbar;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -115,9 +115,7 @@ public class PmFragment extends Fragment {
         binding.swipeLayout.setOnRefreshListener(this::refresh);
         binding.emptyView.setOnClickListener(v -> retry());
         attachSwipeActions();
-        NotificationManager notifications = (NotificationManager)
-                requireContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notifications != null) notifications.cancelAll();
+        PmNotifications.dismissAll(requireContext());
         refresh();
     }
 
