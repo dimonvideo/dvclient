@@ -11,8 +11,11 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.time.Instant;
+
 @Entity(tableName = "read_marks", indices = {
-        @Index(value = {"lid", "razdel"}, unique = true)
+        @Index(value = {"lid", "razdel"}, unique = true),
+        @Index(value = {"marked_at"})
 })
 public class ReadMarkEntity {
     @PrimaryKey(autoGenerate = true)
@@ -26,4 +29,7 @@ public class ReadMarkEntity {
 
     @ColumnInfo(name = "status")
     public int status;
+
+    @ColumnInfo(name = "marked_at", defaultValue = "0")
+    public long markedAt = Instant.now().getEpochSecond();
 }

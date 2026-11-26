@@ -29,7 +29,6 @@ import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.dimonvideo.client.Config;
-import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterTabs;
 import com.dimonvideo.client.databinding.FragmentTabsBinding;
@@ -54,7 +53,6 @@ public class ForumFragment extends Fragment  {
     private final ArrayList<String> tabTiles = new ArrayList<>();
     private final ArrayList<Integer> tabIcons = new ArrayList<>();
     private FragmentTabsBinding binding;
-    private final Toolbar toolbar = MainActivity.binding.appBarMain.toolbar;
     private TextView opros;
     private boolean doubleBackToExitPressedOnce = false;
     private NavController navController;
@@ -81,6 +79,7 @@ public class ForumFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
         AppController controller = AppController.getInstance();
         razdel = "8";
         EventBus.getDefault().postSticky(new MessageEvent(razdel, story, null, null, null, null));
@@ -96,7 +95,8 @@ public class ForumFragment extends Fragment  {
 
         TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
-        viewPager = binding.viewPager;
+        ViewPager2 pager = binding.viewPager;
+        viewPager = pager;
         AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
 
         // Инициализация navController
@@ -144,7 +144,7 @@ public class ForumFragment extends Fragment  {
         toolbar.setTitle(getString(R.string.menu_forum));
 
         if (this.getArguments() != null) {
-            viewPager.setCurrentItem(0,true);
+            pager.setCurrentItem(0,true);
             String f_name = getArguments().getString(Config.TAG_CATEGORY);
             toolbar.setSubtitle(f_name);
         }
@@ -191,11 +191,11 @@ public class ForumFragment extends Fragment  {
         });
 
 
-        viewPager.setAdapter(adapt);
-        viewPager.setCurrentItem(0,false);
-        viewPager.setOffscreenPageLimit(3);
+        pager.setAdapter(adapt);
+        pager.setCurrentItem(0,false);
+        pager.setOffscreenPageLimit(3);
 
-        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, pager, (tab, position) -> {
             if (dvc_tab_icons) {
                 tab.setIcon(tabIcons.get(position));
             } else {
@@ -209,12 +209,12 @@ public class ForumFragment extends Fragment  {
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (viewPager.getCurrentItem() > 0) {
+                if (pager.getCurrentItem() > 0) {
                     // Переключение на предыдущую вкладку
-                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1, false);
+                    pager.setCurrentItem(pager.getCurrentItem() - 1, false);
                 } else {
                     // Проверка, находимся ли мы на главном экране
-                    if (navController.getCurrentDestination() != null &&
+                    if (navController != null && navController.getCurrentDestination() != null &&
                             navController.getCurrentDestination().getId() != R.id.nav_home) {
                         navController.navigate(R.id.nav_home);
                     } else {
@@ -240,8 +240,14 @@ public class ForumFragment extends Fragment  {
     public void onDestroy() {
         if (EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         super.onDestroy();
-        binding = null;
+    }
 
+    @Override
+    public void onDestroyView() {
+        if (binding != null && viewPager == binding.viewPager) viewPager = null;
+        binding = null;
+        opros = null;
+        super.onDestroyView();
     }
 
     @Override

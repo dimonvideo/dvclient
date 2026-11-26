@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.room.Room;
@@ -135,6 +136,24 @@ public class FeedPageDaoTest {
         assertEquals(40, remaining);
     }
 
+    @Test
+    public void expiredScopesAreRemovedTogetherAndRecentlySavedScopesStayComplete() {
+        FeedPageDao dao = database.feedPageDao();
+        long cutoffMillis = 1_700_000_000_000L;
+        dao.savePage("stale", 1, "[1]", cutoffMillis - 10);
+        dao.savePage("stale", 3, "[3]", cutoffMillis);
+        dao.savePage("recent", 1, "[1]", cutoffMillis - 100);
+        dao.savePage("recent", 2, "[2]", cutoffMillis + 1);
+
+        dao.deleteExpiredScopes(cutoffMillis);
+
+        assertTrue(dao.loadPages("stale").isEmpty());
+        List<FeedPageEntity> pages = dao.loadPages("recent");
+        assertEquals(2, pages.size());
+        assertEquals(1, pages.get(0).page);
+        assertEquals(2, pages.get(1).page);
+    }
+
     /** User-requested snapshot clearing leaves downloaded content and read markers under their own policies. */
     @Test
     public void clearingSnapshotsDoesNotDeleteOtherStoredData() {
@@ -152,13 +171,47 @@ public class FeedPageDaoTest {
         database.feedPageDao().clearAll();
 
         assertTrue(database.feedPageDao().loadPages("comments").isEmpty());
-        assertEquals(1, database.feedDao().getAllRows("comments", 10).size());
+        assertEquals(1, database.feedDao().getRecentRows("comments", Long.MIN_VALUE, 10).size());
         assertEquals(1, database.readMarkDao().getStatus(7, "comments"));
     }
 
     /** Opening the released version-seven schema upgrades it while retaining downloaded items and read status. */
     @Test
     public void migrationFromVersionSevenPreservesExistingData() {
+        recreateLegacyDatabase(7);
+
+        database = openDatabase();
+        List<FeedEntity> feeds = database.feedDao().getRecentRows("comments", Long.MIN_VALUE, 10);
+        assertEquals(1, feeds.size());
+        assertEquals("Сохранено", feeds.get(0).title);
+        assertEquals("<b>HTML</b>", feeds.get(0).description);
+        assertEquals("Полный текст", feeds.get(0).fullText);
+        assertEquals(1, database.readMarkDao().getStatus(7, "comments"));
+        try (Cursor mark = database.getOpenHelper().getReadableDatabase().query(
+                "SELECT marked_at, CAST(strftime('%s', 'now') AS INTEGER) "
+                        + "FROM read_marks WHERE lid = 7 AND razdel = 'comments'")) {
+            assertTrue(mark.moveToFirst());
+            long age = mark.getLong(1) - mark.getLong(0);
+            assertTrue("The migrated mark starts a fresh retention period", age >= 0 && age <= 60);
+        }
+        database.feedPageDao().savePage("comments", 1, "[]", 100);
+        assertEquals("[]", database.feedPageDao().loadPages("comments").get(0).payload);
+        assertEquals(9, database.getOpenHelper().getReadableDatabase().getVersion());
+    }
+
+    @Test
+    public void migrationFromVersionEightPreservesExistingSnapshots() {
+        recreateLegacyDatabase(8);
+
+        database = openDatabase();
+        List<FeedPageEntity> pages = database.feedPageDao().loadPages("comments");
+        assertEquals(1, pages.size());
+        assertEquals("[7]", pages.get(0).payload);
+        assertEquals(101, pages.get(0).savedAt);
+        assertEquals(1, database.readMarkDao().getStatus(7, "comments"));
+    }
+
+    private void recreateLegacyDatabase(int version) {
         database.close();
         context.deleteDatabase(DATABASE_NAME);
         try (SQLiteDatabase legacy = context.openOrCreateDatabase(DATABASE_NAME, 0, null)) {
@@ -175,25 +228,20 @@ public class FeedPageDaoTest {
             legacy.execSQL("INSERT INTO data (lid,title,text,full_text,time,razdel,state) "
                     + "VALUES (7,'Сохранено','<b>HTML</b>','Полный текст',123,'comments',0)");
             legacy.execSQL("INSERT INTO read_marks (lid,razdel,status) VALUES (7,'comments',1)");
-            legacy.setVersion(7);
+            if (version == 8) {
+                legacy.execSQL("CREATE TABLE feed_pages (scope_key TEXT NOT NULL, page INTEGER NOT NULL, "
+                        + "payload TEXT NOT NULL, saved_at INTEGER NOT NULL, PRIMARY KEY(scope_key, page))");
+                legacy.execSQL("INSERT INTO feed_pages (scope_key,page,payload,saved_at) "
+                        + "VALUES ('comments',1,'[7]',101)");
+            }
+            legacy.setVersion(version);
         }
-
-        database = openDatabase();
-        List<FeedEntity> feeds = database.feedDao().getAllRows("comments", 10);
-        assertEquals(1, feeds.size());
-        assertEquals("Сохранено", feeds.get(0).title);
-        assertEquals("<b>HTML</b>", feeds.get(0).description);
-        assertEquals("Полный текст", feeds.get(0).fullText);
-        assertEquals(1, database.readMarkDao().getStatus(7, "comments"));
-        database.feedPageDao().savePage("comments", 1, "[]", 100);
-        assertEquals("[]", database.feedPageDao().loadPages("comments").get(0).payload);
-        assertEquals(8, database.getOpenHelper().getReadableDatabase().getVersion());
     }
 
     /** Uses production entities and migration with synchronous access limited to this isolated test. */
     private AppDatabase openDatabase() {
         return Room.databaseBuilder(context, AppDatabase.class, DATABASE_NAME)
-                .addMigrations(AppDatabase.MIGRATION_7_8)
+                .addMigrations(AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9)
                 .allowMainThreadQueries()
                 .build();
     }

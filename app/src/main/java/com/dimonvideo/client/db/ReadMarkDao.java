@@ -9,9 +9,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.Transaction;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Dao
@@ -28,27 +26,15 @@ public interface ReadMarkDao {
     @Query("DELETE FROM read_marks WHERE lid = :lid AND razdel = :razdel")
     void delete(int lid, String razdel);
 
-    @Query("DELETE FROM read_marks WHERE id NOT IN (SELECT id FROM read_marks ORDER BY id DESC LIMIT 200)")
-    void clearAll();
+    /** Keeps read history independently of the cache, including items opened from a link. */
+    @Query("DELETE FROM read_marks WHERE id IN (SELECT id FROM read_marks "
+            + "WHERE marked_at <= :cutoffSeconds ORDER BY marked_at LIMIT :limit)")
+    int deleteExpired(long cutoffSeconds, int limit);
 
-    @Transaction
-    default void markAllRead(String razdel, FeedDao feedDao) {
-        // Получаем все записи из таблицы data для указанного razdel
-        List<FeedEntity> feedEntities = feedDao.getAllRows(razdel, Integer.MAX_VALUE);
-
-        // Создаем список ReadMarkEntity для вставки
-        List<ReadMarkEntity> readMarks = new ArrayList<>();
-        for (FeedEntity feed : feedEntities) {
-            ReadMarkEntity readMark = new ReadMarkEntity();
-            readMark.lid = feed.lid;
-            readMark.razdel = feed.razdel;
-            readMark.status = 1;
-            readMarks.add(readMark);
-        }
-
-        // Вставляем или обновляем записи в read_marks
-        if (!readMarks.isEmpty()) {
-            insertAll(readMarks);
-        }
-    }
+    /** Marks the latest cached articles that still fall within the retention window. */
+    @Query("INSERT OR REPLACE INTO read_marks (lid, razdel, status, marked_at) "
+            + "SELECT lid, razdel, 1, CAST(strftime('%s', 'now') AS INTEGER) FROM data "
+            + "WHERE razdel = :razdel AND lid > 0 AND time > :cutoffSeconds "
+            + "ORDER BY time DESC, lid DESC LIMIT :limit")
+    void markRecentRead(String razdel, int limit, long cutoffSeconds);
 }

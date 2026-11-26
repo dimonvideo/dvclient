@@ -8,6 +8,7 @@ package com.dimonvideo.client.util;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -34,10 +35,12 @@ public class AppController extends Application {
     private RequestQueue mRequestQueue;
     private static SharedPreferences sharedPrefs;
     public static final String TAG = AppController.class.getSimpleName();
+    private static final int FEED_CLEANUP_BATCH_SIZE = 256;
     /** Экземпляр базы данных приложения */
     private AppDatabase db;
-    /** Пул потоков для фоновых задач */
-    private ExecutorService executor;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private boolean feedCleanupScheduled;
+    private long nextFeedCleanupAt;
 
     /** Initializes local services and recovers durable private-message deletion work. */
     @Override
@@ -45,8 +48,6 @@ public class AppController extends Application {
         super.onCreate();
         sInstance = this;
 
-        // Инициализация базы данных
-        db = AppDatabase.getInstance(this);
         applyTheme();
         PmDeletionQueue.resume(this);
     }
@@ -84,22 +85,46 @@ public class AppController extends Application {
         return db;
     }
 
-    /**
-     * Получить экземпляр ExecutorService для выполнения фоновых задач.
-     * @return Экземпляр ExecutorService
-     */
+    /** Returns the single application queue that orders feed reads and writes. */
     public ExecutorService getExecutor() {
-        if (executor == null || executor.isShutdown()) {
-            executor = Executors.newSingleThreadExecutor();
-        }
         return executor;
     }
 
-    /**
-     * Закрыть базу данных приложения.
-     * После вызова повторное получение через getDatabase создаст новый экземпляр.
-     */
-    public void closeDatabase() {
+    /** Schedules maintenance at most daily while the application is in use. */
+    public synchronized void scheduleFeedCacheCleanup() {
+        ExecutorService worker = getExecutor();
+        if (feedCleanupScheduled || SystemClock.elapsedRealtime() < nextFeedCleanupAt || worker.isShutdown()) {
+            return;
+        }
+        feedCleanupScheduled = true;
+        long cutoff = AppDatabase.feedCutoffSeconds();
+        worker.execute(() -> pruneFeedCache(cutoff, true));
+    }
+
+    /** Yields the queue between batches so a large cache cannot block later feed work for the entire sweep. */
+    private void pruneFeedCache(long cutoff, boolean firstBatch) {
+        try {
+            AppDatabase database = getDatabase();
+            if (firstBatch) database.feedPageDao().deleteExpiredScopes(TimeUnit.SECONDS.toMillis(cutoff));
+            int articles = database.feedDao().deleteExpired(cutoff, FEED_CLEANUP_BATCH_SIZE);
+            int marks = database.readMarkDao().deleteExpired(cutoff, FEED_CLEANUP_BATCH_SIZE);
+            if (articles == FEED_CLEANUP_BATCH_SIZE || marks == FEED_CLEANUP_BATCH_SIZE) {
+                getExecutor().execute(() -> pruneFeedCache(cutoff, false));
+                return;
+            }
+            finishFeedCacheCleanup(TimeUnit.DAYS.toMillis(1));
+        } catch (RuntimeException error) {
+            Log.w(TAG, "Feed cache cleanup failed", error);
+            finishFeedCacheCleanup(TimeUnit.MINUTES.toMillis(5));
+        }
+    }
+
+    private synchronized void finishFeedCacheCleanup(long delayMillis) {
+        nextFeedCleanupAt = SystemClock.elapsedRealtime() + delayMillis;
+        feedCleanupScheduled = false;
+    }
+
+    private synchronized void closeDatabase() {
         if (db != null && db.isOpen()) {
             db.close();
             Log.d(TAG, "Database closed");
@@ -463,25 +488,22 @@ public class AppController extends Application {
         getSharedPreferences().edit().putInt("pm_unread", pm_unread).apply();
     }
 
-    /**
-     * Метод жизненного цикла приложения. Вызывается при завершении работы приложения.
-     * Закрывает базу данных, завершает ExecutorService и останавливает TTS.
-     */
+    /** Stops the queue before closing its database. */
     @Override
     public void onTerminate() {
         super.onTerminate();
-        closeDatabase(); // Закрываем базу данных при завершении приложения
-
-        if (executor != null && !executor.isShutdown()) {
+        synchronized (this) {
             executor.shutdown();
-            try {
-                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    executor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
+        }
+        try {
+            if (executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                closeDatabase();
+            } else {
                 executor.shutdownNow();
-                Thread.currentThread().interrupt();
             }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
 
         Log.w(Config.TAG, "AppController terminated");

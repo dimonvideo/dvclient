@@ -75,13 +75,14 @@ public class AdapterMainRazdel extends RecyclerView.Adapter<AdapterMainRazdel.Vi
     private final List<StatusUpdate> pendingStatusUpdates = new ArrayList<>();
     private static final Object PAYLOAD_STATUS_ONLY = new Object();
 
-    /** Marks every loaded item as read immediately while preserving pending database writes. */
-    public void markAllReadInUi() {
+    /** Updates indicators for the marks that were committed by the batch action. */
+    public void applyReadMarks(List<ReadMarkEntity> marks) {
         flushStatusUpdates();
 
-        for (Feed feed : jsonFeed) {
-            String cacheKey = feed.getId() + "_" + feed.getRazdel();
-            statusCache.put(cacheKey, 1);
+        synchronized (statusCache) {
+            for (ReadMarkEntity mark : marks) {
+                statusCache.put(mark.lid + "_" + mark.razdel, mark.status);
+            }
         }
 
         notifyItemRangeChanged(0, getItemCount(), PAYLOAD_STATUS_ONLY);

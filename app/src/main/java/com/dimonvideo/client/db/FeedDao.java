@@ -23,13 +23,15 @@ public interface FeedDao {
     @Transaction
     void insertAll(List<FeedEntity> feeds);
 
-    @Query("SELECT * FROM data WHERE razdel = :razdel_name ORDER BY time DESC LIMIT :limit")
-    List<FeedEntity> getAllRows(String razdel_name, int limit);
+    @Query("SELECT * FROM data WHERE razdel = :razdel AND time > :cutoffSeconds "
+            + "ORDER BY time DESC, lid DESC LIMIT :limit")
+    List<FeedEntity> getRecentRows(String razdel, long cutoffSeconds, int limit);
 
     @Query("DELETE FROM data")
     void clearDB();
 
-    /** Expires feeds older than thirty days using the API's Unix timestamp in seconds. */
-    @Query("DELETE FROM data WHERE time <= CAST(strftime('%s', 'now', '-30 day') AS INTEGER)")
-    void clearDBOld();
+    /** Deletes a bounded batch across all sections using publication times in Unix seconds. */
+    @Query("DELETE FROM data WHERE id IN (SELECT id FROM data "
+            + "WHERE time <= :cutoffSeconds ORDER BY time LIMIT :limit)")
+    int deleteExpired(long cutoffSeconds, int limit);
 }

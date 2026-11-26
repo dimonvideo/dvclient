@@ -45,10 +45,11 @@ import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavGraph;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
@@ -57,7 +58,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.dimonvideo.client.databinding.ActivityMainBinding;
 import com.dimonvideo.client.db.AppDatabase;
-import com.dimonvideo.client.db.FeedDao;
 import com.dimonvideo.client.ui.forum.ForumFragmentTopics;
 import com.dimonvideo.client.ui.main.MainFragment;
 import com.dimonvideo.client.ui.main.MainFragmentAddFile;
@@ -72,6 +72,7 @@ import com.dimonvideo.client.util.ImageUtils;
 import com.dimonvideo.client.util.MessageEvent;
 import com.dimonvideo.client.util.NetworkUtils;
 import com.dimonvideo.client.util.SafeWindowInsets;
+import com.dimonvideo.client.util.feed.FeedQuery;
 import com.dimonvideo.client.util.pm.PmAttachmentEvent;
 import com.dimonvideo.client.util.pm.PmAttachmentOwner;
 import com.dimonvideo.client.util.pm.PmDeletionQueue;
@@ -88,8 +89,10 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String MAIN_NAV_HOST_TAG = "main_nav_host";
     public static ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     public static ActivityMainBinding binding;
+    private ActivityResultLauncher<PickVisualMediaRequest> mediaPicker;
     private NavigationView navigationView;
     private NavController navController;
     private TextView fab_badge;
@@ -136,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         controller = AppController.getInstance();
+        controller.scheduleFeedCacheCleanup();
         Analytics.init(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -146,9 +150,6 @@ public class MainActivity extends AppCompatActivity {
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-
-        // очистка старых записей
-        controller.getExecutor().execute(() -> controller.getDatabase().feedDao().clearDBOld());
 
         final String main_razdel = controller.mainRazdel();
         final String image_url = controller.imageUrl();
@@ -201,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_android, R.id.nav_articles, R.id.nav_tracker, R.id.nav_blog, R.id.nav_suploader, R.id.nav_device)
                 .setOpenableLayout(drawerLayout)
                 .build();
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = resolveMainNavHost(getSupportFragmentManager()).getNavController();
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
@@ -490,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // каллбэк загрузки изображений
-        pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+        mediaPicker = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             PmAttachmentOwner attachmentOwner = pmAttachments;
             String pmRequest = pmPickerRequestId;
             String pmAccount = pmPickerAccountKey;
@@ -531,10 +532,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        // очистка старого
-        controller.getExecutor().execute(() -> controller.getDatabase().feedDao().clearDBOld());
-        controller.getExecutor().execute(() -> controller.getDatabase().readMarkDao().clearAll());
+        pickMedia = mediaPicker;
 
     }
 
@@ -616,6 +614,33 @@ public class MainActivity extends AppCompatActivity {
         shortcutManager.setDynamicShortcuts(shortcuts);
     }
 
+    /** Finds the host even when a search or refresh fragment also uses the container. */
+    static NavHostFragment resolveMainNavHost(FragmentManager fragments) {
+        Fragment taggedHost = fragments.findFragmentByTag(MAIN_NAV_HOST_TAG);
+        if (taggedHost instanceof NavHostFragment) {
+            return (NavHostFragment) taggedHost;
+        }
+
+        // Legacy activity back-stack entries can restore an untagged XML host over the new host.
+        if (fragments.findFragmentById(R.id.nav_host_fragment) != null
+                && fragments.getBackStackEntryCount() > 0) {
+            int oldestEntry = fragments.getBackStackEntryAt(0).getId();
+            fragments.popBackStackImmediate(oldestEntry, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+
+        NavHostFragment host = new NavHostFragment();
+        FragmentTransaction transaction = fragments.beginTransaction();
+        for (Fragment fragment : fragments.getFragments()) {
+            if (fragment.getId() == R.id.container_frag) {
+                transaction.remove(fragment);
+            }
+        }
+        transaction.replace(R.id.nav_host_fragment, host, MAIN_NAV_HOST_TAG)
+                .setPrimaryNavigationFragment(host)
+                .commitNow();
+        return host;
+    }
+
     @Override
     public boolean onSupportNavigateUp() {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
@@ -629,13 +654,13 @@ public class MainActivity extends AppCompatActivity {
 
     /** Captures PM routing and account identity before the shared system picker leaves the activity. */
     public boolean launchPmImagePicker(String requestId, String accountKey) {
-        if (pickMedia == null || pmPickerRequestId != null || accountKey == null
+        if (mediaPicker == null || pmPickerRequestId != null || accountKey == null
                 || !accountKey.equals(PmDeletionQueue.currentAccountKey())) return false;
         if (!pmAttachments.beginPicker(requestId, accountKey)) return false;
         pmPickerRequestId = requestId;
         pmPickerAccountKey = accountKey;
         try {
-            pickMedia.launch(new PickVisualMediaRequest.Builder()
+            mediaPicker.launch(new PickVisualMediaRequest.Builder()
                     .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
             return true;
         } catch (RuntimeException exception) {
@@ -740,13 +765,21 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.action_mark) {
             String key = GetRazdelName.getRazdelName(razdel, 0);
-            try {
-                FeedDao feedDao = controller.getDatabase().feedDao();
-                controller.getExecutor().execute(() -> controller.getDatabase().readMarkDao().markAllRead(key, feedDao));
-            } catch (Throwable ignored) {
-            }
-            Toast.makeText(this, R.string.success, Toast.LENGTH_LONG).show();
-            recreate();
+            int limit = FeedQuery.READ_MARK_PAGES * FeedQuery.PAGE_SIZE;
+            controller.getExecutor().execute(() -> {
+                try {
+                    controller.getDatabase().readMarkDao().markRecentRead(key, limit, AppDatabase.feedCutoffSeconds());
+                } catch (RuntimeException error) {
+                    Log.w("MainActivity", "Could not save read markers", error);
+                    return;
+                }
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()
+                            || !key.equals(GetRazdelName.getRazdelName(razdel, 0))) return;
+                    Toast.makeText(this, R.string.success, Toast.LENGTH_LONG).show();
+                    recreate();
+                });
+            });
             return true;
         }
         if (id == R.id.action_others) {
@@ -815,6 +848,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
+        View activityRoot = findViewById(R.id.activity_safe_root);
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
@@ -822,6 +856,8 @@ public class MainActivity extends AppCompatActivity {
             unregisterReceiver(authReceiver);
         }
         super.onDestroy();
+        if (binding != null && binding.getRoot() == activityRoot) binding = null;
+        if (pickMedia == mediaPicker) pickMedia = null;
     }
 
     @Override
@@ -835,6 +871,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        controller.scheduleFeedCacheCleanup();
     }
 
     @Override

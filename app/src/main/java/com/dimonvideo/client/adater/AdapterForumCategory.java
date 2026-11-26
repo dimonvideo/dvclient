@@ -133,7 +133,7 @@ public class AdapterForumCategory extends RecyclerView.Adapter<AdapterForumCateg
             FragmentTransaction ft = fragmentManager.beginTransaction();
             ft.addToBackStack(fragment.toString());
             ft.add(R.id.container_frag, fragment);
-            ForumFragment.viewPager.setCurrentItem(0, true);
+            if (ForumFragment.viewPager != null) ForumFragment.viewPager.setCurrentItem(0, true);
             ft.commit();
         });
 

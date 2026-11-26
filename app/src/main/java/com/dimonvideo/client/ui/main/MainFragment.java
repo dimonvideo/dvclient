@@ -128,7 +128,8 @@ public class MainFragment extends Fragment {
 
         TabLayout tabs = binding.tabLayout;
         if (dvc_tab_inline) tabs.setTabMode(TabLayout.MODE_FIXED);
-        viewPager = binding.viewPager;
+        ViewPager2 pager = binding.viewPager;
+        viewPager = pager;
         AdapterTabs adapt = new AdapterTabs(getChildFragmentManager(), getLifecycle());
 
         // Вкладки
@@ -180,11 +181,11 @@ public class MainFragment extends Fragment {
             adapt.addFragment(comments);
         }
 
-        viewPager.setAdapter(adapt);
-        viewPager.setCurrentItem(0, false);
-        viewPager.setOffscreenPageLimit(2);
+        pager.setAdapter(adapt);
+        pager.setCurrentItem(0, false);
+        pager.setOffscreenPageLimit(2);
 
-        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, viewPager, (tab, position) -> {
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabs, pager, (tab, position) -> {
             if (dvc_tab_icons) {
                 tab.setIcon(tabIcons.get(position));
             } else {
@@ -195,7 +196,7 @@ public class MainFragment extends Fragment {
         tabLayoutMediator.attach();
 
         if (this.getArguments() != null) {
-            viewPager.post(() -> viewPager.setCurrentItem(0));
+            pager.post(() -> pager.setCurrentItem(0));
         }
 
         tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -240,8 +241,8 @@ public class MainFragment extends Fragment {
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (viewPager.getCurrentItem() > 0) {
-                    viewPager.setCurrentItem(viewPager.getCurrentItem() - 1, false);
+                if (pager.getCurrentItem() > 0) {
+                    pager.setCurrentItem(pager.getCurrentItem() - 1, false);
                 } else {
                     if (navController != null && navController.getCurrentDestination() != null &&
                             navController.getCurrentDestination().getId() != R.id.nav_home) {
@@ -271,7 +272,7 @@ public class MainFragment extends Fragment {
             String action_admin = intent_admin.getStringExtra("action_admin");
             Log.d("MainFragment", "DVAdmin intent: " + action_admin);
             if (action_admin != null && is_more) {
-                viewPager.post(() -> viewPager.setCurrentItem(1));
+                pager.post(() -> pager.setCurrentItem(1));
             }
         }
     }
@@ -298,6 +299,7 @@ public class MainFragment extends Fragment {
     public void onDestroyView() {
         handler.removeCallbacksAndMessages(null);
         scopeCaptured = false;
+        if (binding != null && viewPager == binding.viewPager) viewPager = null;
         binding = null;
         opros = null;
         super.onDestroyView();
