@@ -8,7 +8,6 @@ package com.dimonvideo.client.ui.forum;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -121,7 +120,7 @@ public class ForumFragmentTopics extends Fragment {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) { // down
-                    new Handler().postDelayed(() -> fab.setVisibility(View.GONE), 6000);
+                    fab.postDelayed(() -> fab.setVisibility(View.GONE), 6000);
                 } else if (dy < 0) { // up
                     fab.setVisibility(View.VISIBLE);
                     if (!is_top) fab.setVisibility(View.GONE);

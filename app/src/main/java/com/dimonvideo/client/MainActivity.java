@@ -35,8 +35,8 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AlertDialog;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
@@ -374,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!is_pm.equals("off") && binding != null) {
                             binding.appBarMain.fab.setVisibility(View.VISIBLE);
                         }
-                        updateShortcuts();
+                        controller.getExecutor().execute(MainActivity.this::updateShortcuts);
                         break;
                     case Config.INTENT_NEW_PM:
                     case Config.INTENT_READ_PM:
@@ -560,6 +560,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    @WorkerThread
     private void updateShortcuts() {
         ShortcutManager shortcutManager = getSystemService(ShortcutManager.class);
         List<ShortcutInfo> shortcuts = new ArrayList<>();
@@ -759,9 +760,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.action_rate) {
             String url = Config.GOOGLE_PLAY_RATE_URL;
-            if (BuildConfig.SAMSUNG) url = Config.SAMSUNG_RATE_URL;
-            if (BuildConfig.HUAWEI) url = Config.HUAWEI_RATE_URL;
-            if (BuildConfig.NASHSTORE) url = Config.NASHSTORE_RATE_URL;
             if (BuildConfig.RUSTORE) url = Config.RUSTORE_RATE_URL;
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             try {

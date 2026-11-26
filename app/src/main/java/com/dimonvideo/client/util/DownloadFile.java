@@ -48,7 +48,7 @@ public class DownloadFile {
                 Toast.makeText(context, context.getString(R.string.dvget_not_found), Toast.LENGTH_LONG).show();
                 String url = "https://play.google.com/store/apps/details?id=com.dv.adm";
 
-                if (BuildConfig.SAMSUNG)
+                if (BuildConfig.RUSTORE)
                     url = "https://dimonvideo.ru/android/368661";
 
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(
