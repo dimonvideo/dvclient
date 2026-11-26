@@ -71,7 +71,7 @@ public class ForumFragmentPosts extends BottomSheetDialogFragment {
     private String tid = "1728146606";
     private Button imagePick;
     @SuppressLint("StaticFieldLeak")
-    public static CommentsListBinding binding;
+    private CommentsListBinding binding;
     private String image_uploaded, razdel;
     private EditText textInput;
     private RecyclerView recyclerView;

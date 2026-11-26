@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
+import com.dimonvideo.client.MainActivity;
 import com.dimonvideo.client.R;
 
 public class UpdatePm {
@@ -33,10 +34,8 @@ public class UpdatePm {
                 Handler mainHandler = new Handler(Looper.getMainLooper());
 
                 mainHandler.post(() -> {
+                    if (MainActivity.binding == null || MainActivity.binding.getRoot() != view) return;
                     if (!is_pm.equals("off")) NetworkUtils.checkPassword(context, password, razdel);
-                });
-
-                mainHandler.post(() -> {
                     if ((pm_unread > 0) && (!is_pm.equals("off"))) {
                         fab_badge.setVisibility(View.VISIBLE);
                         fab_badge.setText(String.valueOf(pm_unread));

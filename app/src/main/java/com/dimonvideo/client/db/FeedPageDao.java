@@ -36,6 +36,11 @@ public abstract class FeedPageDao {
     @Query("DELETE FROM feed_pages")
     public abstract void clearAll();
 
+    /** Expires a snapshot as a unit so an offline list never loses its first page alone. */
+    @Query("DELETE FROM feed_pages WHERE scope_key IN (SELECT scope_key FROM feed_pages "
+            + "GROUP BY scope_key HAVING MAX(saved_at) <= :cutoffMillis)")
+    public abstract void deleteExpiredScopes(long cutoffMillis);
+
     /** Replaces exactly one successful page within its request scope. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract void insert(FeedPageEntity page);

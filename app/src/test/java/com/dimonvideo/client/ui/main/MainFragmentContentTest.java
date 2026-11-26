@@ -44,6 +44,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.LooperMode;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowSystemClock;
 import org.robolectric.util.ReflectionHelpers;
 
 import java.util.ArrayDeque;
@@ -62,11 +63,13 @@ public class MainFragmentContentTest {
     private TestApp app;
     private ActivityController<AppCompatActivity> host;
     private MainFragmentContent fragment;
+    private long nowMillis;
 
     /** Creates an isolated database and a themed fragment host without starting application services. */
     @Before
     public void setUp() {
         app = (TestApp) RuntimeEnvironment.getApplication();
+        nowMillis = System.currentTimeMillis();
         app.getSharedPreferences().edit().clear().commit();
         MainActivity.binding = null;
         EventBus.getDefault().removeAllStickyEvents();
@@ -99,6 +102,56 @@ public class MainFragmentContentTest {
         assertEquals(View.VISIBLE, view(R.id.saved_notice).getVisibility());
         assertEquals(View.GONE, view(R.id.offline_empty).getVisibility());
         assertEquals(View.GONE, view(R.id.progressbar).getVisibility());
+    }
+
+    @Test
+    public void cleanupCoalescesRequestsAndYieldsTheQueueBetweenBatches() {
+        long cutoff = AppDatabase.feedCutoffSeconds();
+        List<FeedEntity> expired = new ArrayList<>();
+        for (int id = 1; id <= 600; id++) {
+            FeedEntity row = new FeedEntity();
+            row.lid = id;
+            row.razdel = "articles";
+            row.timestamp = cutoff;
+            expired.add(row);
+        }
+        app.getDatabase().feedDao().insertAll(expired);
+
+        app.scheduleFeedCacheCleanup();
+        app.scheduleFeedCacheCleanup();
+        assertEquals(1, app.executor.tasks.size());
+        app.getExecutor().execute(() -> {
+            int remaining = app.getDatabase().feedDao()
+                    .getRecentRows("articles", Long.MIN_VALUE, 600).size();
+            assertTrue(remaining > 0 && remaining < 600);
+            app.scheduleFeedCacheCleanup();
+            assertEquals(1, app.executor.tasks.size());
+        });
+        drainDisk();
+
+        assertTrue(app.getDatabase().feedDao().getRecentRows("articles", Long.MIN_VALUE, 600).isEmpty());
+        app.scheduleFeedCacheCleanup();
+        assertTrue(app.executor.tasks.isEmpty());
+        ShadowSystemClock.advanceBy(1, TimeUnit.DAYS);
+        app.scheduleFeedCacheCleanup();
+        assertEquals(1, app.executor.tasks.size());
+        drainDisk();
+    }
+
+    @Test
+    public void oldLiveArticlesAreDisplayedWithoutRefillingTheLegacyIndex() throws JSONException {
+        open("7", null);
+        JSONArray response = page("articles", 71, 2);
+        response.getJSONObject(1).put(Config.TAG_TIME, AppDatabase.feedCutoffSeconds());
+        succeed(latestRequest(), response);
+        drainDisk();
+
+        assertItems(71, 72);
+        List<FeedEntity> indexed = app.getDatabase().feedDao().getRecentRows("articles", Long.MIN_VALUE, 20);
+        assertEquals(1, indexed.size());
+        assertEquals(71, indexed.get(0).lid);
+        assertEquals(response.toString(), app.getDatabase().feedPageDao()
+                .loadPages(query("7", FeedQuery.LATEST, "").scopeKey()).get(0).payload);
     }
 
     /** Exact saved video pages restore HTML and metadata without borrowing another section's cache. */
@@ -215,7 +268,7 @@ public class MainFragmentContentTest {
     public void contiguousShortCachedPagesRestoreAllTheirRows() throws JSONException {
         save("4", FeedQuery.LATEST, "", page("usernews", 21, 1));
         app.getDatabase().feedPageDao().savePage(query("4", FeedQuery.LATEST, "").scopeKey(),
-                2, page("usernews", 22, 1).toString(), 1001);
+                2, page("usernews", 22, 1).toString(), nowMillis);
         open("4", null);
         latestRequest().deliverError(new VolleyError());
         drainDisk();
@@ -232,9 +285,9 @@ public class MainFragmentContentTest {
         succeed(latestRequest(), response);
         drainDisk();
         assertItems(25);
-        assertEquals(1, app.getDatabase().feedDao().getAllRows("vuploader", 20).size());
-        assertEquals(25, app.getDatabase().feedDao().getAllRows("vuploader", 20).get(0).lid);
-        app.getDatabase().readMarkDao().markAllRead("vuploader", app.getDatabase().feedDao());
+        assertEquals(1, app.getDatabase().feedDao().getRecentRows("vuploader", Long.MIN_VALUE, 20).size());
+        assertEquals(25, app.getDatabase().feedDao().getRecentRows("vuploader", Long.MIN_VALUE, 20).get(0).lid);
+        app.getDatabase().readMarkDao().markRecentRead("vuploader", 20, AppDatabase.feedCutoffSeconds());
         assertEquals(1, app.getDatabase().readMarkDao().getStatus(25, "vuploader"));
         FeedQuery filtered = new FeedQuery("3", 0, null, FeedQuery.LATEST,
                 false, Set.of("video"), "");
@@ -242,6 +295,65 @@ public class MainFragmentContentTest {
                 .loadPages(filtered.scopeKey()).get(0).payload);
         assertTrue(app.getDatabase().feedPageDao()
                 .loadPages(query("3", FeedQuery.LATEST, "").scopeKey()).isEmpty());
+    }
+
+    @Test
+    public void scrollToTopMarksTwoShortPagesByActualSectionAndRestoresStatusOnReentry()
+            throws JSONException {
+        app.getSharedPreferences().edit().putBoolean("dvc_ontop_mark", true).commit();
+        open("18", null);
+        succeed(latestRequest(), page("articles", 51, 1));
+        ReflectionHelpers.callInstanceMethod(fragment, "requestPage",
+                ReflectionHelpers.ClassParameter.from(int.class, 2));
+        succeed(latestRequest(), page("vuploader", 51, 1));
+        ReflectionHelpers.callInstanceMethod(fragment, "requestPage",
+                ReflectionHelpers.ClassParameter.from(int.class, 3));
+        succeed(latestRequest(), page("usernews", 51, 1));
+        drainDisk();
+
+        assertItems(51, 51, 51);
+        assertTrue(view(R.id.fab_top).performClick());
+        assertEquals(0, indicatorStatus(0));
+        drainDisk();
+
+        assertEquals(1, app.getDatabase().readMarkDao().getStatus(51, "articles"));
+        assertEquals(1, app.getDatabase().readMarkDao().getStatus(51, "vuploader"));
+        assertEquals(0, app.getDatabase().readMarkDao().getStatus(51, "usernews"));
+        assertEquals(1, indicatorStatus(0));
+        assertEquals(1, indicatorStatus(1));
+        assertEquals(0, indicatorStatus(2));
+
+        host.get().getSupportFragmentManager().beginTransaction().remove(fragment).commitNow();
+        open("18", null);
+        latestRequest().deliverError(new VolleyError());
+        drainDisk();
+
+        assertItems(51, 51, 51);
+        assertEquals(1, indicatorStatus(0));
+        assertEquals(1, indicatorStatus(1));
+        assertEquals(0, indicatorStatus(2));
+    }
+
+    @Test
+    public void scrollToTopMarksSavedItemsAndSkipsPlaceholderAndLaterRefreshRows()
+            throws JSONException {
+        app.getSharedPreferences().edit().putBoolean("dvc_ontop_mark", true).commit();
+        save("7", FeedQuery.LATEST, "", page("articles", 62, 1));
+        app.getDatabase().feedPageDao().savePage(query("7", FeedQuery.LATEST, "").scopeKey(),
+                2, page("articles", 0, 1).toString(), nowMillis);
+        open("7", null);
+        drainDisk();
+        assertItems(62, 0);
+
+        assertTrue(view(R.id.fab_top).performClick());
+        succeed(latestRequest(), page("articles", 63, 1));
+        drainDisk();
+
+        assertEquals(1, app.getDatabase().readMarkDao().getStatus(62, "articles"));
+        assertEquals(0, app.getDatabase().readMarkDao().getStatus(0, "articles"));
+        assertEquals(0, app.getDatabase().readMarkDao().getStatus(63, "articles"));
+        assertItems(63);
+        assertEquals(0, indicatorStatus(0));
     }
 
     /** An invalid live response reports failure and cannot erase a valid persisted page. */
@@ -348,7 +460,7 @@ public class MainFragmentContentTest {
     /** Stores an exact query response using the real transactional cache DAO. */
     private void save(String section, String mode, String account, JSONArray payload) {
         app.getDatabase().feedPageDao().savePage(query(section, mode, account).scopeKey(),
-                1, payload.toString(), 1000);
+                1, payload.toString(), nowMillis);
     }
 
     /** Creates the same immutable scope used for an unfiltered feed fixture. */
@@ -365,7 +477,7 @@ public class MainFragmentContentTest {
         entity.description = description;
         entity.fullText = "<p>full saved item</p>";
         entity.date = "09 October 2026";
-        entity.timestamp = 1791532800;
+        entity.timestamp = TimeUnit.MILLISECONDS.toSeconds(nowMillis);
         entity.category = "Saved category";
         entity.img = "https://localhost/offline-test.png";
         entity.size = "1 MB";
@@ -389,7 +501,7 @@ public class MainFragmentContentTest {
                     .put(Config.TAG_LINK, "https://localhost/files/" + id + ".mp4")
                     .put(Config.TAG_MOD, "mp4").put(Config.TAG_CATEGORY, "Category")
                     .put(Config.TAG_HEADERS, "header").put(Config.TAG_USER, "Uploader")
-                    .put(Config.TAG_SIZE, "1 MB").put(Config.TAG_TIME, 1791532800)
+                    .put(Config.TAG_SIZE, "1 MB").put(Config.TAG_TIME, TimeUnit.MILLISECONDS.toSeconds(nowMillis))
                     .put(Config.TAG_MIN, 0).put(Config.TAG_PLUS, 0)
                     .put(Config.TAG_FAV, 0).put(Config.TAG_STATUS, 1));
         }
@@ -433,6 +545,12 @@ public class MainFragmentContentTest {
     /** Inspects the adapter's independent snapshot to verify content and section isolation. */
     private List<Feed> items() {
         return ReflectionHelpers.getField(adapter(), "jsonFeed");
+    }
+
+    /** Reads the status used by the production adapter to choose the marker drawable. */
+    private int indicatorStatus(int index) {
+        return ReflectionHelpers.callInstanceMethod(adapter(), "getCachedStatus",
+                ReflectionHelpers.ClassParameter.from(Feed.class, items().get(index)));
     }
 
     /** Finds a real view in the fragment's inflated production layout. */

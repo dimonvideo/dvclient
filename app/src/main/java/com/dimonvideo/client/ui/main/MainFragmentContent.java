@@ -33,7 +33,9 @@ import com.dimonvideo.client.R;
 import com.dimonvideo.client.adater.AdapterMainRazdel;
 import com.dimonvideo.client.databinding.FragmentFeedBinding;
 import com.dimonvideo.client.db.AppDatabase;
+import com.dimonvideo.client.db.FeedEntity;
 import com.dimonvideo.client.db.FeedPageEntity;
+import com.dimonvideo.client.db.ReadMarkEntity;
 import com.dimonvideo.client.model.Feed;
 import com.dimonvideo.client.util.AppController;
 import com.dimonvideo.client.util.GetRazdelName;
@@ -68,6 +70,7 @@ public class MainFragmentContent extends Fragment {
     private FeedQuery query;
     private JsonArrayRequest activeRequest;
     private int viewGeneration, requestGeneration, nextPage = 1, failedPage = 1;
+    private int readMarkItemCount;
     private boolean loading, cacheLoaded, freshFirstPage, loadFailed, endReached;
 
     /** Provides the public empty constructor required when Android restores the fragment. */
@@ -176,6 +179,7 @@ public class MainFragmentContent extends Fragment {
         requestGeneration++;
         query = selected;
         listFeed.clear();
+        readMarkItemCount = 0;
         adapter.updateFeed(new ArrayList<>(listFeed));
         nextPage = 1;
         loading = false;
@@ -191,6 +195,7 @@ public class MainFragmentContent extends Fragment {
     private void loadSavedData(int generation, FeedQuery selected) {
         controller.getExecutor().execute(() -> {
             List<Feed> saved = new ArrayList<>();
+            int readMarkRows = 0;
             try {
                 List<FeedPageEntity> pages = database.feedPageDao().loadPages(selected.scopeKey());
                 int expectedPage = 1;
@@ -198,21 +203,31 @@ public class MainFragmentContent extends Fragment {
                     if (page.page != expectedPage) break;
                     JSONArray json = new JSONArray(page.payload);
                     saved.addAll(FeedCodec.parse(json, selected.isDetails()));
+                    if (page.page <= FeedQuery.READ_MARK_PAGES) readMarkRows = saved.size();
                     expectedPage++;
                     if (json.length() == 0) break;
                 }
                 if (pages.isEmpty() && selected.isLegacyCacheEligible()) {
-                    saved.addAll(FeedCodec.fromLegacy(database.feedDao().getAllRows(selected.sectionKey(), 20), false));
+                    int limit = FeedQuery.READ_MARK_PAGES * FeedQuery.PAGE_SIZE;
+                    long cutoff = AppDatabase.feedCutoffSeconds();
+                    saved.addAll(FeedCodec.fromLegacy(
+                            database.feedDao().getRecentRows(selected.sectionKey(), cutoff, limit), false));
+                    readMarkRows = saved.size();
                 }
             } catch (Exception error) {
                 // Do not expose saved response bodies, account names or request URLs in diagnostics.
                 Log.w("MainFragmentContent", "Saved feed unavailable");
             }
             List<Feed> result = distinct(saved);
+            // Overlapping pages keep their first occurrence's position after deduplication.
+            int readMarkCount = distinct(saved.subList(0, readMarkRows)).size();
             handler.post(() -> {
                 if (!isCurrentView(generation, selected)) return;
                 cacheLoaded = true;
-                if (!freshFirstPage) replaceFeed(result);
+                if (!freshFirstPage) {
+                    replaceFeed(result);
+                    readMarkItemCount = readMarkCount;
+                }
                 renderState();
             });
         });
@@ -263,6 +278,7 @@ public class MainFragmentContent extends Fragment {
                 combined.addAll(feeds);
                 replaceFeed(distinct(combined));
             }
+            if (page <= FeedQuery.READ_MARK_PAGES) readMarkItemCount = listFeed.size();
             persistPage(selected, page, response.toString(), feeds);
             renderState();
         }, error -> {
@@ -283,11 +299,15 @@ public class MainFragmentContent extends Fragment {
 
     /** Persists complete API pages separately from the old section index used by read markers. */
     private void persistPage(FeedQuery selected, int page, String payload, List<Feed> feeds) {
+        controller.scheduleFeedCacheCleanup();
         controller.getExecutor().execute(() -> {
             try {
                 database.feedPageDao().savePage(selected.scopeKey(), page, payload, System.currentTimeMillis());
                 if (selected.isLatestIndexEligible() && !feeds.isEmpty()) {
-                    database.feedDao().insertAll(FeedCodec.entities(feeds));
+                    long cutoff = AppDatabase.feedCutoffSeconds();
+                    List<FeedEntity> rows = FeedCodec.entities(feeds);
+                    rows.removeIf(row -> row.lid == 0 || row.timestamp <= cutoff);
+                    if (!rows.isEmpty()) database.feedDao().insertAll(rows);
                 }
             } catch (Exception error) {
                 Log.w("MainFragmentContent", "Could not save feed");
@@ -341,17 +361,33 @@ public class MainFragmentContent extends Fragment {
                 && manager.findLastCompletelyVisibleItemPosition() == listFeed.size() - 1;
     }
 
-    /** Optionally marks the active section read in Room and posts UI work only to its surviving view. */
+    /** Persists the first two loaded pages before updating their indicators. */
     private void markReadAndScrollToTop() {
         binding.recyclerView.scrollToPosition(0);
         if (!controller.isOnTopMark()) return;
+        List<ReadMarkEntity> marks = new ArrayList<>(readMarkItemCount);
+        for (int i = 0; i < readMarkItemCount; i++) {
+            Feed feed = listFeed.get(i);
+            if (feed.getId() == 0) continue;
+            ReadMarkEntity mark = new ReadMarkEntity();
+            mark.lid = feed.getId();
+            mark.razdel = feed.getRazdel();
+            mark.status = 1;
+            marks.add(mark);
+        }
+        if (marks.isEmpty()) return;
         int generation = viewGeneration;
         FeedQuery selected = query;
         controller.getExecutor().execute(() -> {
-            database.readMarkDao().markAllRead(selected.sectionKey(), database.feedDao());
+            try {
+                database.readMarkDao().insertAll(marks);
+            } catch (RuntimeException error) {
+                Log.w("MainFragmentContent", "Could not save read markers", error);
+                return;
+            }
             handler.post(() -> {
                 if (!isCurrentView(generation, selected)) return;
-                adapter.markAllReadInUi();
+                adapter.applyReadMarks(marks);
                 Toast.makeText(requireContext(), R.string.success, Toast.LENGTH_LONG).show();
             });
         });

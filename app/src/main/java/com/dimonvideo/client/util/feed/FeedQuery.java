@@ -15,6 +15,8 @@ public final class FeedQuery {
     public static final String LATEST = "latest";
     public static final String DETAILS = "details";
     public static final String FAVORITES = "favorites";
+    public static final int PAGE_SIZE = 10;
+    public static final int READ_MARK_PAGES = 2;
 
     private final String sectionKey;
     private final String baseUrl;
@@ -50,7 +52,7 @@ public final class FeedQuery {
         if (FAVORITES.equals(tabMode)) {
             return baseUrl + page + filter + "&fav=1&login_name=" + encode(loginName);
         }
-        return baseUrl + page + "&c=limit,10," + categories + filter
+        return baseUrl + page + "&c=limit," + PAGE_SIZE + "," + categories + filter
                 + (DETAILS.equals(tabMode) && waiting ? "&st=2" : "");
     }
 

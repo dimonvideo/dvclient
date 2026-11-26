@@ -116,7 +116,7 @@ public class AdapterMainCategories extends RecyclerView.Adapter<AdapterMainCateg
             FragmentTransaction ft = fragmentManager.beginTransaction();
             ft.addToBackStack(fragment.toString());
             ft.add(R.id.container_frag, fragment);
-            MainFragment.viewPager.setCurrentItem(0, true);
+            if (MainFragment.viewPager != null) MainFragment.viewPager.setCurrentItem(0, true);
             ft.commit();
             Log.e("---", "Category cid: "+feed.getCid());
             Log.e("---", "Category razdel: "+section);

@@ -12,8 +12,8 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "data", indices = {
-        @Index(value = {"lid"}),
-        @Index(value = {"razdel"}),
+        @Index(value = {"razdel", "time", "lid"}),
+        @Index(value = {"time"}),
         @Index(value = {"lid", "razdel"}, unique = true)
 })
 public class FeedEntity {
